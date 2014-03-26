@@ -46,7 +46,7 @@ Usage
 To run RE simulaiton simulation configuration file and resource configuration file must
 be passed through command line: 
 
-$ python radical_re_namd.py --input=<my_input_file> --resource=<my_resource_configuration_file> 
+$ python radical_re_namd.py --input=my_input_file --resource=my_resource_configuration_file 
 
 Examples of these files can be found in re_package/config 
 
