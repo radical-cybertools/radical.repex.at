@@ -13,11 +13,11 @@ Prerequisites
 
 1.Radical Pilot
 
-Install from master branch in a virtual environment:\
+Install from master branch in a virtual environment:
  
-$ virtualenv $HOME/myenv\
-$ source $HOME/myenv/bin/activate\
-$ pip install --upgrade -e git://github.com/radical-cybertools/radical.pilot.git@master#egg=radical-pilot\
+$ virtualenv $HOME/myenv
+$ source $HOME/myenv/bin/activate
+$ pip install --upgrade -e git://github.com/radical-cybertools/radical.pilot.git@master#egg=radical-pilot
 
 2.NAMD
 
