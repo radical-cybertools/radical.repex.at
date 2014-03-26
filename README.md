@@ -15,9 +15,9 @@ Prerequisites
 
 Install from master branch in a virtual environment: 
  
-$ virtualenv $HOME/myenv 
-$ source $HOME/myenv/bin/activate 
-$ pip install --upgrade -e git://github.com/radical-cybertools/radical.pilot.git@master#egg=radical-pilot 
+virtualenv $HOME/myenv 
+source $HOME/myenv/bin/activate 
+pip install --upgrade -e git://github.com/radical-cybertools/radical.pilot.git@master#egg=radical-pilot 
 
 2.NAMD
 
@@ -32,9 +32,9 @@ To run this package you need to have >= NAMD/2.9 installed on target system
 Installing from source
 ----------------------
 
-$ git clone https://github.com/radical-cybertools/ReplicaExchange.git 
-$ cd re_package 
-$ python setup.py install 
+git clone https://github.com/radical-cybertools/ReplicaExchange.git 
+cd re_package 
+python setup.py install 
 
 Usage
 =========
@@ -42,7 +42,7 @@ Usage
 To run RE simulaiton simulation configuration file and resource configuration file must
 be passed through command line: 
 
-$ python radical_re_namd.py --input=<my_input_file> --resource=<my_resource_configuration_file> 
+python radical_re_namd.py --input=<my_input_file> --resource=<my_resource_configuration_file> 
 
 Examples of these files can be found in re_package/config  
 
