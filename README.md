@@ -80,7 +80,8 @@ In this part of json input file must be specified NAMD releted paramers.
 namd_path - path to NAMD executable on target system
 
 input_file_basename - base name of NAMD input file. At this point user must 
-specify path to all NAMD configuration files in this file.  
+specify path to all NAMD configuration files in this file, e.g. paths to .params, 
+.pdb and .psf files must be spesified in this file. 
 
 number_of_replicas - number of replicas user wants to launch on a target system
 
