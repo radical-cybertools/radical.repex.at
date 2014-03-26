@@ -1,0 +1,68 @@
+#######################################################
+# basic simulation options for replica exchange
+#######################################################
+
+structure       ../namd_inp/alanin.psf
+coordinates     ../namd_inp/unfolded.pdb
+
+margin          10.0
+stepspercycle   @pr@
+parameters      ../namd_re/alanin.params
+exclude         scaled1-4
+1-4scaling      0.4
+switching       on
+switchdist      7.0
+cutoff          8.0
+pairlistdist    10.0
+
+langevin on
+langevinDamping 10.0
+
+set steps_per_run   @steps@
+set replica_id      @rid@
+timestep            @stp@
+
+set job_output_root @somename@
+set old_output_root @oldname@
+
+set i_run           @cycle@
+firsttimestep       @firststep@
+
+set cycle           [expr $i_run+1]
+set doswap          @swap@
+
+set outputname $job_output_root$cycle
+outputName $outputname
+
+
+#######################################################
+# this block is for putting outpout into history file
+#######################################################
+
+proc save_callback {labels values} {
+  global saved_labels saved_values
+  set saved_labels $labels
+  set saved_values $values
+}
+callback save_callback
+
+proc save_array {} {
+  global saved_labels saved_values saved_array
+  foreach label $saved_labels value $saved_values {
+    set saved_array($label) $value
+  }
+}
+
+set history_file [open [format "@history@"] "w"]
+fconfigure $history_file -buffering line
+
+
+#######################################################
+# after run put necessary data into .history file
+#######################################################
+
+set TEMP $saved_array(TEMP)
+set POTENTIAL [expr $saved_array(TOTAL) - $saved_array(KINETIC)]
+
+puts $history_file "$NEWTEMP $POTENTIAL"
+
