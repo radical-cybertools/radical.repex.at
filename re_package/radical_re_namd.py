@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+
 import os
 import sys
 import time
@@ -5,8 +7,10 @@ import math
 import json
 import optparse
 import datetime
-#import sagapilot
+import radical.pilot
 from pprint import pprint
+from random import randint
+import random
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 
@@ -21,7 +25,17 @@ class Replica(object):
         self.cycle = 0
         if new_temperature is None:
             self.new_temperature = 0
+        else:
+            self.new_temperature = new_temperature
         self.old_temperature = new_temperature
+        self.new_coor = ""
+        self.new_vel = ""
+        self.new_history = ""
+        self.new_ext_system = "" 
+        self.old_coor = ""
+        self.old_vel = ""
+        self.old_ext_system = "" 
+        self.swap = 0
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -30,27 +44,33 @@ class ReplicaExchange(object):
     def __init__(self, inp_file, r_config ):
         # resource configuration file
         self.rconfig = r_config
-
+        
         # pilot parameters
         self.resource = inp_file['input.PILOT']['resource']
         self.sandbox = inp_file['input.PILOT']['sandbox']
-        self.cores = inp_file['input.PILOT']['cores']
-        self.runtime = inp_file['input.PILOT']['runtime']
+        self.cores = int(inp_file['input.PILOT']['cores'])
+        self.runtime = int(inp_file['input.PILOT']['runtime'])
         self.dburl = inp_file['input.PILOT']['mongo_url']
         self.cleanup = inp_file['input.PILOT']['cleanup']
 
         # NAMD parameters
         self.namd_path = inp_file['input.NAMD']['namd_path']
         self.inp_basename = inp_file['input.NAMD']['input_file_basename']
-        self.replicas = inp_file['input.NAMD']['number_of_replicas']
-        self.min_temp = inp_file['input.NAMD']['min_temperature']
-        self.max_temp = inp_file['input.NAMD']['max_temperature']
-        self.timestep = inp_file['input.NAMD']['timestep']
-        self.cycle_steps = inp_file['input.NAMD']['steps_per_cycle']
+        self.namd_structure = inp_file['input.NAMD']['namd_structure']
+        self.namd_coordinates = inp_file['input.NAMD']['namd_coordinates']
+        self.namd_parameters = inp_file['input.NAMD']['namd_parameters']
+        self.replicas = int(inp_file['input.NAMD']['number_of_replicas'])
+        self.min_temp = float(inp_file['input.NAMD']['min_temperature'])
+        self.max_temp = float(inp_file['input.NAMD']['max_temperature'])
+        self.cycle_steps = int(inp_file['input.NAMD']['steps_per_cycle'])
+        self.nr_cycles = int(inp_file['input.NAMD']['number_of_cycles'])
+
+        # check if all required params are specified
+        self.check_parameters()
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def _parseInputFile(self):
+    def check_parameters(self):
         """ 
         Check that required parameters are specified.
         """ 
@@ -65,7 +85,7 @@ class ReplicaExchange(object):
             sys.exit('Number of cores (cores) is not specified in input.PILOT!')
         elif self.runtime is None:
             sys.exit('Total simulation runtime (runtime) is not specified in input.PILOT!')
-        elif self.mongo_url is None:
+        elif self.dburl is None:
             sys.exit('Mongo DB url (mongo_url) is not specified in input.PILOT!')    
         elif self.cleanup is None:
             sys.exit('cleanup is not specified in input.PILOT!') 
@@ -75,120 +95,254 @@ class ReplicaExchange(object):
             sys.exit('Path to NAMD executable (namd_path) is not specified in input.NAMD!')
         elif self.inp_basename is None:
             sys.exit('Base name for NAMD simulation input file (input_file_basename) is not specified in input.NAMD!')
+        elif self.namd_structure is None:
+            sys.exit('NAMD structure (namd_structure) is not specified in input.NAMD!')     
+        elif self.namd_coordinates is None:
+            sys.exit('NAMD coordinates (namd_coordinates) is not specified in input.NAMD!')  
+        elif self.namd_parameters is None:
+            sys.exit('NAMD parameters (namd_parameters) is not specified in input.NAMD!')      
         elif self.replicas is None:
             sys.exit('Number of replicas for NAMD simulation (number_of_replicas) is not specified in input.NAMD!')
         elif self.min_temp is None:
             sys.exit('NAMD simulation minimum temperature (min_temperature) is not specified in input.NAMD!')
         elif self.max_temp is None:
             sys.exit('NAMD simulation maximum temperature (max_temperature) is not specified in input.NAMD!')
-        elif self.timestep is None:
-            sys.exit('NAMD simulation (timestep) is not specified in input.NAMD!')
         elif self.cycle_steps is None:
             sys.exit('Steps per NAMD simulation cycle (steps_per_cycle) is not specified in input.NAMD!')
+        elif self.nr_cycles is None:
+            sys.exit('Number of NAMD simulation cycles is not specified in input.NAMD!')
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------
 
-    def buildInputFiles(self, replica_nr):
-        """BROKEN!
+    def exchange_accept(self, replica, replicas):
+
+        do = randint(0,1)
+
+        if do:
+            r_pair = replicas[ randint(0,5) ]
+            return r_pair
+        else:
+            return replica
+
+        #kb = 0.0019872041
+        #i_stateid = self.status[repl_i]['stateid_current']
+        #i_temp = self.stateparams[i_stateid]['newtemp']
+
+        #i_cycle = self.status[repl_i]['cycle_current']
+        #i_results = self._getTempPot(repl_i,i_cycle)
+        #i_pot = i_results[1]
+
+        #i_pot = self.stateparams[i_stateid]['potential']
+
+        #for repl_j in replicas_waiting:
+        #    j_stateid = self.status[repl_j]['stateid_current']
+        #    j_temp = self.stateparams[j_stateid]['newtemp']
+
+        #    j_cycle = self.status[repl_j]['cycle_current']
+        #    j_results = self._getTempPot(repl_j,j_cycle)
+        #    j_pot = j_results[1]
+
+            #j_pot = self.stateparams[j_stateid]['potential']
+        #    dbeta = ((1./i_temp) - (1./j_temp)) / kb
+        #    delta = dbeta * (j_pot - i_pot)
+        #    swp = ( delta < 0. ) or (( -1. * delta ) > random.random())
+        #    if swp:
+                #replica_j = replicas_waiting[repl_j]
+        #       return repl_j
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+    def get_historical_data(self, replica, cycle):
+        """
+        """
+        if not os.path.exists(replica.new_history):
+            print "history file not found: "
+            print replica.new_history
+        else:
+            f = open(replica.new_history)
+            lines = f.readlines()
+            f.close()
+            data = lines[0].split()
+         
+        return float(data[0]), float(data[1])
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+    def build_input_file(self, replica):
+        """
+        Builds input file for replica, based on template input file alanin_base.namd
         """
 
-        # cycle_current starts with 1
-
-        # this is 
-        stateid = self.status[replica]['stateid_current']
-        cycle = self.status[replica]['cycle_current']
-        namd_run = cycle - 1
-
-        #
+        basename = self.inp_basename[:-5]
         template = self.inp_basename
+            
+        new_input_file = "%s_%d_%d.namd" % (basename, replica.id, replica.cycle)
+        outputname = "%s_%d_%d_out" % (basename, replica.id, replica.cycle)
+        old_name = "%s_%d_%d_out" % (basename, replica.id, (replica.cycle-1))
+        replica.new_coor = outputname + ".coor"
+        replica.new_vel = outputname + ".vel"
+        replica.new_history = outputname + ".history"
+        replica.new_ext_system = outputname + ".xsc" 
 
-        inpfile = "r%d/%s_%d.namd" % (replica, basename, cycle)
-        #outputname = "r%d_%s_%d" % (replica, basename, cycle)
-        outputname = "%s_%d_output" % (basename, cycle)
-        old_name = "%s_%d_output" % (basename, namd_run)
-        historyname = "%s_%d.history" % (basename, cycle)
-        #cycle_output_file = "r%d/h_%s_%d.history" % (replica, self.basename, cycle)  
+        historyname = replica.new_history
 
-        # ok
-        my_newtemp = self.stateparams[stateid]['newtemp']
+        replica.old_coor = old_name + ".coor"
+        replica.old_vel = old_name + ".vel"
+        replica.old_ext_system = old_name + ".xsc" 
 
-        # getting OLDTEMP from .history file of previous run
-        if cycle == 1:
-            my_oldtemp = my_newtemp
-        else:
-            #old_data = self._getTempPot(replica,(cycle-1))
-            #my_oldtemp = old_data[0]
-            output = "r%d/%s_%d.history" % (replica, basename, (cycle-1))
-            my_oldtemp = self._getNamdTemperature(output)
-
-        #print "I AM REPLICA: %d MY NEWTEMP IS: %d MY OLDTEMP IS: %d" % (replica, my_newtemp, my_oldtemp)
-
-        if abs(my_newtemp-my_oldtemp) > 1.0:
-            swap = 1
-            #print "EXCHANGE ACCEPTED FOR REPLICA %d" % replica
-        else:
-            swap = 0
-
-        #print "I AM REPLICA: %d MY STATE ID IS: %d" % (replica, stateid)
-
-        my_steps_per_cycle = self.steps_per_cycle
-        my_timestep = self.timestep
-
-        if (cycle == 1):
+        if (replica.cycle == 0):
             first_step = 0
+        elif (replica.cycle == 1):
+            first_step = int(self.cycle_steps)
         else:
-            first_step = (cycle - 1) * int(my_steps_per_cycle)
+            first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
+        #---------------------------------------------------------------------
+        # substituting tokens in main replica input file 
+        try:
+            r_file = open(template, "r")
+        except IOError:
+            print 'Warning: unable to access template file %s' % template
 
-        # read template buffer
-        tfile = self._openfile(template, "r")
-        tbuffer = tfile.read()
-        tfile.close()
+        tbuffer = r_file.read()
+        r_file.close()
 
-        tbuffer = tbuffer.replace("@swap@",str(swap))
-        tbuffer = tbuffer.replace("@ot@",str(my_oldtemp))
-        tbuffer = tbuffer.replace("@nt@",str(my_newtemp))
-        tbuffer = tbuffer.replace("@pr@",str(my_steps_per_cycle))
-        # steps per run; keeping option to provide separate values for steps_per_run and stepspercycle
-        tbuffer = tbuffer.replace("@steps@",str(my_steps_per_cycle))
-        tbuffer = tbuffer.replace("@rid@",str(replica))
-        tbuffer = tbuffer.replace("@stp@",str(my_timestep))
+        tbuffer = tbuffer.replace("@swap@",str(replica.swap))
+        tbuffer = tbuffer.replace("@ot@",str(replica.old_temperature))
+        tbuffer = tbuffer.replace("@nt@",str(replica.new_temperature))
+        tbuffer = tbuffer.replace("@steps@",str(self.cycle_steps))
+        tbuffer = tbuffer.replace("@rid@",str(replica.id))
         tbuffer = tbuffer.replace("@somename@",str(outputname))
         tbuffer = tbuffer.replace("@oldname@",str(old_name))
-        tbuffer = tbuffer.replace("@cycle@",str(namd_run))
+        tbuffer = tbuffer.replace("@cycle@",str(replica.cycle))
         tbuffer = tbuffer.replace("@firststep@",str(first_step))
         tbuffer = tbuffer.replace("@history@",str(historyname))
         
+        replica.cycle += 1
         # write out
-        ofile = self._openfile(inpfile, "w")
-        ofile.write(tbuffer)
-        ofile.close()
+        try:
+            w_file = open(new_input_file, "w")
+            w_file.write(tbuffer)
+            w_file.close()
+        except IOError:
+            print 'Warning: unable to access file %s' % new_input_file
 
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def prepare_replicas(self, replicas):
+        """
+        """
+        compute_replicas = []
+        for r in range(len(replicas)):
+            self.build_input_file(replicas[r])
+            input_file = "%s_%d_%d.namd" % (self.inp_basename[:-5], replicas[r].id, (replicas[r].cycle-1))
+
+            new_coor = replicas[r].new_coor
+            new_vel = replicas[r].new_vel
+            new_history = replicas[r].new_history
+            new_ext_system = replicas[r].new_ext_system
+
+            old_coor = replicas[r].old_coor
+            old_vel = replicas[r].old_vel
+            old_ext_system = replicas[r].old_ext_system 
+
+            #dir_path = "%s/replica_%d" % ( self.sandbox, replicas[r].id ) 
+            #if not os.path.exists(dir_path):
+            #    os.makedirs(dir_path)
+
+            if replicas[r].cycle == 1:
+                cu = radical.pilot.ComputeUnitDescription()
+                cu.executable = self.namd_path
+                cu.arguments = [input_file]
+                cu.cores = 1
+                cu.input_data = [input_file, self.namd_structure, self.namd_coordinates, self.namd_parameters]
+                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                compute_replicas.append(cu)
+            else:
+                cu = radical.pilot.ComputeUnitDescription()
+                cu.executable = self.namd_path
+                cu.arguments = [input_file]
+                cu.cores = 1
+                cu.input_data = [input_file, self.namd_structure, self.namd_coordinates, self.namd_parameters, old_coor, old_vel, old_ext_system]
+                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                compute_replicas.append(cu)
+
+        return compute_replicas
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def launch(self,replica,cycle):
-         """BROKEN!
-         """
+    def transfer_output_files(self, replicas):
 
-         basefile = ''
-
-         # each replica has it's own input file - simulation_name.namd
-         # through this file all input parameters and other input files are provided
-         input_file = "%s_%d.namd" % (self.basename, cycle)
-
-         #-------------------------------------------------------------
-         cu = sagapilot.ComputeUnitDescription()
-         cu.cores = 1
-         cu.executable = NAMD_PATH
-         cu.arguments  = input_file
-         #-------------------------------------------------------------
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------------------------------
+        for r in range(len(replicas)):
+            dir_path = "%s/replica_%d" % ( self.sandbox, replicas[r].id ) 
+            
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def parseCommandLine():
+    def unit_state_change_cb(unit, state):
+        """unit_state_change_cb() is a callback function. It gets called very
+        time a ComputeUnit changes its state.
+        """
+        print "[Callback]: ComputeUnit '{0}' state changed to {1}.".format(
+            unit.uid, state)
+        if state == radical.pilot.states.FAILED:
+            print "            Log: %s" % unit.log[-1]
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def pilot_state_cb(pilot, state):
+        """pilot_state_change_cb() is a callback function. It gets called very
+        time a ComputePilot changes its state.
+        """
+        print "[Callback]: ComputePilot '{0}' state changed to {1}.".format(
+            pilot.uid, state)
+
+        if state == radical.pilot.states.FAILED:
+            sys.exit(1)
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def launch_pilot(self, r_config):
+        
+        session = None
+        pilot_manager = None
+        pilot_object = None
+   
+        try:
+            session = radical.pilot.Session(database_url=self.dburl)
+
+            pilot_manager = radical.pilot.PilotManager(session=session, resource_configurations=r_config)
+            #pilot_manager.register_callback(self.pilot_state_cb)
+
+            pilot_descripiton = radical.pilot.ComputePilotDescription()
+            pilot_descripiton.resource = self.resource
+            pilot_descripiton.sandbox = self.sandbox
+            pilot_descripiton.cores = self.cores
+            pilot_descripiton.runtime = self.runtime
+            pilot_descripiton.cleanup = self.cleanup
+
+            pilot_object = pilot_manager.submit_pilots(pilot_descripiton)
+
+        except radical.pilot.PilotException, ex:
+            print "Error: %s" % ex
+
+        return session, pilot_manager, pilot_object 
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def initialize_replicas(self):
+
+        replicas = []
+        for k in range(self.replicas):
+            # may consider to change this    
+            new_temp = random.uniform(self.max_temp , self.min_temp) * 0.8
+            r = Replica(k, new_temp)
+            replicas.append(r)
+            
+        return replicas
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+def parse_command_line():
 
     usage = "usage: %prog [Options]"
     parser = optparse.OptionParser(usage=usage)
@@ -214,7 +368,11 @@ def parseCommandLine():
 
 if __name__ == '__main__':
 
-    params = parseCommandLine()
+    print "******************************"
+    print "* Replica Exchange with NAMD *"
+    print "******************************"
+
+    params = parse_command_line()
     
     # get input file
     json_data=open(params.input_file)
@@ -222,13 +380,55 @@ if __name__ == '__main__':
     json_data.close()
 
     # get resource
-    r_config = ('file://localhost/%s/' + str(params.resource_file)) % PWD
+    r_config = ('file://localhost%s/' + str(params.resource_file)) % PWD
 
-    r = ReplicaExchange( inp_file, r_config )
+    # init simulaiton
+    re = ReplicaExchange( inp_file, r_config )
 
-    print ""
-    print "******************************"
-    print "* Replica Exchange with NAMD *"
-    print "******************************"
-    print ""
+    # init replicas
+    replicas = re.initialize_replicas()
+    session, pilot_manager, pilot_object = re.launch_pilot(r_config)
+
+    #for i in range(re.nr_cycles)
+    for i in range(0,2):
+        # returns compute objects
+        compute_replicas = re.prepare_replicas(replicas)
+
+        um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+        #um.register_callback(re.unit_state_change_cb)
+        um.add_pilots(pilot_object)
+
+        submitted_replicas = um.submit_units(compute_replicas)
+        um.wait_units()
+        time.sleep(120)
+
+        for r in replicas:
+            # getting OLDTEMP and POTENTIAL from .history file of previous run
+            old_temp, old_energy = re.get_historical_data(r,(r.cycle-1))
+            print "************************************************"
+            print "Obtained history data: temperure=%f potential=%f" % ( old_temp, old_energy )
+            print "************************************************"
+            print ""
+            # updating replica temperature
+            r.new_temperature = old_temp   
+            r.old_temperature = old_temp         
+
+            r_pair = re.exchange_accept( r, replicas )
+            if( r_pair.id != r.id ):
+                # swap temperatures
+                print "************************************************"
+                print "Replica %d exchanged temperature with replica %d" % ( r.id, r_pair.id )
+                print "************************************************"
+                print ""
+                temperature = r_pair.new_temperature
+                r_pair.new_temperature = r.new_temperature
+                r.new_temperature = temperature
+                # record that swap was performed
+                r.swap = 1
+                r_pair.swap = 1
+                
+
+    session.close()
+    sys.exit(0)
+
 

@@ -14,38 +14,18 @@ at different temperatures, allowing lower temperature systems to sample a repres
 
 Installation instructions
 =========
-
-Prerequisites
--------------
-
-1.Radical Pilot
-
-Install from master branch in a virtual environment: 
  
 $ virtualenv $HOME/myenv 
 
 $ source $HOME/myenv/bin/activate 
 
-$ pip install --upgrade -e git://github.com/radical-cybertools/radical.pilot.git@master#egg=radical-pilot 
-
-2.NAMD
-
-To run this package you need to have >= NAMD/2.9 installed on target system  
-
-
-3.Numpy
-
-. . .
-
-
-Installing from source
-----------------------
+$ pip install radical.pilot
 
 $ git clone https://github.com/radical-cybertools/ReplicaExchange.git 
 
-$ cd re_package 
+$ cd ReplicaExchange/re_package 
 
-$ python setup.py install 
+$ RADICAL_PILOT_VERBOSE=debug python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
 
 Usage
 =========

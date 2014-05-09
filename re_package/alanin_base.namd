@@ -2,12 +2,12 @@
 # basic simulation options for replica exchange
 #######################################################
 
-structure       ../namd_inp/alanin.psf
-coordinates     ../namd_inp/unfolded.pdb
+structure       alanin.psf
+coordinates     unfolded.pdb
 
 margin          10.0
-stepspercycle   @pr@
-parameters      ../namd_re/alanin.params
+stepspercycle   1000
+parameters      alanin.params
 exclude         scaled1-4
 1-4scaling      0.4
 switching       on
@@ -20,7 +20,7 @@ langevinDamping 10.0
 
 set steps_per_run   @steps@
 set replica_id      @rid@
-timestep            @stp@
+timestep            1.0
 
 set job_output_root @somename@
 set old_output_root @oldname@
@@ -31,12 +31,39 @@ firsttimestep       @firststep@
 set cycle           [expr $i_run+1]
 set doswap          @swap@
 
-set outputname $job_output_root$cycle
+set outputname $job_output_root
 outputName $outputname
+
+#######################################################
+# these are parameters set after exchange
+#######################################################
+
+set OLDTEMP         @ot@
+set NEWTEMP         @nt@
+#langevinTemp        $NEWTEMP
+
+if {$i_run} { #restart
+  set oldrun [expr ($cycle-1)]
+  set oldoutput $old_output_root
+  bincoordinates $oldoutput.coor
+  binvelocities $oldoutput.vel
+  extendedSystem $oldoutput.xsc
+} else {
+  temperature         $NEWTEMP
+}
+
+outputEnergies [expr ($steps_per_run / 10)]
+dcdFreq [expr ($steps_per_run * 10)]
+
+if { $doswap } {
+  rescalevels [expr sqrt(1.0*$NEWTEMP/$OLDTEMP)]
+  #langevinTemp        $NEWTEMP
+}
+langevinTemp        $NEWTEMP
 
 
 #######################################################
-# this block is for putting outpout into history file
+# this block is for putting outout into history file
 #######################################################
 
 proc save_callback {labels values} {
@@ -56,6 +83,23 @@ proc save_array {} {
 set history_file [open [format "@history@"] "w"]
 fconfigure $history_file -buffering line
 
+#######################################################
+# 
+#######################################################
+
+# don't know if setting output like:
+# output [format $restart_root.$replica_id $replica_id] makes any sense
+
+#outputName $outputname
+
+run $steps_per_run
+save_array
+
+if {$i_run} {
+      #file delete $oldoutput.coor
+      #file delete $oldoutput.vel
+      #file delete $oldoutput.xsc
+    }
 
 #######################################################
 # after run put necessary data into .history file
