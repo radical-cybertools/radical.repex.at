@@ -8,7 +8,7 @@
         "cleanup" : "True"
     },
     "input.NAMD": {
-        "namd_path": "../../../NAMD_2.9_Linux-x86/namd2",
+        "namd_path": "../../../NAMD_2.9_MacOSX-x86-multicore/namd2",
         "input_file_basename": "alanin_base.namd",
         "namd_structure": "namd_inp/alanin.psf",
         "namd_coordinates": "namd_inp/unfolded.pdb",
