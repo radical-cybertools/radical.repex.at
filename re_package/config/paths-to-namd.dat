@@ -1,0 +1,5 @@
+in input.json chage to appropriate path:
+
+"namd_path": "../../../NAMD_2.9_Linux-x86/namd2"
+"namd_path": "../../../NAMD_2.9_MacOSX-x86-multicore/namd2"
+"namd_path": "../../../NAMD_2.9b3_MacOSX-x86_64-multicore/namd2"
