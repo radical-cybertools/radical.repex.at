@@ -1,52 +1,47 @@
-===========
-Radical Pilot based Replica Exchange Package (v0.1)
-===========
+#Replica Exchange simulations Package
 
 Current version of this package aims at providing functionality to perform synchronous RE (temperature exchange) simulations with NAMD. 
 
 In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at  sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.
 
 
-Installation instructions
-=========
- 
+##Installation instructions
+
+```bash
 $ virtualenv $HOME/myenv 
-
 $ source $HOME/myenv/bin/activate 
-
 $ pip install radical.pilot
-
 $ git clone https://github.com/radical-cybertools/ReplicaExchange.git 
-
 $ cd ReplicaExchange/re_package 
-
 $ cd config
+```
 
 open input.json and change namd path, you can find namd paths for mac and linux in paths-to-namd.dat,
 alternatively you can specify your own path 
 
+```bash
 $ RADICAL_PILOT_VERBOSE=debug python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
+```
 
-Usage
-=========
+##Usage
 
-To run RE simulaiton simulation configuration file and resource configuration file must
-be passed through command line: 
+To run RE simulation, specify simulation configuration file and resource configuration file: 
 
-$ python radical_re_namd.py --input=my_input_file --resource=my_resource_configuration_file 
+```bash
+$ RADICAL_PILOT_VERBOSE=debug python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
+```
 
 Examples of these files can be found in re_package/config 
 
-input.json 
-----------
+###input.json 
 
-input.PILOT
+**input.PILOT**
 
 In this part of input file must be specified Pilot releted paramers. 
 
-resource - name of the system to use
+- resource: name of the system to use
 
-sandbox - working directory on the target system
+- sandbox: working directory on the target system
 
 "cores" and "runtime" parameters will be removed later on from this file, 
 since these should be defined by the package itself.
