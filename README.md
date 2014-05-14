@@ -19,10 +19,6 @@ $ cd config
 open input.json and change namd path, you can find namd paths for mac and linux in paths-to-namd.dat,
 alternatively you can specify your own path 
 
-```bash
-$ RADICAL_PILOT_VERBOSE=debug python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
-```
-
 ##Usage
 
 To run RE simulation, specify simulation configuration file and resource configuration file: 
@@ -39,40 +35,47 @@ Examples of these files can be found in re_package/config
 
 In this part of input file must be specified Pilot releted paramers. 
 
-- resource: name of the system to use
+- resource: name of the system to use, this should correspond to resource name defined in resource configuration file, e.g. xsede.json  
 
 - sandbox: working directory on the target system
 
-"cores" and "runtime" parameters will be removed later on from this file, 
-since these should be defined by the package itself.
+- cores: number of cores the pilot should allocate on the target resource 
 
-mongo_url - url to db
+- runtime: estimated total run time (wall-clock time) in minutes of the ComputePilot
 
-input.NAMD
+- mongo_url: url to MongoDB database
+
+- cleanup: boolean variable to specify if ComputeUnit and pilot directories should be deleted or not  
+
+**input.NAMD**
 
 In this part of json input file must be specified NAMD releted paramers. 
 
-namd_path - path to NAMD executable on target system
+- namd_path: path to NAMD executable on target system
 
-input_file_basename - base name of NAMD input file. At this point user must 
-specify path to all NAMD configuration files in this file, e.g. paths to .params, 
-.pdb and .psf files must be spesified in this file. 
+- input_file_basename: base name of NAMD input file (.namd); this file is used to create individual input files for replicas 
 
-number_of_replicas - number of replicas user wants to launch on a target system
+- namd_structure: path to namd structure file (.psf)
 
-min_temperature - minimum temperature for replicas
+- namd_coordinates: path to namd coordinates file (.pdb)
 
-max_temperature - maximum temperature for replicas  
+- namd_parameters: path to namd parameters file (.params) 
 
-timestep - timestep size
+- number_of_replicas: number of replicas to be launched on a target system
 
-steps_per_cycle - number of steps each replica performs in one cycle
+- min_temperature: minimum temperature for replicas
 
-p.s. all other parameters must be specified in NAMD input file directly!
+- max_temperature: maximum temperature for replicas  
 
-xsede.json 
-----------
+- steps_per_cycle: number of steps each replica performs in one cycle
 
-. . .
+- number_of_cycles: number of cycles to perform during simulation
+
+All other parameters must be specified in NAMD input file directly!
+
+###xsede.json 
+
+
+
 
 
