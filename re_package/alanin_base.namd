@@ -56,10 +56,11 @@ outputEnergies [expr ($steps_per_run / 10)]
 dcdFreq [expr ($steps_per_run * 10)]
 
 if { $doswap } {
+  langevinTemp        $NEWTEMP
   rescalevels [expr sqrt(1.0*$NEWTEMP/$OLDTEMP)]
-  #langevinTemp        $NEWTEMP
+} else {
+  langevinTemp        $NEWTEMP
 }
-langevinTemp        $NEWTEMP
 
 
 #######################################################

@@ -124,32 +124,6 @@ class ReplicaExchange(object):
         else:
             return replica
 
-        #kb = 0.0019872041
-        #i_stateid = self.status[repl_i]['stateid_current']
-        #i_temp = self.stateparams[i_stateid]['newtemp']
-
-        #i_cycle = self.status[repl_i]['cycle_current']
-        #i_results = self._getTempPot(repl_i,i_cycle)
-        #i_pot = i_results[1]
-
-        #i_pot = self.stateparams[i_stateid]['potential']
-
-        #for repl_j in replicas_waiting:
-        #    j_stateid = self.status[repl_j]['stateid_current']
-        #    j_temp = self.stateparams[j_stateid]['newtemp']
-
-        #    j_cycle = self.status[repl_j]['cycle_current']
-        #    j_results = self._getTempPot(repl_j,j_cycle)
-        #    j_pot = j_results[1]
-
-            #j_pot = self.stateparams[j_stateid]['potential']
-        #    dbeta = ((1./i_temp) - (1./j_temp)) / kb
-        #    delta = dbeta * (j_pot - i_pot)
-        #    swp = ( delta < 0. ) or (( -1. * delta ) > random.random())
-        #    if swp:
-                #replica_j = replicas_waiting[repl_j]
-        #       return repl_j
-
 #----------------------------------------------------------------------------------------------------------------------------------
 
     def get_historical_data(self, replica, cycle):
@@ -246,10 +220,6 @@ class ReplicaExchange(object):
             old_vel = replicas[r].old_vel
             old_ext_system = replicas[r].old_ext_system 
 
-            #dir_path = "%s/replica_%d" % ( self.sandbox, replicas[r].id ) 
-            #if not os.path.exists(dir_path):
-            #    os.makedirs(dir_path)
-
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.namd_path
@@ -257,6 +227,7 @@ class ReplicaExchange(object):
                 cu.cores = 1
                 cu.input_data = [input_file, self.namd_structure, self.namd_coordinates, self.namd_parameters]
                 cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                #cu.working_directory_priv = "%s/replica_%d" % (self.sandbox, replicas[r].id ) 
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -368,9 +339,9 @@ def parse_command_line():
 
 if __name__ == '__main__':
 
-    print "******************************"
-    print "* Replica Exchange with NAMD *"
-    print "******************************"
+    print "*********************************************************************"
+    print "*                     Replica Exchange with NAMD                    *"
+    print "*********************************************************************"
 
     params = parse_command_line()
     
@@ -389,25 +360,22 @@ if __name__ == '__main__':
     replicas = re.initialize_replicas()
     session, pilot_manager, pilot_object = re.launch_pilot(r_config)
 
-    #for i in range(re.nr_cycles)
-    for i in range(0,2):
+    for i in range(re.nr_cycles):
         # returns compute objects
         compute_replicas = re.prepare_replicas(replicas)
-
         um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         #um.register_callback(re.unit_state_change_cb)
         um.add_pilots(pilot_object)
 
         submitted_replicas = um.submit_units(compute_replicas)
         um.wait_units()
-        time.sleep(120)
 
         for r in replicas:
             # getting OLDTEMP and POTENTIAL from .history file of previous run
             old_temp, old_energy = re.get_historical_data(r,(r.cycle-1))
-            print "************************************************"
-            print "Obtained history data: temperure=%f potential=%f" % ( old_temp, old_energy )
-            print "************************************************"
+            print "*********************************************************************"
+            print "Replica's %d history data: temperure=%f potential=%f" % ( r.id, old_temp, old_energy )
+            print "*********************************************************************"
             print ""
             # updating replica temperature
             r.new_temperature = old_temp   
@@ -416,9 +384,9 @@ if __name__ == '__main__':
             r_pair = re.exchange_accept( r, replicas )
             if( r_pair.id != r.id ):
                 # swap temperatures
-                print "************************************************"
+                print "*********************************************************************"
                 print "Replica %d exchanged temperature with replica %d" % ( r.id, r_pair.id )
-                print "************************************************"
+                print "*********************************************************************"
                 print ""
                 temperature = r_pair.new_temperature
                 r_pair.new_temperature = r.new_temperature
@@ -427,7 +395,6 @@ if __name__ == '__main__':
                 r.swap = 1
                 r_pair.swap = 1
                 
-
     session.close()
     sys.exit(0)
 

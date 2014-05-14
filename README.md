@@ -2,14 +2,9 @@
 Radical Pilot based Replica Exchange Package (v0.1)
 ===========
 
-Current version of this package aims at providing functionality to 
-perform synchronous RE (temperature exchange) simulations with NAMD. 
+Current version of this package aims at providing functionality to perform synchronous RE (temperature exchange) simulations with NAMD. 
 
-In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model
-phenomenon of interest. Typically, each replica can be treated as an independent system
-and would be initialised at a different temperature. While systems with high temperatures are very good at 
-sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations
-at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.
+In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at  sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.
 
 
 Installation instructions
@@ -24,6 +19,11 @@ $ pip install radical.pilot
 $ git clone https://github.com/radical-cybertools/ReplicaExchange.git 
 
 $ cd ReplicaExchange/re_package 
+
+$ cd config
+
+open input.json and change namd path, you can find namd paths for mac and linux in paths-to-namd.dat,
+alternatively you can specify your own path 
 
 $ RADICAL_PILOT_VERBOSE=debug python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
 
