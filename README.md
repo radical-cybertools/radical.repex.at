@@ -13,12 +13,11 @@ $ source $HOME/myenv/bin/activate
 $ pip install radical.pilot
 $ git clone https://github.com/radical-cybertools/ReplicaExchange.git 
 $ cd ReplicaExchange/re_package 
-$ cd config
 ```
 
 ##Usage
 
-Before running RE simulation path to NAMD executable must be specified; open /re_package/config/input.json and change NAMD path, you can find NAMD paths for mac and linux in paths-to-namd.dat (three precompiled NAMD executables are shipped with this installation), alternatively you can specify your own path.
+Before running RE simulation path to NAMD executable must be specified; open /re_package/config/input.json and change NAMD path. You can find NAMD paths for mac and linux in paths-to-namd.dat (three precompiled NAMD executables are shipped with this installation), alternatively you can specify your own path.
 
 To run RE simulation, specify simulation configuration file and resource configuration file: 
 
