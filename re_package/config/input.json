@@ -4,7 +4,7 @@
         "sandbox" : "home/antons/SINON-WORK/git-re/re_package",
         "cores" : "2",
         "runtime" : "10",
-        "mongo_url" : "mongodb://url-of-your-mongo-db-instance",
+        "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
         "cleanup" : "True"
     },
     "input.NAMD": {
