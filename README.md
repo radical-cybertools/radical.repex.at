@@ -27,7 +27,7 @@ Before running RE simulation the following changes must be made:
 To run RE simulation, specify simulation configuration file and resource configuration file: 
 
 ```bash
-$ RADICAL_PILOT_VERBOSE=debug python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
+$ RADICAL_PILOT_VERBOSE=info python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
 ```
 
 Examples of these files can be found in re_package/config directory
