@@ -20,7 +20,7 @@ $ cd config
 
 Before running RE simulation the following changes must be made:
 
-- path no NAMD executable must be specified; open input.json and change MAND path, you can find namd paths for mac and linux in paths-to-namd.dat (three precompiled NAMD executables are shipped with this installation), alternatively you can specify your own path
+- path no NAMD executable must be specified; open /re_package/config/input.json and change NAMD path, you can find NAMD paths for mac and linux in paths-to-namd.dat (three precompiled NAMD executables are shipped with this installation), alternatively you can specify your own path
 
 - Mongo DB url must be specified; in /re_package/config/input.json change "mongodb://url-of-your-mongo-db-instance" to actual url    
 
