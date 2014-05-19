@@ -16,10 +16,13 @@ $ cd ReplicaExchange/re_package
 $ cd config
 ```
 
-open input.json and change namd path, you can find namd paths for mac and linux in paths-to-namd.dat,
-alternatively you can specify your own path 
-
 ##Usage
+
+Before running RE simulation the following changes must be made:
+
+- path no NAMD executable must be specified; open input.json and change MAND path, you can find namd paths for mac and linux in paths-to-namd.dat (three precompiled NAMD executables are shipped with this installation), alternatively you can specify your own path
+
+- Mongo DB url must be specified; in /re_package/config/input.json change "mongodb://url-of-your-mongo-db-instance" to actual url    
 
 To run RE simulation, specify simulation configuration file and resource configuration file: 
 
