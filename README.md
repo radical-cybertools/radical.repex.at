@@ -25,7 +25,7 @@ To run RE simulation example, you nead to specify simulation configuration file 
 $ RADICAL_PILOT_VERBOSE=info python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
 ```
 
-This will run RE temperature exchange simulation involving 6 replicas on your local system. Simulation will perform a total of 3 cycles and after each cycle temperatures of replicas will be exchanged. During the simulation input files for each of the replicas will be generated. After simulation is done you should see in ReplicaExchange/re_package directory a number of NAMD output files, namely coordinate, velocity and extended system files. 
+This will run RE temperature exchange simulation involving 6 replicas on your local system. Simulation will perform a total of 3 cycles and after each cycle temperatures of replicas will be exchanged. During the simulation input files for each of the replicas will be generated. After simulation is done you should see in ReplicaExchange/re_package directory a number of NAMD output files for each replica, namely coordinate, velocity and extended system files. 
 
 Examples of simulation configuration and resource configuration files can be found in re_package/config directory.  
 
