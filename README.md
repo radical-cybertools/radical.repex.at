@@ -1,6 +1,6 @@
-#Replica Exchange simulations Package
+#RepEX: Replica Exchange simulations Package
 
-Current version of this package provides functionality to perform synchronous RE (temperature exchange) simulations with NAMD. 
+This package provides functionality to run simple synchronous Replica Exchange (temperature exchange) simulation on local system. Currectly RepEX uses NAMD as it's application kernel.   
 
 In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at  sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.
 
@@ -19,13 +19,15 @@ $ cd ReplicaExchange/re_package
 
 Before running RE simulation path to NAMD executable must be specified; open /re_package/config/input.json and change NAMD path. You can find NAMD paths for mac and linux in paths-to-namd.dat (three precompiled NAMD executables are shipped with this installation), alternatively you can specify your own path.
 
-To run RE simulation, specify simulation configuration file and resource configuration file: 
+To run RE simulation example, you nead to specify simulation configuration file and resource configuration file and run package in terminal as follows: 
 
 ```bash
 $ RADICAL_PILOT_VERBOSE=info python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
 ```
 
-Examples of these files can be found in re_package/config directory. The above command will run simple synchronous RE simulation involving 6 replicas. In this simulation NAMD is used as an application kernel. Simulation is performad on local system.  
+This will run RE temperature exchange simulation involving 6 replicas on your local system. Simulation will perform a total of 3 cycles and after each cycle temperatures of replicas will be exchanged. During the simulation input files for each of the replicas will be generated. After simulation is done you should see in ReplicaExchange/re_package directory a number of NAMD output files, namely coordinate, velocity and extended system files. 
+
+Examples of these files can be found in re_package/config directory.  
 
 ###input.json 
 
