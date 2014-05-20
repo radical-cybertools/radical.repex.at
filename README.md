@@ -25,7 +25,7 @@ To run RE simulation, specify simulation configuration file and resource configu
 $ RADICAL_PILOT_VERBOSE=info python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
 ```
 
-Examples of these files can be found in re_package/config directory
+Examples of these files can be found in re_package/config directory. The above command will run simple synchronous RE simulation involving 6 replicas. In this simulation NAMD is used as an application kernel. Simulation is performad on local system.  
 
 ###input.json 
 
