@@ -2,7 +2,7 @@
 
 This package provides functionality to run simple synchronous Replica Exchange (temperature exchange) simulations on local system. Currectly RepEX uses NAMD as it's application kernel.   
 
-###Theory of Replica Exchange
+###Theory of Replica Exchange simulations
 
 In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at  sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.
 
