@@ -28,6 +28,7 @@ class Replica(object):
         else:
             self.new_temperature = new_temperature
         self.old_temperature = new_temperature
+        self.potential = 0 
         self.new_coor = ""
         self.new_vel = ""
         self.new_history = ""
@@ -74,55 +75,29 @@ class ReplicaExchange(object):
         """ 
         Check that required parameters are specified.
         """ 
-        # Required Options
-        #############################
-        # pilot parameters
-        if self.resource is None:
-            sys.exit('Resource name (resource) is not specified in input.PILOT!')
-        elif self.sandbox is None:
-            sys.exit('Working directory (sandbox) is not specified in input.PILOT!')
-        elif self.cores is None:
-            sys.exit('Number of cores (cores) is not specified in input.PILOT!')
-        elif self.runtime is None:
-            sys.exit('Total simulation runtime (runtime) is not specified in input.PILOT!')
-        elif self.dburl is None:
-            sys.exit('Mongo DB url (mongo_url) is not specified in input.PILOT!')    
-        elif self.cleanup is None:
-            sys.exit('cleanup is not specified in input.PILOT!') 
 
-        # namd parameters
-        if self.namd_path is None:
-            sys.exit('Path to NAMD executable (namd_path) is not specified in input.NAMD!')
-        elif self.inp_basename is None:
-            sys.exit('Base name for NAMD simulation input file (input_file_basename) is not specified in input.NAMD!')
-        elif self.namd_structure is None:
-            sys.exit('NAMD structure (namd_structure) is not specified in input.NAMD!')     
-        elif self.namd_coordinates is None:
-            sys.exit('NAMD coordinates (namd_coordinates) is not specified in input.NAMD!')  
-        elif self.namd_parameters is None:
-            sys.exit('NAMD parameters (namd_parameters) is not specified in input.NAMD!')      
-        elif self.replicas is None:
-            sys.exit('Number of replicas for NAMD simulation (number_of_replicas) is not specified in input.NAMD!')
-        elif self.min_temp is None:
-            sys.exit('NAMD simulation minimum temperature (min_temperature) is not specified in input.NAMD!')
-        elif self.max_temp is None:
-            sys.exit('NAMD simulation maximum temperature (max_temperature) is not specified in input.NAMD!')
-        elif self.cycle_steps is None:
-            sys.exit('Steps per NAMD simulation cycle (steps_per_cycle) is not specified in input.NAMD!')
-        elif self.nr_cycles is None:
-            sys.exit('Number of NAMD simulation cycles is not specified in input.NAMD!')
+        for attribute, value in self.__dict__.iteritems():
+            if value is None:
+                sys.exit('Parameter %s is not specified in input.json!' % attribute)
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
     def exchange_accept(self, replica, replicas):
+        """ This function is using Metropolis criterion to determine of exchange will occur or not. 
+        Now if replica already exchanged with some other replica it still can particiate in arbitrary
+        number of further exchanges during the same exchange step. Is this correct behaviour? 
+        """
+        kb = 0.0019872041
 
-        do = randint(0,1)
-
-        if do:
-            r_pair = replicas[ randint(0,5) ]
-            return r_pair
-        else:
-            return replica
+        for partner in replicas:            
+            dbeta = ((1./replica.new_temperature) - (1./partner.new_temperature)) / kb
+            delta = dbeta * (partner.potential - replica.potential)
+            swp = ( delta < 0. ) or (( -1. * delta ) > random.random())
+            if swp:
+                return partner
+                
+        #if no exchange is found then return replica
+        return replica
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -227,7 +202,7 @@ class ReplicaExchange(object):
                 cu.cores = 1
                 cu.input_data = [input_file, self.namd_structure, self.namd_coordinates, self.namd_parameters]
                 cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
-                #cu.working_directory_priv = "%s/replica_%d" % (self.sandbox, replicas[r].id ) 
+
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -249,7 +224,7 @@ class ReplicaExchange(object):
             
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def unit_state_change_cb(unit, state):
+    def unit_state_change_cb(self, unit, state):
         """unit_state_change_cb() is a callback function. It gets called very
         time a ComputeUnit changes its state.
         """
@@ -260,7 +235,7 @@ class ReplicaExchange(object):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def pilot_state_cb(pilot, state):
+    def pilot_state_cb(self, pilot, state):
         """pilot_state_change_cb() is a callback function. It gets called very
         time a ComputePilot changes its state.
         """
@@ -282,7 +257,7 @@ class ReplicaExchange(object):
             session = radical.pilot.Session(database_url=self.dburl)
 
             pilot_manager = radical.pilot.PilotManager(session=session, resource_configurations=r_config)
-            #pilot_manager.register_callback(self.pilot_state_cb)
+            pilot_manager.register_callback(self.pilot_state_cb)
 
             pilot_descripiton = radical.pilot.ComputePilotDescription()
             pilot_descripiton.resource = self.resource
@@ -364,7 +339,7 @@ if __name__ == '__main__':
         # returns compute objects
         compute_replicas = re.prepare_replicas(replicas)
         um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
-        #um.register_callback(re.unit_state_change_cb)
+        um.register_callback(re.unit_state_change_cb)
         um.add_pilots(pilot_object)
 
         submitted_replicas = um.submit_units(compute_replicas)
@@ -379,8 +354,10 @@ if __name__ == '__main__':
             print ""
             # updating replica temperature
             r.new_temperature = old_temp   
-            r.old_temperature = old_temp         
+            r.old_temperature = old_temp   
+            r.potential = old_energy      
 
+        for r in replicas:
             r_pair = re.exchange_accept( r, replicas )
             if( r_pair.id != r.id ):
                 # swap temperatures

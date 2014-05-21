@@ -14,7 +14,7 @@ $ virtualenv $HOME/myenv
 $ source $HOME/myenv/bin/activate 
 $ git clone https://github.com/radical-cybertools/ReplicaExchange.git 
 $ cd ReplicaExchange/re_package 
-$ pip install .
+$ python setup.py install
 ```
 
 Then you can verify that Radical Pilot was installed correctly:
