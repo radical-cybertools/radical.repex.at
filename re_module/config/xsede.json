@@ -13,7 +13,7 @@
     "stampede.tacc.utexas.edu": {
         "URL" : "slurm+ssh://stampede.tacc.utexas.edu",
         "filesystem" : "sftp://stampede.tacc.utexas.edu/",
-        "default_queue" : "normal",
+        "default_queue" : "development",
         "python_interpreter" : "/opt/apps/python/epd/7.3.2/bin/python",
         "pre_bootstrap" : ["module purge", "module load TACC", "module load cluster", "module load Linux", "module load mvapich2", "module load python/2.7.3-epd-7.3.2"],
         "task_launch_mode" : "SSH",
@@ -21,7 +21,7 @@
         "bootstrapper" : "default_bootstrapper.sh"
     },
  
-    "localhost.XSEDE": {
+    "localhost": {
         "URL"                : "fork://localhost",
         "filesystem"         : "file://localhost",
         "pre_bootstrap"      : ["hostname", "date"],

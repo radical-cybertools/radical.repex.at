@@ -9,7 +9,7 @@ To run the module on local system your input.json file should contain ONLY data 
 ##############################################################################################
 {
     "input.PILOT": {
-        "resource": "localhost.XSEDE",
+        "resource": "localhost",
         "sandbox" : "/home/antons/SINON-WORK/git-re/re_package",
         "username" : "antons",
         "cores" : "2",
@@ -32,8 +32,7 @@ To run the module on local system your input.json file should contain ONLY data 
 }
 ##############################################################################################
 
-To run module on stampede your input.json file should contain ONLY data provided below, you will need to perform three changes:
-  - change "sandbox" to your home directory on stampede
+To run module on stampede your input.json file should contain ONLY data provided below, you will need to perform only one change:
   - change a username to the one assigned to you on stampede: "username" : "<your_username>"
 ##############################################################################################
 {

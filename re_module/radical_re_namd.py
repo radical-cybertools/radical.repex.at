@@ -17,7 +17,8 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class Replica(object):
-
+    """Class representing replica. 
+    """
     def __init__(self, my_id, new_temperature = None):
         self.id = my_id
         self.partner = -1
@@ -41,14 +42,19 @@ class Replica(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class ReplicaExchange(object):
-
+    """Class representing RE simulation. Currently an instance of this class is responsible for majority 
+    of RE workflow stages.  
+    """
     def __init__(self, inp_file, r_config ):
         # resource configuration file
         self.rconfig = r_config
         
         # pilot parameters
         self.resource = inp_file['input.PILOT']['resource']
-        self.sandbox = inp_file['input.PILOT']['sandbox']
+        if resource == "localhost":
+            self.sandbox = inp_file['input.PILOT']['sandbox']
+        else:
+            self.sandbox = None
         self.user = inp_file['input.PILOT']['username']
         self.cores = int(inp_file['input.PILOT']['cores'])
         self.runtime = int(inp_file['input.PILOT']['runtime'])
@@ -73,8 +79,7 @@ class ReplicaExchange(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def check_parameters(self):
-        """ 
-        Check that required parameters are specified.
+        """ Check that required parameters are specified.
         """ 
 
         for attribute, value in self.__dict__.iteritems():
@@ -103,7 +108,7 @@ class ReplicaExchange(object):
 #----------------------------------------------------------------------------------------------------------------------------------
 
     def get_historical_data(self, replica, cycle):
-        """
+        """Retrieves temperature and potential energy from simulaion output file <file_name>.history
         """
         if not os.path.exists(replica.new_history):
             print "history file not found: "
@@ -119,8 +124,7 @@ class ReplicaExchange(object):
 #----------------------------------------------------------------------------------------------------------------------------------
 
     def build_input_file(self, replica):
-        """
-        Builds input file for replica, based on template input file alanin_base.namd
+        """Builds input file for replica, based on template input file alanin_base.namd
         """
 
         basename = self.inp_basename[:-5]
@@ -180,7 +184,9 @@ class ReplicaExchange(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def prepare_replicas(self, replicas):
-        """
+        """Prepares all replicas for execuiton. In this function are created CU descriptions for replicas, are
+        specified input/output files to be transferred to/from target system. Note: input files for first and 
+        subsequent simulaition cycles are different. Currently we only run 1 core replicas.   
         """
         compute_replicas = []
         for r in range(len(replicas)):
@@ -219,8 +225,7 @@ class ReplicaExchange(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def unit_state_change_cb(self, unit, state):
-        """unit_state_change_cb() is a callback function. It gets called very
-        time a ComputeUnit changes its state.
+        """This is a callback function. It gets called very time a ComputeUnit changes its state.
         """
         print "[Callback]: ComputeUnit '{0}' state changed to {1}.".format(
             unit.uid, state)
@@ -230,8 +235,7 @@ class ReplicaExchange(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def pilot_state_cb(self, pilot, state):
-        """pilot_state_change_cb() is a callback function. It gets called very
-        time a ComputePilot changes its state.
+        """This is a callback function. It gets called very time a ComputePilot changes its state.
         """
         print "[Callback]: ComputePilot '{0}' state changed to {1}.".format(
             pilot.uid, state)
@@ -242,7 +246,8 @@ class ReplicaExchange(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def launch_pilot(self, r_config):
-        
+        """Launches a Pilot on a target resource. This function uses parameters specified in config/input.json 
+        """
         session = None
         pilot_manager = None
         pilot_object = None
@@ -260,7 +265,8 @@ class ReplicaExchange(object):
 
             pilot_descripiton = radical.pilot.ComputePilotDescription()
             pilot_descripiton.resource = self.resource
-            pilot_descripiton.sandbox = self.sandbox
+            if self.resource == "localhost":
+                pilot_descripiton.sandbox = self.sandbox
             pilot_descripiton.cores = self.cores
             pilot_descripiton.runtime = self.runtime
             pilot_descripiton.cleanup = self.cleanup
@@ -275,7 +281,8 @@ class ReplicaExchange(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def initialize_replicas(self):
-
+        """Initializes replicas and their attributes to default values
+        """
         replicas = []
         for k in range(self.replicas):
             # may consider to change this    
@@ -284,6 +291,49 @@ class ReplicaExchange(object):
             replicas.append(r)
             
         return replicas
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def run_simulation(self, replicas, session, pilot_object ):
+        """This function runs the main loop of the RE simulation
+        """
+
+        for i in range(self.nr_cycles):
+            # returns compute objects
+            compute_replicas = self.prepare_replicas(replicas)
+            um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+            um.register_callback(re.unit_state_change_cb)
+            um.add_pilots(pilot_object)
+
+            submitted_replicas = um.submit_units(compute_replicas)
+            um.wait_units()
+
+            for r in replicas:
+                # getting OLDTEMP and POTENTIAL from .history file of previous run
+                old_temp, old_energy = self.get_historical_data(r,(r.cycle-1))
+                print "************************************************************************"
+                print "Replica's %d history data: temperature=%f potential=%f" % ( r.id, old_temp, old_energy )
+                print "************************************************************************"
+                print ""
+                # updating replica temperature
+                r.new_temperature = old_temp   
+                r.old_temperature = old_temp   
+                r.potential = old_energy      
+
+            for r in replicas:
+                r_pair = re.exchange_accept( r, replicas )
+                if( r_pair.id != r.id ):
+                    # swap temperatures
+                    print "************************************************************************"
+                    print "Replica %d exchanged temperature with replica %d" % ( r.id, r_pair.id )
+                    print "************************************************************************"
+                    print ""
+                    temperature = r_pair.new_temperature
+                    r_pair.new_temperature = r.new_temperature
+                    r.new_temperature = temperature
+                    # record that swap was performed
+                    r.swap = 1
+                    r_pair.swap = 1
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -327,49 +377,15 @@ if __name__ == '__main__':
     # get resource
     r_config = ('file://localhost%s/' + str(params.resource_file)) % PWD
 
-    # init simulaiton
+    # init simulaition
     re = ReplicaExchange( inp_file, r_config )
 
     # init replicas
     replicas = re.initialize_replicas()
     session, pilot_manager, pilot_object = re.launch_pilot(r_config)
-
-    for i in range(re.nr_cycles):
-        # returns compute objects
-        compute_replicas = re.prepare_replicas(replicas)
-        um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
-        um.register_callback(re.unit_state_change_cb)
-        um.add_pilots(pilot_object)
-
-        submitted_replicas = um.submit_units(compute_replicas)
-        um.wait_units()
-
-        for r in replicas:
-            # getting OLDTEMP and POTENTIAL from .history file of previous run
-            old_temp, old_energy = re.get_historical_data(r,(r.cycle-1))
-            print "*********************************************************************"
-            print "Replica's %d history data: temperature=%f potential=%f" % ( r.id, old_temp, old_energy )
-            print "*********************************************************************"
-            print ""
-            # updating replica temperature
-            r.new_temperature = old_temp   
-            r.old_temperature = old_temp   
-            r.potential = old_energy      
-
-        for r in replicas:
-            r_pair = re.exchange_accept( r, replicas )
-            if( r_pair.id != r.id ):
-                # swap temperatures
-                print "*********************************************************************"
-                print "Replica %d exchanged temperature with replica %d" % ( r.id, r_pair.id )
-                print "*********************************************************************"
-                print ""
-                temperature = r_pair.new_temperature
-                r_pair.new_temperature = r.new_temperature
-                r.new_temperature = temperature
-                # record that swap was performed
-                r.swap = 1
-                r_pair.swap = 1
+    
+    # now we can run RE simulation
+    re.run_simulation( replicas, session, pilot_object )
                 
     session.close()
     sys.exit(0)
