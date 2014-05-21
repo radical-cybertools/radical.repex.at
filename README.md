@@ -39,7 +39,7 @@ $ RADICAL_PILOT_VERBOSE=info python radical_re_namd.py --input='config/input.jso
 
 This will run RE temperature exchange simulation involving 6 replicas on your local system. Simulation will perform a total of 3 cycles and after each cycle temperatures of replicas will be exchanged. During the simulation input files for each of the replicas will be generated. After simulation is done in ReplicaExchange/re_package directory you should see a number of NAMD output files for each replica, namely coordinate, velocity and extended system files. 
 
-###Remote (stampede) simulation example
+###Remote (Stampede) simulation example
 
 In order to run this example you don't need to login to Stampede. All you have to do is to launch the simulation as described below. 
 As for previous exemple you first need to copy a block of input parameters required for executing simulation on Stampede from /re_package/config/config.info to /re_package/config/input.json. Further details on how to do this are provided in /re_package/config/config.info file.

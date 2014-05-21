@@ -42,8 +42,8 @@ class Replica(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class ReplicaExchange(object):
-    """Class representing RE simulation. Currently an instance of this class is responsible for majority 
-    of RE workflow stages.  
+    """Class representing RE simulation. Currently an instance of this class is responsible for all 
+    stages of RE workflow.  
     """
     def __init__(self, inp_file, r_config ):
         # resource configuration file
