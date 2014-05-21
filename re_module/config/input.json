@@ -1,7 +1,7 @@
 {
     "input.PILOT": {
         "resource": "localhost.XSEDE",
-        "sandbox" : "/home/antons/SINON-WORK/git-re/re_package",
+        "sandbox" : "/home/antons/SINON-WORK/bump-re/re_module",
         "username" : "antons",
         "cores" : "2",
         "runtime" : "10",

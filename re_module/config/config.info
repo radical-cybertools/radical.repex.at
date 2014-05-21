@@ -1,7 +1,11 @@
-To run the module on local system your input.json file should contain ONLY data provided below, you will need to CHANGE sandbox to directory of your choice on your laptop and change path to NAMD executable, which is shipped with this module (path depends on OS you are using). Available paths are:
-"../../../NAMD_2.9_Linux-x86/namd2"
-"../../../NAMD_2.9_MacOSX-x86-multicore/namd2"
-"../../../NAMD_2.9b3_MacOSX-x86_64-multicore/namd2"
+To run the module on local system your input.json file should contain ONLY data provided below, you will need to perform three changes:
+  - change "sandbox" to directory of your choice on your laptop
+  - change "namd_path" to path to NAMD executable, which is shipped with this module (path depends on OS you are using). 
+  Available   paths are:
+    "../../../NAMD_2.9_Linux-x86/namd2"
+    "../../../NAMD_2.9_MacOSX-x86-multicore/namd2"
+    "../../../NAMD_2.9b3_MacOSX-x86_64-multicore/namd2"
+  - change a username to the one you are using on your laptop: "username" : "<your_username>"
 ##############################################################################################
 {
     "input.PILOT": {
@@ -28,7 +32,9 @@ To run the module on local system your input.json file should contain ONLY data 
 }
 ##############################################################################################
 
-To run module on stampede your input.json file should contain ONLY data provided below, you will need to CHANGE sandbox to your home directory on stampede: 
+To run module on stampede your input.json file should contain ONLY data provided below, you will need to perform three changes:
+  - change "sandbox" to your home directory on stampede
+  - change a username to the one assigned to you on stampede: "username" : "<your_username>"
 ##############################################################################################
 {
     "input.PILOT": {
