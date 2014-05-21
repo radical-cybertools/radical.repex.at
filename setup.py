@@ -1,4 +1,5 @@
 from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='re_package',
@@ -10,7 +11,5 @@ setup(
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange package',
     long_description=open('README.md').read(),
-    install_requires=[
-        "Python >= 2.6.5"
-    ],
+    install_requires=['radical.pilot'],
 )
