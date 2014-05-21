@@ -214,13 +214,6 @@ class ReplicaExchange(object):
                 compute_replicas.append(cu)
 
         return compute_replicas
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def transfer_output_files(self, replicas):
-
-        for r in range(len(replicas)):
-            dir_path = "%s/replica_%d" % ( self.sandbox, replicas[r].id ) 
             
 #-----------------------------------------------------------------------------------------------------------------------------------
 
