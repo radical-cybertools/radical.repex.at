@@ -13,7 +13,7 @@ In Parallel Tempering (Replica Exchange) simulations N replicas of the original 
 $ virtualenv $HOME/myenv 
 $ source $HOME/myenv/bin/activate 
 $ git clone https://github.com/radical-cybertools/ReplicaExchange.git 
-$ cd ReplicaExchange/re_package 
+$ cd ReplicaExchange
 $ python setup.py install
 ```
 
@@ -26,17 +26,32 @@ This should print Radical Pilot version in terminal
  
 ##Usage
 
-Before running RE simulation path to NAMD executable must be specified; open /re_package/config/input.json and change NAMD path. You can find NAMD paths for mac and linux in paths-to-namd.dat (three precompiled NAMD executables are shipped with this installation), alternatively you can specify your own path.
+###Local simulation example
 
-To run RE simulation, you nead to specify simulation configuration file and resource configuration file. In order to run provided RE example run the following command in terminal: 
+First you need to copy a block of input parameters required for executing simulation on local system from /re_package/config/config.info to /re_package/config/input.json. Further details on how to do this are provided in /re_package/config/config.info file. Next, you need to specify path to NAMD executable, details of how this should be done are provided in /re_package/config/config.info file. In this file you can find NAMD paths for mac and linux.
+
+To run RE simulation on your laptop/desktop, you need to specify simulation configuration file and resource configuration file. In order to run provided RE example run the following commands in terminal: 
 
 ```bash
+$ cd re_module
 $ RADICAL_PILOT_VERBOSE=info python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
 ```
 
 This will run RE temperature exchange simulation involving 6 replicas on your local system. Simulation will perform a total of 3 cycles and after each cycle temperatures of replicas will be exchanged. During the simulation input files for each of the replicas will be generated. After simulation is done in ReplicaExchange/re_package directory you should see a number of NAMD output files for each replica, namely coordinate, velocity and extended system files. 
 
-Examples of simulation configuration and resource configuration files can be found in re_package/config directory.  
+###Remote (stampede) simulation example
+
+In order to run this example you don't need to login to Stampede. All you have to do is to launch the simulation as described below. 
+As for previous exemple you first need to copy a block of input parameters required for executing simulation on Stampede from /re_package/config/config.info to /re_package/config/input.json. Further details on how to do this are provided in /re_package/config/config.info file.
+
+To run RE simulation, you need to specify simulation configuration file and resource configuration file. In order to run RE simulation remotely on Stampede execute the following commands in terminal: 
+
+```bash
+$ cd re_module
+$ RADICAL_PILOT_VERBOSE=info python radical_re_namd.py --input='config/input.json' --resource='config/xsede.json'
+```
+
+This will run RE temperature exchange simulation involving 12 replicas on Stampede remotely. Simulation will perform a total of 3 cycles and after each cycle temperatures of replicas will be exchanged. During the simulation input files for each of the replicas will be transferred to your local system. After simulation is done in ReplicaExchange/re_package directory you should see a number of NAMD output files for each replica, namely coordinate, velocity and extended system files. 
 
 ###input.json 
 

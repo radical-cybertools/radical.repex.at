@@ -1,23 +1,23 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
-        "sandbox" : "/home1/02457/antontre/re",
-        "username" : "antontre",
-        "cores" : "24",
+        "resource": "localhost.XSEDE",
+        "sandbox" : "/home/antons/SINON-WORK/git-re/re_package",
+        "username" : "antons",
+        "cores" : "2",
         "runtime" : "10",
         "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
         "cleanup" : "False"
     },
     "input.NAMD": {
-        "namd_path": "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2",
+        "namd_path": "../../../NAMD_2.9_Linux-x86/namd2",
         "input_file_basename": "alanin_base.namd",
         "namd_structure": "namd_inp/alanin.psf",
         "namd_coordinates": "namd_inp/unfolded.pdb",
         "namd_parameters": "namd_inp/alanin.params",
-        "number_of_replicas": "12",
+        "number_of_replicas": "6",
         "min_temperature": "300",
         "max_temperature": "600",
         "steps_per_cycle": "1000",
-        "number_of_cycles": "3"
+        "number_of_cycles": "2"
     }
 }
