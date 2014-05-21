@@ -1,45 +1,26 @@
 {
-    "xsede.TRESTLES": {
-        "URL" : "pbs+ssh://antontre@trestles.sdsc.xsede.org",
-        "filesystem" : "sftp://antontre@trestles.sdsc.xsede.org/",
+    "trestles.sdsc.xsede.org": {
+        "URL" : "pbs+ssh://trestles.sdsc.xsede.org",
+        "filesystem" : "sftp://trestles.sdsc.xsede.org/",
         "default_queue" : "normal",
         "python_interpreter" : "/usr/bin/python",
         "pre_bootstrap" : ["module purge", "module load pgi", "module load mvapich2_ib", "module load gnubase"],
         "task_launch_mode" : "SSH",
-        "valid_roots" : ["/home"]
+        "valid_roots" : ["/home"],
+        "bootstrapper" : "default_bootstrapper.sh"
     },
     
-    "xsede.LONESTAR": {
-        "URL" : "sge+ssh://antontre@lonestar.tacc.utexas.edu",
-        "filesystem" : "sftp://antontre@lonestar.tacc.utexas.edu/",
-        "default_queue" : "normal",
-        "python_interpreter" : "/opt/apps/python/epd/7.2.2/bin/python",
-        "pre_bootstrap" : ["module purge", "module load TACC", "module load cluster", "module load mvapich2", 
-        "module load python/2.7.2-epd"],
-        "task_launch_mode" : "SSH",
-        "valid_roots" : ["/home1", "/scratch", "/work"]
-    },
-
-    "xsede.STAMPEDE": {
+    "stampede.tacc.utexas.edu": {
         "URL" : "slurm+ssh://stampede.tacc.utexas.edu",
         "filesystem" : "sftp://stampede.tacc.utexas.edu/",
         "default_queue" : "normal",
         "python_interpreter" : "/opt/apps/python/epd/7.3.2/bin/python",
-        "pre_bootstrap" : ["module purge", "module load TACC", "module load cluster", "module load python/2.7.3-epd-7.3.2", "module load namd/2.9", "module swap mvapich2 impi/4.1.0.024 ", "export MKL_MIC_ENABLE=1", "export I_MPI_EAGER_THRESHOLD=262144"],
+        "pre_bootstrap" : ["module purge", "module load TACC", "module load cluster", "module load Linux", "module load mvapich2", "module load python/2.7.3-epd-7.3.2"],
         "task_launch_mode" : "SSH",
-        "valid_roots" : ["/home1", "/scratch", "/work"]
+        "valid_roots" : ["/home1", "/scratch", "/work"],
+        "bootstrapper" : "default_bootstrapper.sh"
     },
  
-    "epcc.ARCHER": {
-        "URL" : "pbs+ssh://antonst@login.archer.ac.uk",
-        "filesystem" : "sftp://antonst@login.archer.ac.uk",
-        "default_queue" : "normal",
-        "python_interpreter" : "/usr/bin/python",
-        "pre_bootstrap" : ["module load pgi"],
-        "task_launch_mode" : "SSH",
-        "valid_roots" : ["/home"]
-    },
-
     "localhost.XSEDE": {
         "URL"                : "fork://localhost",
         "filesystem"         : "file://localhost",

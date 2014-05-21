@@ -1,0 +1,56 @@
+To run the module on local system your input.json file should contain ONLY data provided below, you will need to CHANGE sandbox to directory of your choice on your laptop and change path to NAMD executable, which is shipped with this module (path depends on OS you are using). Available paths are:
+"../../../NAMD_2.9_Linux-x86/namd2"
+"../../../NAMD_2.9_MacOSX-x86-multicore/namd2"
+"../../../NAMD_2.9b3_MacOSX-x86_64-multicore/namd2"
+##############################################################################################
+{
+    "input.PILOT": {
+        "resource": "localhost.XSEDE",
+        "sandbox" : "/home/antons/SINON-WORK/git-re/re_package",
+        "cores" : "2",
+        "runtime" : "10",
+        "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
+        "cleanup" : "False"
+    },
+    "input.NAMD": {
+        "namd_path": "../../../NAMD_2.9_Linux-x86/namd2",
+        "input_file_basename": "alanin_base.namd",
+        "namd_structure": "namd_inp/alanin.psf",
+        "namd_coordinates": "namd_inp/unfolded.pdb",
+        "namd_parameters": "namd_inp/alanin.params",
+        "number_of_replicas": "6",
+        "min_temperature": "300",
+        "max_temperature": "600",
+        "steps_per_cycle": "1000",
+        "number_of_cycles": "2"
+    }
+}
+##############################################################################################
+
+To run module on stampede your input.json file should contain ONLY data provided below, you will need to CHANGE sandbox to your home directory on stampede: 
+##############################################################################################
+{
+    "input.PILOT": {
+        "resource": "stampede.tacc.utexas.edu",
+        "sandbox" : "/home1/02457/antontre/re",
+        "cores" : "24",
+        "runtime" : "10",
+        "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
+        "cleanup" : "False"
+    },
+    "input.NAMD": {
+        "namd_path": "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2",
+        "input_file_basename": "alanin_base.namd",
+        "namd_structure": "namd_inp/alanin.psf",
+        "namd_coordinates": "namd_inp/unfolded.pdb",
+        "namd_parameters": "namd_inp/alanin.params",
+        "number_of_replicas": "12",
+        "min_temperature": "300",
+        "max_temperature": "600",
+        "steps_per_cycle": "1000",
+        "number_of_cycles": "3"
+    }
+}
+##############################################################################################
+
+
