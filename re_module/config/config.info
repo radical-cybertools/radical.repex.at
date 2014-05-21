@@ -7,6 +7,7 @@ To run the module on local system your input.json file should contain ONLY data 
     "input.PILOT": {
         "resource": "localhost.XSEDE",
         "sandbox" : "/home/antons/SINON-WORK/git-re/re_package",
+        "username" : "antons",
         "cores" : "2",
         "runtime" : "10",
         "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
@@ -33,6 +34,7 @@ To run module on stampede your input.json file should contain ONLY data provided
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
         "sandbox" : "/home1/02457/antontre/re",
+        "username" : "antontre",
         "cores" : "24",
         "runtime" : "10",
         "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",

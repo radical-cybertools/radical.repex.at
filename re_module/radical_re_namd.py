@@ -49,6 +49,7 @@ class ReplicaExchange(object):
         # pilot parameters
         self.resource = inp_file['input.PILOT']['resource']
         self.sandbox = inp_file['input.PILOT']['sandbox']
+        self.user = inp_file['input.PILOT']['username']
         self.cores = int(inp_file['input.PILOT']['cores'])
         self.runtime = int(inp_file['input.PILOT']['runtime'])
         self.dburl = inp_file['input.PILOT']['mongo_url']
@@ -248,6 +249,11 @@ class ReplicaExchange(object):
    
         try:
             session = radical.pilot.Session(database_url=self.dburl)
+
+            # Add an ssh identity to the session.
+            cred = radical.pilot.SSHCredential()
+            cred.user_id = self.user
+            session.add_credential(cred)
 
             pilot_manager = radical.pilot.PilotManager(session=session, resource_configurations=r_config)
             pilot_manager.register_callback(self.pilot_state_cb)

@@ -2,6 +2,7 @@
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
         "sandbox" : "/home1/02457/antontre/re",
+        "username" : "antontre",
         "cores" : "24",
         "runtime" : "10",
         "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
