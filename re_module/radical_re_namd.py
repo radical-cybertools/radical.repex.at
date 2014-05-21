@@ -342,7 +342,7 @@ if __name__ == '__main__':
             # getting OLDTEMP and POTENTIAL from .history file of previous run
             old_temp, old_energy = re.get_historical_data(r,(r.cycle-1))
             print "*********************************************************************"
-            print "Replica's %d history data: temperure=%f potential=%f" % ( r.id, old_temp, old_energy )
+            print "Replica's %d history data: temperature=%f potential=%f" % ( r.id, old_temp, old_energy )
             print "*********************************************************************"
             print ""
             # updating replica temperature
