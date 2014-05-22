@@ -9,7 +9,7 @@ To run the module on local system your input.json file should contain ONLY data 
 ##############################################################################################
 {
     "input.PILOT": {
-        "resource": "localhost",
+        "resource": "localhost.system",
         "sandbox" : "/home/antons/SINON-WORK/git-re/re_package",
         "username" : "antons",
         "cores" : "2",

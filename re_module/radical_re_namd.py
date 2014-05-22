@@ -11,6 +11,7 @@ import radical.pilot
 from pprint import pprint
 from random import randint
 import random
+import shutil
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 
@@ -40,6 +41,8 @@ class Replica(object):
         self.swap = 0
 
 #-----------------------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------
 
 class ReplicaExchange(object):
     """Class representing RE simulation. Currently an instance of this class is responsible for all 
@@ -51,7 +54,7 @@ class ReplicaExchange(object):
         
         # pilot parameters
         self.resource = inp_file['input.PILOT']['resource']
-        if resource == "localhost":
+        if self.resource == "localhost.system":
             self.sandbox = inp_file['input.PILOT']['sandbox']
         else:
             self.sandbox = None
@@ -265,7 +268,7 @@ class ReplicaExchange(object):
 
             pilot_descripiton = radical.pilot.ComputePilotDescription()
             pilot_descripiton.resource = self.resource
-            if self.resource == "localhost":
+            if self.resource == "localhost.system":
                 pilot_descripiton.sandbox = self.sandbox
             pilot_descripiton.cores = self.cores
             pilot_descripiton.runtime = self.runtime
@@ -297,7 +300,7 @@ class ReplicaExchange(object):
     def run_simulation(self, replicas, session, pilot_object ):
         """This function runs the main loop of the RE simulation
         """
-
+        print "pilot object: ", pilot_object
         for i in range(self.nr_cycles):
             # returns compute objects
             compute_replicas = self.prepare_replicas(replicas)
@@ -337,6 +340,26 @@ class ReplicaExchange(object):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
+    def move_output_files(self, replicas):
+        """Moving files to replica directories
+        """
+        for r in range(len(replicas)):
+            dir_path = "%s/replica_%d" % ( PWD, replicas[r].id )
+            if not os.path.exists(dir_path):
+                os.makedirs(dir_path)
+
+            files = os.listdir( PWD )
+            base_name =  "alanin_base_%s" % replicas[r].id
+            for item in files:
+                if item.startswith( base_name ):
+                    source =  PWD + "/" + str(item)
+                    destination = dir_path + "/"
+                    shutil.move( source, destination)
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------            
+#-----------------------------------------------------------------------------------------------------------------------------------
+
 def parse_command_line():
 
     usage = "usage: %prog [Options]"
@@ -367,6 +390,7 @@ if __name__ == '__main__':
     print "*                     Replica Exchange with NAMD                    *"
     print "*********************************************************************"
 
+    
     params = parse_command_line()
     
     # get input file
@@ -379,7 +403,7 @@ if __name__ == '__main__':
 
     # init simulaition
     re = ReplicaExchange( inp_file, r_config )
-
+    
     # init replicas
     replicas = re.initialize_replicas()
     session, pilot_manager, pilot_object = re.launch_pilot(r_config)
@@ -388,6 +412,9 @@ if __name__ == '__main__':
     re.run_simulation( replicas, session, pilot_object )
                 
     session.close()
+    
+    # finally we are moving all files to individual replica directories
+    re.move_output_files( replicas ) 
     sys.exit(0)
 
 

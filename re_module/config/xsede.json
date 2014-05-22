@@ -21,7 +21,7 @@
         "bootstrapper" : "default_bootstrapper.sh"
     },
  
-    "localhost": {
+    "localhost.system": {
         "URL"                : "fork://localhost",
         "filesystem"         : "file://localhost",
         "pre_bootstrap"      : ["hostname", "date"],
