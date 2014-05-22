@@ -45,7 +45,7 @@ class Replica(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class RepEx_NamdKernel(object):
-    """Class representing NAMD kernel. In this class is determined how replica input files
+    """Class responsible for NAMD related operations. In this class is determined how replica input files
     are composed, how exchanges are performed, etc.
     """
     def __init__(self, inp_file ):
@@ -234,7 +234,7 @@ class RepEx_NamdKernel(object):
 
 class RepEx_PilotKernel(object):
     """This class is using Radical Pilot API to perform all Pilot related operations, such as
-    launching a Pilot, 
+    launching a Pilot, running main loop of RE simulation and using RP API for data staging in and out.
     """
     def __init__(self, inp_file, r_config):
         # resource configuration file
@@ -256,7 +256,7 @@ class RepEx_PilotKernel(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def run_simulation(self, replicas, session, pilot_object, md_kernel ):
-        """This function runs the main loop of the RE simulation
+        """This function runs the main loop of RE simulation
         """
         for i in range(self.nr_cycles):
             # returns compute objects
