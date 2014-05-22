@@ -18,7 +18,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class Replica(object):
-    """Class representing replica. 
+    """Class representing replica and it's associated data.
     """
     def __init__(self, my_id, new_temperature = None):
         self.id = my_id
@@ -45,8 +45,8 @@ class Replica(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class RepEx_NamdKernel(object):
-    """Class representing RE simulation. Currently an instance of this class is responsible for all 
-    stages of RE workflow.  
+    """Class representing NAMD kernel. In this class is determined how replica input files
+    are composed, how exchanges are performed, etc.
     """
     def __init__(self, inp_file ):
         # NAMD parameters
@@ -233,7 +233,9 @@ class RepEx_NamdKernel(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class RepEx_PilotKernel(object):
-
+    """This class is using Radical Pilot API to perform all Pilot related operations, such as
+    launching a Pilot, 
+    """
     def __init__(self, inp_file, r_config):
         # resource configuration file
         self.rconfig = r_config
@@ -256,7 +258,6 @@ class RepEx_PilotKernel(object):
     def run_simulation(self, replicas, session, pilot_object, md_kernel ):
         """This function runs the main loop of the RE simulation
         """
-        print "pilot object: ", pilot_object
         for i in range(self.nr_cycles):
             # returns compute objects
             compute_replicas = md_kernel.prepare_replicas(replicas)
@@ -399,7 +400,7 @@ if __name__ == '__main__':
     md_kernel = RepEx_NamdKernel( inp_file )
     pilot_kernel = RepEx_PilotKernel( inp_file, r_config )
 
-    # init replicas
+    # initializing replicas
     replicas = md_kernel.initialize_replicas()
 
     session, pilot_manager, pilot_object = pilot_kernel.launch_pilot()
