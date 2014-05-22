@@ -44,26 +44,11 @@ class Replica(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class ReplicaExchange(object):
+class RepEx_NamdKernel(object):
     """Class representing RE simulation. Currently an instance of this class is responsible for all 
     stages of RE workflow.  
     """
-    def __init__(self, inp_file, r_config ):
-        # resource configuration file
-        self.rconfig = r_config
-        
-        # pilot parameters
-        self.resource = inp_file['input.PILOT']['resource']
-        if self.resource == "localhost.system":
-            self.sandbox = inp_file['input.PILOT']['sandbox']
-        else:
-            self.sandbox = None
-        self.user = inp_file['input.PILOT']['username']
-        self.cores = int(inp_file['input.PILOT']['cores'])
-        self.runtime = int(inp_file['input.PILOT']['runtime'])
-        self.dburl = inp_file['input.PILOT']['mongo_url']
-        self.cleanup = inp_file['input.PILOT']['cleanup']
-
+    def __init__(self, inp_file ):
         # NAMD parameters
         self.namd_path = inp_file['input.NAMD']['namd_path']
         self.inp_basename = inp_file['input.NAMD']['input_file_basename']
@@ -74,20 +59,6 @@ class ReplicaExchange(object):
         self.min_temp = float(inp_file['input.NAMD']['min_temperature'])
         self.max_temp = float(inp_file['input.NAMD']['max_temperature'])
         self.cycle_steps = int(inp_file['input.NAMD']['steps_per_cycle'])
-        self.nr_cycles = int(inp_file['input.NAMD']['number_of_cycles'])
-
-        # check if all required params are specified
-        self.check_parameters()
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def check_parameters(self):
-        """ Check that required parameters are specified.
-        """ 
-
-        for attribute, value in self.__dict__.iteritems():
-            if value is None:
-                sys.exit('Parameter %s is not specified in input.json!' % attribute)
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -227,62 +198,6 @@ class ReplicaExchange(object):
             
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def unit_state_change_cb(self, unit, state):
-        """This is a callback function. It gets called very time a ComputeUnit changes its state.
-        """
-        print "[Callback]: ComputeUnit '{0}' state changed to {1}.".format(
-            unit.uid, state)
-        if state == radical.pilot.states.FAILED:
-            print "            Log: %s" % unit.log[-1]
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def pilot_state_cb(self, pilot, state):
-        """This is a callback function. It gets called very time a ComputePilot changes its state.
-        """
-        print "[Callback]: ComputePilot '{0}' state changed to {1}.".format(
-            pilot.uid, state)
-
-        if state == radical.pilot.states.FAILED:
-            sys.exit(1)
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def launch_pilot(self, r_config):
-        """Launches a Pilot on a target resource. This function uses parameters specified in config/input.json 
-        """
-        session = None
-        pilot_manager = None
-        pilot_object = None
-   
-        try:
-            session = radical.pilot.Session(database_url=self.dburl)
-
-            # Add an ssh identity to the session.
-            cred = radical.pilot.SSHCredential()
-            cred.user_id = self.user
-            session.add_credential(cred)
-
-            pilot_manager = radical.pilot.PilotManager(session=session, resource_configurations=r_config)
-            pilot_manager.register_callback(self.pilot_state_cb)
-
-            pilot_descripiton = radical.pilot.ComputePilotDescription()
-            pilot_descripiton.resource = self.resource
-            if self.resource == "localhost.system":
-                pilot_descripiton.sandbox = self.sandbox
-            pilot_descripiton.cores = self.cores
-            pilot_descripiton.runtime = self.runtime
-            pilot_descripiton.cleanup = self.cleanup
-
-            pilot_object = pilot_manager.submit_pilots(pilot_descripiton)
-
-        except radical.pilot.PilotException, ex:
-            print "Error: %s" % ex
-
-        return session, pilot_manager, pilot_object 
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
     def initialize_replicas(self):
         """Initializes replicas and their attributes to default values
         """
@@ -294,49 +209,6 @@ class ReplicaExchange(object):
             replicas.append(r)
             
         return replicas
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def run_simulation(self, replicas, session, pilot_object ):
-        """This function runs the main loop of the RE simulation
-        """
-        print "pilot object: ", pilot_object
-        for i in range(self.nr_cycles):
-            # returns compute objects
-            compute_replicas = self.prepare_replicas(replicas)
-            um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
-            um.register_callback(re.unit_state_change_cb)
-            um.add_pilots(pilot_object)
-
-            submitted_replicas = um.submit_units(compute_replicas)
-            um.wait_units()
-
-            for r in replicas:
-                # getting OLDTEMP and POTENTIAL from .history file of previous run
-                old_temp, old_energy = self.get_historical_data(r,(r.cycle-1))
-                print "************************************************************************"
-                print "Replica's %d history data: temperature=%f potential=%f" % ( r.id, old_temp, old_energy )
-                print "************************************************************************"
-                print ""
-                # updating replica temperature
-                r.new_temperature = old_temp   
-                r.old_temperature = old_temp   
-                r.potential = old_energy      
-
-            for r in replicas:
-                r_pair = re.exchange_accept( r, replicas )
-                if( r_pair.id != r.id ):
-                    # swap temperatures
-                    print "************************************************************************"
-                    print "Replica %d exchanged temperature with replica %d" % ( r.id, r_pair.id )
-                    print "************************************************************************"
-                    print ""
-                    temperature = r_pair.new_temperature
-                    r_pair.new_temperature = r.new_temperature
-                    r.new_temperature = temperature
-                    # record that swap was performed
-                    r.swap = 1
-                    r_pair.swap = 1
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -358,6 +230,128 @@ class ReplicaExchange(object):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------            
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+class RepEx_PilotKernel(object):
+
+    def __init__(self, inp_file, r_config):
+        # resource configuration file
+        self.rconfig = r_config
+        
+        # pilot parameters
+        self.resource = inp_file['input.PILOT']['resource']
+        if self.resource == "localhost.system":
+            self.sandbox = inp_file['input.PILOT']['sandbox']
+        else:
+            self.sandbox = None
+        self.user = inp_file['input.PILOT']['username']
+        self.cores = int(inp_file['input.PILOT']['cores'])
+        self.runtime = int(inp_file['input.PILOT']['runtime'])
+        self.dburl = inp_file['input.PILOT']['mongo_url']
+        self.cleanup = inp_file['input.PILOT']['cleanup']  
+        self.nr_cycles = int(inp_file['input.PILOT']['number_of_cycles']) 
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def run_simulation(self, replicas, session, pilot_object, md_kernel ):
+        """This function runs the main loop of the RE simulation
+        """
+        print "pilot object: ", pilot_object
+        for i in range(self.nr_cycles):
+            # returns compute objects
+            compute_replicas = md_kernel.prepare_replicas(replicas)
+            um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+            um.register_callback(self.unit_state_change_cb)
+            um.add_pilots(pilot_object)
+
+            submitted_replicas = um.submit_units(compute_replicas)
+            um.wait_units()
+
+            for r in replicas:
+                # getting OLDTEMP and POTENTIAL from .history file of previous run
+                old_temp, old_energy = md_kernel.get_historical_data(r,(r.cycle-1))
+                print "************************************************************************"
+                print "Replica's %d history data: temperature=%f potential=%f" % ( r.id, old_temp, old_energy )
+                print "************************************************************************"
+                print ""
+                # updating replica temperature
+                r.new_temperature = old_temp   
+                r.old_temperature = old_temp   
+                r.potential = old_energy      
+
+            for r in replicas:
+                r_pair = md_kernel.exchange_accept( r, replicas )
+                if( r_pair.id != r.id ):
+                    # swap temperatures
+                    print "************************************************************************"
+                    print "Replica %d exchanged temperature with replica %d" % ( r.id, r_pair.id )
+                    print "************************************************************************"
+                    print ""
+                    temperature = r_pair.new_temperature
+                    r_pair.new_temperature = r.new_temperature
+                    r.new_temperature = temperature
+                    # record that swap was performed
+                    r.swap = 1
+                    r_pair.swap = 1
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def launch_pilot(self):
+        """Launches a Pilot on a target resource. This function uses parameters specified in config/input.json 
+        """
+        session = None
+        pilot_manager = None
+        pilot_object = None
+   
+        try:
+            session = radical.pilot.Session(database_url=self.dburl)
+
+            # Add an ssh identity to the session.
+            cred = radical.pilot.SSHCredential()
+            cred.user_id = self.user
+            session.add_credential(cred)
+
+            pilot_manager = radical.pilot.PilotManager(session=session, resource_configurations=self.rconfig)
+            pilot_manager.register_callback(self.pilot_state_cb)
+
+            pilot_descripiton = radical.pilot.ComputePilotDescription()
+            pilot_descripiton.resource = self.resource
+            if self.resource == "localhost.system":
+                pilot_descripiton.sandbox = self.sandbox
+            pilot_descripiton.cores = self.cores
+            pilot_descripiton.runtime = self.runtime
+            pilot_descripiton.cleanup = self.cleanup
+
+            pilot_object = pilot_manager.submit_pilots(pilot_descripiton)
+
+        except radical.pilot.PilotException, ex:
+            print "Error: %s" % ex
+
+        return session, pilot_manager, pilot_object 
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def unit_state_change_cb(self, unit, state):
+        """This is a callback function. It gets called very time a ComputeUnit changes its state.
+        """
+        print "[Callback]: ComputeUnit '{0}' state changed to {1}.".format(
+            unit.uid, state)
+        if state == radical.pilot.states.FAILED:
+            print "            Log: %s" % unit.log[-1]
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def pilot_state_cb(self, pilot, state):
+        """This is a callback function. It gets called very time a ComputePilot changes its state.
+        """
+        print "[Callback]: ComputePilot '{0}' state changed to {1}.".format(
+            pilot.uid, state)
+
+        if state == radical.pilot.states.FAILED:
+            sys.exit(1)
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def parse_command_line():
@@ -383,6 +377,8 @@ def parse_command_line():
     return options
 
 #-----------------------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
@@ -390,31 +386,31 @@ if __name__ == '__main__':
     print "*                     Replica Exchange with NAMD                    *"
     print "*********************************************************************"
 
-    
     params = parse_command_line()
     
     # get input file
     json_data=open(params.input_file)
     inp_file = json.load(json_data)
     json_data.close()
-
     # get resource
     r_config = ('file://localhost%s/' + str(params.resource_file)) % PWD
 
-    # init simulaition
-    re = ReplicaExchange( inp_file, r_config )
-    
+    # initializing kernels
+    md_kernel = RepEx_NamdKernel( inp_file )
+    pilot_kernel = RepEx_PilotKernel( inp_file, r_config )
+
     # init replicas
-    replicas = re.initialize_replicas()
-    session, pilot_manager, pilot_object = re.launch_pilot(r_config)
+    replicas = md_kernel.initialize_replicas()
+
+    session, pilot_manager, pilot_object = pilot_kernel.launch_pilot()
     
     # now we can run RE simulation
-    re.run_simulation( replicas, session, pilot_object )
+    pilot_kernel.run_simulation( replicas, session, pilot_object, md_kernel )
                 
     session.close()
     
     # finally we are moving all files to individual replica directories
-    re.move_output_files( replicas ) 
+    md_kernel.move_output_files( replicas ) 
     sys.exit(0)
 
 

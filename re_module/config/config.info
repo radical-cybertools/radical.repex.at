@@ -15,7 +15,8 @@ To run the module on local system your input.json file should contain ONLY data 
         "cores" : "2",
         "runtime" : "10",
         "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
-        "cleanup" : "False"
+        "cleanup" : "False",
+        "number_of_cycles": "2"
     },
     "input.NAMD": {
         "namd_path": "../../../NAMD_2.9_Linux-x86/namd2",
@@ -26,8 +27,7 @@ To run the module on local system your input.json file should contain ONLY data 
         "number_of_replicas": "6",
         "min_temperature": "300",
         "max_temperature": "600",
-        "steps_per_cycle": "1000",
-        "number_of_cycles": "2"
+        "steps_per_cycle": "1000"
     }
 }
 ##############################################################################################
@@ -43,7 +43,8 @@ To run module on stampede your input.json file should contain ONLY data provided
         "cores" : "24",
         "runtime" : "10",
         "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
-        "cleanup" : "False"
+        "cleanup" : "False",
+        "number_of_cycles": "2"
     },
     "input.NAMD": {
         "namd_path": "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2",
@@ -54,8 +55,7 @@ To run module on stampede your input.json file should contain ONLY data provided
         "number_of_replicas": "12",
         "min_temperature": "300",
         "max_temperature": "600",
-        "steps_per_cycle": "1000",
-        "number_of_cycles": "3"
+        "steps_per_cycle": "1000"
     }
 }
 ##############################################################################################
