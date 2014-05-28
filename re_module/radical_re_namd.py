@@ -12,6 +12,7 @@ from pprint import pprint
 from random import randint
 import random
 import shutil
+from os import path
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 
@@ -52,6 +53,7 @@ class RepEx_NamdKernel(object):
         # NAMD parameters
         self.namd_path = inp_file['input.NAMD']['namd_path']
         self.inp_basename = inp_file['input.NAMD']['input_file_basename']
+        self.inp_folder = inp_file['input.NAMD']['input_folder']
         self.namd_structure = inp_file['input.NAMD']['namd_structure']
         self.namd_coordinates = inp_file['input.NAMD']['namd_coordinates']
         self.namd_parameters = inp_file['input.NAMD']['namd_parameters']
@@ -59,6 +61,7 @@ class RepEx_NamdKernel(object):
         self.min_temp = float(inp_file['input.NAMD']['min_temperature'])
         self.max_temp = float(inp_file['input.NAMD']['max_temperature'])
         self.cycle_steps = int(inp_file['input.NAMD']['steps_per_cycle'])
+        self.work_dir_local = str(inp_file['input.NAMD']['work_dir_local'])
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -128,7 +131,7 @@ class RepEx_NamdKernel(object):
         #---------------------------------------------------------------------
         # substituting tokens in main replica input file 
         try:
-            r_file = open(template, "r")
+            r_file = open( (os.path.join((self.work_dir_local + "/namd_inp/"), template)), "r")
         except IOError:
             print 'Warning: unable to access template file %s' % template
 
@@ -145,11 +148,15 @@ class RepEx_NamdKernel(object):
         tbuffer = tbuffer.replace("@cycle@",str(replica.cycle))
         tbuffer = tbuffer.replace("@firststep@",str(first_step))
         tbuffer = tbuffer.replace("@history@",str(historyname))
+
+        tbuffer = tbuffer.replace("@structure@", self.namd_structure)
+        tbuffer = tbuffer.replace("@coordinates@", self.namd_coordinates)
+        tbuffer = tbuffer.replace("@parameters@", self.namd_parameters)
         
         replica.cycle += 1
         # write out
         try:
-            w_file = open(new_input_file, "w")
+            w_file = open( new_input_file, "w")
             w_file.write(tbuffer)
             w_file.close()
         except IOError:
@@ -181,7 +188,10 @@ class RepEx_NamdKernel(object):
                 cu.executable = self.namd_path
                 cu.arguments = [input_file]
                 cu.cores = 1
-                cu.input_data = [input_file, self.namd_structure, self.namd_coordinates, self.namd_parameters]
+                structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
+                coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
+                params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
+                cu.input_data = [input_file, structure, coords, params]
                 cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
 
                 compute_replicas.append(cu)
@@ -190,7 +200,10 @@ class RepEx_NamdKernel(object):
                 cu.executable = self.namd_path
                 cu.arguments = [input_file]
                 cu.cores = 1
-                cu.input_data = [input_file, self.namd_structure, self.namd_coordinates, self.namd_parameters, old_coor, old_vel, old_ext_system]
+                structure = self.inp_folder + "/" + self.namd_structure
+                coords = self.inp_folder + "/" + self.namd_coordinates
+                params = self.inp_folder + "/" + self.namd_parameters
+                cu.input_data = [input_file, structure, coords, params, old_coor, old_vel, old_ext_system]
                 cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
                 compute_replicas.append(cu)
 
@@ -216,17 +229,30 @@ class RepEx_NamdKernel(object):
         """Moving files to replica directories
         """
         for r in range(len(replicas)):
-            dir_path = "%s/replica_%d" % ( PWD, replicas[r].id )
+            dir_path = "%s/replica_%d" % (self.work_dir_local, r )
             if not os.path.exists(dir_path):
-                os.makedirs(dir_path)
+                print "creating replica directory..."
+                try:
+                    os.makedirs(dir_path)
+                except: 
+                    raise
 
-            files = os.listdir( PWD )
-            base_name =  "alanin_base_%s" % replicas[r].id
+            files = os.listdir( self.work_dir_local )
+            base_name =  self.inp_basename[:-5] + "_%s" % replicas[r].id
             for item in files:
                 if item.startswith( base_name ):
-                    source =  PWD + "/" + str(item)
+                    source =  self.work_dir_local + "/" + str(item)
                     destination = dir_path + "/"
                     shutil.move( source, destination)
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def clean_up(self, replicas):
+        """Delete replica directories
+        """
+        for r in range(len(replicas)):
+            dir_path = "%s/replica_%d" % ( self.work_dir_local, replicas[r].id )
+            shutil.rmtree(dir_path)
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------            
@@ -260,6 +286,7 @@ class RepEx_PilotKernel(object):
         """
         for i in range(self.nr_cycles):
             # returns compute objects
+            t1 = datetime.datetime.utcnow()
             compute_replicas = md_kernel.prepare_replicas(replicas)
             um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
             um.register_callback(self.unit_state_change_cb)
@@ -267,6 +294,8 @@ class RepEx_PilotKernel(object):
 
             submitted_replicas = um.submit_units(compute_replicas)
             um.wait_units()
+            t2 = datetime.datetime.utcnow()
+            print "CYCLE %d, RP EXECUTION AND DATA TRANSFER TIME TIME: %f" % (i, (t2-t1).total_seconds() )
 
             for r in replicas:
                 # getting OLDTEMP and POTENTIAL from .history file of previous run
@@ -294,6 +323,9 @@ class RepEx_PilotKernel(object):
                     # record that swap was performed
                     r.swap = 1
                     r_pair.swap = 1
+            t3 = datetime.datetime.utcnow()
+            print "CYCLE %d EXCHANGE TIME: %f" % (i, (t3-t2).total_seconds() )
+            print "CYCLE %d TOTAL TIME: %f" % (i, (t3-t1).total_seconds() )
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -387,6 +419,7 @@ if __name__ == '__main__':
     print "*                     Replica Exchange with NAMD                    *"
     print "*********************************************************************"
 
+    t1 = datetime.datetime.utcnow()
     params = parse_command_line()
     
     # get input file
@@ -394,24 +427,36 @@ if __name__ == '__main__':
     inp_file = json.load(json_data)
     json_data.close()
     # get resource
-    r_config = ('file://localhost%s/' + str(params.resource_file)) % PWD
+    r_config = ('file://localhost%s/' + str(params.resource_file)) % inp_file["input.NAMD"]["work_dir_local"]
+    t2 = datetime.datetime.utcnow()
+
 
     # initializing kernels
     md_kernel = RepEx_NamdKernel( inp_file )
     pilot_kernel = RepEx_PilotKernel( inp_file, r_config )
+    t3 = datetime.datetime.utcnow()
+
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
+    t4 = datetime.datetime.utcnow()
+    print "SIMULATION INITIALIZING TIME: %f" % ( (t4-t1).total_seconds() )
 
     session, pilot_manager, pilot_object = pilot_kernel.launch_pilot()
     
     # now we can run RE simulation
     pilot_kernel.run_simulation( replicas, session, pilot_object, md_kernel )
                 
-    session.close()
+    #session.close()
     
     # finally we are moving all files to individual replica directories
     md_kernel.move_output_files( replicas ) 
-    sys.exit(0)
+    t5 = datetime.datetime.utcnow()
+    print "TOTAL SIMULATION TIME: %f" % ( (t5-t1).total_seconds() )
+
+    # delete all replica folders
+    #md_kernel.clean_up( replicas )
+
+    #sys.exit(0)
 
 
