@@ -13,6 +13,7 @@ from random import randint
 import random
 import shutil
 from os import path
+from kernels.kernels import KERNELS
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 
@@ -51,7 +52,12 @@ class RepEx_NamdKernel(object):
     """
     def __init__(self, inp_file ):
         # NAMD parameters
-        self.namd_path = inp_file['input.NAMD']['namd_path']
+        try:
+            self.namd_path = inp_file['input.NAMD']['namd_path']
+        except:
+            print "Using default NAMD path for %s" % inp_file['input.PILOT']['resource']
+            resource = inp_file['input.PILOT']['resource']
+            self.namd_path = KERNELS[resource]["kernels"]["namd"]["executable"]
         self.inp_basename = inp_file['input.NAMD']['input_file_basename']
         self.inp_folder = inp_file['input.NAMD']['input_folder']
         self.namd_structure = inp_file['input.NAMD']['namd_structure']
@@ -68,7 +74,7 @@ class RepEx_NamdKernel(object):
     def exchange_accept(self, replica, replicas):
         """ This function is using Metropolis criterion to determine of exchange will occur or not. 
         Now if replica already exchanged with some other replica it still can particiate in arbitrary
-        number of further exchanges during the same exchange step. Is this correct behaviour? 
+        number of further exchanges during the same exchange step. 
         """
         kb = 0.0019872041
 
@@ -231,7 +237,6 @@ class RepEx_NamdKernel(object):
         for r in range(len(replicas)):
             dir_path = "%s/replica_%d" % (self.work_dir_local, r )
             if not os.path.exists(dir_path):
-                print "creating replica directory..."
                 try:
                     os.makedirs(dir_path)
                 except: 
@@ -268,14 +273,22 @@ class RepEx_PilotKernel(object):
         
         # pilot parameters
         self.resource = inp_file['input.PILOT']['resource']
-        if self.resource == "localhost.system":
+        if self.resource == "localhost.linux.x86":
             self.sandbox = inp_file['input.PILOT']['sandbox']
         else:
             self.sandbox = None
         self.user = inp_file['input.PILOT']['username']
-        self.cores = int(inp_file['input.PILOT']['cores'])
+        try:
+            self.cores = int(inp_file['input.PILOT']['cores'])
+        except:
+            self.cores = KERNELS[self.resource]["params"]["cores"]
+            print "Using default core count equal %s" %  self.cores
         self.runtime = int(inp_file['input.PILOT']['runtime'])
-        self.dburl = inp_file['input.PILOT']['mongo_url']
+        try:
+            self.dburl = inp_file['input.PILOT']['mongo_url']
+        except:
+            print "Using default Mongo DB url"
+            self.dburl = "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/"
         self.cleanup = inp_file['input.PILOT']['cleanup']  
         self.nr_cycles = int(inp_file['input.PILOT']['number_of_cycles']) 
 
@@ -286,7 +299,6 @@ class RepEx_PilotKernel(object):
         """
         for i in range(self.nr_cycles):
             # returns compute objects
-            t1 = datetime.datetime.utcnow()
             compute_replicas = md_kernel.prepare_replicas(replicas)
             um = radical.pilot.UnitManager(session=session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
             um.register_callback(self.unit_state_change_cb)
@@ -294,8 +306,6 @@ class RepEx_PilotKernel(object):
 
             submitted_replicas = um.submit_units(compute_replicas)
             um.wait_units()
-            t2 = datetime.datetime.utcnow()
-            print "CYCLE %d, RP EXECUTION AND DATA TRANSFER TIME TIME: %f" % (i, (t2-t1).total_seconds() )
 
             for r in replicas:
                 # getting OLDTEMP and POTENTIAL from .history file of previous run
@@ -323,9 +333,6 @@ class RepEx_PilotKernel(object):
                     # record that swap was performed
                     r.swap = 1
                     r_pair.swap = 1
-            t3 = datetime.datetime.utcnow()
-            print "CYCLE %d EXCHANGE TIME: %f" % (i, (t3-t2).total_seconds() )
-            print "CYCLE %d TOTAL TIME: %f" % (i, (t3-t1).total_seconds() )
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -349,7 +356,7 @@ class RepEx_PilotKernel(object):
 
             pilot_descripiton = radical.pilot.ComputePilotDescription()
             pilot_descripiton.resource = self.resource
-            if self.resource == "localhost.system":
+            if self.resource == "localhost.linux.x86":
                 pilot_descripiton.sandbox = self.sandbox
             pilot_descripiton.cores = self.cores
             pilot_descripiton.runtime = self.runtime
@@ -396,16 +403,10 @@ def parse_command_line():
               dest='input_file',
               help='specifies RadicalPilot, NAMD and RE simulation parameters')
 
-    parser.add_option('--resource',
-              dest='resource_file',
-              help='specifies configuration parameters of the resource, RE simulaiton is intended to be run on')
-
     (options, args) = parser.parse_args()
 
     if options.input_file is None:
         parser.error("You must specify simulation input file (--input). Try --help for help.")
-    elif options.resource_file is None:
-        parser.error("You must specify a resource file (--resource). Try --help for help.")
 
     return options
 
@@ -419,7 +420,6 @@ if __name__ == '__main__':
     print "*                     Replica Exchange with NAMD                    *"
     print "*********************************************************************"
 
-    t1 = datetime.datetime.utcnow()
     params = parse_command_line()
     
     # get input file
@@ -427,21 +427,19 @@ if __name__ == '__main__':
     inp_file = json.load(json_data)
     json_data.close()
     # get resource
-    r_config = ('file://localhost%s/' + str(params.resource_file)) % inp_file["input.NAMD"]["work_dir_local"]
-    t2 = datetime.datetime.utcnow()
-
+    try:
+        r_config = inp_file['input.PILOT']['resource_config']
+    except:
+        print "Using default resource configuration file /config/xsede.json"
+        r_config = ('file://localhost%s/' + "/config/xsede.json") % inp_file["input.NAMD"]["work_dir_local"]
 
     # initializing kernels
     md_kernel = RepEx_NamdKernel( inp_file )
     pilot_kernel = RepEx_PilotKernel( inp_file, r_config )
-    t3 = datetime.datetime.utcnow()
-
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
-    t4 = datetime.datetime.utcnow()
-    print "SIMULATION INITIALIZING TIME: %f" % ( (t4-t1).total_seconds() )
-
+    
     session, pilot_manager, pilot_object = pilot_kernel.launch_pilot()
     
     # now we can run RE simulation
@@ -451,8 +449,6 @@ if __name__ == '__main__':
     
     # finally we are moving all files to individual replica directories
     md_kernel.move_output_files( replicas ) 
-    t5 = datetime.datetime.utcnow()
-    print "TOTAL SIMULATION TIME: %f" % ( (t5-t1).total_seconds() )
 
     # delete all replica folders
     #md_kernel.clean_up( replicas )

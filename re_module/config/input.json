@@ -1,23 +1,23 @@
 {
     "input.PILOT": {
-        "resource": "localhost.system",
-        "sandbox" : "/home/antons/SINON-WORK/git-re/re_package",
+        "resource": "localhost.linux.x86",
+        "sandbox" : "/home/antons/SINON-WORK/abstract/ReplicaExchange/re_module",
         "username" : "antons",
-        "cores" : "2",
         "runtime" : "10",
-        "mongo_url" : "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/",
         "cleanup" : "False",
         "number_of_cycles": "2"
     },
     "input.NAMD": {
-        "namd_path": "../../../NAMD_2.9_Linux-x86/namd2",
+        "work_dir_local": "/home/antons/SINON-WORK/abstract/ReplicaExchange/re_module",
+        "input_folder": "namd_inp",
         "input_file_basename": "alanin_base.namd",
-        "namd_structure": "namd_inp/alanin.psf",
-        "namd_coordinates": "namd_inp/unfolded.pdb",
-        "namd_parameters": "namd_inp/alanin.params",
+        "namd_structure": "alanin.psf",
+        "namd_coordinates": "unfolded.pdb",
+        "namd_parameters": "alanin.params",
         "number_of_replicas": "6",
         "min_temperature": "300",
         "max_temperature": "600",
         "steps_per_cycle": "1000"
     }
 }
+
