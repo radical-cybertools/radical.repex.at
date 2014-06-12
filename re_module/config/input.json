@@ -1,6 +1,6 @@
 {
     "input.PILOT": {
-        "resource": "localhost.linux.x86",
+        "resource": "localhost:local",
         "sandbox" : "/home/antons/SINON-WORK/abstract/ReplicaExchange/re_module",
         "username" : "antons",
         "runtime" : "10",
@@ -20,4 +20,3 @@
         "steps_per_cycle": "1000"
     }
 }
-

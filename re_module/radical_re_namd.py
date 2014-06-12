@@ -351,7 +351,7 @@ class RepEx_PilotKernel(object):
             cred.user_id = self.user
             session.add_credential(cred)
 
-            pilot_manager = radical.pilot.PilotManager(session=session, resource_configurations=self.rconfig)
+            pilot_manager = radical.pilot.PilotManager(session=session)
             pilot_manager.register_callback(self.pilot_state_cb)
 
             pilot_descripiton = radical.pilot.ComputePilotDescription()

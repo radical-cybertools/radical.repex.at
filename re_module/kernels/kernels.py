@@ -22,7 +22,7 @@ KERNELS = {
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2"
             }
         }
-    },"localhost.linux.x86":
+    },"localhost:local":
     {
         "params":
         {
