@@ -1,22 +1,23 @@
 {
     "input.PILOT": {
-        "resource": "localhost:local",
-        "sandbox" : "/home/antons/SINON-WORK/abstract/ReplicaExchange/re_module",
+        "resource": "localhost.linux.x86",
+        "sandbox" : "/home/antons/SINON-WORK/abstract/ReplicaExchange/src/radical/repex",
         "username" : "antons",
         "runtime" : "10",
         "cleanup" : "False",
         "number_of_cycles": "2"
     },
     "input.NAMD": {
-        "work_dir_local": "/home/antons/SINON-WORK/abstract/ReplicaExchange/re_module",
         "input_folder": "namd_inp",
         "input_file_basename": "alanin_base.namd",
         "namd_structure": "alanin.psf",
         "namd_coordinates": "unfolded.pdb",
         "namd_parameters": "alanin.params",
         "number_of_replicas": "6",
+        "replica_cores": "1",
         "min_temperature": "300",
         "max_temperature": "600",
         "steps_per_cycle": "1000"
     }
 }
+

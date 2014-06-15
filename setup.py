@@ -1,15 +1,18 @@
 from distutils.core import setup
 from setuptools import setup, find_packages
 
+
 setup(
-    name='re_module',
+    name='RepEx',
     version='0.1',
     author='Antons Treikalis',
     author_email='at646@scarletmail.rutgers.edu',
-    packages=['re_module'],
+    #packages=find_packages('src'),
+    packages=['radical.repex'],
+    package_dir={'radical.repex': 'src/radical/repex'},
     scripts=[],
     license='LICENSE.txt',
-    description='Radical Pilot based Replica Exchange module',
+    description='Radical Pilot based Replica Exchange Simulations Module',
     long_description=open('README.md').read(),
     install_requires=['radical.pilot'],
 )
