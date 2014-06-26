@@ -8,15 +8,12 @@ __license__ = "MIT"
 
 import os
 import sys
-import math
 import json
-import time
-import optparse
-import radical.pilot
 from os import path
+import radical.pilot
+from replicas.replica import Replica
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from replicas.replica import Replica
 from namd_kernels.namd_kernel_scheme_3 import NamdKernelScheme3
 from pilot_kernels.pilot_kernel_scheme_3 import PilotKernelScheme3
 

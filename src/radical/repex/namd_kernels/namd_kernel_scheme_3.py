@@ -278,32 +278,51 @@ class NamdKernelScheme3(object):
 
             # only for first cycle we transfer structure, coordinates and parameters files
             if replicas[r].cycle == 1:
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec    = KERNELS[resource]["kernels"]["namd"]["pre_execution"]
-                cu.executable = self.namd_path
-                cu.arguments = [input_file]
-                cu.cores = replicas[r].cores
                 structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
                 coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
                 params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
 
-                cu.input_data = [input_file, structure, coords, params]
-                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                mdtd = MDTaskDescription()
+                mdtd.kernel = "NAMD"
+                mdtd.arguments = [input_file]   
+                mdtd.input_data = [input_file, structure, coords, params]
+                mdtd.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+
+                mdtd_bound = mdtd.bind(resource=resource)
+
+                cu = radical.pilot.ComputeUnitDescription()
+                cu.environment = mdtd_bound.environment 
+                cu.pre_exec    = mdtd_bound.pre_exec
+                cu.executable  = mdtd_bound.executable
+                cu.arguments   = mdtd_bound.arguments
+                cu.cores       = replicas[r].cores
+                cu.mpi         = False
+                cu.input_data = mdtd_bound.input_data
+                cu.output_data = mdtd_bound.output_data
 
                 compute_replicas.append(cu)
             else:
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec    = KERNELS[resource]["kernels"]["namd"]["pre_execution"]
-                cu.executable = self.namd_path
-                cu.arguments = [input_file]
-                cu.cores = 1
                 structure = self.inp_folder + "/" + self.namd_structure
                 coords = self.inp_folder + "/" + self.namd_coordinates
                 params = self.inp_folder + "/" + self.namd_parameters
-                cu.input_data = [input_file]
 
-                cu.input_data = [input_file, structure, coords, params, old_coor, old_vel, old_ext_system]
-                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                mdtd = MDTaskDescription()
+                mdtd.kernel = "NAMD"
+                mdtd.arguments = input_file   
+                mdtd.input_data = [input_file, structure, coords, params, old_coor, old_vel, old_ext_system]
+                mdtd.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+
+                mdtd_bound = mdtd.bind(resource=resource)
+ 
+                cu = radical.pilot.ComputeUnitDescription()
+                cu.pre_exec    = mdtd_bound.pre_exec
+                cu.environment = mdtd_bound.environment
+                cu.executable = mdtd_bound.executable
+                cu.arguments = mdtd_bound.arguments
+                cu.cores = replicas[r].cores
+                cu.mpi = False
+                cu.input_data = mdtd_bound.input_data
+                cu.output_data = mdtd_bound.output_data                
                 compute_replicas.append(cu)
 
         return compute_replicas

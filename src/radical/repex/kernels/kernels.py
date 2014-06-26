@@ -7,7 +7,7 @@ KERNELS = {
     {
         "params":
         {
-            "cores": 16,
+            "cores": 32,
         },
         "kernels":
         {
@@ -22,6 +22,20 @@ KERNELS = {
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2"
             }
         }
+    },"trestles.sdsc.xsede.org":
+    {
+        "params":
+        {
+            "cores": 32,
+        },
+        "kernels":
+        {
+            "namd": {
+                "environment" : {},
+                "pre_execution" : ["module load namd/2.9"],
+                "executable" : "/opt/namd/bin/namd2"
+            }
+        }
     },"localhost.linux.x86":
     {
         "params":
@@ -32,7 +46,7 @@ KERNELS = {
         {
             "namd": {
                 "environment" : {},
-                "pre_execution" : {},
+                "pre_execution" : [],
                 "executable" : "../../../../../NAMD_2.9_Linux-x86/namd2"
             }
         }
@@ -46,7 +60,7 @@ KERNELS = {
         {
             "namd": {
                 "environment" : {},
-                "pre_execution" : {},
+                "pre_execution" : [],
                 "executable" : "../../../../../NAMD_2.9_Linux-x86_64/namd2"
             }
         }
@@ -60,7 +74,7 @@ KERNELS = {
         {
             "namd": {
                 "environment" : {},
-                "pre_execution" : {},
+                "pre_execution" : [],
                 "executable" : "../../../../../NAMD_2.9_MacOSX-x86-multicore/namd2"
             }
         }
@@ -74,7 +88,7 @@ KERNELS = {
         {
             "namd": {
                 "environment" : {},
-                "pre_execution" : {},
+                "pre_execution" : [],
                 "executable" : "../../../../../NAMD_2.9_MacOSX-x86-multicore/namd2"
             }
         }
@@ -88,7 +102,7 @@ KERNELS = {
         {
             "namd": {
                 "environment" : {},
-                "pre_execution" : {},
+                "pre_execution" : [],
                 "executable" : "../../../../../NAMD_2.9b3_MacOSX-x86_64-multicore/namd2"
             }
         }

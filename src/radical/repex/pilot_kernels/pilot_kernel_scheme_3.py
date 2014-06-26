@@ -51,7 +51,7 @@ class PilotKernelScheme3(PilotKernel):
         try:
             self.cycle_time = inp_file['input.PILOT']['cycle_time']
         except:
-            print "Using default cycle time: 1 minute"
+            print "Using default cycle time: 2 minutes"
             self.cycle_time = 2
         self.cycle_time = int(self.cycle_time) * 60
 

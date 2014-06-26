@@ -211,8 +211,6 @@ class NamdKernelScheme2(object):
 
             # only for first cycle we transfer structure, coordinates and parameters files
             if replicas[r].cycle == 1:
-                #############################################
-                # changes:
                 structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
                 coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
                 params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
@@ -228,7 +226,6 @@ class NamdKernelScheme2(object):
                 cu = radical.pilot.ComputeUnitDescription()
                 cu.environment = mdtd_bound.environment 
                 cu.pre_exec    = mdtd_bound.pre_exec
-                #cu.pre_exec    = ["module load namd/2.9"]
                 cu.executable  = mdtd_bound.executable
                 cu.arguments   = mdtd_bound.arguments
                 cu.cores       = replicas[r].cores
@@ -236,19 +233,6 @@ class NamdKernelScheme2(object):
                 cu.input_data = mdtd_bound.input_data
                 cu.output_data = mdtd_bound.output_data
                 compute_replicas.append(cu)
-                #############################################
-
-                #cu.pre_exec    = ["module load namd/2.9"]
-                #cu.executable = self.namd_path
-                #cu.arguments = [input_file]
-                #cu.cores = replicas[r].cores
-                #cu.mpi = False
-                #cu.input_data = [input_file, structure, coords, params]
-                # in principle it is not required to transfer simulation output files in order to 
-                # continue next cycle; this is done mainly to have these files on local system;
-                # an alternative approach would be to transfer all the files at the end of the simulation   
-                #cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
-                #compute_replicas.append(cu)
             else:
                 structure = self.inp_folder + "/" + self.namd_structure
                 coords = self.inp_folder + "/" + self.namd_coordinates
@@ -272,17 +256,6 @@ class NamdKernelScheme2(object):
                 cu.input_data = mdtd_bound.input_data
                 cu.output_data = mdtd_bound.output_data
                 compute_replicas.append(cu)
-                #############################################
-
-                #structure = self.inp_folder + "/" + self.namd_structure
-                #coords = self.inp_folder + "/" + self.namd_coordinates
-                #params = self.inp_folder + "/" + self.namd_parameters
-                #cu.input_data = [input_file]
-                # in principle it is not required to transfer simulation output files in order to 
-                # perform the next cycle; this is done mainly to have these files on local system;
-                # an alternative approach would be to transfer all the files at the end of the simulation
-                #cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
-                #compute_replicas.append(cu)
 
         return compute_replicas
 
