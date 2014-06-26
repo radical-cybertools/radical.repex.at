@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.namd_kernels.namd_kernel_s2
+.. module:: radical.repex.namd_kernels.namd_kernel_scheme_3
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
@@ -18,22 +18,29 @@ from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
 from replicas.replica import Replica
+from radical.ensemblemd.mdkernels import MDTaskDescription
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class NamdKernelS2(object):
-    """This class is responsible for performing all operations related to NAMD for RE scheme S2.
+class NamdKernelScheme3(object):
+    """This class is responsible for performing all operations related to NAMD for RE scheme 3.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
 
-    RE scheme S2:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
+    RE scheme 3:
+    - Asynchronous RE scheme: MD run on target resource is overlapped with local exchange step. Thus both MD run
+    and exchange step are asynchronous.  
+    - Number of replicas is greater than number of allocated resources.
+    - Replica simulation cycle is defined by the fixed number of simulation time-steps each replica has to perform.
     - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
-
+    - Exchange step is performed locally
+    Overall algorithm is as follows:
+        - First replicas in "waiting" state are submitted to pilot.
+        - Then fixed time interval (cycle_time in input.json) must elapse before exchange step may take place.
+        - After this fixed time interval elapsed, some replicas are still running on target resource.
+        - In local exchange step are participating replicas which had finished MD run (state "finished") and
+        replicas in "waiting" state.
+        - After local exchanges step is performed replicas which participated in exchange are submitted to pilot
+        to perform next simulation cycle
     """
     def __init__(self, inp_file,  work_dir_local):
         """Constructor.
@@ -63,6 +70,49 @@ class NamdKernelS2(object):
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
+    #compute matrix of dimension-less energies: each column is a replica 
+    #and each row is a state
+    #so U[i][j] is the energy of replica j in state i. 
+    #
+    #Note that the matrix is sized to include all of the replicas and states 
+    #but the energies of replicas not 
+    #in waiting state, or those of waiting replicas for states not belonging to 
+    #waiting replicas list are undefined.
+    # OK
+    def compute_swap_matrix(self, replicas):
+        """        
+        """
+        # init matrix
+        swap_matrix = [[ 0. for j in range(len(replicas))] 
+             for i in range(len(replicas))]
+ 
+        # updating replica temperatures and energies after md run
+        for r in replicas:
+                # getting OLDTEMP and POTENTIAL from .history file of previous run
+                old_temp, old_energy = self.get_historical_data(r,(r.cycle-1))
+
+                # updating replica temperature
+                r.new_temperature = old_temp   
+                r.old_temperature = old_temp   
+                r.potential = old_energy
+
+        for i in range(len(replicas)):
+            repl_i = replicas[i]
+            for j in range(len(replicas)):
+                # here each column (representing replica) of U has all swappable results
+                repl_j = replicas[j]
+                swap_matrix[repl_j.sid][repl_i.id] = self.reduced_energy(repl_j.old_temperature,repl_i.potential)
+        return swap_matrix
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+    def reduced_energy(self, temperature, potential):
+        kb = 0.0019872041
+        beta = 1. / (kb*temperature)     
+        return float(beta * potential)
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
     def gibbs_exchange(self, r_i, replicas, swap_matrix):
         """Produces a replica "j" to exchange with the given replica "i"
         based off independence sampling of the discrete distribution
@@ -77,9 +127,9 @@ class NamdKernelS2(object):
         r_j - replica to exchnage parameters with
         """
         #evaluate all i-j swap probabilities
-        ps = [0.0]*(self.replicas)
+        ps = [0.0]*(len(replicas))
   
-        for j in range(self.replicas):
+        for j in range(len(replicas)):
             r_j = replicas[j]
             ps[j] = -(swap_matrix[r_i.sid][r_j.id] + swap_matrix[r_j.sid][r_i.id] - 
                       swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
@@ -109,9 +159,26 @@ class NamdKernelS2(object):
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
+    def get_historical_data(self, replica, cycle):
+        """Retrieves temperature and potential energy from simulaion output file <file_name>.history
+        """
+        if not os.path.exists(replica.new_history):
+            print "history file not found: "
+            print replica.new_history
+        else:
+            f = open(replica.new_history)
+            lines = f.readlines()
+            f.close()
+            data = lines[0].split()
+         
+        return float(data[0]), float(data[1])
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
     def build_input_file(self, replica):
         """Generates input file for individual replica, based on template input file. Tokens @xxx@ are
         substituted with corresponding parameters. 
+        In this function replica.cycle is incremented by one
 
         old_output_root @oldname@ determines which .coor .vel and .xsc files are used for next cycle
 
@@ -129,7 +196,12 @@ class NamdKernelS2(object):
         replica.new_vel = outputname + ".vel"
         replica.new_history = outputname + ".history"
         replica.new_ext_system = outputname + ".xsc" 
+
         historyname = replica.new_history
+
+        replica.old_coor = old_name + ".coor"
+        replica.old_vel = old_name + ".vel"
+        replica.old_ext_system = old_name + ".xsc" 
 
         if (replica.cycle == 0):
             first_step = 0
@@ -138,16 +210,12 @@ class NamdKernelS2(object):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
-        if (replica.cycle == 0):
-            old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1)) 
-            structure = self.namd_structure
-            coordinates = self.namd_coordinates
-            parameters = self.namd_parameters
-        else:
-            old_name = replica.old_path + "/%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-            structure = replica.old_path + "/" + self.namd_structure
-            coordinates = replica.old_path + "/" + self.namd_coordinates
-            parameters = replica.old_path + "/" + self.namd_parameters
+
+        old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1)) 
+        structure = self.namd_structure
+        coordinates = self.namd_coordinates
+        parameters = self.namd_parameters
+
 
         # substituting tokens in main replica input file 
         try:
@@ -183,7 +251,7 @@ class NamdKernelS2(object):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_for_md(self, replicas):
+    def prepare_replicas(self, replicas, resource):
         """Creates a list of ComputeUnitDescription objects for MD simulation step. Here are
         specified input/output files to be transferred to/from target resource. Note: input 
         files for first and subsequent simulaition cycles are different.  
@@ -211,20 +279,21 @@ class NamdKernelS2(object):
             # only for first cycle we transfer structure, coordinates and parameters files
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
+                cu.pre_exec    = KERNELS[resource]["kernels"]["namd"]["pre_execution"]
                 cu.executable = self.namd_path
                 cu.arguments = [input_file]
                 cu.cores = replicas[r].cores
                 structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
                 coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
                 params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
+
                 cu.input_data = [input_file, structure, coords, params]
-                # in principle it is not required to transfer simulation output files in order to 
-                # continue next cycle; this is done mainly to have these files on local system;
-                # an alternative approach would be to transfer all the files at the end of the simulation   
                 cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
+                cu.pre_exec    = KERNELS[resource]["kernels"]["namd"]["pre_execution"]
                 cu.executable = self.namd_path
                 cu.arguments = [input_file]
                 cu.cores = 1
@@ -232,45 +301,12 @@ class NamdKernelS2(object):
                 coords = self.inp_folder + "/" + self.namd_coordinates
                 params = self.inp_folder + "/" + self.namd_parameters
                 cu.input_data = [input_file]
-                # in principle it is not required to transfer simulation output files in order to 
-                # perform the next cycle; this is done mainly to have these files on local system;
-                # an alternative approach would be to transfer all the files at the end of the simulation
+
+                cu.input_data = [input_file, structure, coords, params, old_coor, old_vel, old_ext_system]
                 cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
                 compute_replicas.append(cu)
 
         return compute_replicas
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def prepare_replicas_for_exchange(self, replicas):
-        """Creates a list of ComputeUnitDescription objects for exchange step on resource.
-        Number of matrix_calculator_s2.py instances invoked on resource is equal to the number 
-        of replicas. 
-
-        Arguments:
-        replicas - list of Replica objects
-
-        Returns:
-        exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
-        """
-
-        exchange_replicas = []
-        for r in range(len(replicas)):
-           
-            # name of the file which contains swap matrix column data for each replica
-            matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
-            basename = self.inp_basename[:-5]
-            cu = radical.pilot.ComputeUnitDescription()
-            cu.executable = "python"
-            # matrix column calculator's name is hardcoded
-            calculator = self.work_dir_local + "/namd_kernels/matrix_calculator_s2.py"
-            cu.input_data = [calculator]
-            cu.arguments = ["matrix_calculator_s2.py", r, (replicas[r].cycle-1), len(replicas), basename]
-            cu.cores = 1            
-            cu.output_data = [matrix_col]
-            exchange_replicas.append(cu)
-
-        return exchange_replicas
             
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -291,43 +327,18 @@ class NamdKernelS2(object):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def move_output_files(self, replicas):
-        """Moves all files starting with <inp_basename> to replica directories. These are files generated and 
-        transferred to home dorectory as a result of NAMD simulation. This includes .coor, .xcs and other files.
-        In addition to that files representing columns of swap matrix (<matrix_column_x.dat>) are transferred as well.
-
-        Arguments:
-        replicas - list of Replica objects
+    def check_replicas(self, replicas):
         """
+        """
+        finished_replicas = []
+        files = os.listdir( self.work_dir_local )
 
-        for r in range(len(replicas)):
-            dir_path = "%s/replica_%d" % (self.work_dir_local, r )
-            if not os.path.exists(dir_path):
-                try:
-                    os.makedirs(dir_path)
-                except: 
-                    raise
-
-            files = os.listdir( self.work_dir_local )
-            base_name =  self.inp_basename[:-5] + "_%s" % replicas[r].id
-            # moving matrix_column files
-            col_name = "matrix_column" + "_%s" % replicas[r].id
+        for r in replicas:
+            history_name =  self.inp_basename[:-5] + "_%s_%s.history" % ( r.id, (r.cycle-1) )
             for item in files:
-                if (item.startswith(base_name) or item.startswith(col_name)):
-                    source =  self.work_dir_local + "/" + str(item)
-                    destination = dir_path + "/"
-                    shutil.move( source, destination)
+                if (item.startswith(history_name)):
+                    if r not in finished_replicas:
+                        finished_replicas.append( r )
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def clean_up(self, replicas):
-        """Automates deletion of directories of individual replicas and all files in 
-        those directories after the simulation.   
-
-        Arguments:
-        replicas - list of Replica objects
-        """
-        for r in range(len(replicas)):
-            dir_path = "%s/replica_%d" % ( self.work_dir_local, replicas[r].id )
-            shutil.rmtree(dir_path)
+        return finished_replicas
 

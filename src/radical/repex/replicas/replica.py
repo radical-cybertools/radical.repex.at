@@ -26,6 +26,7 @@ class Replica(object):
         """
         self.id = my_id
         self.sid = my_id
+        self.state = 'I'
         self.cycle = 0
         if new_temperature is None:
             self.new_temperature = 0
@@ -41,6 +42,7 @@ class Replica(object):
         self.old_vel = ""
         self.old_ext_system = "" 
         self.old_path = ""
+        self.first_path = ""
         self.swap = 0
         self.cores = cores
 

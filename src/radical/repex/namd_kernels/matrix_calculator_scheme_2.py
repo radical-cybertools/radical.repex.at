@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.namd_kernels.matrix_calculator_s2
+.. module:: radical.repex.namd_kernels.matrix_calculator_scheme_2
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
