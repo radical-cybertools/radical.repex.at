@@ -18,7 +18,6 @@ from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
 from replicas.replica import Replica
-from radical.ensemblemd.mdkernels import MDTaskDescription
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -258,6 +257,7 @@ class NamdKernelScheme3(object):
 
         Arguments:
         replicas - list of Replica objects
+        resource - target resource identifier
 
         Returns:
         compute_replicas - list of radical.pilot.ComputeUnitDescription objects

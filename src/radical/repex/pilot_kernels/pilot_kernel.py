@@ -12,6 +12,7 @@ import math
 import json
 from os import path
 import radical.pilot
+from kernels.kernels import KERNELS
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -22,7 +23,7 @@ class PilotKernel(object):
         """Constructor.
 
         Arguments:
-        inp_file - package input file with Pilot and NAMD related parameters as specified by user 
+        inp_file - json input file with Pilot and NAMD related parameters as specified by user 
         """
         
         # pilot parameters
@@ -53,12 +54,12 @@ class PilotKernel(object):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def launch_pilot(self):
-        """Launches a Pilot on a target resource. This function uses parameters specified in config/input.json 
+        """Launches a Pilot on a target resource. This function uses parameters specified in <input_file>.json 
 
         Returns:
-        session - radical.pilot.session object, the *root* object for all other RADICAL-Pilot objects
-        pilot_manager - radical.pilot.pilot_manager object
-        unit_manager - 
+        session - radical.pilot.Session object, the *root* object for all other RADICAL-Pilot objects
+        pilot_object - radical.pilot.ComputePilot object
+        pilot_manager - radical.pilot.PilotManager object
         """
         session = None
         pilot_manager = None

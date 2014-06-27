@@ -10,12 +10,9 @@ import os
 import sys
 import math
 import json
-import optparse
-import radical.pilot
 from os import path
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from replicas.replica import Replica
 from namd_kernels.namd_kernel_scheme_2a import NamdKernelScheme2a
 from pilot_kernels.pilot_kernel_scheme_2a import PilotKernelScheme2a
 
@@ -35,7 +32,7 @@ if __name__ == '__main__':
     """
  
     print "*********************************************************************"
-    print "*               RepEx simulation: NAMD + RE scheme 2a              *"
+    print "*               RepEx simulation: NAMD + RE scheme 2a               *"
     print "*********************************************************************"
 
     work_dir_local = os.getcwd()

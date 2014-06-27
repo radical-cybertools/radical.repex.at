@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.namd_kernels.launch_simulation
+.. module:: radical.repex.namd_kernels.launch_simulation_scheme_2
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
@@ -11,10 +11,7 @@ import sys
 import math
 import time
 import json
-import optparse
 from os import path
-import radical.pilot
-from replicas.replica import Replica
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
 from namd_kernels.namd_kernel_scheme_2 import NamdKernelScheme2
@@ -36,7 +33,7 @@ if __name__ == '__main__':
     """
  
     print "*********************************************************************"
-    print "*                 RepEx simulation: NAMD + RE scheme 2             *"
+    print "*                 RepEx simulation: NAMD + RE scheme 2              *"
     print "*********************************************************************"
 
     work_dir_local = os.getcwd()
@@ -47,28 +44,15 @@ if __name__ == '__main__':
     inp_file = json.load(json_data)
     json_data.close()
 
-
     # initializing kernels
     md_kernel = NamdKernelScheme2( inp_file, work_dir_local )
     pilot_kernel = PilotKernelScheme2( inp_file )
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
-
-    print "Total number of replicas: %d" % len(replicas)
     
     pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
     
-    ##############################################
-    # this is to make sure what pilot is running
-    # needed only for performance measurements
-    pilots = pilot_manager.get_pilots()
-    while(str(pilots[0].state) != "PendingActive"):
-        time.sleep(5)
-        print "waiting for Pilot te become active..."
-        print pilots[0].state
-    ##############################################
-
     # now we can run RE simulation
     pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
                 
@@ -76,6 +60,7 @@ if __name__ == '__main__':
     move_output_files(work_dir_local, md_kernel.inp_basename, replicas ) 
 
     session.close()
+
     # delete all replica folders
     #clean_up(work_dir_local, replicas )
 

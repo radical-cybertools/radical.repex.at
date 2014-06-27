@@ -14,7 +14,6 @@ import json
 import datetime
 from os import path
 import radical.pilot
-from kernels.kernels import KERNELS
 from pilot_kernels.pilot_kernel import *
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -43,12 +42,13 @@ class PilotKernelScheme2a(PilotKernel):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def run_simulation(self, replicas, pilot_object, session,  md_kernel ):
-        """This function runs the main loop of RE simulation for S2 RE scheme.
+        """This function runs the main loop of RE simulation for RE scheme 2.
 
         Arguments:
         replicas - list of Replica objects
-        unit_manager - 
-        md_kernel - an instance of NamdKernelS2 class
+        pilot_object - radical.pilot.ComputePilot object
+        session - radical.pilot.Session object, the *root* object for all other RADICAL-Pilot objects 
+        md_kernel - an instance of NamdKernelScheme2 class
         """
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)

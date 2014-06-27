@@ -1,11 +1,11 @@
 {
     "input.PILOT": {
         "resource": "localhost.linux.x86",
-        "sandbox" : "/home/antons/SINON-WORK/abstract/ReplicaExchange/src/radical/repex",
+        "sandbox" : "/home/antons/SINON-WORK/repex27/ReplicaExchange/src/radical/repex",
         "username" : "antons",
         "runtime" : "10",
         "cleanup" : "False",
-        "number_of_cycles": "2"
+        "number_of_cycles": "3"
     },
     "input.NAMD": {
         "input_folder": "namd_inp",

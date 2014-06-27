@@ -1,1 +1,1 @@
-python launch_simulation_scheme_3.py --input='config/input.json'
+python launch_simulation_scheme_2.py --input='config/input.json'
