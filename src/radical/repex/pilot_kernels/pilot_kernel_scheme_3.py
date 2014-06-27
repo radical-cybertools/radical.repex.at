@@ -85,7 +85,7 @@ class PilotKernelScheme3(PilotKernel):
             # after this call replica.cycle gets incremented by one
             if (len(replicas_to_pilot) != 0):
                 print "Preparing %d replicas..." % len(replicas_to_pilot)
-                compute_replicas = md_kernel.prepare_replicas(replicas_to_pilot, self.resource)
+                compute_replicas = md_kernel.prepare_replicas_local(replicas_to_pilot, self.resource)
                 print "Submitting %d replicas..." % len(compute_replicas)
                 submitted_replicas = unit_manager.submit_units(compute_replicas)
 
