@@ -9,40 +9,40 @@ In Parallel Tempering (Replica Exchange) simulations N replicas of the original 
 ###RE scheme 1
 
 This is the conventional RE scheme where all replicas first run MD for a fixed period of simulation time (e.g. 2 ps) and then perform an exchange step. In this scheme a global barrier is present - all replicas must first finish MD run and only then exchnage step can occur. Main characteristics of this scheme are:
- - number of replicas equals to the number of allocated compute cores
- - simultaneous MD
- - simultaneous exchange
- - all replicas participate in exchange step
- - constant simulation cycle time
- - global barrier between MD and exchange step
+* number of replicas equals to the number of allocated compute cores
+* simultaneous MD
+* simultaneous exchange
+* all replicas participate in exchange step
+* constant simulation cycle time
+* global barrier between MD and exchange step
 
 ###RE scheme 2
 
 The main difference of this scheme from scheme 1 is in number of compute cores used for simulation, which is less than the number of replicas (typically 50% of the number of replicas). This small detail results in both MD run and exchange step being performed concurrently. At the same time global synchronization barrier is still present - no replica can start exchange before all replicas has finished MD and vice versa. We define exchange step as concurrent since this step isn't performed simultaneouslhy (in parallel) for all replicas. Similarly to scheme 1 in this scheme simulation cycle for each replica is defined as fixed number of simulation time-steps. This scheme can be summarized as:
- - number of allocated compute cores equals 50% of replicas
- - concurrent MD
- - concurrent exchange
- - all replicas participate in exchange step
- - constant simulation cycle time
- - global barrier between MD and exchange step
+* number of allocated compute cores equals 50% of replicas
+* concurrent MD
+* concurrent exchange
+* all replicas participate in exchange step
+* constant simulation cycle time
+* global barrier between MD and exchange step
 
 ###RE scheme 3
 
 This scheme is asynchronous - MD run on target resource is overlapped with exchange step. Similarly to scheme 2, the number of replicas exceeds allocated compute cores. Simulation cycle is defined as a fixed time interval during which replicas are performing MD run. After cycle time elapses, some of the replicas are still performing MD run but some are ready for exchange. At this point exchange step involving replicas which has finished MD run is performed. Main characteristics of this scheme are:
- - number of allocated compute cores equals 50% of replicas
- - no global synchronization barrier between MD and exchange step
- - simulation cycle is defined as fixed real time interval 
- - concurrent MD
- - only fraction of replicas participate in exchange step
- - during time period of simulation cycle no replicas participate in exchange step
- This scheme can be summarized as follows:
- - All replicas are initialized and assigned a "waiting" state
- - While elapsed time is less that the total simulation time, do:  
- 		- All replicas in "waiting" state are submitted to target resource for execution
- 		- State of all submitted replicas is changed to "running"
-        - Wait for a fixed time interval (simulation cycle)
-        - All replicas which has finished MD run are assigned state "waiting"
-        - Exchange step is performed for all replicas in "waiting" state
+* number of allocated compute cores equals 50% of replicas
+* no global synchronization barrier between MD and exchange step
+* simulation cycle is defined as fixed real time interval 
+* concurrent MD
+* only fraction of replicas participate in exchange step
+* during time period of simulation cycle no replicas participate in exchange step
+This scheme can be summarized as follows:
+ * All replicas are initialized and assigned a "waiting" state
+ * While elapsed time is less that the total simulation time, do:  
+    * All replicas in "waiting" state are submitted to target resource for execution
+ 	* State of all submitted replicas is changed to "running"
+    * Wait for a fixed time interval (simulation cycle)
+    * All replicas which has finished MD run are assigned state "waiting"
+    * Exchange step is performed for all replicas in "waiting" state
        
 ##Installation instructions
 
