@@ -28,6 +28,9 @@ This should print Radical Pilot version in terminal
 
 ###Local simulation example
 
+![alt tag](https://github.com/radical-cybertools/ReplicaExchange/images/Scheme_s2.jpg)
+
+
 First, you need to change several input parameters required to run RE simulation on local system. Instructions on how to do this are specified in /src/radical/repex/config/config.info file.
 
 To run RE simulation, you need to pass simulation configuration file as a command line argument. In order to run provided RE example execute the following commands in terminal: 
