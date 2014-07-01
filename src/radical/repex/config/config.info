@@ -1,60 +1,66 @@
-To run the module on local system your /src/radical/repex/config/input.json file should contain ONLY data provided below, you will need to perform three changes:
-  - change "resource" to localhost system, options are:
+
+To run RE simulation on local system "input.PILOT" dictionary in your /src/radical/repex/config/input.json file should be modified as follows:
+  - change "resource" value to localhost system, options are:
       - localhost.linux.x86 - 32 bit linux
       - localhost.linux.x86.64 - 64 bit linux
       - localhost.macos.x86 - 32 bit mac
       - localhost.macos.x86.64 - 64 bit mac
-  - change a username to the one you are using on your laptop: "username" : "<your_username>"
-  - change "sandbox" to directory of your chosen working directory on your laptop
-##############################################################################################
+  - change "username" value to the one you are using on your laptop, e.g.: "username" : "<your_username>"
+  - change "sandbox" value to directory of your chosen working directory on your laptop e.g.: "sandbox" : "<your_chosen_home_dir>"
+###########################################################################################################
+Example:
+
 {
     "input.PILOT": {
         "resource": "localhost.linux.x86",
         "sandbox" : "/home/antons/SINON-WORK/abstract/ReplicaExchange/src/radical/repex",
         "username" : "antons",
-        "runtime" : "10",
+        "runtime" : "20",
         "cleanup" : "False",
-        "number_of_cycles": "2"
-    },
-    "input.NAMD": {
-        "input_folder": "namd_inp",
-        "input_file_basename": "alanin_base.namd",
-        "namd_structure": "alanin.psf",
-        "namd_coordinates": "unfolded.pdb",
-        "namd_parameters": "alanin.params",
-        "number_of_replicas": "6",
-        "replica_cores": "1",
-        "min_temperature": "300",
-        "max_temperature": "600",
-        "steps_per_cycle": "1000"
+        "cores" : "4",
+        "number_of_cycles": "3"
     }
 }
-##############################################################################################
+###########################################################################################################
+To run module on Stampede you need to perform three changes in /src/radical/repex/config/input.json file:
+  - change "resource" value to "stampede.tacc.utexas.edu", e.g.: "resource": "stampede.tacc.utexas.edu"
+  - change "username" value to the one assigned to you on Stampede, e.g.: "username" : "<your_username>"
+  - change "cores" to 32, e.g.: "cores" : "32"
 
-To run module on stampede your /src/radical/repex/config/input.json file should contain ONLY data provided below, you will need to perform one change:
-  - change a username to the one assigned to you on stampede: "username" : "<your_username>"
-##############################################################################################
+If you want to explicitly specify remote working directory you can do so by specifying "sandbox" value. 
+###########################################################################################################
+Example:
+
 {
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
-        "runtime" : "10",
+        "runtime" : "20",
         "cleanup" : "False",
-        "number_of_cycles": "2"
-    },
-    "input.NAMD": {
-        "input_folder": "namd_inp",
-        "input_file_basename": "alanin_base.namd",
-        "namd_structure": "alanin.psf",
-        "namd_coordinates": "unfolded.pdb",
-        "namd_parameters": "alanin.params",
-        "number_of_replicas": "16",
-        "replica_cores": "1",
-        "min_temperature": "300",
-        "max_temperature": "600",
-        "steps_per_cycle": "1000"
+        "cores" : "32",
+        "number_of_cycles": "3"
     }
 }
-##############################################################################################
+###########################################################################################################
+TTo run module on Trestles you need to perform three changes in /src/radical/repex/config/input.json file:
+  - change "resource" value to "trestles.sdsc.xsede.org", e.g.: "resource": "trestles.sdsc.xsede.org"
+  - change "username" value to the one assigned to you on Trestles, e.g.: "username" : "<your_username>"
+  - change "cores" to 32, e.g.: "cores" : "32"
+
+If you want to explicitly specify remote working directory you can do so by specifying "sandbox" value.
+###########################################################################################################
+Example:
+
+{
+    "input.PILOT": {
+        "resource": "trestles.sdsc.xsede.org",
+        "username" : "antontre",
+        "runtime" : "20",
+        "cleanup" : "False",
+        "cores" : "32",
+        "number_of_cycles": "3",
+    }
+}
+
 
 

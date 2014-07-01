@@ -8,6 +8,7 @@ This is the conventional RE scheme where all replicas first run MD for a fixed p
  - number of replicas equals to the number of allocated compute cores
  - simultaneous MD
  - simultaneous exchange
+ - all replicas participate in exchange step
  - constant simulation cycle time
  - global barrier between MD and exchange step
 
@@ -17,13 +18,31 @@ The main difference of this scheme from scheme 1 is in number of compute cores u
  - number of allocated compute cores equals 50% of replicas
  - concurrent MD
  - concurrent exchange
+ - all replicas participate in exchange step
  - constant simulation cycle time
  - global barrier between MD and exchange step
+
+###RE scheme 3
+
+This scheme is asynchronous - MD run on target resource is overlapped with exchange step. Similarly to scheme 2, the number of replicas exceeds allocated compute cores. Simulation cycle is defined as a fixed time interval during which replicas are performing MD run. After cycle time elapses, some of the replicas are still performing MD run but some are ready for exchange. At this point exchange step involving replicas which has finished MD run is performed. Main characteristics of this scheme are:
+ - number of allocated compute cores equals 50% of replicas
+ - no global synchronization barrier between MD and exchange step
+ - simulation cycle is defined as fixed real time interval 
+ - concurrent MD
+ - only fraction of replicas participate in exchange step
+ - during time period of simulation cycle no replicas participate in exchange step
+ This scheme can be summarized as follows:
+ - All replicas are initialized and assigned a "waiting" state
+ - While elapsed time is less that the total simulation time, do:  
+ 		- All replicas in "waiting" state are submitted to target resource for execution
+ 		- State of all submitted replicas is changed to "running"
+        - Wait for a fixed time interval (simulation cycle)
+        - All replicas which has finished MD run are assigned state "waiting"
+        - Exchange step is performed for all replicas in "waiting" state
        
 ###Theory of Replica Exchange simulations
 
 In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at  sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.
-
 
 ##Installation instructions
 
@@ -44,78 +63,37 @@ This should print Radical Pilot version in terminal
  
 ##Usage
 
-###Local simulation example
+Current version of RepEx code supports three RE schemes described above. Before running any simulation user first must make appropriate changes to /src/radical/repex/config/input.json file. To run simulation examples using any of the RE schemes, no changes are required below the line starting with "input.NAMD", unless user wants to specify her/his own NAMD input files or change number of replicas used for simulation. Instructions on how to modify input.json file to run simulation examples locally, on Stampede [1] supercomputer and Trestles [2] supercomputer are provided in /src/radical/repex/config/config.info file.       
 
+###Running simulation using RE scheme 1
 
-
-First, you need to change several input parameters required to run RE simulation on local system. Instructions on how to do this are specified in /src/radical/repex/config/config.info file.
-
-To run RE simulation, you need to pass simulation configuration file as a command line argument. In order to run provided RE example execute the following commands in terminal: 
-
+To run RE simulation using this scheme in input.json "number_of_replicas" and "cores" values must be equal. This scheme can be run with exchange step being performed locally or remotelly. For RE simulation with remote exchange step in terminal execute: 
 ```bash
-$ cd src/radical/repex
-$ python launch_simulation.py --input='config/input.json'
+$ sh launcher_2.sh
 ```
-
-This will run RE temperature exchange simulation involving 6 replicas on your local system. Simulation will perform a total of 2 cycles performing one temperature exchange step. During the simulation input files for each of the replicas will be generated. After simulation is done in ReplicaExchange/src/radical/repex/ directory you should see six new "replica_x" directories. Each directory will contain simulation output files.  
-
-###Remote (Stampede) simulation example
-
-In order to run this example you don't need to login to Stampede, but you need to have a password-less ssh to Stampede configured.
-Instructions on how to do this can be found at: http://www.linuxproblem.org/art_9.html. Then, you need to change several input parameters required to run RE simulation on Stampede. These can be found in /src/radical/repex/config/config.info file. 
-
-
-To run RE simulation, you need to pass simulation configuration file as a command line argument. In order to run RE simulation execute the following commands in terminal:  
-
+For RE simulation with local exchange step in terminal execute:
 ```bash
-$ cd src/radical/repex
-$ python launch_simulation.py --input='config/input.json'
+$ sh launcher_2a.sh
+``` 
+This will run RE temperature exchange simulation involving X replicas on your target system. During the simulation input files for each of the replicas will be generated. After simulation is done in ReplicaExchange/src/radical/repex/ directory you will see a number of new "replica_x" directories. Each directory will contain simulation output files.   
+
+###Running simulation using RE scheme 2
+
+To run RE simulation using scheme 2 in input.json "number_of_replicas" must be greater than "cores". As mentioned above recommended "cores" value is 50% of the "number_of_replicas". As for scheme 1 two options with respect to exchange step are available. For RE simulation with remote exchange step in terminal execute: 
+```bash
+$ sh launcher_2.sh
 ```
+For RE simulation with local exchange step in terminal execute:
+```bash
+$ sh launcher_2a.sh
+``` 
+After simulation is done, please verify existance of the output files in "replica_x" directories.
 
-This will run RE temperature exchange simulation involving 16 replicas on Stampede remotely. Simulation will perform a total of 2 cycles performing one temperature exchange step. During the simulation input files for each of the replicas will be transferred to your local system. After simulation is done in ReplicaExchange/src/radical/repex/ directory you should see 12 new "replica_x" directories. Each directory will contain simulation output files.  
+###Running simulation using RE scheme 3
 
-###input.json 
-
-**input.PILOT**
-
-In this part of input file must be specified Pilot releted paramers. 
-
-- resource: name of the system to use 
-
-- sandbox: working directory for ComputePilot on target resource
-
-- cores: number of cores the pilot should allocate on the target resource 
-
-- runtime: estimated total run time (wall-clock time) in minutes of the ComputePilot
-
-- cleanup: boolean variable to specify if ComputeUnit and ComputePilot directories should be deleted or not  
-
-**input.NAMD**
-
-In this part of json input file must be specified NAMD related paramers. 
-
-- input_folder: folder where all namd input files reside, e.g. .psf, .pdb, .params
-
-- input_file_basename: base name of NAMD input file (.namd); this file is used to create individual input files for replicas 
-
-- namd_structure: name of namd structure file (.psf), this file must reside in input_folder
-
-- namd_coordinates: name of namd coordinates file (.pdb), this file must reside in input_folder
-
-- namd_parameters: name of namd parameters file (.params), this file must reside in input_folder
-
-- number_of_replicas: number of replicas to be launched on a target resource 
-
-- min_temperature: minimum temperature for replicas
-
-- max_temperature: maximum temperature for replicas  
-
-- steps_per_cycle: number of steps each replica performs in one cycle
-
-- number_of_cycles: number of cycles to perform during simulation
-
-All other parameters must be specified in NAMD input file directly!
-
-
-
+In order to run RE simulation using this scheme key value pair <"cycle_time": "2"> must be added to "input.PILOT" dictionary in input.json file. Value of "cycle_time" specifies wall clock time in minutes for simulation cycle. For provided input recommended "cycle_time" value is 2. After this change is made to input.json file, simulation can be launched using the following command in terminal:
+```bash
+$ sh launcher_3.sh
+```         
+After simulation is done, please verify existance of the output files in "replica_x" directories.
 
