@@ -1,7 +1,25 @@
 #RepEX: Replica Exchange simulations Package
 
-This package is aimed to provide functionality to run Replica Exchange simulations using various RE schemes and MD kernels. Currectly RepEX uses NAMD as it's application kernel and allows to perform RE simulations on local and remote systems. As of now only one scheme is supported - temperature exchange, where exchange step is synchronous - all replicas must finish current cycle and then participate in exchange step. No simulation (MD) runs are performed while exchange step is happening. Exchange probability in this scheme is determined using Gibbs sampling.        
+This package is aimed to provide functionality to run Replica Exchange simulations using various RE schemes and MD kernels. Currectly RepEX supports NAMD as it's application kernel and allows to perform RE simulations on local and remote systems. Functionality to run three RE schemes is available.
 
+###RE scheme 1
+
+This is the conventional RE scheme where all replicas first run MD for a fixed period of simulation time (e.g. 2 ps) and then perform an exchange step. In this scheme a global barrier is present - all replicas must first finish MD run and only then exchnage step can occur. Main characteristics of this scheme are:
+ - number of replicas equals to the number of allocated compute cores
+ - simultaneous MD
+ - simultaneous exchange
+ - constant simulation cycle time
+ - global barrier between MD and exchange step
+
+###RE scheme 2
+
+The main difference of this scheme from scheme 1 is in number of compute cores used for simulation, which is less than the number of replicas (typically 50% of the number of replicas). This small detail results in both MD run and exchange step being performed concurrently. At the same time global synchronization barrier is still present - no replica can start exchange before all replicas has finished MD and vice versa. We define exchange step as concurrent since this step isn't performed simultaneouslhy (in parallel) for all replicas. Similarly to scheme 1 in this scheme simulation cycle for each replica is defined as fixed number of simulation time-steps. This scheme can be summarized as:
+ - number of allocated compute cores equals 50% of replicas
+ - concurrent MD
+ - concurrent exchange
+ - constant simulation cycle time
+ - global barrier between MD and exchange step
+       
 ###Theory of Replica Exchange simulations
 
 In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at  sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.
@@ -28,7 +46,6 @@ This should print Radical Pilot version in terminal
 
 ###Local simulation example
 
-![alt tag](https://github.com/radical-cybertools/ReplicaExchange/images/Scheme_s2.jpg)
 
 
 First, you need to change several input parameters required to run RE simulation on local system. Instructions on how to do this are specified in /src/radical/repex/config/config.info file.
