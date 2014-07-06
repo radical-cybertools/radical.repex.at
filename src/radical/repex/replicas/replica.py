@@ -33,7 +33,14 @@ class Replica(object):
         else:
             self.new_temperature = new_temperature
         self.old_temperature = new_temperature
-        self.potential = 0 
+        self.potential = 0
+
+        # amber stuff
+        self.new_traj = ""
+        self.new_info = ""
+        self.old_traj = ""
+        ###################
+
         self.new_coor = ""
         self.new_vel = ""
         self.new_history = ""

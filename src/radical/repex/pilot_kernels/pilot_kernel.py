@@ -28,11 +28,17 @@ class PilotKernel(object):
         
         # pilot parameters
         self.resource = inp_file['input.PILOT']['resource']
-        if self.resource == "localhost.linux.x86":
+        try:
             self.sandbox = inp_file['input.PILOT']['sandbox']
-        else:
+        except:
             self.sandbox = None
+      
         self.user = inp_file['input.PILOT']['username']
+        try:
+            self.project = inp_file['input.PILOT']['project']
+        except:
+            self.project = None
+
         try:
             self.cores = int(inp_file['input.PILOT']['cores'])
         except:
@@ -69,22 +75,31 @@ class PilotKernel(object):
             session = radical.pilot.Session(database_url=self.dburl)
 
             # Add an ssh identity to the session.
-            cred = radical.pilot.SSHCredential()
+            cred = radical.pilot.Context('ssh')
             cred.user_id = self.user
-            session.add_credential(cred)
+            session.add_context(cred)
 
             pilot_manager = radical.pilot.PilotManager(session=session)
             pilot_manager.register_callback(pilot_state_cb)
 
             pilot_descripiton = radical.pilot.ComputePilotDescription()
             if self.resource.startswith("localhost."):
-                pilot_descripiton.sandbox = self.sandbox
                 pilot_descripiton.resource = "localhost:local"
             else:
                 pilot_descripiton.resource = self.resource
+
+            if(self.sandbox != None):
+                pilot_descripiton.sandbox = str(self.sandbox)
+
+            if(self.project != None):
+                pilot_descripiton.project = str(self.project)   
+
             pilot_descripiton.cores = self.cores
             pilot_descripiton.runtime = self.runtime
             pilot_descripiton.cleanup = self.cleanup
+
+            print "pilot description: "
+            print pilot_descripiton
 
             pilot_object = pilot_manager.submit_pilots(pilot_descripiton)
 

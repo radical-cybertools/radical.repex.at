@@ -22,6 +22,20 @@ KERNELS = {
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2"
             }
         }
+    },"archer.ac.uk":
+    {
+        "params":
+        {
+            "cores": 24,
+        },
+        "kernels":
+        {
+            "amber": {
+                "environment" : {},
+                "pre_execution" : ["module load amber/12"],
+                "executable" : "/work/y07/y07/amber/12/bin/sander.MPI"
+            }
+        }
     },"trestles.sdsc.xsede.org":
     {
         "params":
