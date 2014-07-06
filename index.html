@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Repex by radical-cybertools</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/radical-cybertools/RepEx">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/radical-cybertools/RepEx/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/radical-cybertools/RepEx/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Repex</h1>
+          <p></p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/radical-cybertools">radical-cybertools</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="repex-replica-exchange-simulations-package" class="anchor" href="#repex-replica-exchange-simulations-package"><span class="octicon octicon-link"></span></a>RepEx: Replica Exchange simulations Package</h1>
+
+<p>This package is aimed to provide functionality to run Replica Exchange simulations using various RE schemes and MD kernels. Currently RepEx supports NAMD as it's application kernel and allows to perform RE simulations on local and remote systems. Functionality to run three RE schemes is available.</p>
+
+<h3>
+<a name="theory-of-replica-exchange-simulations" class="anchor" href="#theory-of-replica-exchange-simulations"><span class="octicon octicon-link"></span></a>Theory of Replica Exchange simulations</h3>
+
+<p>In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at  sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.</p>
+
+<h3>
+<a name="re-scheme-1" class="anchor" href="#re-scheme-1"><span class="octicon octicon-link"></span></a>RE scheme 1</h3>
+
+<p>This is the conventional RE scheme where all replicas first run MD for a fixed period of simulation time (e.g. 2 ps) and then perform an exchange step. In this scheme a global barrier is present - all replicas must first finish MD run and only then exchange step can occur. Main characteristics of this scheme are:</p>
+
+<ul>
+<li>number of replicas equals to the number of allocated compute cores</li>
+<li>simultaneous MD</li>
+<li>simultaneous exchange</li>
+<li>all replicas participate in exchange step</li>
+<li>constant simulation cycle time</li>
+<li>global barrier between MD and exchange step</li>
+</ul><h3>
+<a name="re-scheme-2" class="anchor" href="#re-scheme-2"><span class="octicon octicon-link"></span></a>RE scheme 2</h3>
+
+<p>The main difference of this scheme from scheme 1 is in number of compute cores used for simulation, which is less than the number of replicas (typically 50% of the number of replicas). This small detail results in both MD run and exchange step being performed concurrently. At the same time global synchronization barrier is still present - no replica can start exchange before all replicas has finished MD and vice versa. We define exchange step as concurrent since this step isn't performed simultaneously (in parallel) for all replicas. Similarly to scheme 1 in this scheme simulation cycle for each replica is defined as fixed number of simulation time-steps. This scheme can be summarized as:</p>
+
+<ul>
+<li>number of allocated compute cores equals 50% of replicas</li>
+<li>concurrent MD</li>
+<li>concurrent exchange</li>
+<li>all replicas participate in exchange step</li>
+<li>constant simulation cycle time</li>
+<li>global barrier between MD and exchange step</li>
+</ul><h3>
+<a name="re-scheme-3" class="anchor" href="#re-scheme-3"><span class="octicon octicon-link"></span></a>RE scheme 3</h3>
+
+<p>This scheme is asynchronous - MD run on target resource is overlapped with exchange step. Similarly to scheme 2, the number of replicas exceeds allocated compute cores. Simulation cycle is defined as a fixed time interval during which replicas are performing MD run. After cycle time elapses, some of the replicas are still performing MD run but some are ready for exchange. At this point exchange step involving replicas which has finished MD run is performed. Main characteristics of this scheme are:</p>
+
+<ul>
+<li>number of allocated compute cores equals 50% of replicas</li>
+<li>no global synchronization barrier between MD and exchange step</li>
+<li>simulation cycle is defined as fixed real time interval </li>
+<li>concurrent MD</li>
+<li>only fraction of replicas participate in exchange step</li>
+<li>during time period of simulation cycle no replicas participate in exchange step
+This scheme can be summarized as follows:
+
+<ul>
+<li>All replicas are initialized and assigned a "waiting" state</li>
+<li>While elapsed time is less that the total simulation time, do:<br><ul>
+<li>All replicas in "waiting" state are submitted to target resource for execution</li>
+<li>State of all submitted replicas is changed to "running"</li>
+<li>Wait for a fixed time interval (simulation cycle)</li>
+<li>All replicas which has finished MD run are assigned state "waiting"</li>
+<li>Exchange step is performed for all replicas in "waiting" state</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul><h2>
+<a name="installation-instructions" class="anchor" href="#installation-instructions"><span class="octicon octicon-link"></span></a>Installation instructions</h2>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>virtualenv <span class="nv">$HOME</span>/myenv 
+<span class="nv">$ </span><span class="nb">source</span> <span class="nv">$HOME</span>/myenv/bin/activate 
+<span class="nv">$ </span>git clone https://github.com/radical-cybertools/RepEx.git 
+<span class="nv">$ </span><span class="nb">cd </span>RepEx
+<span class="nv">$ </span>python setup.py install
+</pre></div>
+
+<p>Then you can verify that Radical Pilot was installed correctly:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>radicalpilot-version
+</pre></div>
+
+<p>This should print Radical Pilot version in terminal</p>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Current version of RepEx code supports three RE schemes described above. Before running any simulation user first must make appropriate changes to /src/radical/repex/config/input.json file. To run simulation examples using any of the RE schemes, no changes are required below the line starting with "input.NAMD", unless user wants to specify her/his own NAMD input files or change number of replicas used for simulation. Instructions on how to modify input.json file to run simulation examples locally, on Stampede [1] supercomputer and Trestles [2] supercomputer are provided in /src/radical/repex/config/config.info file.       </p>
+
+<h3>
+<a name="running-simulation-using-re-scheme-1" class="anchor" href="#running-simulation-using-re-scheme-1"><span class="octicon octicon-link"></span></a>Running simulation using RE scheme 1</h3>
+
+<p>To run RE simulation using this scheme in input.json "number_of_replicas" and "cores" values must be equal. This scheme can be run with exchange step being performed locally or remotely. For RE simulation with remote exchange step in terminal execute: </p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>sh launcher_2.sh
+</pre></div>
+
+<p>For RE simulation with local exchange step in terminal execute:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>sh launcher_2a.sh
+</pre></div>
+
+<p>This will run RE temperature exchange simulation involving X replicas on your target system. During the simulation input files for each of the replicas will be generated. After simulation is done in RepEx/src/radical/repex/ directory you will see a number of new "replica_x" directories. Each directory will contain simulation output files.   </p>
+
+<h3>
+<a name="running-simulation-using-re-scheme-2" class="anchor" href="#running-simulation-using-re-scheme-2"><span class="octicon octicon-link"></span></a>Running simulation using RE scheme 2</h3>
+
+<p>To run RE simulation using scheme 2 in input.json "number_of_replicas" must be greater than "cores". As mentioned above recommended "cores" value is 50% of the "number_of_replicas". As for scheme 1 two options with respect to exchange step are available. For RE simulation with remote exchange step in terminal execute: </p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>sh launcher_2.sh
+</pre></div>
+
+<p>For RE simulation with local exchange step in terminal execute:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>sh launcher_2a.sh
+</pre></div>
+
+<p>After simulation is done, please verify existence of the output files in "replica_x" directories.</p>
+
+<h3>
+<a name="running-simulation-using-re-scheme-3" class="anchor" href="#running-simulation-using-re-scheme-3"><span class="octicon octicon-link"></span></a>Running simulation using RE scheme 3</h3>
+
+<p>In order to run RE simulation using this scheme key value pair &lt;"cycle_time": "2"&gt; must be added to "input.PILOT" dictionary in input.json file. Value of "cycle_time" specifies wall clock time in minutes for simulation cycle. For provided input recommended "cycle_time" value is 2. After this change is made to input.json file, simulation can be launched using the following command in terminal:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>sh launcher_3.sh
+</pre></div>
+
+<p>After simulation is done, please verify existence of the output files in "replica_x" directories.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
