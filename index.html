@@ -42,7 +42,7 @@
 
 <h3>
 <a name="re-scheme-1" class="anchor" href="#re-scheme-1"><span class="octicon octicon-link"></span></a>RE scheme 1</h3>
-<img src="/images/Scheme_s1.jpg" alt="scheme 1 diagram">
+<img src="images/Scheme_s1.jpg" alt="scheme 1 diagram">
 <p>This is the conventional RE scheme where all replicas first run MD for a fixed period of simulation time (e.g. 2 ps) and then perform an exchange step. In this scheme a global barrier is present - all replicas must first finish MD run and only then exchange step can occur. Main characteristics of this scheme are:</p>
 
 <ul>
@@ -54,7 +54,7 @@
 <li>global barrier between MD and exchange step</li>
 </ul><h3>
 <a name="re-scheme-2" class="anchor" href="#re-scheme-2"><span class="octicon octicon-link"></span></a>RE scheme 2</h3>
-<img src="/images/Scheme_s2.jpg" alt="scheme 2 diagram">
+<img src="images/Scheme_s2.jpg" alt="scheme 2 diagram">
 <p>The main difference of this scheme from scheme 1 is in number of compute cores used for simulation, which is less than the number of replicas (typically 50% of the number of replicas). This small detail results in both MD run and exchange step being performed concurrently. At the same time global synchronization barrier is still present - no replica can start exchange before all replicas has finished MD and vice versa. We define exchange step as concurrent since this step isn't performed simultaneously (in parallel) for all replicas. Similarly to scheme 1 in this scheme simulation cycle for each replica is defined as fixed number of simulation time-steps. This scheme can be summarized as:</p>
 
 <ul>
@@ -66,7 +66,7 @@
 <li>global barrier between MD and exchange step</li>
 </ul><h3>
 <a name="re-scheme-3" class="anchor" href="#re-scheme-3"><span class="octicon octicon-link"></span></a>RE scheme 3</h3>
-<img src="/images/Scheme_s3.jpg" alt="scheme 2 diagram">
+<img src="images/Scheme_s3.jpg" alt="scheme 2 diagram">
 <p>This scheme is asynchronous - MD run on target resource is overlapped with exchange step. Similarly to scheme 2, the number of replicas exceeds allocated compute cores. Simulation cycle is defined as a fixed time interval during which replicas are performing MD run. After cycle time elapses, some of the replicas are still performing MD run but some are ready for exchange. At this point exchange step involving replicas which has finished MD run is performed. Main characteristics of this scheme are:</p>
 
 <ul>
