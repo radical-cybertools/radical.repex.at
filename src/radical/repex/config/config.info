@@ -35,7 +35,8 @@ Example:
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
-        "runtime" : "20",
+        "project" : "TG-MCB140109",
+        "runtime" : "30",
         "cleanup" : "False",
         "cores" : "32",
         "number_of_cycles": "3"
@@ -55,7 +56,7 @@ Example:
     "input.PILOT": {
         "resource": "trestles.sdsc.xsede.org",
         "username" : "antontre",
-        "runtime" : "20",
+        "runtime" : "30",
         "cleanup" : "False",
         "cores" : "32",
         "number_of_cycles": "3",

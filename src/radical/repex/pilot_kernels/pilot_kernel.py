@@ -98,9 +98,6 @@ class PilotKernel(object):
             pilot_descripiton.runtime = self.runtime
             pilot_descripiton.cleanup = self.cleanup
 
-            print "pilot description: "
-            print pilot_descripiton
-
             pilot_object = pilot_manager.submit_pilots(pilot_descripiton)
 
         except radical.pilot.PilotException, ex:

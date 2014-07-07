@@ -64,9 +64,9 @@ class NamdKernelScheme3(NamdKernel):
         """        
         """
         # init matrix
-        swap_matrix = [[ 0. for j in range(len(replicas))] 
-             for i in range(len(replicas))]
- 
+        swap_matrix = [[ 0. for j in range(self.replicas)] 
+             for i in range(self.replicas)]
+
         # updating replica temperatures and energies after md run
         for r in replicas:
                 # getting OLDTEMP and POTENTIAL from .history file of previous run

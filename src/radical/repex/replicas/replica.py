@@ -24,8 +24,8 @@ class Replica(object):
         new_temperature - temperature at which replica is initialized (default: None)
         cores - number of cores to be used by replica's NAMD instance (default: 1)
         """
-        self.id = my_id
-        self.sid = my_id
+        self.id = int(my_id)
+        self.sid = int(my_id)
         self.state = 'I'
         self.cycle = 0
         if new_temperature is None:

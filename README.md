@@ -49,8 +49,8 @@ This scheme can be summarized as follows:
 ```bash
 $ virtualenv $HOME/myenv 
 $ source $HOME/myenv/bin/activate 
-$ git clone https://github.com/radical-cybertools/ReplicaExchange.git 
-$ cd ReplicaExchange
+$ git clone https://github.com/radical-cybertools/RepEx.git 
+$ cd RepEx
 $ python setup.py install
 ```
 
@@ -75,7 +75,7 @@ For RE simulation with local exchange step in terminal execute:
 ```bash
 $ sh launcher_2a.sh
 ``` 
-This will run RE temperature exchange simulation involving X replicas on your target system. During the simulation input files for each of the replicas will be generated. After simulation is done in ReplicaExchange/src/radical/repex/ directory you will see a number of new "replica_x" directories. Each directory will contain simulation output files.   
+This will run RE temperature exchange simulation involving X replicas on your target system. During the simulation input files for each of the replicas will be generated. After simulation is done in RepEx/src/radical/repex/ directory you will see a number of new "replica_x" directories. Each directory will contain simulation output files.   
 
 ###Running simulation using RE scheme 2
 

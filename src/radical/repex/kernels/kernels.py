@@ -13,12 +13,12 @@ KERNELS = {
         {
             "amber": {
                 "environment" : {},
-                "pre_execution" : "module load TACC && module load amber/12.0",
+                "pre_execution" : ["module load TACC", "module load amber/12.0"],
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0"
             },
             "namd": {
                 "environment" : {},
-                "pre_execution" : "module load TACC && module load namd/2.9",
+                "pre_execution" : ["module load TACC", "module load namd/2.9"],
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2"
             }
         }
