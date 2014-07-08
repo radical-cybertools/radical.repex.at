@@ -1,5 +1,4 @@
 """
-
 .. module:: radical.repex.amber_kernels.launch_simulation_amber
 """
 
@@ -13,8 +12,8 @@ import json
 from os import path
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels.amber_kernel import AmberKernelScheme2
-from pilot_kernels.pilot_kernel_scheme_2 import PilotKernelScheme2
+from amber_kernels.amber_kernel_scheme_2a import AmberKernelScheme2a
+from pilot_kernels.pilot_kernel_scheme_2a import PilotKernelScheme2a
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -32,7 +31,7 @@ if __name__ == '__main__':
     """
  
     print "*********************************************************************"
-    print "*                RepEx simulation: AMBER + RE scheme S2             *"
+    print "*                RepEx simulation: AMBER + RE scheme 2a             *"
     print "*********************************************************************"
 
     work_dir_local = os.getcwd()
@@ -44,8 +43,8 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernelScheme2( inp_file, work_dir_local )
-    pilot_kernel = PilotKernelScheme2( inp_file )
+    md_kernel = AmberKernelScheme2a( inp_file, work_dir_local )
+    pilot_kernel = PilotKernelScheme2a( inp_file )
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
