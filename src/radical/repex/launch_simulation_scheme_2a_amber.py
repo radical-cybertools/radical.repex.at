@@ -18,7 +18,7 @@ from pilot_kernels.pilot_kernel_scheme_2a import PilotKernelScheme2a
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """Runs RE simulation using scheme 2. 
+    """Runs RE simulation using scheme 2a. 
 
     RE scheme 2:
     - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.

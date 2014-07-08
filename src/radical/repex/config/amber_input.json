@@ -15,6 +15,7 @@
         "amber_coordinates": "ala10_minimized.inpcrd",
         "amber_restraints": "ala10_chir.dat",
         "number_of_replicas": "6",
+        "replica_mpi": "True",
         "replica_cores": "1",
         "min_temperature": "300",
         "max_temperature": "600",

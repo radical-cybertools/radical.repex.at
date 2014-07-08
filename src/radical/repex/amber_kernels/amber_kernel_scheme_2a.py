@@ -54,6 +54,10 @@ class AmberKernelScheme2a(object):
         self.max_temp = float(inp_file['input.AMBER']['max_temperature'])
         self.cycle_steps = int(inp_file['input.AMBER']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
+        try:
+            self.replica_mpi = inp_file['input.AMBER']['replica_mpi']
+        except:
+            self.replica_mpi = False
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -113,7 +117,7 @@ class AmberKernelScheme2a(object):
         # updating replica temperatures and energies after md run
         for r in replicas:
                 # getting OLDTEMP and POTENTIAL from .history file of previous run
-                old_temp, old_energy = get_historical_data(self, r,(r.cycle-1))
+                old_temp, old_energy = self.get_historical_data(r, (r.cycle-1))
 
                 # updating replica temperature
                 r.new_temperature = old_temp   
@@ -147,29 +151,19 @@ class AmberKernelScheme2a(object):
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
         outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
         old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+
+        # new files
         replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
         replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
         replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
 
-        if (replica.cycle == 0):
-            first_step = 0
-        elif (replica.cycle == 1):
-            first_step = int(self.cycle_steps)
-        else:
-            first_step = (replica.cycle - 1) * int(self.cycle_steps)
+        # may be redundant
+        replica.new_history = replica.new_info
 
-        if (replica.cycle == 0):
-            old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1)) 
-            #restraints = self.amber_restraints
-            #coordinates = self.amber_coordinates
-            #parameters = self.amber_parameters
-        else:
-            old_name = replica.old_path + "/%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-
-            # these are not used; q: should these remain on target resource and be accessed via first_path?
-            #restraints = replica.first_path + "/" + self.amber_restraints
-            #coordinates = replica.first_path + "/" + self.amber_coordinates
-            #parameters = replica.first_path + "/" + self.amber_parameters
+        # old files
+        replica.old_coor = old_name + ".rst"
+        replica.old_traj = old_name + ".mdcrd"
+        replica.old_info = old_name + ".mdinfo"
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
@@ -212,6 +206,7 @@ class AmberKernelScheme2a(object):
 
             old_coor = replicas[r].old_coor
             old_traj = replicas[r].old_traj
+            old_info = replicas[r].old_info
 
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -219,34 +214,27 @@ class AmberKernelScheme2a(object):
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
-
                 cu.executable = self.amber_path
                 cu.pre_exec = ["module load amber/12"]
-                cu.mpi = True
+                cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-                cu.cores = 2
+                cu.cores = self.replica_cores
                 cu.input_data = [input_file, crds, parm, rstr]
                 cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
                 
-                #old_coor = replicas[r].old_path + "/" + self.amber_coordinates
-                old_coor = self.amber_coordinates
-                #crds = replica.old_path + "/" + self.amber_coordinates
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-                #parm = replicas[r].first_path + "/" + self.amber_parameters
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-                #rstr = replicas[r].first_path + "/" + self.amber_restraints
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
                 cu.executable = self.amber_path
                 cu.pre_exec = ["module load amber/12"]
-                cu.mpi = True
+                cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-                cu.cores = 2
+                cu.cores = self.replica_cores
 
-                cu.input_data = [input_file, crds, parm, rstr]
-
+                cu.input_data = [input_file, crds, parm, rstr, old_coor]
                 cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
 
@@ -268,4 +256,27 @@ class AmberKernelScheme2a(object):
             replicas.append(r)
             
         return replicas
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def get_historical_data(self, replica, cycle):
+        """Retrieves temperature and potential energy from simulaion output file <file_name>.history
+        """
+
+        temp = 0.0    #temperature
+        eptot = 0.0   #potential
+        if not os.path.exists(replica.new_history):
+            print "history file %s not found" % replica.new_history
+        else:
+            f = open(replica.new_history)
+            lines = f.readlines()
+            f.close()
+
+            for i in range(len(lines)):
+                if "TEMP(K)" in lines[i]:
+                    temp = float(lines[i].split()[8])
+                elif "EPtot" in lines[i]:
+                    eptot = float(lines[i].split()[8])
+
+        return temp, eptot
 

@@ -126,16 +126,9 @@ class AmberKernelScheme2(object):
 
         if (replica.cycle == 0):
             old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1)) 
-            #restraints = self.amber_restraints
-            #coordinates = self.amber_coordinates
-            #parameters = self.amber_parameters
+
         else:
             old_name = replica.old_path + "/%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-
-            # these are not used; q: should these remain on target resource and be accessed via first_path?
-            #restraints = replica.first_path + "/" + self.amber_restraints
-            #coordinates = replica.first_path + "/" + self.amber_coordinates
-            #parameters = replica.first_path + "/" + self.amber_parameters
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
@@ -195,15 +188,11 @@ class AmberKernelScheme2(object):
                 cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
             else:
-                #old_coor = "%s_remd_%d_%d.rst" % (self.inp_basename[:-5], replicas[r].id, (replicas[r].cycle-2))    #just to quickly solve the null old_coor problem for cycle>1\
                 cu = radical.pilot.ComputeUnitDescription()
 
                 old_coor = replicas[r].old_path + "/" + self.amber_coordinates
-                #crds = replica.old_path + "/" + self.amber_coordinates
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-                #parm = replicas[r].first_path + "/" + self.amber_parameters
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-                #rstr = replicas[r].first_path + "/" + self.amber_restraints
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
                 cu.executable = self.amber_path
                 cu.pre_exec = ["module load amber/12"]
@@ -211,9 +200,7 @@ class AmberKernelScheme2(object):
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = 2
 
-                #cu.input_data = [input_file]
                 cu.input_data = [input_file, crds, parm, rstr]
-
                 cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
 

@@ -32,7 +32,7 @@ if __name__ == '__main__':
     """
  
     print "*********************************************************************"
-    print "*                RepEx simulation: AMBER + RE scheme S2             *"
+    print "*                RepEx simulation: AMBER + RE scheme 2              *"
     print "*********************************************************************"
 
     work_dir_local = os.getcwd()

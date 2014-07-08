@@ -39,6 +39,7 @@ class Replica(object):
         self.new_traj = ""
         self.new_info = ""
         self.old_traj = ""
+        self.old_info = ""
         ###################
 
         self.new_coor = ""
