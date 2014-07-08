@@ -20,7 +20,7 @@ from replicas.replica import Replica
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernelScheme2a(AmberKernel):
+class AmberKernelScheme2(AmberKernel):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
 
@@ -46,41 +46,7 @@ class AmberKernelScheme2a(AmberKernel):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def compute_swap_matrix(self, replicas):
-        """        
-        """
-        # init matrix
-        swap_matrix = [[ 0. for j in range(self.replicas)] 
-             for i in range(self.replicas)]
- 
-        # updating replica temperatures and energies after md run
-        for r in replicas:
-                # getting OLDTEMP and POTENTIAL from .history file of previous run
-                old_temp, old_energy = self.get_historical_data(r, (r.cycle-1))
-
-                # updating replica temperature
-                r.new_temperature = old_temp   
-                r.old_temperature = old_temp   
-                r.potential = old_energy
-
-        for i in range(self.replicas):
-            repl_i = replicas[i]
-            for j in range(self.replicas):
-                # here each column (representing replica) of U has all swappable results
-                repl_j = replicas[j]
-                swap_matrix[repl_j.sid][repl_i.id] = self.reduced_energy(repl_j.old_temperature,repl_i.potential)
-        return swap_matrix
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def reduced_energy(self, temperature, potential):
-        kb = 0.0019872041
-        beta = 1. / (kb*temperature)     
-        return float(beta * potential)
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def build_input_file_local(self, replica):
+    def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin
         """
 
@@ -90,19 +56,22 @@ class AmberKernelScheme2a(AmberKernel):
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
         outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
         old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-
-        # new files
         replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
         replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
         replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
 
-        # may be redundant
-        replica.new_history = replica.new_info
+        if (replica.cycle == 0):
+            first_step = 0
+        elif (replica.cycle == 1):
+            first_step = int(self.cycle_steps)
+        else:
+            first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
-        # old files
-        replica.old_coor = old_name + ".rst"
-        replica.old_traj = old_name + ".mdcrd"
-        replica.old_info = old_name + ".mdinfo"
+        if (replica.cycle == 0):
+            old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1)) 
+
+        else:
+            old_name = replica.old_path + "/%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
@@ -126,14 +95,14 @@ class AmberKernelScheme2a(AmberKernel):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_local(self, replicas, resource):
+    def prepare_replicas_for_md(self, replicas, resource):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
         specified input/output files to be transferred to/from target system. Note: input files for first and 
         subsequent simulation cycles are different.
         """
         compute_replicas = []
         for r in range(len(replicas)):
-            self.build_input_file_local(replicas[r])
+            self.build_input_file(replicas[r])
             input_file = "%s_%d_%d.mdin" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
 
             # this is not transferred back
@@ -145,7 +114,6 @@ class AmberKernelScheme2a(AmberKernel):
 
             old_coor = replicas[r].old_coor
             old_traj = replicas[r].old_traj
-            old_info = replicas[r].old_info
 
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -153,29 +121,64 @@ class AmberKernelScheme2a(AmberKernel):
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
+
                 cu.executable = self.amber_path
                 cu.pre_exec = ["module load amber/12"]
-                cu.mpi = self.replica_mpi
+                cu.mpi = True
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-                cu.cores = self.replica_cores
+                cu.cores = 2
                 cu.input_data = [input_file, crds, parm, rstr]
                 cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
-                
+
+                old_coor = replicas[r].old_path + "/" + self.amber_coordinates
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
                 cu.executable = self.amber_path
                 cu.pre_exec = ["module load amber/12"]
-                cu.mpi = self.replica_mpi
+                cu.mpi = True
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-                cu.cores = self.replica_cores
+                cu.cores = 2
 
-                cu.input_data = [input_file, crds, parm, rstr, old_coor]
+                cu.input_data = [input_file, crds, parm, rstr]
                 cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
 
         return compute_replicas
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def prepare_replicas_for_exchange(self, replicas):
+        """Creates a list of ComputeUnitDescription objects for exchange step on resource.
+        Number of matrix_calculator_s2.py instances invoked on resource is equal to the number 
+        of replicas. 
+
+        Arguments:
+        replicas - list of Replica objects
+
+        Returns:
+        exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
+        """
+
+        exchange_replicas = []
+        for r in range(len(replicas)):
+           
+            # name of the file which contains swap matrix column data for each replica
+            matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
+            basename = self.inp_basename
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.executable = "python"
+            # matrix column calculator's name is hardcoded
+            calculator = self.work_dir_local + "/amber_kernels/matrix_calculator_s2.py"
+            cu.input_data = [calculator]
+            cu.arguments = ["matrix_calculator_s2.py", r, (replicas[r].cycle-1), len(replicas), basename]
+            cu.cores = 1            
+            cu.output_data = [matrix_col]
+            exchange_replicas.append(cu)
+
+        return exchange_replicas
+
 
