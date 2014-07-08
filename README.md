@@ -48,7 +48,15 @@ This scheme can be summarized as follows:
 
 ```bash
 $ virtualenv $HOME/myenv 
-$ source $HOME/myenv/bin/activate 
+$ source $HOME/myenv/bin/activate
+$ git clone -b devel https://github.com/radical-cybertools/saga-python.git
+$ cd saga-python
+$ python setup.py install
+$ cd ..
+$ git clone -b devel https://github.com/radical-cybertools/radical.pilot.git
+$ cd radical.pilot
+$ python setup.py install
+$ cd .. 
 $ git clone https://github.com/radical-cybertools/RepEx.git 
 $ cd RepEx
 $ python setup.py install
