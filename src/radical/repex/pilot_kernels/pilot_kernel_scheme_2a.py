@@ -54,9 +54,9 @@ class PilotKernelScheme2a(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
         
-        for i in range(self.nr_cycles):
+        for i in range(md_kernel.nr_cycles):
             # returns compute objects
-            compute_replicas = md_kernel.prepare_replicas_local(replicas, self.resource)
+            compute_replicas = md_kernel.prepare_replicas_local(replicas)
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
 

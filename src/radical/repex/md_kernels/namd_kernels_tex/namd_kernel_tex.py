@@ -8,16 +8,14 @@ __license__ = "MIT"
 
 import os
 import sys
-import json
-import random
 from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
-from replicas.replica import Replica
+from md_kernels.md_kernel_tex import *
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class NamdKernel(object):
+class NamdKernelTex(MdKernelTex):
     """
     """
     def __init__(self, inp_file,  work_dir_local):
@@ -28,57 +26,18 @@ class NamdKernel(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
+        MdKernelTex.__init__(self, inp_file, work_dir_local)
+
         try:
-            self.namd_path = inp_file['input.NAMD']['namd_path']
+            self.namd_path = inp_file['input.MD']['namd_path']
         except:
             print "Using default NAMD path for %s" % inp_file['input.PILOT']['resource']
-            resource = inp_file['input.PILOT']['resource']
-            self.namd_path = KERNELS[resource]["kernels"]["namd"]["executable"]
-        self.inp_basename = inp_file['input.NAMD']['input_file_basename']
-        self.inp_folder = inp_file['input.NAMD']['input_folder']
-        self.namd_structure = inp_file['input.NAMD']['namd_structure']
-        self.namd_coordinates = inp_file['input.NAMD']['namd_coordinates']
-        self.namd_parameters = inp_file['input.NAMD']['namd_parameters']
-        self.replicas = int(inp_file['input.NAMD']['number_of_replicas'])
-        self.replica_cores = int(inp_file['input.NAMD']['replica_cores'])
-        self.min_temp = float(inp_file['input.NAMD']['min_temperature'])
-        self.max_temp = float(inp_file['input.NAMD']['max_temperature'])
-        self.cycle_steps = int(inp_file['input.NAMD']['steps_per_cycle'])
-        self.work_dir_local = work_dir_local
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def initialize_replicas(self):
-        """Initializes replicas and their attributes to default values.
-
-        Returns:
-        replicas - list of Replica objects
-        """
-        replicas = []
-        for k in range(self.replicas):
-            # may consider to change this    
-            new_temp = random.uniform(self.max_temp , self.min_temp) * 0.8
-            r = Replica(k, new_temp, self.replica_cores)
-            replicas.append(r)
-            
-        return replicas
-
-#----------------------------------------------------------------------------------------------------------------------------------
-
-    def get_historical_data(self, replica, cycle):
-        """Retrieves temperature and potential energy from simulaion output file <file_name>.history
-        """
-        if not os.path.exists(replica.new_history):
-            print "history file not found: "
-            print replica.new_history
-        else:
-            f = open(replica.new_history)
-            lines = f.readlines()
-            f.close()
-            data = lines[0].split()
-         
-        return float(data[0]), float(data[1])
-
+            self.namd_path = KERNELS[self.resource]["kernels"]["namd"]["executable"]
+        
+        self.namd_structure = inp_file['input.MD']['namd_structure']
+        self.namd_coordinates = inp_file['input.MD']['namd_coordinates']
+        self.namd_parameters = inp_file['input.MD']['namd_parameters']
+        
 #----------------------------------------------------------------------------------------------------------------------------------
 
     def build_input_file_local(self, replica):
@@ -154,14 +113,13 @@ class NamdKernel(object):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_local(self, replicas, resource):
+    def prepare_replicas_local(self, replicas):
         """Creates a list of ComputeUnitDescription objects for MD simulation step. Here are
         specified input/output files to be transferred to/from target resource. Note: input 
         files for first and subsequent simulaition cycles are different.  
 
         Arguments:
         replicas - list of Replica objects
-        resource - target resource identifier
 
         Returns:
         compute_replicas - list of radical.pilot.ComputeUnitDescription objects
@@ -183,7 +141,7 @@ class NamdKernel(object):
             # only for first cycle we transfer structure, coordinates and parameters files
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec    = KERNELS[resource]["kernels"]["namd"]["pre_execution"]
+                cu.pre_exec    = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
                 cu.executable = self.namd_path
                 cu.arguments = [input_file]
                 cu.cores = replicas[r].cores
@@ -195,7 +153,7 @@ class NamdKernel(object):
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec    = KERNELS[resource]["kernels"]["namd"]["pre_execution"]
+                cu.pre_exec    = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
                 cu.executable = self.namd_path
                 cu.arguments = [input_file]
                 cu.cores = 1
@@ -207,3 +165,19 @@ class NamdKernel(object):
                 compute_replicas.append(cu)
 
         return compute_replicas
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+    def get_historical_data(self, replica, cycle):
+        """Retrieves temperature and potential energy from simulaion output file <file_name>.history
+        """
+        if not os.path.exists(replica.new_history):
+            print "history file not found: "
+            print replica.new_history
+        else:
+            f = open(replica.new_history)
+            lines = f.readlines()
+            f.close()
+            data = lines[0].split()
+         
+        return float(data[0]), float(data[1])

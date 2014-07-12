@@ -8,7 +8,7 @@ setup(
     author='Antons Treikalis',
     author_email='at646@scarletmail.rutgers.edu',
     #packages=find_packages('src'),
-    packages=['radical.repex'],
+    #packages=['src.radical.repex'],
     package_dir={'radical.repex': 'src/radical/repex'},
     scripts=[],
     license='LICENSE.txt',

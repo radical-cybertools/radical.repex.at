@@ -8,12 +8,11 @@ __license__ = "MIT"
 
 import os
 import sys
-import math
 import json
 from os import path
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from namd_kernels.namd_kernel_scheme_2a import NamdKernelScheme2a
+from md_kernels.namd_kernels_tex.namd_kernel_tex_scheme_2a import NamdKernelTexScheme2a
 from pilot_kernels.pilot_kernel_scheme_2a import PilotKernelScheme2a
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -44,7 +43,7 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = NamdKernelScheme2a( inp_file, work_dir_local )
+    md_kernel = NamdKernelTexScheme2a( inp_file, work_dir_local )
     pilot_kernel = PilotKernelScheme2a( inp_file )
 
     # initializing replicas

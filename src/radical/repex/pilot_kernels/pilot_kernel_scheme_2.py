@@ -99,13 +99,13 @@ class PilotKernelScheme2(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
-        for i in range(self.nr_cycles):
+        for i in range(md_kernel.nr_cycles):
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas, self.resource)
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             
             # this is not done for the last cycle
-            if (i != (self.nr_cycles-1)):
+            if (i != (md_kernel.nr_cycles-1)):
                 #####################################################################
                 # computing swap matrix
                 #####################################################################

@@ -13,7 +13,7 @@ import time
 from os import path
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from md_kernels.namd_kernels_tex.namd_kernel_tex_scheme_3 import NamdKernelTexScheme3
+from md_kernels.amber_kernels_tex.amber_kernel_tex_scheme_3 import AmberKernelTexScheme3
 from pilot_kernels.pilot_kernel_scheme_3 import PilotKernelScheme3
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     """
  
     print "*********************************************************************"
-    print "*                 RepEx simulation: NAMD + RE scheme 3              *"
+    print "*                RepEx simulation: Amber + RE scheme 3              *"
     print "*********************************************************************"
 
     work_dir_local = os.getcwd()
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = NamdKernelTexScheme3( inp_file, work_dir_local )
+    md_kernel = AmberKernelTexScheme3( inp_file, work_dir_local )
     pilot_kernel = PilotKernelScheme3( inp_file )
 
     # initializing replicas

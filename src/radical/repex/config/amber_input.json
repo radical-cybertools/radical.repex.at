@@ -4,17 +4,17 @@
         "project": "e290",
         "username" : "antonst",
         "runtime" : "20",
-        "cleanup" : "False",
-        "number_of_cycles": "3"
+        "cleanup" : "False"
     },
-    "input.AMBER": {
+    "input.MD": {
+        "number_of_cycles": "3",
+        "number_of_replicas": "12",
         "amber_path": "/work/y07/y07/amber/12/bin/sander.MPI",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_parameters": "ala10.prmtop",
         "amber_coordinates": "ala10_minimized.inpcrd",
         "amber_restraints": "ala10_chir.dat",
-        "number_of_replicas": "6",
         "replica_mpi": "True",
         "replica_cores": "1",
         "min_temperature": "300",

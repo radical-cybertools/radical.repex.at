@@ -8,18 +8,14 @@ __license__ = "MIT"
 
 import os
 import sys
-import math
-import json
-import random
 from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
-from replicas.replica import Replica
-from namd_kernels.namd_kernel import *
+from namd_kernel_tex import *
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class NamdKernelScheme2(NamdKernel):
+class NamdKernelTexScheme2(NamdKernelTex):
     """This class is responsible for performing all operations related to NAMD for RE scheme 2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
 
@@ -40,53 +36,8 @@ class NamdKernelScheme2(NamdKernel):
         inp_file - package input file with Pilot and NAMD related parameters as specified by user 
         work_dir_local - directory from which main simulation script was invoked
         """
-        NamdKernel.__init__(self, inp_file, work_dir_local)
+        NamdKernelTex.__init__(self, inp_file, work_dir_local)
 
-#----------------------------------------------------------------------------------------------------------------------------------
-
-    def gibbs_exchange(self, r_i, replicas, swap_matrix):
-        """Produces a replica "j" to exchange with the given replica "i"
-        based off independence sampling of the discrete distribution
-
-        Arguments:
-        r_i - given replica for which is found partner replica
-        replicas - list of Replica objects
-        swap_matrix - matrix of dimension-less energies, where each column is a replica 
-        and each row is a state
-
-        Returns:
-        r_j - replica to exchnage parameters with
-        """
-        #evaluate all i-j swap probabilities
-        ps = [0.0]*(self.replicas)
-  
-        for j in range(self.replicas):
-            r_j = replicas[j]
-            ps[j] = -(swap_matrix[r_i.sid][r_j.id] + swap_matrix[r_j.sid][r_i.id] - 
-                      swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
-
-        new_ps = []
-        for item in ps:
-            new_item = math.exp(item)
-            new_ps.append(new_item)
-        ps = new_ps
-        # index of swap replica within replicas_waiting list
-        j = self.weighted_choice_sub(ps)
-        # actual replica
-        r_j = replicas[j]
-        return r_j
-
-#----------------------------------------------------------------------------------------------------------------------------------
-
-    def weighted_choice_sub(self, weights):
-        """Copy from AsyncRE code
-        """
-
-        rnd = random.random() * sum(weights)
-        for i, w in enumerate(weights):
-            rnd -= w
-            if rnd < 0:
-                return i
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -249,9 +200,9 @@ class NamdKernelScheme2(NamdKernel):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = "python"
             # matrix column calculator's name is hardcoded
-            calculator = self.work_dir_local + "/namd_kernels/matrix_calculator_scheme_2.py"
+            calculator = self.work_dir_local + "/md_kernels/namd_kernels_tex/namd_matrix_calculator_scheme_2.py"
             cu.input_data = [calculator]
-            cu.arguments = ["matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
+            cu.arguments = ["namd_matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
             cu.output_data = [matrix_col]
             exchange_replicas.append(cu)

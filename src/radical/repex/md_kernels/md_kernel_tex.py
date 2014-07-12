@@ -1,0 +1,163 @@
+"""
+.. module:: radical.repex.namd_kernels.namd_kernel
+.. moduleauthor::  <antons.treikalis@rutgers.edu>
+"""
+
+__copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
+__license__ = "MIT"
+
+import os
+import sys
+import math
+import random
+from os import path
+import radical.pilot
+from replicas.replica import Replica
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+class MdKernelTex(object):
+    """
+    """
+    def __init__(self, inp_file,  work_dir_local):
+        """Constructor.
+
+        Arguments:
+        inp_file - package input file with Pilot and NAMD related parameters as specified by user 
+        work_dir_local - directory from which main simulation script was invoked
+        """
+
+        self.resource = inp_file['input.PILOT']['resource']
+        self.inp_basename = inp_file['input.MD']['input_file_basename']
+        self.inp_folder = inp_file['input.MD']['input_folder']
+        self.replicas = int(inp_file['input.MD']['number_of_replicas'])
+        self.replica_cores = int(inp_file['input.MD']['replica_cores'])
+        self.min_temp = float(inp_file['input.MD']['min_temperature'])
+        self.max_temp = float(inp_file['input.MD']['max_temperature'])
+        self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
+        self.work_dir_local = work_dir_local
+        self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
+
+        try:
+            self.replica_mpi = inp_file['input.MD']['replica_mpi']
+        except:
+            self.replica_mpi = False
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    # ok
+    def initialize_replicas(self):
+        """Initializes replicas and their attributes to default values
+
+           Changed to use geometrical progression for temperature assignment.
+        """
+        replicas = []
+        N = self.replicas
+        factor = (self.max_temp/self.min_temp)**(1./(N-1))
+        for k in range(N):
+            new_temp = self.min_temp * (factor**k)
+            r = Replica(k, new_temp)
+            replicas.append(r)
+            
+        return replicas
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+    # ok
+    def gibbs_exchange(self, r_i, replicas, swap_matrix):
+        """Produces a replica "j" to exchange with the given replica "i"
+        based off independence sampling of the discrete distribution
+
+        Arguments:
+        r_i - given replica for which is found partner replica
+        replicas - list of Replica objects
+        swap_matrix - matrix of dimension-less energies, where each column is a replica 
+        and each row is a state
+
+        Returns:
+        r_j - replica to exchnage parameters with
+        """
+        #evaluate all i-j swap probabilities
+        ps = [0.0]*(self.replicas)
+  
+        for r_j in replicas:
+            ps[r_j.id] = -(swap_matrix[r_i.sid][r_j.id] + swap_matrix[r_j.sid][r_i.id] - 
+                      swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
+
+        new_ps = []
+        for item in ps:
+            new_item = math.exp(item)
+            new_ps.append(new_item)
+        ps = new_ps
+        # index of swap replica within replicas_waiting list
+        j = len(replicas)
+        while j > (len(replicas) - 1):
+            j = self.weighted_choice_sub(ps)
+        
+        # actual replica
+        r_j = replicas[j]
+        return r_j
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+    # ok
+    def weighted_choice_sub(self, weights):
+        """Copy from AsyncRE code
+        """
+
+        rnd = random.random() * sum(weights)
+        for i, w in enumerate(weights):
+            rnd -= w
+            if rnd < 0:
+                return i
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+    #compute matrix of dimension-less energies: each column is a replica 
+    #and each row is a state
+    #so U[i][j] is the energy of replica j in state i. 
+    #
+    #Note that the matrix is sized to include all of the replicas and states 
+    #but the energies of replicas not 
+    #in waiting state, or those of waiting replicas for states not belonging to 
+    #waiting replicas list are undefined.
+    # OK
+    def compute_swap_matrix(self, replicas):
+        """        
+        """
+        # init matrix
+        swap_matrix = [[ 0. for j in range(self.replicas)] 
+             for i in range(self.replicas)]
+
+        # updating replica temperatures and energies after md run
+        for r in replicas:
+                # getting OLDTEMP and POTENTIAL from .history file of previous run
+                old_temp, old_energy = self.get_historical_data(r,(r.cycle-1))
+
+                # updating replica temperature
+                r.new_temperature = old_temp   
+                r.old_temperature = old_temp   
+                r.potential = old_energy
+
+        for i in range(len(replicas)):
+            repl_i = replicas[i]
+            for j in range(len(replicas)):
+                # here each column (representing replica) of U has all swappable results
+                repl_j = replicas[j]
+                swap_matrix[repl_j.sid][repl_i.id] = self.reduced_energy(repl_j.old_temperature,repl_i.potential)
+        return swap_matrix
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+    # OK
+    def reduced_energy(self, temperature, potential):
+        kb = 0.0019872041
+        beta = 1. / (kb*temperature)     
+        return float(beta * potential)
+
+    # OK
+    #def get_historical_data(self, replica, cycle):
+    #    """This method gets rewritten by sub class
+    #    """
+    #    pass
+

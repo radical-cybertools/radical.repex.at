@@ -17,8 +17,7 @@ Example:
         "username" : "antons",
         "runtime" : "20",
         "cleanup" : "False",
-        "cores" : "4",
-        "number_of_cycles": "3"
+        "cores" : "4"
     }
 }
 ###########################################################################################################
@@ -38,8 +37,7 @@ Example:
         "project" : "TG-MCB140109",
         "runtime" : "30",
         "cleanup" : "False",
-        "cores" : "32",
-        "number_of_cycles": "3"
+        "cores" : "32"
     }
 }
 ###########################################################################################################
@@ -58,8 +56,7 @@ Example:
         "username" : "antontre",
         "runtime" : "30",
         "cleanup" : "False",
-        "cores" : "32",
-        "number_of_cycles": "3",
+        "cores" : "32"
     }
 }
 

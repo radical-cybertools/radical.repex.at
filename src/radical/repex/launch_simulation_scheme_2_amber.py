@@ -8,12 +8,11 @@ __license__ = "MIT"
 
 import os
 import sys
-import math
 import json
 from os import path
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels.amber_kernel import AmberKernelScheme2
+from md_kernels.amber_kernels_tex.amber_kernel_tex_scheme_2 import AmberKernelTexScheme2
 from pilot_kernels.pilot_kernel_scheme_2 import PilotKernelScheme2
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -44,7 +43,7 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernelScheme2( inp_file, work_dir_local )
+    md_kernel = AmberKernelTexScheme2( inp_file, work_dir_local )
     pilot_kernel = PilotKernelScheme2( inp_file )
 
     # initializing replicas

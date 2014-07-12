@@ -55,7 +55,6 @@ class PilotKernel(object):
             self.cleanup = True
         else:
             self.cleanup = False 
-        self.nr_cycles = int(inp_file['input.PILOT']['number_of_cycles']) 
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 

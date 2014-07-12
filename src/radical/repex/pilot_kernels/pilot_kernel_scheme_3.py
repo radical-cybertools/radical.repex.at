@@ -48,7 +48,7 @@ class PilotKernelScheme3(PilotKernel):
         PilotKernel.__init__(self, inp_file)
 
         try:
-            self.cycle_time = inp_file['input.PILOT']['cycle_time']
+            self.cycle_time = inp_file['input.MD']['cycle_time']
         except:
             print "Using default cycle time: 1 minute"
             self.cycle_time = 2
@@ -69,6 +69,13 @@ class PilotKernelScheme3(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
+        # making sure that pilot is running
+        current_state = pilot_object.state
+        while current_state != 'Active':
+            print "pilot state: %s" % current_state
+            time.sleep(5)
+            current_state = pilot_object.state
+
         sim_start = datetime.datetime.utcnow()
         runtime = 0.0
         while (runtime < (self.runtime * 60.0)):
@@ -85,7 +92,7 @@ class PilotKernelScheme3(PilotKernel):
             # after this call replica.cycle gets incremented by one
             if (len(replicas_to_pilot) != 0):
                 print "Preparing %d replicas..." % len(replicas_to_pilot)
-                compute_replicas = md_kernel.prepare_replicas_local(replicas_to_pilot, self.resource)
+                compute_replicas = md_kernel.prepare_replicas_local(replicas_to_pilot)
                 print "Submitting %d replicas..." % len(compute_replicas)
                 submitted_replicas = unit_manager.submit_units(compute_replicas)
 
