@@ -1,5 +1,7 @@
 """
-.. module:: radical.repex.amber_kernels.amber_kernel
+.. module:: radical.repex.md_kernles_tex.amber_kernels_tex.amber_kernel_tex_scheme_2
+.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -96,10 +98,16 @@ class AmberKernelTexScheme2(AmberKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_for_md(self, replicas, resource):
+    def prepare_replicas_for_md(self, replicas):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
         specified input/output files to be transferred to/from target system. Note: input files for first and 
         subsequent simulation cycles are different.
+
+        Arguments:
+        replicas - list of Replica objects
+
+        Returns:
+        compute_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
         compute_replicas = []
         for r in range(len(replicas)):
@@ -122,12 +130,11 @@ class AmberKernelTexScheme2(AmberKernelTex):
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
-
                 cu.executable = self.amber_path
-                cu.pre_exec = ["module load amber/12"]
-                cu.mpi = True
+                cu.pre_exec = self.pre_exec
+                cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-                cu.cores = 2
+                cu.cores = self.replica_cores
                 cu.input_data = [input_file, crds, parm, rstr]
                 cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
@@ -139,10 +146,10 @@ class AmberKernelTexScheme2(AmberKernelTex):
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
                 cu.executable = self.amber_path
-                cu.pre_exec = ["module load amber/12"]
-                cu.mpi = True
+                cu.pre_exec = self.pre_exec
+                cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-                cu.cores = 2
+                cu.cores = self.replica_cores
 
                 cu.input_data = [input_file, crds, parm, rstr]
                 cu.output_data = [new_coor, new_traj, new_info]

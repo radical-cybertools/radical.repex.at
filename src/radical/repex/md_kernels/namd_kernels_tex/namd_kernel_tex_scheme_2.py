@@ -115,14 +115,13 @@ class NamdKernelTexScheme2(NamdKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_for_md(self, replicas, resource):
+    def prepare_replicas_for_md(self, replicas):
         """Creates a list of ComputeUnitDescription objects for MD simulation step. Here are
         specified input/output files to be transferred to/from target resource. Note: input 
         files for first and subsequent simulaition cycles are different.  
 
         Arguments:
         replicas - list of Replica objects
-        resource - target resource identifier
 
         Returns:
         compute_replicas - list of radical.pilot.ComputeUnitDescription objects
@@ -144,7 +143,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
             # only for first cycle we transfer structure, coordinates and parameters files
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec    = KERNELS[resource]["kernels"]["namd"]["pre_execution"]
+                cu.pre_exec    = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
                 cu.executable = self.namd_path
                 cu.arguments = [input_file]
                 cu.cores = replicas[r].cores
@@ -160,7 +159,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec    = KERNELS[resource]["kernels"]["namd"]["pre_execution"]
+                cu.pre_exec    = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
                 cu.executable = self.namd_path
                 cu.arguments = [input_file]
                 cu.cores = replicas[r].cores

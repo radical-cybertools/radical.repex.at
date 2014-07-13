@@ -59,9 +59,3 @@ if __name__ == '__main__':
     # finally we are moving all files to individual replica directories
     move_output_files(work_dir_local, md_kernel.inp_basename, replicas ) 
 
-
-    # delete all replica folders
-    #clean_up(work_dir_local, replicas )
-
-    #sys.exit(0)
-

@@ -1,15 +1,15 @@
 {
     "input.PILOT": {
-        "resource": "archer.ac.uk",
-        "project": "e290",
-        "username" : "antonst",
+        "resource": "trestles.sdsc.xsede.org",
+        "username" : "antontre",
         "runtime" : "20",
-        "cleanup" : "False"
+        "cleanup" : "False",
+        "cores" : "32"
     },
     "input.MD": {
         "number_of_cycles": "3",
-        "number_of_replicas": "12",
-        "amber_path": "/work/y07/y07/amber/12/bin/sander.MPI",
+        "number_of_replicas": "6",
+        "amber_path": "/opt/amber/bin/sander.MPI",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_parameters": "ala10.prmtop",

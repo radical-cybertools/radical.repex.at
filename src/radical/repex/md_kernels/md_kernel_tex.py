@@ -1,6 +1,9 @@
 """
-.. module:: radical.repex.namd_kernels.namd_kernel
+.. module:: radical.repex.md_kernels.md_kernel_tex
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
+
+References:
+1 - asyncre-bigjob: https://github.com/saga-project/asyncre-bigjob
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -31,7 +34,6 @@ class MdKernelTex(object):
         self.inp_basename = inp_file['input.MD']['input_file_basename']
         self.inp_folder = inp_file['input.MD']['input_folder']
         self.replicas = int(inp_file['input.MD']['number_of_replicas'])
-        self.replica_cores = int(inp_file['input.MD']['replica_cores'])
         self.min_temp = float(inp_file['input.MD']['min_temperature'])
         self.max_temp = float(inp_file['input.MD']['max_temperature'])
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
@@ -43,9 +45,13 @@ class MdKernelTex(object):
         except:
             self.replica_mpi = False
 
+        try:
+            self.replica_cores = inp_file['input.MD']['replica_cores']
+        except:
+            self.replica_cores = 1
+
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    # ok
     def initialize_replicas(self):
         """Initializes replicas and their attributes to default values
 
@@ -63,9 +69,9 @@ class MdKernelTex(object):
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
-    # ok
     def gibbs_exchange(self, r_i, replicas, swap_matrix):
-        """Produces a replica "j" to exchange with the given replica "i"
+        """Adopted from asyncre-bigjob [1]
+        Produces a replica "j" to exchange with the given replica "i"
         based off independence sampling of the discrete distribution
 
         Arguments:
@@ -100,9 +106,8 @@ class MdKernelTex(object):
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
-    # ok
     def weighted_choice_sub(self, weights):
-        """Copy from AsyncRE code
+        """Adopted from asyncre-bigjob [1]
         """
 
         rnd = random.random() * sum(weights)
@@ -113,17 +118,14 @@ class MdKernelTex(object):
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
-    #compute matrix of dimension-less energies: each column is a replica 
-    #and each row is a state
-    #so U[i][j] is the energy of replica j in state i. 
-    #
-    #Note that the matrix is sized to include all of the replicas and states 
-    #but the energies of replicas not 
-    #in waiting state, or those of waiting replicas for states not belonging to 
-    #waiting replicas list are undefined.
-    # OK
     def compute_swap_matrix(self, replicas):
-        """        
+        """Adopted from asyncre-bigjob [1]
+        compute matrix of dimension-less energies: each column is a replica 
+        and each row is a state so swap_matrix[i][j] is the energy of replica j 
+        in state i. Note that the matrix is sized to include all of the replicas 
+        and states but the energies of replicas not in waiting state, or those of 
+        waiting replicas for states not belonging to waiting replicas list are 
+        undefined.        
         """
         # init matrix
         swap_matrix = [[ 0. for j in range(self.replicas)] 
@@ -151,13 +153,9 @@ class MdKernelTex(object):
 
     # OK
     def reduced_energy(self, temperature, potential):
+        """Adopted from asyncre-bigjob [1]
+        """
         kb = 0.0019872041
         beta = 1. / (kb*temperature)     
         return float(beta * potential)
-
-    # OK
-    #def get_historical_data(self, replica, cycle):
-    #    """This method gets rewritten by sub class
-    #    """
-    #    pass
 

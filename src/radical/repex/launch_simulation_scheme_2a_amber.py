@@ -1,5 +1,6 @@
 """
 .. module:: radical.repex.amber_kernels.launch_simulation_amber
+.. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -19,18 +20,18 @@ from pilot_kernels.pilot_kernel_scheme_2a import PilotKernelScheme2a
 if __name__ == '__main__':
     """Runs RE simulation using scheme 2a. 
 
-    RE scheme 2:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
+    RE scheme 2a:
+    - Synchronous RE scheme: none of the replicas can start exchange before all replicas had finished MD run.
+    Conversely, none of the replicas can start MD run before all replicas had finished exchange step. 
     In other words global barrier is present.   
     - Number of replicas is greater than number of allocated resources for both MD and exchange step.
     - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
     - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
+    - Exchange step is performed locally.
     """
  
     print "*********************************************************************"
-    print "*                RepEx simulation: AMBER + RE scheme 2a             *"
+    print "*               RepEx simulation: AMBER + RE scheme 2a              *"
     print "*********************************************************************"
 
     work_dir_local = os.getcwd()
@@ -60,9 +61,4 @@ if __name__ == '__main__':
     move_output_files(work_dir_local, base, replicas ) 
 
     session.close()
-
-    # delete all replica folders
-    #md_kernel.clean_up( replicas )
-
-    #sys.exit(0)
 

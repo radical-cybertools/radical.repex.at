@@ -38,6 +38,7 @@ class AmberKernelTex(MdKernelTex):
 
         MdKernelTex.__init__(self, inp_file, work_dir_local)
 
+        self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
         try:
             self.amber_path = inp_file['input.MD']['amber_path']
         except:
@@ -124,7 +125,7 @@ class AmberKernelTex(MdKernelTex):
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
                 cu.executable = self.amber_path
-                cu.pre_exec = ["module load amber/12"]
+                cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
@@ -138,7 +139,7 @@ class AmberKernelTex(MdKernelTex):
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
                 cu.executable = self.amber_path
-                cu.pre_exec = ["module load amber/12"]
+                cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores

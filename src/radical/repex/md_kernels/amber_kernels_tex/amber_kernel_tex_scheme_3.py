@@ -1,5 +1,6 @@
 """
-.. module:: radical.repex.amber_kernels.amber_kernel
+.. module:: radical.repex.md_kernels.amber_kernels_tex.amber_kernel_tex_scheme_3
+.. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"

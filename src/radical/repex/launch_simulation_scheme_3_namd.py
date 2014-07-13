@@ -67,8 +67,3 @@ if __name__ == '__main__':
 
     session.close()
     
-    # delete all replica folders
-    #clean_up(work_dir_local, replicas )
-
-    #sys.exit(0)
-

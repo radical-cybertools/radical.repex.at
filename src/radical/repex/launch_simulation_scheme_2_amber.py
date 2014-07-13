@@ -1,6 +1,6 @@
 """
-
 .. module:: radical.repex.amber_kernels.launch_simulation_amber
+.. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -61,9 +61,4 @@ if __name__ == '__main__':
     move_output_files(work_dir_local, base, replicas ) 
 
     session.close()
-
-    # delete all replica folders
-    #md_kernel.clean_up( replicas )
-
-    #sys.exit(0)
 

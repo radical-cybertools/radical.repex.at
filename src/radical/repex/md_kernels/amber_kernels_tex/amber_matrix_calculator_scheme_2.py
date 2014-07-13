@@ -1,5 +1,7 @@
 """
-.. module:: radical.repex.amber_kernels.matrix_calculator_s2
+.. module:: radical.repex.md_kernels.amber_kernels_tex.amber_matrix_calculator_scheme_2
+.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"

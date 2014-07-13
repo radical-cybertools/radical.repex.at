@@ -61,14 +61,12 @@ if __name__ == '__main__':
     
     # now we can run RE simulation
     pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+
+    # this is a quick hack
+    base = md_kernel.inp_basename + ".mdin"
                 
     # finally we are moving all files to individual replica directories
-    move_output_files(work_dir_local, md_kernel.inp_basename, replicas ) 
+    move_output_files(work_dir_local, base, replicas ) 
 
     session.close()
     
-    # delete all replica folders
-    #clean_up(work_dir_local, replicas )
-
-    #sys.exit(0)
-

@@ -2,7 +2,6 @@
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
-        "project" : "TG-MCB140109",
         "runtime" : "20",
         "cleanup" : "False",
         "cores" : "16"
