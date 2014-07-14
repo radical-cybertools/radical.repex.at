@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ page.title }}</title>
+</head>
+<body>
+  <h1><a href="/index.html">My First Jekyll-Powered Blog</a></h1>
+  {{ content }}
+
+<h2>Recent Posts</h2>
+<ul>
+  {% for post in site.posts do %}
+  <li>
+    {{ post.date }} <a href="{{ post.url }}">{{ post.title }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+
+
+</body>
+</html>
