@@ -66,6 +66,7 @@ function check(){
 }
 
 function clear(){
+  alert ("Clear!"); 
   sessionStorage.setItem("username", "");
   sessionStorage.setItem("password", ""); 
 }  
