@@ -1,7 +1,7 @@
 var count = 2;
 
-var unArray = ["Antons", "George", "Sarah", "Michael"];  
-var pwArray = ["tuscan", "Password2", "Password3", "Password4"]; 
+var unArray = ["Antons", "Shantenu", "Ole", "Brian", "Taisung", "Vivek", "Haoyuan", "Darrin"];  
+var pwArray = ["Tre2014", "Jha2014", "Weidner2014", "Radak2014", "Lee2014", "Bala2014", "Chen2014", "York2014"]; 
 
 function validate() {
 
