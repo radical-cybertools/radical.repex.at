@@ -17,8 +17,8 @@ function validate() {
   }
 
   if (valid) {
-    //alert ("Login was successful");
-    window.location = "../logged/";
+    alert ("Login was successful");
+    window.location = "/logged/";
     sessionStorage.setItem("username", un);
     sessionStorage.setItem("password", pw);
     return false;
