@@ -17,7 +17,7 @@ function validate() {
   }
 
   if (valid) {
-    alert ("Login was successful");
+    //alert ("Login was successful");
     window.location = "/RepEx/logged/";
     sessionStorage.setItem("username", un);
     sessionStorage.setItem("password", pw);
@@ -66,7 +66,7 @@ function check(){
 }
 
 function clear(){
-  alert ("Clear!"); 
+  //alert ("Clear!"); 
   sessionStorage.setItem("username", "");
   sessionStorage.setItem("password", ""); 
 }  
