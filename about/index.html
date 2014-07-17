@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>RepEx by radical-cybertools</title>
+
+    <link rel="stylesheet" href="../stylesheets/styles.css">
+    <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+    <script src="../javascripts/scale.fix.js"></script>
+    <script src="../javascripts/login.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+  </head>
+  <body>
+    
+    <div class="wrapper">
+      <header>
+        <h1 class="header">RepEx</h1>
+        <p class="header"></p>
+
+        <ul>
+          <li><a href="" style="text-decoration:none;">&nbsp; &nbsp; &nbsp; Home</a></li>
+          <li><a href="/about/" style="text-decoration:none;">&nbsp; &nbsp; &nbsp; About</a></li>
+          <li><a href="/login/" style="text-decoration:none;">&nbsp; &nbsp; &nbsp; Login</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/radical-cybertools/RepEx/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/radical-cybertools/RepEx/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/radical-cybertools/RepEx">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/radical-cybertools">radical-cybertools</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="repex-replica-exchange-simulations-package" class="anchor" href="#repex-replica-exchange-simulations-package"><span class="octicon octicon-link"></span></a>RepEx: Replica Exchange simulations Package</h1>
+
+<p>This package is aimed to provide functionality to run Replica Exchange simulations using various RE schemes and MD kernels. Currectly RepEX supports NAMD and Amber as it's application kernels and allows to perform RE simulations on local and remote systems. Functionality to run three RE schemes is available.</p>
+
+<h3>
+<a name="theory-of-replica-exchange-simulations" class="anchor" href="#theory-of-replica-exchange-simulations"><span class="octicon octicon-link"></span></a>Theory of Replica Exchange simulations</h3>
+
+<p>In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.</p>
+
+<h3>
+<a name="re-scheme-1" class="anchor" href="#re-scheme-1"><span class="octicon octicon-link"></span></a>RE scheme 1</h3>
+<img src="../images/Scheme_s1.jpg" alt="scheme 1 diagram">
+<p>This is the conventional RE scheme where all replicas first run MD for a fixed period of simulation time (e.g. 2 ps) and then perform an exchange step. In this scheme a global barrier is present - all replicas must first finish MD run and only then exchange step can occur. Main characteristics of this scheme are:</p>
+
+<ul>
+<li>number of replicas equals to the number of allocated compute cores</li>
+<li>simultaneous MD</li>
+<li>simultaneous exchange</li>
+<li>all replicas participate in exchange step</li>
+<li>constant simulation cycle time</li>
+<li>global barrier between MD and exchange step</li>
+</ul><h3>
+<a name="re-scheme-2" class="anchor" href="#re-scheme-2"><span class="octicon octicon-link"></span></a>RE scheme 2</h3>
+<img src="../images/Scheme_s2.jpg" alt="scheme 2 diagram">
+<p>The main difference of this scheme from scheme 1 is in number of compute cores used for simulation, which is less than the number of replicas (typically 50% of the number of replicas). This small detail results in both MD run and exchange step being performed concurrently. At the same time global synchronization barrier is still present - no replica can start exchange before all replicas has finished MD and vice versa. We define exchange step as concurrent since this step isn't performed simultaneously (in parallel) for all replicas. Similarly to scheme 1 in this scheme simulation cycle for each replica is defined as fixed number of simulation time-steps. This scheme can be summarized as:</p>
+
+<ul>
+<li>number of allocated compute cores equals 50% of replicas</li>
+<li>concurrent MD</li>
+<li>concurrent exchange</li>
+<li>all replicas participate in exchange step</li>
+<li>constant simulation cycle time</li>
+<li>global barrier between MD and exchange step</li>
+</ul><h3>
+<a name="re-scheme-3" class="anchor" href="#re-scheme-3"><span class="octicon octicon-link"></span></a>RE scheme 3</h3>
+<img src="../images/Scheme_s3.jpg" alt="scheme 2 diagram">
+<p>This scheme is asynchronous - MD run on target resource is overlapped with exchange step. Similarly to scheme 2, the number of replicas exceeds allocated compute cores. Simulation cycle is defined as a fixed time interval during which replicas are performing MD run. After cycle time elapses, some of the replicas are still performing MD run but some are ready for exchange. At this point exchange step involving replicas which has finished MD run is performed. Main characteristics of this scheme are:</p>
+
+<ul>
+<li>number of allocated compute cores equals 50% of replicas</li>
+<li>no global synchronization barrier between MD and exchange step</li>
+<li>simulation cycle is defined as fixed real time interval </li>
+<li>concurrent MD</li>
+<li>only fraction of replicas participate in exchange step</li>
+<li>during time period of simulation cycle no replicas participate in exchange step
+This scheme can be summarized as follows:
+
+<ul>
+<li>All replicas are initialized and assigned a "waiting" state</li>
+<li>While elapsed time is less that the total simulation time, do:<br><ul>
+<li>All replicas in "waiting" state are submitted to target resource for execution</li>
+<li>State of all submitted replicas is changed to "running"</li>
+<li>Wait for a fixed time interval (simulation cycle)</li>
+<li>All replicas which has finished MD run are assigned state "waiting"</li>
+<li>Exchange step is performed for all replicas in "waiting" state</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+	
+  </body>
+</html>
