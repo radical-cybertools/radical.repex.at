@@ -18,7 +18,7 @@ function validate() {
 
   if (valid) {
     //alert ("Login was successful");
-    window.location = "/RepEx/logged/";
+    window.location = "../logged/";
     sessionStorage.setItem("username", un);
     sessionStorage.setItem("password", pw);
     return false;
