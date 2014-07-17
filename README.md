@@ -99,7 +99,7 @@ python launch_simulation_scheme_2_amber.py --input='config/amber_input.json'
 ```
 For RE simulation with local exchange step in terminal execute:
 ```bash
-python launch_simulation_scheme_2a_amber.py --input='config/namd_input.json'
+python launch_simulation_scheme_2a_amber.py --input='config/amber_input.json'
 ``` 
 
 ###Running simulation using RE scheme 2
@@ -121,7 +121,7 @@ python launch_simulation_scheme_2_amber.py --input='config/amber_input.json'
 ```
 For RE simulation with local exchange step in terminal execute:
 ```bash
-python launch_simulation_scheme_2a_amber.py --input='config/namd_input.json'
+python launch_simulation_scheme_2a_amber.py --input='config/amber_input.json'
 ``` 
 
 ###Running simulation using RE scheme 3
