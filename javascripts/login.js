@@ -4,7 +4,7 @@ var unArray = ["Antons", "George", "Sarah", "Michael"];
 var pwArray = ["tuscan", "Password2", "Password3", "Password4"]; 
 
 function validate() {
-  
+
   var un = document.myform.username.value;
   var pw = document.myform.pword.value;
   var valid = false;
@@ -18,7 +18,7 @@ function validate() {
 
   if (valid) {
     //alert ("Login was successful");
-    window.location = "/logged/";
+    window.location = "/RepEx/logged/";
     sessionStorage.setItem("username", un);
     sessionStorage.setItem("password", pw);
     return false;
