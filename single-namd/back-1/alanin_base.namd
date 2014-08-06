@@ -1,0 +1,120 @@
+#######################################################
+# basic simulation options for replica exchange
+#######################################################
+
+structure       alanin.psf
+coordinates     unfolded.pdb
+
+margin          10.0
+stepspercycle   1000
+parameters      alanin.params
+exclude         scaled1-4
+1-4scaling      0.4
+switching       on
+switchdist      7.0
+cutoff          8.0
+pairlistdist    10.0
+
+langevin on
+langevinDamping 10.0
+
+set steps_per_run   1000
+set num_runs        5
+set replica_id      1
+timestep            1.0
+
+set i_run           0
+firsttimestep       0
+
+set cycle           0
+set doswap          0
+
+set underscore      "_"
+
+set job_output_root alanin_base_1_$cycle$underscore
+set old_output_root alanin_base_1_$cycle$underscore
+
+set history_append  ".history"
+
+set OLDTEMP         267.517369276
+set NEWTEMP         267.517369276
+
+
+while {$i_run < $num_runs} {
+
+set outputname $job_output_root$i_run
+outputName $outputname[expr ($i_run-1)]
+
+
+set history_name $job_output_root$i_run$history_append
+
+#######################################################
+# these are parameters set after exchange
+#######################################################
+
+if {$cycle} { #restart
+  set oldrun [expr ($cycle-1)]
+  set oldoutput $old_output_root
+  bincoordinates $oldoutput.coor
+  binvelocities $oldoutput.vel
+  extendedSystem $oldoutput.xsc
+} else {
+  temperature         $NEWTEMP
+}
+
+outputEnergies [expr ($steps_per_run / 10)]
+dcdFreq [expr ($steps_per_run * 10)]
+
+
+  if { $doswap } {
+    langevinTemp        $NEWTEMP
+    rescalevels [expr sqrt(1.0*$NEWTEMP/$OLDTEMP)]
+  } else {
+    langevinTemp        $NEWTEMP
+  }
+
+
+  #######################################################
+  # this block is for putting output into history file
+  #######################################################
+
+  proc save_callback {labels values} {
+    global saved_labels saved_values
+    set saved_labels $labels
+    set saved_values $values
+  }
+  callback save_callback
+
+  proc save_array {} {
+    global saved_labels saved_values saved_array
+    foreach label $saved_labels value $saved_values {
+      set saved_array($label) $value
+    }
+  }
+
+  set history_file [open [format $history_name] "w"]
+  fconfigure $history_file -buffering line
+
+
+  run $steps_per_run
+  save_array
+
+  if {$i_run} {
+    #file delete $oldoutput.coor
+    #file delete $oldoutput.vel
+    #file delete $oldoutput.xsc
+  }
+
+  #######################################################
+  # after run put necessary data into .history file
+  #######################################################
+
+  set TEMP $saved_array(TEMP)
+  set POTENTIAL [expr $saved_array(TOTAL) - $saved_array(KINETIC)]
+
+  puts $history_file "$NEWTEMP $POTENTIAL"
+
+  incr i_run
+}
+
+
