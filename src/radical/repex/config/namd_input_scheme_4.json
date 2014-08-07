@@ -1,0 +1,24 @@
+{
+    "input.PILOT": {
+        "resource": "stampede.tacc.utexas.edu",
+        "username" : "antontre",
+        "runtime" : "20",
+        "cleanup" : "False",
+        "cores" : "16"
+    },
+    "input.MD": {
+        "number_of_cycles": "3",
+        "cycle_time": "5",
+        "input_folder": "namd_inp",
+        "input_file_basename": "alanin_base_cancel.namd",
+        "namd_structure": "alanin.psf",
+        "namd_coordinates": "unfolded.pdb",
+        "namd_parameters": "alanin.params",
+        "number_of_replicas": "8",
+        "replica_cores": "1",
+        "min_temperature": "300",
+        "max_temperature": "600",
+        "steps_per_cycle": "1000"
+    }
+}
+
