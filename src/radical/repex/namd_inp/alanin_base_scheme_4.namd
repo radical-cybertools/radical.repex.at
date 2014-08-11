@@ -25,24 +25,25 @@ timestep            1.0
 set job_output_root @somename@
 set underscore  "_"
 set history ".history"
-
 set old_output_root @oldname@
 
+set stopped_i_run   @stopped_run@
+
 set i_run           @cycle@
-set num_runs        500
+set num_runs        250
 
 set runs_per_frame  1
 firsttimestep       @firststep@
 
-set cycle           [expr $i_run+1]
+#set cycle           [expr $i_run+1]
 set doswap          @swap@
 
 set OLDTEMP         @ot@
 set NEWTEMP         @nt@
 
 if {$i_run} { #restart
-  set oldrun [expr ($cycle-1)]
-  set oldoutput $old_output_root
+  set old_cycle [expr ($cycle-1)]
+  set oldoutput $old_output_root$underscore$stopped_i_run.restart
   bincoordinates $oldoutput.coor
   binvelocities $oldoutput.vel
   extendedSystem $oldoutput.xsc
@@ -55,9 +56,8 @@ dcdFreq [expr ($steps_per_run)]
 
 while {$i_run < $num_runs} {
 
-set outputname $job_output_root$cycle$underscore$i_run
+set outputname $job_output_root$underscore$i_run
 outputName $outputname
-
 
 
 if { $doswap } {
@@ -94,9 +94,9 @@ puts $history_file "$NEWTEMP $POTENTIAL"
 
 incr i_run
 
-#if {$i_run} {  # restart
-#    set restart_root "$job_output_root.restart$i_run"
-#    output [format $restart_root.$replica_id $replica_id]
-# }
+if {$i_run} {  # restart
+    set restart_root "$job_output_root$underscore$i_run.restart"
+    output [format $restart_root]
+ }
 
 }
