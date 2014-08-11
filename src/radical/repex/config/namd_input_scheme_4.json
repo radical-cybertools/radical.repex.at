@@ -2,6 +2,7 @@
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
+        "project" : "TG-MCB090174",
         "runtime" : "20",
         "cleanup" : "False",
         "cores" : "16"
@@ -10,7 +11,7 @@
         "number_of_cycles": "3",
         "cycle_time": "5",
         "input_folder": "namd_inp",
-        "input_file_basename": "alanin_base_cancel.namd",
+        "input_file_basename": "alanin_base_scheme_4.namd",
         "namd_structure": "alanin.psf",
         "namd_coordinates": "unfolded.pdb",
         "namd_parameters": "alanin.params",

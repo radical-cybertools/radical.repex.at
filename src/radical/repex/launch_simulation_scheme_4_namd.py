@@ -12,8 +12,8 @@ import json
 from os import path
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from md_kernels.namd_kernels_tex.namd_kernel_tex_scheme_2 import NamdKernelTexScheme2
-from pilot_kernels.pilot_kernel_scheme_2 import PilotKernelScheme2
+from md_kernels.namd_kernels_tex.namd_kernel_tex_scheme_4 import NamdKernelTexScheme4
+from pilot_kernels.pilot_kernel_scheme_4 import PilotKernelScheme4
     
 #-----------------------------------------------------------------------------------------------------------------------------------
 

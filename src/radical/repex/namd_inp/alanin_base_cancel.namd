@@ -29,7 +29,7 @@ set history ".history"
 set old_output_root @oldname@
 
 set i_run           @cycle@
-set num_runs        @numruns@
+set num_runs        500
 
 set runs_per_frame  1
 firsttimestep       @firststep@
@@ -40,7 +40,7 @@ set doswap          @swap@
 set OLDTEMP         @ot@
 set NEWTEMP         @nt@
 
-if {$cycle} { #restart
+if {$i_run} { #restart
   set oldrun [expr ($cycle-1)]
   set oldoutput $old_output_root
   bincoordinates $oldoutput.coor

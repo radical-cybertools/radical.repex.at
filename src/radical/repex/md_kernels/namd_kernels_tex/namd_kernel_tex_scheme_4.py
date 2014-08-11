@@ -15,7 +15,7 @@ from namd_kernel_tex import *
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class NamdKernelTexScheme2(NamdKernelTex):
+class NamdKernelTexScheme4(NamdKernelTex):
     """This class is responsible for performing all operations related to NAMD for RE scheme 2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
 
@@ -32,6 +32,12 @@ class NamdKernelTexScheme2(NamdKernelTex):
         """
         NamdKernelTex.__init__(self, inp_file, work_dir_local)
 
+        try:
+            self.cycle_time = int(inp_file['input.MD']['cycle_time'])
+        except:
+            self.cycle_time = 5
+
+        self.stopped_run = 0
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
@@ -51,12 +57,16 @@ class NamdKernelTexScheme2(NamdKernelTex):
         new_input_file = "%s_%d_%d.namd" % (basename, replica.id, replica.cycle)
         outputname = "%s_%d_%d" % (basename, replica.id, replica.cycle)
         old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-        replica.new_coor = outputname + ".coor"
-        replica.new_vel = outputname + ".vel"
-        replica.new_history = outputname + ".history"
-        replica.new_ext_system = outputname + ".xsc" 
-        historyname = replica.new_history
 
+        # these are required to transfer outputs back to laptop, but
+        # we don't know at which i_run md was stopped, so in principle
+        # we can only transfer during the exchange run using calculator
+        #replica.new_coor = outputname + ".coor"
+        #replica.new_vel = outputname + ".vel"
+        #replica.new_ext_system = outputname + ".xsc"
+
+        # not sure if current use of first time step makes a lot of sense
+        # why first step needs to be incremented???
         if (replica.cycle == 0):
             first_step = 0
         elif (replica.cycle == 1):
@@ -64,6 +74,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
+        # if, else below seems OK
         if (replica.cycle == 0):
             old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1)) 
             structure = self.namd_structure
@@ -93,10 +104,11 @@ class NamdKernelTexScheme2(NamdKernelTex):
         tbuffer = tbuffer.replace("@oldname@",str(old_name))
         tbuffer = tbuffer.replace("@cycle@",str(replica.cycle))
         tbuffer = tbuffer.replace("@firststep@",str(first_step))
-        tbuffer = tbuffer.replace("@history@",str(historyname))
         tbuffer = tbuffer.replace("@structure@", str(structure))
         tbuffer = tbuffer.replace("@coordinates@", str(coordinates))
         tbuffer = tbuffer.replace("@parameters@", str(parameters))
+
+        tbuffer = tbuffer.replace("@stopped_run@", str(self.stopped_run))
         
         replica.cycle += 1
         # write out
@@ -146,12 +158,8 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
                 params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
                 cu.input_data = [input_file, structure, coords, params]
-                # in principle it is not required to transfer simulation output files in order to 
-                # continue next cycle; this is done mainly to have these files on local system;
-                # an alternative approach would be to transfer all the files at the end of the simulation  
-
-                # don't know what would be an output data for this... 
-                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+ 
+                #cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -160,14 +168,13 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 cu.arguments = [input_file]
                 cu.cores = replicas[r].cores
                 cu.mpi = False
-                structure = self.inp_folder + "/" + self.namd_structure
-                coords = self.inp_folder + "/" + self.namd_coordinates
-                params = self.inp_folder + "/" + self.namd_parameters
                 cu.input_data = [input_file]
                 # in principle it is not required to transfer simulation output files in order to 
                 # perform the next cycle; this is done mainly to have these files on local system;
                 # an alternative approach would be to transfer all the files at the end of the simulation
-                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+
+                # later we need to transfer these files back to laptop
+                #cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
                 compute_replicas.append(cu)
 
         return compute_replicas
@@ -203,4 +210,32 @@ class NamdKernelTexScheme2(NamdKernelTex):
             exchange_replicas.append(cu)
 
         return exchange_replicas
-            
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def update_replica_info(self, replicas):
+        """
+        todo...
+        """
+        base_name = "matrix_column"
+ 
+        for r in replicas:
+            column_file = base_name + "_" + str(r.id) + "_" + str(r.cycle-1) + ".dat"       
+            try:
+                f = open(column_file)
+                lines = f.readlines()
+                f.close()
+                
+                # setting old_path and first_path for each replica
+                if ( r.cycle == 1 ):
+                    r.first_path = lines[1]
+                    r.old_path = lines[1]
+                else:
+                    r.old_path = lines[1]
+
+                # setting stopped_i_run
+                r.stopped_run = lines[2]
+            except:
+                raise
+
+        

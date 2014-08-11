@@ -66,12 +66,6 @@ class PilotKernelScheme4(PilotKernel):
                 for i in range(len(replicas)):
                     swap_matrix[i][r.id] = float(data[i])
 
-                # setting old_path and first_path for each replica
-                if ( r.cycle == 1 ):
-                    r.first_path = lines[1]
-                    r.old_path = lines[1]
-                else:
-                    r.old_path = lines[1]
             except:
                 raise
 
@@ -137,6 +131,7 @@ class PilotKernelScheme4(PilotKernel):
                 # compose swap matrix from individual files
                 #####################################################################
                 swap_matrix = self.compose_swap_matrix(replicas)
+                md_kernel.update_replica_info(replicas)
             
                 for r_i in replicas:
                     r_j = md_kernel.gibbs_exchange(r_i, replicas, swap_matrix)
