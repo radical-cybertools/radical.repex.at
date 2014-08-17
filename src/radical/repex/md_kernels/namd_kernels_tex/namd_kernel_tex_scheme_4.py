@@ -35,7 +35,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
         try:
             self.cycle_time = int(inp_file['input.MD']['cycle_time'])
         except:
-            self.cycle_time = 5
+            self.cycle_time = 3
 
         self.stopped_run = 0
 

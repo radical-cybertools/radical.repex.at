@@ -9,7 +9,7 @@
     },
     "input.MD": {
         "number_of_cycles": "3",
-        "cycle_time": "5",
+        "cycle_time": "3",
         "input_folder": "namd_inp",
         "input_file_basename": "alanin_base_scheme_4.namd",
         "namd_structure": "alanin.psf",

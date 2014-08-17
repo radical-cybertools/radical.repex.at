@@ -30,7 +30,7 @@ set old_output_root @oldname@
 set stopped_i_run   @stopped_run@
 
 set i_run           @cycle@
-set num_runs        250
+set num_runs        500
 
 set runs_per_frame  1
 firsttimestep       @firststep@
