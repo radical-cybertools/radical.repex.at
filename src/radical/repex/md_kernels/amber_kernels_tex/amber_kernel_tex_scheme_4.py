@@ -47,6 +47,13 @@ class AmberKernelTexScheme4(AmberKernelTex):
 
         AmberKernelTex.__init__(self, inp_file, work_dir_local)
 
+        try:
+            self.cycle_time = int(inp_file['input.MD']['cycle_time'])
+        except:
+            self.cycle_time = 3
+
+        self.stopped_run = 0
+
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def build_input_file(self, replica):
@@ -135,24 +142,30 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
+
                 cu.input_data = [input_file, crds, parm, rstr]
-                cu.output_data = [new_coor, new_traj, new_info]
+                #cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
+ 
+                old_output_file = "%s_%d_%d.rst_" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-2))
+                old_coor = replicas[r].old_path + "/" + old_output_file + self.stopped_run
 
-                old_coor = replicas[r].old_path + "/" + self.amber_coordinates
+                old_amber_parameters = replicas[r].old_path + "/" + self.amber_parameters
+
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
                 rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
-                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
+                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", old_amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
 
-                cu.input_data = [input_file, crds, parm, rstr]
-                cu.output_data = [new_coor, new_traj, new_info]
+                cu.input_data = [input_file, rstr]
+                #cu.input_data = [input_file, crds, parm, rstr]
+                #cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
 
         return compute_replicas
@@ -180,9 +193,9 @@ class AmberKernelTexScheme4(AmberKernelTex):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = "python"
             # matrix column calculator's name is hardcoded
-            calculator = self.work_dir_local + "/md_kernels/amber_kernels_tex/amber_matrix_calculator_scheme_2.py"
+            calculator = self.work_dir_local + "/md_kernels/amber_kernels_tex/amber_matrix_calculator_scheme_4.py"
             cu.input_data = [calculator]
-            cu.arguments = ["amber_matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
+            cu.arguments = ["amber_matrix_calculator_scheme_4.py", replicas[r].id, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
             cu.output_data = [matrix_col]
             exchange_replicas.append(cu)

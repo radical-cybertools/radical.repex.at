@@ -53,7 +53,7 @@ def get_historical_data(history_name):
     replica_data[]  - list with important data
     replica_data[0] - temperature obtained from .history file
     replica_data[1] - potential energy obtained from .history file
-    replica_data[2] - path to computeUnit directory on a target resource where all input/output
+    replica_data[2] - path to ComputeUnit directory on a target resource where all input/output
      files for a given replica recide.
     replica_data[3] - stopped_i_run
     """
