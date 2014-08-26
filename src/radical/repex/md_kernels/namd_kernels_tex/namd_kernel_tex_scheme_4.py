@@ -211,31 +211,4 @@ class NamdKernelTexScheme4(NamdKernelTex):
 
         return exchange_replicas
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def update_replica_info(self, replicas):
-        """
-        todo...
-        """
-        base_name = "matrix_column"
- 
-        for r in replicas:
-            column_file = base_name + "_" + str(r.id) + "_" + str(r.cycle-1) + ".dat"       
-            try:
-                f = open(column_file)
-                lines = f.readlines()
-                f.close()
-                
-                # setting old_path and first_path for each replica
-                if ( r.cycle == 1 ):
-                    r.first_path = lines[1]
-                    r.old_path = lines[1]
-                else:
-                    r.old_path = lines[1]
-
-                # setting stopped_i_run
-                r.stopped_run = lines[2]
-            except:
-                raise
-
         

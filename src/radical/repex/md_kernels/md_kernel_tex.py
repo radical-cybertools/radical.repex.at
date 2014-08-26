@@ -159,3 +159,35 @@ class MdKernelTex(object):
         beta = 1. / (kb*temperature)     
         return float(beta * potential)
 
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def update_replica_info(self, replicas):
+        """This function is primarely used by both NAMD and Amber kernels in scheme 4.
+        It opens matrix_column_x_x.dat file, which is transferred back to local system
+        after eachange step and reads the following data from it.
+
+        path_to_replica_folder - remote location of replica files from previous md run
+        stopped_i_run - timestep at which md run was cancelled; this is used to provide arguments
+        for the next MD run
+        """
+        base_name = "matrix_column"
+ 
+        for r in replicas:
+            column_file = base_name + "_" + str(r.id) + "_" + str(r.cycle-1) + ".dat"       
+            try:
+                f = open(column_file)
+                lines = f.readlines()
+                f.close()
+                
+                # setting old_path and first_path for each replica
+                if ( r.cycle == 1 ):
+                    r.first_path = lines[1]
+                    r.old_path = lines[1]
+                else:
+                    r.old_path = lines[1]
+
+                # setting stopped_i_run
+                r.stopped_run = lines[2]
+            except:
+                raise
+

@@ -14,6 +14,16 @@ import sys
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def alphanumeric_sorting(data_list):
+    """This function sorts a list of strings composed of letters and digits in "logical" order, 
+    that is string containing number 1900 will appear after the string containing number 300 
+    and not the other way around.
+
+    Arguments:
+    data_list - list of strings containing both letters and digits
+
+    Returns:
+    data_list - sorted list in descending order
+    """
 
     convert = lambda text: int(text) if text.isdigit() else text
     alphanumeric_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]

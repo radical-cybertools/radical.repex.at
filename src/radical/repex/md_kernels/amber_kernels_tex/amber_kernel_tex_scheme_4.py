@@ -24,17 +24,8 @@ from amber_kernel_tex import *
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class AmberKernelTexScheme4(AmberKernelTex):
-    """This class is responsible for performing all operations related to Amber for RE scheme S2.
-    In this class is determined how replica input files are composed, how exchanges are performed, etc.
-
-    RE scheme S2:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
-    - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
+    """This class is responsible for performing all operations related to Amber for RE scheme 4.
+    TODO....
 
     """
     def __init__(self, inp_file,  work_dir_local):
@@ -150,7 +141,7 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu = radical.pilot.ComputeUnitDescription()
  
                 old_output_file = "%s_%d_%d.rst_" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-2))
-                old_coor = replicas[r].old_path + "/" + old_output_file + self.stopped_run
+                restart_file = replicas[r].old_path + "/" + old_output_file + self.stopped_run
 
                 old_amber_parameters = replicas[r].old_path + "/" + self.amber_parameters
 
@@ -160,11 +151,10 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
-                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", old_amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
+                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", old_amber_parameters, "-c ", restart_file, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
 
-                cu.input_data = [input_file, rstr]
-                #cu.input_data = [input_file, crds, parm, rstr]
+                cu.input_data = [input_file, parm, rstr]
                 #cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
 
@@ -201,5 +191,4 @@ class AmberKernelTexScheme4(AmberKernelTex):
             exchange_replicas.append(cu)
 
         return exchange_replicas
-
 
