@@ -102,7 +102,7 @@ class PilotKernelScheme4(PilotKernel):
             cycle_stop = cycle_start
             while ( (cycle_stop - cycle_start).total_seconds() < md_kernel.cycle_time ):
                 print "Cycle time has not elapsed yet..."
-                time.sleep(3)
+                time.sleep(1)
                 cycle_stop = datetime.datetime.utcnow()
             print "Cycle time has elapsed, stopping replicas..."
 

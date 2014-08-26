@@ -83,10 +83,11 @@ def get_historical_data(history_name):
         try:
             f = open(history_name)
 
+            current_dir = os.getcwd()
             # at this point we have found replica directory
             base_name = history_name[:-10]
             # all files in directory
-            files = sorted([ f for f in os.listdir(home_dir) if f.startswith(base_name)])
+            files = sorted([ f for f in os.listdir(current_dir) if f.startswith(base_name)])
 
             history_files = []
             coor_files = []

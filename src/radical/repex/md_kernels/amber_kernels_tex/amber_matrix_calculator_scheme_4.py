@@ -69,6 +69,8 @@ def get_historical_data(history_name):
     """
     replica_data = []
 
+    print "history name is: %s" % history_name
+
     home_dir = os.getcwd()
     os.chdir("../")
 
@@ -78,16 +80,20 @@ def get_historical_data(history_name):
         if os.path.isdir(name):
             replica_dirs.append(name)    
 
+
+    print "replica directories: "
+    print replica_dirs
     for directory in replica_dirs:
         os.chdir(directory)
         try:
             f = open(history_name)
 
+            current_dir = os.getcwd()
             # at this point we have found replica directory
             # this is a basename for all restart files
             base_name = history_name[:-6] + "rst_"
             # all restart files in directory
-            files = sorted([ f for f in os.listdir(home_dir) if f.startswith(base_name)])
+            files = sorted([ f for f in os.listdir(current_dir) if f.startswith(base_name)])
 
             sorted_restart_files = alphanumeric_sorting(files)
 
