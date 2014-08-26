@@ -50,7 +50,7 @@ def get_historical_data(history_name):
     history_name - name of first generated .history file for a given replica, e.g. where i_run = 0 
 
     Returns:
-    replica_data[]  - list with important data
+    replica_data - list with important data
     replica_data[0] - temperature obtained from .history file
     replica_data[1] - potential energy obtained from .history file
     replica_data[2] - path to ComputeUnit directory on a target resource where all input/output
@@ -138,11 +138,16 @@ def get_historical_data(history_name):
                 else:
                     break
 
-            i_run_list = reversed(i_run_list)
+            reversed_i_run_list = []
+            for i in reversed(i_run_list):
+                reversed_i_run_list.append( str(i) )
+
+            # sanity check
+            print reversed_i_run_list
 
             stopped_i_run = ''
-            for item in i_run_list:
-                stopped_i_run  + str(item)
+            for item in reversed_i_run_list:
+                stopped_i_run = stopped_i_run + item
             #######################################    
 
             f = open(sorted_history_files[0])
@@ -187,6 +192,7 @@ if __name__ == '__main__':
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + "_0.history"
     replica_data = get_historical_data( history_name )
 
+    # Q: why replica_temp is not used anywhere? is this normal?
     replica_temp = replica_data[0]
     replica_energy = replica_data[1]
     path_to_replica_folder = replica_data[2]
