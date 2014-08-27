@@ -140,9 +140,10 @@ class AmberKernelTexScheme4(AmberKernelTex):
             else:
                 cu = radical.pilot.ComputeUnitDescription()
  
-                old_output_file = "%s_%d_%d.rst_" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-2))
-                restart_file = replicas[r].old_path + "/" + old_output_file + self.stopped_run
+                old_output_file = "%s_%d_%d.rst_%d" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-2), int(self.stopped_run) )
+                restart_file = replicas[r].old_path + "/" + old_output_file
 
+                # this has to change!!!!
                 old_amber_parameters = replicas[r].old_path + "/" + self.amber_parameters
 
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
@@ -151,7 +152,9 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
-                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", old_amber_parameters, "-c ", restart_file, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
+                #cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", old_amber_parameters, "-c ", restart_file, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
+                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", restart_file, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
+                
                 cu.cores = self.replica_cores
 
                 cu.input_data = [input_file, parm, rstr]

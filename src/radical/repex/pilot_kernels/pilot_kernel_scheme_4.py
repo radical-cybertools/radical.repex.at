@@ -113,10 +113,11 @@ class PilotKernelScheme4(PilotKernel):
                     print "Waiting for Replica to start execution..."
                     time.sleep(1)
 
-            print "Replica uid: %s" % s_replica._uid
-            # replica is now cancelled
-            s_replica.cancel()
-            s_replica.wait(radical.pilot.states.CANCELED)
+            for s_replica in submitted_replicas:
+                print "Replica uid: %s" % s_replica._uid
+                # replica is now cancelled
+                s_replica.cancel()
+                s_replica.wait(radical.pilot.states.CANCELED)
 
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
