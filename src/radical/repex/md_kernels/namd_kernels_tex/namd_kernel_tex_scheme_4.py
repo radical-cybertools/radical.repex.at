@@ -37,8 +37,6 @@ class NamdKernelTexScheme4(NamdKernelTex):
         except:
             self.cycle_time = 3
 
-        self.stopped_run = 0
-
 #----------------------------------------------------------------------------------------------------------------------------------
 
     def build_input_file(self, replica):
@@ -108,7 +106,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
         tbuffer = tbuffer.replace("@coordinates@", str(coordinates))
         tbuffer = tbuffer.replace("@parameters@", str(parameters))
 
-        tbuffer = tbuffer.replace("@stopped_run@", str(self.stopped_run))
+        tbuffer = tbuffer.replace("@stopped_run@", str(replica.stopped_run))
         
         replica.cycle += 1
         # write out

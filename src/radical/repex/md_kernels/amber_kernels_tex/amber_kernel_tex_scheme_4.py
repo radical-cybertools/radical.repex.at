@@ -43,8 +43,6 @@ class AmberKernelTexScheme4(AmberKernelTex):
         except:
             self.cycle_time = 3
 
-        self.stopped_run = 0
-
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def build_input_file(self, replica):
@@ -140,11 +138,30 @@ class AmberKernelTexScheme4(AmberKernelTex):
             else:
                 cu = radical.pilot.ComputeUnitDescription()
  
-                old_output_file = "%s_%d_%d.rst_%d" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-2), int(self.stopped_run) )
-                restart_file = replicas[r].old_path + "/" + old_output_file
+                old_output_file = "%s_%d_%d.rst_%d" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-2), int(replicas[r].stopped_run) )
+                ##################################
+                # changing old path from absolute 
+                # to relative so that Amber can 
+                # process it
+                ##################################
+                path_list = []
+                for char in reversed(replicas[r].old_path):
+                    if char == '/': break
+                    path_list.append( char )
+
+                modified_path = ''
+                for char in reversed( path_list ):
+                    modified_path += char
+
+                modified_path = '../' + modified_path
+
+                print "Stopped i run for replica %d is: %d" % (replicas[r].id, replicas[r].stopped_run)
+                ######################################
+                restart_file = modified_path + "/" + old_output_file
+                print "Restart file for replica %d is %s" % (replicas[r].id, restart_file)
 
                 # this has to change!!!!
-                old_amber_parameters = replicas[r].old_path + "/" + self.amber_parameters
+                #old_amber_parameters = replicas[r].old_path + "/" + self.amber_parameters
 
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters

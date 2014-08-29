@@ -187,7 +187,9 @@ class MdKernelTex(object):
                     r.old_path = lines[1]
 
                 # setting stopped_i_run
-                r.stopped_run = lines[2]
+                r.stopped_run = int(lines[2])
+
+                print "Setting stopped i run to: %d for replica %d" % (r.stopped_run, r.id)
             except:
                 raise
 

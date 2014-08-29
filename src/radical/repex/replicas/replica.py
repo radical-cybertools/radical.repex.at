@@ -53,4 +53,5 @@ class Replica(object):
         self.first_path = ""
         self.swap = 0
         self.cores = cores
+        self.stopped_run = -1
 
