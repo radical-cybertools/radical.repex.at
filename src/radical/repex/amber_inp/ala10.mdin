@@ -13,4 +13,4 @@ modified sample input from amber tutorial A7
  /
  &wt TYPE='END'
  /
-DISANG = ala10_chir.dat
+DISANG = @rstr@

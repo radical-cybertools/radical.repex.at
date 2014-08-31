@@ -20,7 +20,7 @@ langevinDamping 10.0
 
 set steps_per_run   @steps@
 set replica_id      @rid@
-timestep            1.0
+timestep            10.0
 
 set job_output_root @somename@
 set underscore  "_"
@@ -35,7 +35,7 @@ set num_runs        500
 set runs_per_frame  1
 firsttimestep       @firststep@
 
-#set cycle           [expr $i_run+1]
+set cycle           [expr $i_run+1]
 set doswap          @swap@
 
 set OLDTEMP         @ot@

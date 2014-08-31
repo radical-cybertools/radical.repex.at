@@ -81,9 +81,14 @@ def get_historical_data(history_name):
     for directory in replica_dirs:
         os.chdir(directory)
         try:
-            f = open(history_name)
+            history_f = open(history_name)
+            print "CHECK 1"
+            print history_name
+            history_f.close()
 
             current_dir = os.getcwd()
+            print "current dir:"
+            print current_dir
             # at this point we have found replica directory
             base_name = history_name[:-10]
             # all files in directory
@@ -93,6 +98,7 @@ def get_historical_data(history_name):
             coor_files = []
             vel_files = []
             xsc_files = []
+            print "CHECK 2"
             for item in files:
                 if item.endswith('.history'):
                     history_files.append(item)
@@ -107,39 +113,52 @@ def get_historical_data(history_name):
             sorted_coor_files = alphanumeric_sorting(coor_files)
             sorted_vel_files = alphanumeric_sorting(vel_files)
             sorted_xsc_files = alphanumeric_sorting(xsc_files)
+            print "CHECK 3"
+            #print sorted_history_files
 
             # sanity check
-            i_run_history = sorted_history_files[0]
+            i_run_history = sorted_history_files[1]
             i_run_history = i_run_history[:-8]
             i_run_history = i_run_history[-2:]
 
-            i_run_coor = sorted_coor_files[0]
+            i_run_coor = sorted_coor_files[1]
             i_run_coor = i_run_coor[:-13]
             i_run_coor = i_run_coor[-2:]
 
-            i_run_vel = sorted_vel_files[0]
+            i_run_vel = sorted_vel_files[1]
             i_run_vel = i_run_vel[:-12]
             i_run_vel = i_run_vel[-2:]
 
-            i_run_xsc = sorted_xsc_files[0]
+            i_run_xsc = sorted_xsc_files[1]
             i_run_xsc = i_run_xsc[:-12]
             i_run_xsc = i_run_xsc[-2:]
 
             if (i_run_coor == i_run_vel == i_run_xsc):
                 print 'Restart files are from the same i_run: all good!'
+                print i_run_coor
+                print i_run_vel
+                print i_run_xsc
             else:
                 print 'Warning: restart files are NOT from the same i_run'
+                print i_run_coor
+                print i_run_vel
+                print i_run_xsc
 
             if (i_run_history == i_run_coor):
                 print 'History file and restart files are from the same i_run: all good!' 
+                print i_run_history
+                print i_run_coor
             else:
                 print 'Warning: history file is NOT from the same i_run as restart files'  
+                print i_run_history
+                print i_run_coor
 
             path_to_replica_folder = os.getcwd()
 
             #######################################
             # getting stopped_i_run
-            hist_name = sorted_history_files[0]
+            print "CHECK 4"
+            hist_name = sorted_history_files[1]
             hist_name = hist_name[:-8]
 
             i_run_list = []
@@ -149,6 +168,7 @@ def get_historical_data(history_name):
                 else:
                     break
 
+            print "CHECK 5"
             reversed_i_run_list = []
             for i in reversed(i_run_list):
                 reversed_i_run_list.append( str(i) )
@@ -160,15 +180,19 @@ def get_historical_data(history_name):
             for item in reversed_i_run_list:
                 stopped_i_run = stopped_i_run + item
             #######################################    
-
-            f = open(sorted_history_files[0])
-            # reading data from latest history file 
-            lines = f.readlines()
-            f.close()
+            print "CHECK 6"
+            print sorted_history_files[1]
+            print os.getcwd()
+            ff = open(sorted_history_files[1])
+            lines = ff.readlines()
+            ff.close()
+            print "CHECK 7"
             data = lines[0].split()
 
+            print "this is final data"
+            print data
         except:
-            pass 
+            pass
         os.chdir("../")
  
     os.chdir(home_dir)
@@ -200,8 +224,9 @@ if __name__ == '__main__':
     # getting history data for self
     # we use name of history file generated during first i_run in order to find 
     # replica directory and latest restart files
-    history_name = base_name + "_" + replica_id + "_" + replica_cycle + "_0.history"
+    history_name = base_name + "_" + replica_id + "_" + replica_cycle + "_10.history"
     replica_data = get_historical_data( history_name )
+    print "one historical call returns...."
 
     # Q: why replica_temp is not used anywhere? is this normal?
     replica_temp = replica_data[0]
@@ -213,7 +238,7 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas
     energies = [0.0]*replicas
     for j in range(replicas):
-        history_name = base_name + "_" + str(j) + "_" + replica_cycle + "_0.history" 
+        history_name = base_name + "_" + str(j) + "_" + replica_cycle + "_10.history" 
         try:
             rj_data = get_historical_data( history_name )
             temperatures[j] = rj_data[0]

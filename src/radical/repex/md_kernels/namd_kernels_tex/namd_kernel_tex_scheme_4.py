@@ -79,10 +79,43 @@ class NamdKernelTexScheme4(NamdKernelTex):
             coordinates = self.namd_coordinates
             parameters = self.namd_parameters
         else:
-            old_name = replica.old_path + "/%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-            structure = replica.first_path + "/" + self.namd_structure
-            coordinates = replica.first_path + "/" + self.namd_coordinates
-            parameters = replica.first_path + "/" + self.namd_parameters
+            ##################################
+            # changing old path from absolute 
+            # to relative so that NAMD can 
+            # process it
+            ##################################
+            path_list = []
+            for char in reversed(replica.old_path):
+                if char == '/': break
+                path_list.append( char )
+
+            modified_old_path = ''
+            for char in reversed( path_list ):
+                modified_old_path += char
+            modified_old_path = '../' + modified_old_path.rstrip()
+            ##################################
+
+            ##################################
+            # changing first path from absolute 
+            # to relative so that NAMD can 
+            # process it
+            ##################################
+            path_list = []
+            for char in reversed(replica.first_path):
+                if char == '/': break
+                path_list.append( char )
+
+            modified_first_path = ''
+            for char in reversed( path_list ):
+                modified_first_path += char
+            modified_first_path = '../' + modified_first_path.rstrip()
+            ##################################
+
+            old_name = modified_old_path + "/%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+            structure = modified_first_path + "/" + self.namd_structure
+            coordinates = modified_first_path + "/" + self.namd_coordinates
+            parameters = modified_first_path + "/" + self.namd_parameters
+
 
         # substituting tokens in main replica input file 
         try:
@@ -98,7 +131,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
         tbuffer = tbuffer.replace("@nt@",str(replica.new_temperature))
         tbuffer = tbuffer.replace("@steps@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@rid@",str(replica.id))
-        tbuffer = tbuffer.replace("@somename@",str(outputname))
+        tbuffer = tbuffer.replace("@somename@",str(outputname))                                        #
         tbuffer = tbuffer.replace("@oldname@",str(old_name))
         tbuffer = tbuffer.replace("@cycle@",str(replica.cycle))
         tbuffer = tbuffer.replace("@firststep@",str(first_step))

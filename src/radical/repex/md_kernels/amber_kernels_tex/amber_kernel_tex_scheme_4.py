@@ -66,11 +66,27 @@ class AmberKernelTexScheme4(AmberKernelTex):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
-        if (replica.cycle == 0):
-            old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1)) 
 
+        if (replica.cycle == 0):
+            restraints = self.amber_restraints
         else:
-            old_name = replica.old_path + "/%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+            ##################################
+            # changing first path from absolute 
+            # to relative so that Amber can 
+            # process it
+            ##################################
+            path_list = []
+            for char in reversed(replica.first_path):
+                if char == '/': break
+                path_list.append( char )
+
+            modified_first_path = ''
+            for char in reversed( path_list ):
+                modified_first_path += char
+
+            modified_first_path = '../' + modified_first_path.rstrip()
+            restraints = modified_first_path + "/" + self.amber_restraints
+            
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
@@ -82,6 +98,7 @@ class AmberKernelTexScheme4(AmberKernelTex):
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
+        tbuffer = tbuffer.replace("@rstr@", restraints )
         
         replica.cycle += 1
 
@@ -139,6 +156,7 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu = radical.pilot.ComputeUnitDescription()
  
                 old_output_file = "%s_%d_%d.rst_%d" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-2), int(replicas[r].stopped_run) )
+                
                 ##################################
                 # changing old path from absolute 
                 # to relative so that Amber can 
@@ -149,19 +167,34 @@ class AmberKernelTexScheme4(AmberKernelTex):
                     if char == '/': break
                     path_list.append( char )
 
-                modified_path = ''
+                modified_old_path = ''
                 for char in reversed( path_list ):
-                    modified_path += char
+                    modified_old_path += char
 
-                modified_path = '../' + modified_path
+                modified_old_path = '../' + modified_old_path.rstrip()
+
+                ##################################
+                # changing first path from absolute 
+                # to relative so that Amber can 
+                # process it
+                ##################################
+                path_list = []
+                for char in reversed(replicas[r].first_path):
+                    if char == '/': break
+                    path_list.append( char )
+
+                modified_first_path = ''
+                for char in reversed( path_list ):
+                    modified_first_path += char
+
+                modified_first_path = '../' + modified_first_path.rstrip()
+
 
                 print "Stopped i run for replica %d is: %d" % (replicas[r].id, replicas[r].stopped_run)
-                ######################################
-                restart_file = modified_path + "/" + old_output_file
+                restart_file = modified_old_path + "/" + old_output_file
                 print "Restart file for replica %d is %s" % (replicas[r].id, restart_file)
 
-                # this has to change!!!!
-                #old_amber_parameters = replicas[r].old_path + "/" + self.amber_parameters
+                first_amber_parameters = modified_first_path + "/" + self.amber_parameters
 
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
@@ -169,12 +202,10 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
-                #cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", old_amber_parameters, "-c ", restart_file, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", restart_file, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
+                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", first_amber_parameters, "-c ", restart_file, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 
                 cu.cores = self.replica_cores
-
-                cu.input_data = [input_file, parm, rstr]
+                cu.input_data = [input_file]
                 #cu.output_data = [new_coor, new_traj, new_info]
                 compute_replicas.append(cu)
 
