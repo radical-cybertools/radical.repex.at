@@ -1,0 +1,388 @@
+2014:08:31 21:25:34 radical.pilot.MainProcess: [INFO    ] radical.pilot version: 0.19
+2014:08:31 21:25:34 29119  MainThread   saga                  : [INFO    ] saga-python     version: 0.17
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.context.myproxy
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.context.myproxy for saga.Context API with URL scheme(s) ['myproxy://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.context.x509
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.context.x509 for saga.Context API with URL scheme(s) ['x509://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.context.ssh
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.context.ssh for saga.Context API with URL scheme(s) ['ssh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.context.userpass
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.context.userpass for saga.Context API with URL scheme(s) ['userpass://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.shell.shell_job
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.shell.shell_job for saga.job.Service API with URL scheme(s) ['fork://', 'local://', 'ssh://', 'gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.shell.shell_job for saga.job.Job API with URL scheme(s) ['fork://', 'local://', 'ssh://', 'gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.shell.shell_file
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.shell.shell_file for saga.namespace.Directory API with URL scheme(s) ['file://', 'local://', 'sftp://', 'gsisftp://', 'ssh://', 'gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.shell.shell_file for saga.namespace.Entry API with URL scheme(s) ['file://', 'local://', 'sftp://', 'gsisftp://', 'ssh://', 'gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.shell.shell_file for saga.filesystem.Directory API with URL scheme(s) ['file://', 'local://', 'sftp://', 'gsisftp://', 'ssh://', 'gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.shell.shell_file for saga.filesystem.File API with URL scheme(s) ['file://', 'local://', 'sftp://', 'gsisftp://', 'ssh://', 'gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.shell.shell_resource
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [WARNING ] Skipping adaptor saga.adaptors.shell.shell_resource: beta versions are disabled (v0.1.beta)
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.redis.redis_advert
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [ERROR   ] Skipping adaptor saga.adaptors.redis.redis_advert 1: module loading failed: No module named redis
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.sge.sgejob
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.sge.sgejob for saga.job.Service API with URL scheme(s) ['sge://', 'sge+ssh://', 'sge+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.sge.sgejob for saga.job.Job API with URL scheme(s) ['sge://', 'sge+ssh://', 'sge+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.pbs.pbsjob
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.pbs.pbsjob for saga.job.Service API with URL scheme(s) ['pbs://', 'pbs+ssh://', 'pbs+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.pbs.pbsjob for saga.job.Job API with URL scheme(s) ['pbs://', 'pbs+ssh://', 'pbs+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.lsf.lsfjob
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.lsf.lsfjob for saga.job.Service API with URL scheme(s) ['lsf://', 'lsf+ssh://', 'lsf+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.lsf.lsfjob for saga.job.Job API with URL scheme(s) ['lsf://', 'lsf+ssh://', 'lsf+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.irods.irods_replica
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [ERROR   ] Skipping adaptor saga.adaptors.irods.irods_replica: failed self test: Could not run iRODS/ils.  Check iRODSenvironment and certificates ('module' object has no attribute 'logger') (/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/adaptors/irods/irods_replica.py +200 (sanity_check)  :  "environment and certificates (%s)" % ex))
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.condor.condorjob
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.condor.condorjob for saga.job.Service API with URL scheme(s) ['condor://', 'condor+ssh://', 'condor+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.condor.condorjob for saga.job.Job API with URL scheme(s) ['condor://', 'condor+ssh://', 'condor+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.slurm.slurm_job
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.slurm.slurm_job for saga.job.Service API with URL scheme(s) ['slurm://', 'slurm+ssh://', 'slurm+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.slurm.slurm_job for saga.job.Job API with URL scheme(s) ['slurm://', 'slurm+ssh://', 'slurm+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.http.http_file
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.http.http_file for saga.namespace.Entry API with URL scheme(s) ['http://', 'https://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.http.http_file for saga.filesystem.File API with URL scheme(s) ['http://', 'https://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.aws.ec2_resource
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.aws.ec2_resource for saga.Context API with URL scheme(s) ['ec2://', 'ec2_keypair://', 'openstack://', 'eucalyptus://', 'euca://', 'aws://', 'amazon://', 'http://', 'https://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.aws.ec2_resource for saga.resource.Manager API with URL scheme(s) ['ec2://', 'ec2_keypair://', 'openstack://', 'eucalyptus://', 'euca://', 'aws://', 'amazon://', 'http://', 'https://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.aws.ec2_resource for saga.resource.Compute API with URL scheme(s) ['ec2://', 'ec2_keypair://', 'openstack://', 'eucalyptus://', 'euca://', 'aws://', 'amazon://', 'http://', 'https://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Loading  adaptor saga.adaptors.loadl.loadljob
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.loadl.loadljob for saga.job.Service API with URL scheme(s) ['loadl://', 'loadl+ssh://', 'loadl+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.Engine           : [INFO    ] Register adaptor saga.adaptors.loadl.loadljob for saga.job.Job API with URL scheme(s) ['loadl://', 'loadl+ssh://', 'loadl+gsissh://']
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] default ssh key at /home/antons/.ssh/id_rsa
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] ignore ssh key at /home/antons/.ssh/known_hosts.old (no public key: /home/antons/.ssh/known_hosts.old.pub)
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] ignore ssh key at /home/antons/.ssh/known_hosts (no public key: /home/antons/.ssh/known_hosts.pub)
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] ignore ssh key at /home/antons/.ssh/config (no public key: /home/antons/.ssh/config.pub)
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] default ssh key at /home/antons/.ssh/ec2_key.pem
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] default ssh key at /home/antons/.ssh/stamp_rsa
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] default ssh key at /home/antons/.ssh/id_trestles_rsa
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] default ssh key at /home/antons/.ssh/id_stampede_rsa
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] default ssh key at /home/antons/.ssh/archer_rsa
+2014:08:31 21:25:34 29119  MainThread   saga.saga.adaptor.ssh : [INFO    ] default ssh key at /home/antons/.ssh/vm_id_rsa
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] adding  context : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/id_rsa.pub', 'UserKey' : '/home/antons/.ssh/id_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.ContextSSH       : [INFO    ] init SSH context for key  at '/home/antons/.ssh/id_rsa' done
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] default context [saga.adaptor.ssh    ] : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/id_rsa.pub', 'UserKey' : '/home/antons/.ssh/id_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] adding  context : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/ec2_key.pem', 'UserKey' : '/home/antons/.ssh/ec2_key.pem'}
+2014:08:31 21:25:34 29119  MainThread   saga.ContextSSH       : [INFO    ] init SSH context for key  at '/home/antons/.ssh/ec2_key.pem' done
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] default context [saga.adaptor.ssh    ] : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/ec2_key.pem', 'UserKey' : '/home/antons/.ssh/ec2_key.pem'}
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] adding  context : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/stamp_rsa.pub', 'UserKey' : '/home/antons/.ssh/stamp_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.ContextSSH       : [INFO    ] init SSH context for key  at '/home/antons/.ssh/stamp_rsa' done
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] default context [saga.adaptor.ssh    ] : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/stamp_rsa.pub', 'UserKey' : '/home/antons/.ssh/stamp_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] adding  context : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/id_trestles_rsa.pub', 'UserKey' : '/home/antons/.ssh/id_trestles_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.ContextSSH       : [INFO    ] init SSH context for key  at '/home/antons/.ssh/id_trestles_rsa' done
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] default context [saga.adaptor.ssh    ] : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/id_trestles_rsa.pub', 'UserKey' : '/home/antons/.ssh/id_trestles_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] adding  context : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/id_stampede_rsa.pub', 'UserKey' : '/home/antons/.ssh/id_stampede_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.ContextSSH       : [INFO    ] init SSH context for key  at '/home/antons/.ssh/id_stampede_rsa' done
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] default context [saga.adaptor.ssh    ] : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/id_stampede_rsa.pub', 'UserKey' : '/home/antons/.ssh/id_stampede_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] adding  context : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/archer_rsa.pub', 'UserKey' : '/home/antons/.ssh/archer_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.ContextSSH       : [INFO    ] init SSH context for key  at '/home/antons/.ssh/archer_rsa' done
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] default context [saga.adaptor.ssh    ] : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/archer_rsa.pub', 'UserKey' : '/home/antons/.ssh/archer_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] adding  context : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/vm_id_rsa.pub', 'UserKey' : '/home/antons/.ssh/vm_id_rsa'}
+2014:08:31 21:25:34 29119  MainThread   saga.ContextSSH       : [INFO    ] init SSH context for key  at '/home/antons/.ssh/vm_id_rsa' done
+2014:08:31 21:25:34 29119  MainThread   saga.DefaultSession   : [DEBUG   ] default context [saga.adaptor.ssh    ] : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/vm_id_rsa.pub', 'UserKey' : '/home/antons/.ssh/vm_id_rsa'}
+2014:08:31 21:25:34 radical.pilot.MainProcess: [INFO    ] using database url  mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/
+2014:08:31 21:25:34 radical.pilot.MainProcess: [INFO    ] using database name radicalpilot
+2014:08:31 21:25:34 radical.pilot.MainProcess: [INFO    ] Loaded resource configurations from /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/configs/xsede.json
+2014:08:31 21:25:35 radical.pilot.MainProcess: [INFO    ] Loaded resource configurations from /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/configs/lrz.json
+2014:08:31 21:25:35 radical.pilot.MainProcess: [INFO    ] Loaded resource configurations from /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/configs/das4.json
+2014:08:31 21:25:35 radical.pilot.MainProcess: [INFO    ] Loaded resource configurations from /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/configs/localhost.json
+2014:08:31 21:25:35 radical.pilot.MainProcess: [INFO    ] Loaded resource configurations from /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/configs/epsrc.json
+2014:08:31 21:25:35 radical.pilot.MainProcess: [INFO    ] Loaded resource configurations from /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/configs/ncar.json
+2014:08:31 21:25:35 radical.pilot.MainProcess: [INFO    ] Loaded resource configurations from /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/configs/futuregrid.json
+2014:08:31 21:25:35 radical.pilot.MainProcess: [INFO    ] Loaded resource configurations from /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/configs/iu.json
+2014:08:31 21:25:36 radical.pilot.MainProcess: [INFO    ] New Session created{'database_url': 'mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/', 'database_name': 'radicalpilot', 'last_reconnect': None, 'uid': '5403cb0e1d41c871bfa2186e', 'created': datetime.datetime(2014, 9, 1, 1, 25, 35, 641277)}.
+2014:08:31 21:25:36 29119  MainThread   saga.radical.pilot.Session: [DEBUG   ] adding  context : {'LifeTime' : '-1', 'Type' : 'ssh', 'UserID' : 'antonstre'}
+2014:08:31 21:25:36 radical.pilot.MainProcess: [DEBUG   ] Worker thread (ID: Thread-1[-1227089040]) for PilotManager 5403cb101d41c871bfa2186f started.
+2014:08:31 21:25:36 radical.pilot.MainProcess: [DEBUG   ] PTYShell init <saga.utils.pty_shell.PTYShell object at 0x9ee10cc>
+2014:08:31 21:25:36 radical.pilot.MainProcess: [INFO    ] PTY prompt pattern: [\$#%>\]]\s*$
+2014:08:31 21:25:36 radical.pilot.MainProcess: [DEBUG   ] open master pty for [ssh] [antonstre@hotel.futuregrid.org] antonstre: /usr/bin/env TERM=vt100  "/usr/bin/ssh"   -t -o IdentityFile=/home/antons/.ssh/id_rsa -o IdentityFile=/home/antons/.ssh/ec2_key.pem -o IdentityFile=/home/antons/.ssh/stamp_rsa -o IdentityFile=/home/antons/.ssh/id_trestles_rsa -o IdentityFile=/home/antons/.ssh/id_stampede_rsa -o IdentityFile=/home/antons/.ssh/archer_rsa -o IdentityFile=/home/antons/.ssh/vm_id_rsa   -o ControlMaster=yes -o ControlPath=/tmp/saga_ssh_antons_%h_%p.antonstre.ctrl  antonstre@hotel.futuregrid.org'
+2014:08:31 21:25:36 radical.pilot.MainProcess: [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9ee152c>
+2014:08:31 21:25:36 radical.pilot.MainProcess: [INFO    ] running: /usr/bin/env TERM=vt100 /usr/bin/ssh -t -o IdentityFile=/home/antons/.ssh/id_rsa -o IdentityFile=/home/antons/.ssh/ec2_key.pem -o IdentityFile=/home/antons/.ssh/stamp_rsa -o IdentityFile=/home/antons/.ssh/id_trestles_rsa -o IdentityFile=/home/antons/.ssh/id_stampede_rsa -o IdentityFile=/home/antons/.ssh/archer_rsa -o IdentityFile=/home/antons/.ssh/vm_id_rsa -o ControlMaster=yes -o ControlPath=/tmp/saga_ssh_antons_%h_%p.antonstre.ctrl antonstre@hotel.futuregrid.org
+2014:08:31 21:25:36 radical.pilot.MainProcess: [DEBUG   ] write: [    6] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:36 radical.pilot.MainProcess: [DEBUG   ] Connected to MongoDB. Serving requests for PilotManager 5403cb101d41c871bfa2186f.
+2014:08:31 21:25:37 radical.pilot.MainProcess: [DEBUG   ] read : [    6] [  387] (This machine accepts SSH public key and One Time Password (OTP) logins only.\nIf you do not have a public key set up, you will be prompted for a password.\nThis is *not* your FutureGrid password, but the One Time Password generated from your\nOTP token.  Do not type your FutureGrid password, it will not work.  If you do not\nhave a token or public key, you will not be able to login.\n)
+2014:08:31 21:25:37 radical.pilot.MainProcess: [DEBUG   ] write: [    6] [   51] ( export PS1='$' > /dev/null 2>&1 || set prompt='$'\n)
+2014:08:31 21:25:37 radical.pilot.MainProcess: [DEBUG   ] write: [    6] [   28] ( printf 'HELLO_%d_SAGA\n' 1\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    6] [   74] (Last login: Sun Aug 31 20:14:12 2014 from ool-18b904de.dyn.optonline.net\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    6] [   24] ([antonstre@login2 ~]$ $$)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] got initial shell prompt (5) (This machine accepts SSH public key and One Time Password (OTP) logins only.
+If you do not have a public key set up, you will be prompted for a password.
+This is *not* your FutureGrid password, but the One Time Password generated from your
+OTP token.  Do not type your FutureGrid password, it will not work.  If you do not
+have a token or public key, you will not be able to login.
+Last login: Sun Aug 31 20:14:12 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $$)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] waiting for prompt trigger HELLO_1_SAGA: (5) (This machine accepts SSH public key and One Time Password (OTP) logins only.
+If you do not have a public key set up, you will be prompted for a password.
+This is *not* your FutureGrid password, but the One Time Password generated from your
+OTP token.  Do not type your FutureGrid password, it will not work.  If you do not
+have a token or public key, you will not be able to login.
+Last login: Sun Aug 31 20:14:12 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $$)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    6] [   15] (HELLO_1_SAGA\n$)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] got shell prompt trigger (4) (HELLO_1_SAGA)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] got initial shell prompt (5) (
+$)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Got initial shell prompt (5) (
+$)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9ee188c>
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] running: /usr/bin/env TERM=vt100 /usr/bin/ssh -t -o IdentityFile=/home/antons/.ssh/id_rsa -o IdentityFile=/home/antons/.ssh/ec2_key.pem -o IdentityFile=/home/antons/.ssh/stamp_rsa -o IdentityFile=/home/antons/.ssh/id_trestles_rsa -o IdentityFile=/home/antons/.ssh/id_stampede_rsa -o IdentityFile=/home/antons/.ssh/archer_rsa -o IdentityFile=/home/antons/.ssh/vm_id_rsa -o ControlMaster=no -o ControlPath=/tmp/saga_ssh_antons_%h_%p.antonstre.ctrl antonstre@hotel.futuregrid.org
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] write: [    7] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    7] [   74] (Last login: Sun Aug 31 20:25:37 2014 from ool-18b904de.dyn.optonline.net\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    7] [   23] ([antonstre@login2 ~]$ $)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] got initial shell prompt (5) (Last login: Sun Aug 31 20:25:37 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Got initial shell prompt (5) (Last login: Sun Aug 31 20:25:37 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] running command shell:         exec /bin/sh -i
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] write: [    7] [   47] ( stty -echo ; unset HISTFILE ; exec /bin/sh -i\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    7] [    1] ($)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] write: [    7] [  100] ( unset PROMPT_COMMAND ;  unset HISTFILE ; PS1='PROMPT-$?->'; PS2=''; export PS1 PS2 2>&1 >/dev/null\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    7] [   10] (PROMPT-0->)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] got new shell prompt
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] run_sync: echo "WORKDIR: $PWD"
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] write: [    7] [   21] (echo "WORKDIR: $PWD"\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    7] [   35] (WORKDIR: /N/u/antonstre\nPROMPT-0->)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Determined remote working directory for sftp://hotel.futuregrid.org/: '/N/u/antonstre'
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] PTYShell del  <saga.utils.pty_shell.PTYShell object at 0x9ee10cc>
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] Launching ComputePilot {u'state': u'PendingLaunch', u'commands': [], u'description': {u'project': None, u'resource': u'hotel.futuregrid.org', u'queue': None, u'sandbox': None, u'cleanup': None, u'pilot_agent_priv': None, u'memory': None, u'cores': 8, u'runtime': 5}, u'sagajobid': None, u'started': None, u'cores_per_node': None, u'output_transfer_started': None, u'finished': None, u'submitted': datetime.datetime(2014, 9, 1, 1, 25, 38, 711000), u'output_transfer_finished': None, u'sandbox': u'sftp://hotel.futuregrid.org/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870/', u'pilotmanager': u'5403cb101d41c871bfa2186f', u'unitmanager': None, u'heartbeat': None, u'statehistory': [{u'timestamp': datetime.datetime(2014, 9, 1, 1, 25, 38, 707000), u'state': u'PendingLaunch'}], u'input_transfer_started': None, u'_id': ObjectId('5403cb101d41c871bfa21870'), u'input_transfer_finished': None, u'nodes': None, u'log': []}
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] Using pilot agent /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/agent/radical-pilot-agent-multicore.py
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] Using bootstrapper /home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/bootstrapper/default_bootstrapper.sh
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Creating agent sandbox 'sftp://hotel.futuregrid.org/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870/'.
+2014:08:31 21:25:38 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYShell init <saga.utils.pty_shell.PTYShell object at 0xa16fe6c>
+2014:08:31 21:25:38 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [INFO    ] PTY prompt pattern: [\$#%>\]]\s*$
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0xa16ffac>
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] running: /usr/bin/env TERM=vt100 /usr/bin/ssh -t -o IdentityFile=/home/antons/.ssh/id_rsa -o IdentityFile=/home/antons/.ssh/ec2_key.pem -o IdentityFile=/home/antons/.ssh/stamp_rsa -o IdentityFile=/home/antons/.ssh/id_trestles_rsa -o IdentityFile=/home/antons/.ssh/id_stampede_rsa -o IdentityFile=/home/antons/.ssh/archer_rsa -o IdentityFile=/home/antons/.ssh/vm_id_rsa -o ControlMaster=no -o ControlPath=/tmp/saga_ssh_antons_%h_%p.antonstre.ctrl antonstre@hotel.futuregrid.org
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] write: [    8] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] PTYProcess del  <saga.utils.pty_process.PTYProcess object at 0x9ee188c>
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] read : [    8] [   74] (Last login: Sun Aug 31 20:25:38 2014 from ool-18b904de.dyn.optonline.net\n)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] Starting InputFileTransferWorker
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] Starting InputFileTransferWorker
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] Loaded scheduler: BackfillingScheduler.
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Worker thread (ID: Thread-3[-1270879376]) for UnitManager 5403cb121d41c871bfa21871 started.
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] schedule (0 units waiting)
+2014:08:31 21:25:38 radical.pilot.MainProcess: [INFO    ] 0 units remain unscheduled
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Connected to MongoDB. Serving requests for UnitManager 5403cb121d41c871bfa21871.
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Converting string 'helloworld_mpi.py' into dict '{'action': 'Transfer', 'source': 'helloworld_mpi.py', 'flags': ['CreateParents', 'SkipFailed'], 'target': 'helloworld_mpi.py', 'priority': 0}'
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Connected to MongoDB. Serving requests for UnitManager 5403cb121d41c871bfa21871.
+2014:08:31 21:25:38 radical.pilot.MainProcess: [DEBUG   ] Connected to MongoDB. Serving requests for UnitManager 5403cb121d41c871bfa21871.
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] Connected to MongoDB. Serving requests for UnitManager 5403cb121d41c871bfa21871.
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] Converting string 'helloworld_mpi.py' into dict '{'action': 'Transfer', 'source': 'helloworld_mpi.py', 'flags': ['CreateParents', 'SkipFailed'], 'target': 'helloworld_mpi.py', 'priority': 0}'
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] Converting string 'helloworld_mpi.py' into dict '{'action': 'Transfer', 'source': 'helloworld_mpi.py', 'flags': ['CreateParents', 'SkipFailed'], 'target': 'helloworld_mpi.py', 'priority': 0}'
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] Converting string 'helloworld_mpi.py' into dict '{'action': 'Transfer', 'source': 'helloworld_mpi.py', 'flags': ['CreateParents', 'SkipFailed'], 'target': 'helloworld_mpi.py', 'priority': 0}'
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] read : [    8] [   23] ([antonstre@login2 ~]$ $)
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] got initial shell prompt (5) (Last login: Sun Aug 31 20:25:38 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $)
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] Got initial shell prompt (5) (Last login: Sun Aug 31 20:25:38 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $)
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] running command shell:         exec /bin/sh -i
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] write: [    8] [   47] ( stty -echo ; unset HISTFILE ; exec /bin/sh -i\n)
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] schedule (4 units waiting)
+2014:08:31 21:25:39 radical.pilot.MainProcess: [INFO    ] 4 units remain unscheduled
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] skipping empty unit schedule
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] read : [    8] [    1] ($)
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] write: [    8] [  100] ( unset PROMPT_COMMAND ;  unset HISTFILE ; PS1='PROMPT-$?->'; PS2=''; export PS1 PS2 2>&1 >/dev/null\n)
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] read : [    8] [   10] (PROMPT-0->)
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] got new shell prompt
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] run_sync: mkdir -p '/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870' ;  cd '/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870'
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] write: [    8] [  155] (mkdir -p '/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870' ;  cd '/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870'\n)
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] read : [    8] [   10] (PROMPT-0->)
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] initialized directory (0)()
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYShell init <saga.utils.pty_shell.PTYShell object at 0xa1758cc>
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [INFO    ] PTY prompt pattern: [\$#%>\]]\s*$
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] open master pty for [sh] [localhost] antons: /usr/bin/env TERM=vt100  "/bin/bash"  -i'
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9ef6f8c>
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [INFO    ] running: /usr/bin/env TERM=vt100 /bin/bash -i
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   13] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:39 radical.pilot.MainProcess: [INFO    ] ComputePilot '5403cb101d41c871bfa21870' state changed from 'PendingLaunch' to 'Launching'.
+2014:08:31 21:25:39 radical.pilot.MainProcess: [DEBUG   ] [SchedulerCallback]: ComputePilot 5403cb101d41c871bfa21870 changed to Launching
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   13] [   63] (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] got initial shell prompt (5) (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] Got initial shell prompt (5) (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9e9ae2c>
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [INFO    ] running: /usr/bin/env TERM=vt100 /bin/bash -i
+2014:08:31 21:25:39 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   14] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   14] [   63] (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] got initial shell prompt (5) (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] Got initial shell prompt (5) (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] running command shell:         exec /bin/sh -i
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   14] [   47] ( stty -echo ; unset HISTFILE ; exec /bin/sh -i\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   14] [    1] ($)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   14] [  100] ( unset PROMPT_COMMAND ;  unset HISTFILE ; PS1='PROMPT-$?->'; PS2=''; export PS1 PS2 2>&1 >/dev/null\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   14] [   10] (PROMPT-0->)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] got new shell prompt
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] run_sync: cd /home/antons/SINON-WORK/rp-19-testing/radical.pilot/tests
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   14] [   61] (cd /home/antons/SINON-WORK/rp-19-testing/radical.pilot/tests\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   14] [   10] (PROMPT-0->)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYShell del  <saga.utils.pty_shell.PTYShell object at 0xa16fe6c>
+2014:08:31 21:25:40 radical.pilot.MainProcess: [DEBUG   ] PTYProcess del  <saga.utils.pty_process.PTYProcess object at 0xa16ffac>
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYShell del  <saga.utils.pty_shell.PTYShell object at 0xa1758cc>
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYProcess del  <saga.utils.pty_process.PTYProcess object at 0x9e9ae2c>
+2014:08:31 21:25:40 radical.pilot.MainProcess: [DEBUG   ] Copying bootstrapper 'file://localhost//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/bootstrapper/default_bootstrapper.sh' to agent sandbox (sftp://hotel.futuregrid.org/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870/).
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [INFO    ] init_instance file://localhost//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/bootstrapper/default_bootstrapper.sh
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] PTYShell init <saga.utils.pty_shell.PTYShell object at 0x9f0286c>
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [INFO    ] PTY prompt pattern: [\$#%>\]]\s*$
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9f0292c>
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [INFO    ] running: /usr/bin/env TERM=vt100 /bin/bash -i
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [    8] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [    8] [   63] (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] got initial shell prompt (5) (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] Got initial shell prompt (5) (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] running command shell:         exec /bin/sh -i
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [    8] [   47] ( stty -echo ; unset HISTFILE ; exec /bin/sh -i\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [    8] [    1] ($)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [    8] [  100] ( unset PROMPT_COMMAND ;  unset HISTFILE ; PS1='PROMPT-$?->'; PS2=''; export PS1 PS2 2>&1 >/dev/null\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [    8] [   10] (PROMPT-0->)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] got new shell prompt
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] run_sync: cd /home/antons/SINON-WORK/rp-19-testing/radical.pilot/tests
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [    8] [   61] (cd /home/antons/SINON-WORK/rp-19-testing/radical.pilot/tests\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [    8] [   10] (PROMPT-0->)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] run_sync: true; test -r '//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/bootstrapper/default_bootstrapper.sh'
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [    8] [  148] (true; test -r '//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/bootstrapper/default_bootstrapper.sh'\n)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [    8] [   10] (PROMPT-0->)
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [INFO    ] file initialized (0)()
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] PTYShell init <saga.utils.pty_shell.PTYShell object at 0x9ef698c>
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellFile        : [INFO    ] PTY prompt pattern: [\$#%>\]]\s*$
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9f0230c>
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [INFO    ] running: /usr/bin/env TERM=vt100 /bin/bash -i
+2014:08:31 21:25:40 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   14] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   14] [   63] (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] got initial shell prompt (5) (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] Got initial shell prompt (5) (antons@ubuntu:~/SINON-WORK/rp-19-testing/radical.pilot/tests$ $)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] running command shell:         exec /bin/sh -i
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   14] [   47] ( stty -echo ; unset HISTFILE ; exec /bin/sh -i\n)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   14] [    1] ($)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   14] [  100] ( unset PROMPT_COMMAND ;  unset HISTFILE ; PS1='PROMPT-$?->'; PS2=''; export PS1 PS2 2>&1 >/dev/null\n)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   14] [   10] (PROMPT-0->)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] got new shell prompt
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] run_sync: cd /home/antons/SINON-WORK/rp-19-testing/radical.pilot/tests
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [   14] [   61] (cd /home/antons/SINON-WORK/rp-19-testing/radical.pilot/tests\n)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [   14] [   10] (PROMPT-0->)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] PTYShell init <saga.utils.pty_shell.PTYShell object at 0x9f1320c>
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [INFO    ] PTY prompt pattern: [\$#%>\]]\s*$
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9f0240c>
+2014:08:31 21:25:41 radical.pilot.MainProcess: [INFO    ] running: /usr/bin/env TERM=vt100 /usr/bin/ssh -t -o IdentityFile=/home/antons/.ssh/id_rsa -o IdentityFile=/home/antons/.ssh/ec2_key.pem -o IdentityFile=/home/antons/.ssh/stamp_rsa -o IdentityFile=/home/antons/.ssh/id_trestles_rsa -o IdentityFile=/home/antons/.ssh/id_stampede_rsa -o IdentityFile=/home/antons/.ssh/archer_rsa -o IdentityFile=/home/antons/.ssh/vm_id_rsa -o ControlMaster=no -o ControlPath=/tmp/saga_ssh_antons_%h_%p.antonstre.ctrl antonstre@hotel.futuregrid.org
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] write: [   15] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   15] [   74] (Last login: Sun Aug 31 20:25:38 2014 from ool-18b904de.dyn.optonline.net\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   15] [   23] ([antonstre@login2 ~]$ $)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] got initial shell prompt (5) (Last login: Sun Aug 31 20:25:38 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] Got initial shell prompt (5) (Last login: Sun Aug 31 20:25:38 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] running command shell:         exec /bin/sh -i
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] write: [   15] [   47] ( stty -echo ; unset HISTFILE ; exec /bin/sh -i\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   15] [    1] ($)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] write: [   15] [  100] ( unset PROMPT_COMMAND ;  unset HISTFILE ; PS1='PROMPT-$?->'; PS2=''; export PS1 PS2 2>&1 >/dev/null\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   15] [   10] (PROMPT-0->)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] got new shell prompt
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9edf90c>
+2014:08:31 21:25:41 radical.pilot.MainProcess: [INFO    ] running: /usr/bin/env TERM=vt100 /usr/bin/sftp -o IdentityFile=/home/antons/.ssh/id_rsa -o IdentityFile=/home/antons/.ssh/ec2_key.pem -o IdentityFile=/home/antons/.ssh/stamp_rsa -o IdentityFile=/home/antons/.ssh/id_trestles_rsa -o IdentityFile=/home/antons/.ssh/id_stampede_rsa -o IdentityFile=/home/antons/.ssh/archer_rsa -o IdentityFile=/home/antons/.ssh/vm_id_rsa -o ControlMaster=no -o ControlPath=/tmp/saga_ssh_antons_%h_%p.antonstre.ctrl antonstre@hotel.futuregrid.org
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] write: [   16] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [   39] (Connecting to hotel.futuregrid.org...\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [   64] (sftp>  export PS1='$' ; set prompt='$'\nInvalid command.\nsftp> )
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] got initial shell prompt (5) (Connecting to hotel.futuregrid.org...
+sftp>  export PS1='$' ; set prompt='$'
+Invalid command.
+sftp> )
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] Got initial shell prompt (5) (Connecting to hotel.futuregrid.org...
+sftp>  export PS1='$' ; set prompt='$'
+Invalid command.
+sftp> )
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] write: [   16] [  212] (mput  "//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/bootstrapper/default_bootstrapper.sh" "/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870" \n\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [  216] (mput  "//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0 .19-py2.7.egg/radical/pilot/bootstrapper/default_bootstrapper.sh" "/N/u/antonstr e/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870" \n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [  238] (Uploading //home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/bootstrapper/default_bootstrapper.sh to /N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870/default_bootstrapper.sh\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [   79] (//home/antons/rp-19-env/lib/python2.7/site-pa   0%    0     0.0KB/s   --:-- ETA)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [   81] (//home/antons/rp-19-env/lib/python2.7/site-pa 100%   14KB  14.1KB/s   00:00    \n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [   14] (sftp> \nsftp> )
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] copy done: ['sftp>']
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] Copying agent 'file://localhost//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/agent/radical-pilot-agent-multicore.py' to agent sandbox (sftp://hotel.futuregrid.org/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870/).
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [INFO    ] init_instance file://localhost//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/agent/radical-pilot-agent-multicore.py
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [DEBUG   ] run_sync: true; test -r '//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/agent/radical-pilot-agent-multicore.py'
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] write: [    8] [  150] (true; test -r '//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/agent/radical-pilot-agent-multicore.py'\n)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellDirectory   : [DEBUG   ] read : [    8] [   10] (PROMPT-0->)
+2014:08:31 21:25:41 29119  PilotLauncherWorker-1 saga.ShellFile        : [INFO    ] file initialized (0)()
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] write: [   16] [  237] (mput  "//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/agent/radical-pilot-agent-multicore.py" "/N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870/radical-pilot-agent.py" \n\n)
+2014:08:31 21:25:41 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [  243] (mput  "//home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0 .19-py2.7.egg/radical/pilot/agent/radical-pilot-agent-multicore.py" "/N/u/antons tre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870/radical-pilot-agent.py"  \n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [  239] (Uploading //home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/agent/radical-pilot-agent-multicore.py to /N/u/antonstre/radical.pilot.sandbox/pilot-5403cb101d41c871bfa21870/radical-pilot-agent.py\n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [   79] (//home/antons/rp-19-env/lib/python2.7/site-pa   0%    0     0.0KB/s   --:-- ETA)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [   81] (//home/antons/rp-19-env/lib/python2.7/site-pa 100%   92KB  92.4KB/s   00:00    \n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   16] [   14] (sftp> \nsftp> )
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] copy done: ['sftp>']
+2014:08:31 21:25:42 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] PTYShell init <saga.utils.pty_shell.PTYShell object at 0x9ef6d2c>
+2014:08:31 21:25:42 29119  PilotLauncherWorker-1 saga.PTYShell         : [INFO    ] PTY prompt pattern: [\$#%>\]]\s*$
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] PTYProcess init <saga.utils.pty_process.PTYProcess object at 0x9ef64ec>
+2014:08:31 21:25:42 radical.pilot.MainProcess: [INFO    ] running: /usr/bin/env TERM=vt100 /usr/bin/ssh -t -o IdentityFile=/home/antons/.ssh/id_rsa -o IdentityFile=/home/antons/.ssh/ec2_key.pem -o IdentityFile=/home/antons/.ssh/stamp_rsa -o IdentityFile=/home/antons/.ssh/id_trestles_rsa -o IdentityFile=/home/antons/.ssh/id_stampede_rsa -o IdentityFile=/home/antons/.ssh/archer_rsa -o IdentityFile=/home/antons/.ssh/vm_id_rsa -o ControlMaster=no -o ControlPath=/tmp/saga_ssh_antons_%h_%p.antonstre.ctrl antonstre@hotel.futuregrid.org
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   33] ( export PS1='$' ; set prompt='$'\n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   74] (Last login: Sun Aug 31 20:25:41 2014 from ool-18b904de.dyn.optonline.net\n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   23] ([antonstre@login2 ~]$ $)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] got initial shell prompt (5) (Last login: Sun Aug 31 20:25:41 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] Got initial shell prompt (5) (Last login: Sun Aug 31 20:25:41 2014 from ool-18b904de.dyn.optonline.net
+[antonstre@login2 ~]$ $)
+2014:08:31 21:25:42 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] running command shell:         exec /bin/sh -i
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   47] ( stty -echo ; unset HISTFILE ; exec /bin/sh -i\n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [    1] ($)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [  100] ( unset PROMPT_COMMAND ;  unset HISTFILE ; PS1='PROMPT-$?->'; PS2=''; export PS1 PS2 2>&1 >/dev/null\n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   10] (PROMPT-0->)
+2014:08:31 21:25:42 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] got new shell prompt
+2014:08:31 21:25:42 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: which qdel
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   11] (which qdel\n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   25] (/usr/bin/qdel\nPROMPT-0->)
+2014:08:31 21:25:42 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: which qsub
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   11] (which qsub\n)
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   25] (/usr/bin/qsub\nPROMPT-0->)
+2014:08:31 21:25:42 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: qsub --version
+2014:08:31 21:25:42 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   15] (qsub --version\n)
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   27] (version: 2.5.12\nPROMPT-0->)
+2014:08:31 21:25:43 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: which pbsnodes
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   15] (which pbsnodes\n)
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   29] (/usr/bin/pbsnodes\nPROMPT-0->)
+2014:08:31 21:25:43 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: pbsnodes --version
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   19] (pbsnodes --version\n)
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   27] (version: 2.5.12\nPROMPT-0->)
+2014:08:31 21:25:43 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: which qstat
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   12] (which qstat\n)
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   26] (/usr/bin/qstat\nPROMPT-0->)
+2014:08:31 21:25:43 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: qstat --version
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   16] (qstat --version\n)
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [   27] (version: 2.5.12\nPROMPT-0->)
+2014:08:31 21:25:43 29119  PilotLauncherWorker-1 saga.PBSJobService    : [INFO    ] Found PBS tools: {'qdel': {'path': '/usr/bin/qdel', 'version': '?'}, 'qsub': {'path': '/usr/bin/qsub', 'version': 'version: 2.5.12\n'}, 'pbsnodes': {'path': '/usr/bin/pbsnodes', 'version': 'version: 2.5.12\n'}, 'qstat': {'path': '/usr/bin/qstat', 'version': 'version: 2.5.12\n'}}
+2014:08:31 21:25:43 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: which aprun
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   12] (which aprun\n)
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [  192] (which: no aprun in (/opt/xcat/bin:/opt/xcat/sbin:/usr/lib64/qt-3.3/bin:/N/soft/x86_64/el5/hotel/Modules/3.2.8/bin:/usr/kerberos/bin:/usr/local/bin:/bin:/usr/bin:/N/u/antonstre/bin)\nPROMPT-1->)
+2014:08:31 21:25:43 29119  PilotLauncherWorker-1 saga.PTYShell         : [DEBUG   ] run_sync: unset GREP_OPTIONS; /usr/bin/pbsnodes -a | grep -E "(np|pcpu)[[:blank:]]*="
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] write: [   17] [   76] (unset GREP_OPTIONS; /usr/bin/pbsnodes -a | grep -E "(np|pcpu)[[:blank:]]*="\n)
+2014:08:31 21:25:43 radical.pilot.MainProcess: [DEBUG   ] read : [   17] [  199] (Cannot connect to default server host 'svc.uc.futuregrid.org' - check pbs_server daemon.\n/usr/bin/pbsnodes: cannot connect to server svc.uc.futuregrid.org, error=111 (Connection refused)\nPROMPT-1->)
+2014:08:31 21:25:43 29119  PilotLauncherWorker-1 saga.PBSJobService    : [ERROR   ] Error running pbsnodes: Cannot connect to default server host 'svc.uc.futuregrid.org' - check pbs_server daemon.
+/usr/bin/pbsnodes: cannot connect to server svc.uc.futuregrid.org, error=111 (Connection refused)
+
+2014:08:31 21:25:43 radical.pilot.MainProcess: [ERROR   ] Pilot launching failed: Error running pbsnodes: Cannot connect to default server host 'svc.uc.futuregrid.org' - check pbs_server daemon.
+/usr/bin/pbsnodes: cannot connect to server svc.uc.futuregrid.org, error=111 (Connection refused)
+ (/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/adaptors/pbs/pbsjob.py +99 (log_error_and_raise)  :  raise exception(message))
+Traceback (most recent call last):
+  File "/home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/controller/pilot_launcher_worker.py", line 370, in run
+    js = saga.job.Service(job_service_url, session=self._session)
+  File "/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/job/service.py", line 115, in __init__
+    url, session, ttype=_ttype)
+  File "/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/base.py", line 99, in __init__
+    self._init_task = self._adaptor.init_instance (adaptor_state, *args, **kwargs)
+  File "/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/adaptors/cpi/decorators.py", line 51, in wrap_function
+    return sync_function (self, *args, **kwargs)
+  File "/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/adaptors/pbs/pbsjob.py", line 480, in init_instance
+    self.initialize()
+  File "/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/adaptors/pbs/pbsjob.py", line 539, in initialize
+    log_error_and_raise(message, saga.NoSuccess, self._logger)
+  File "/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/adaptors/pbs/pbsjob.py", line 99, in log_error_and_raise
+    raise exception(message)
+NoSuccess: Error running pbsnodes: Cannot connect to default server host 'svc.uc.futuregrid.org' - check pbs_server daemon.
+/usr/bin/pbsnodes: cannot connect to server svc.uc.futuregrid.org, error=111 (Connection refused)
+ (/home/antons/rp-19-env/local/lib/python2.7/site-packages/saga_python-0.17-py2.7.egg/saga/adaptors/pbs/pbsjob.py +99 (log_error_and_raise)  :  raise exception(message))
+
+2014:08:31 21:25:43 radical.pilot.MainProcess: [INFO    ] ComputePilot '5403cb101d41c871bfa21870' state changed from 'Launching' to 'Failed'.
+[Callback]: ComputePilot '5403cb101d41c871bfa21870' state: Launching.
+[Callback]: ComputePilot '5403cb101d41c871bfa21870' state: Failed.
+pilot manager controller thread caught system exit -- forcing application shutdown
+Traceback (most recent call last):
+  File "mpi_hotel_test.py", line 99, in <module>
+    umgr.wait_units()
+  File "/home/antons/rp-19-env/lib/python2.7/site-packages/radical.pilot-0.19-py2.7.egg/radical/pilot/unit_manager.py", line 658, in wait_units
+    states.append (unit.state)
+KeyboardInterrupt
