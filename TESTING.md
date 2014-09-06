@@ -69,34 +69,34 @@ Instructions on how to modify <kernel_name>_input.json file to run simulation ex
 RepEx/examples/<kernel_name>/<scheme_nr>/config/config.info
 ```    
 
-###Usage example for scheme 1 with NAMD kernel
+####Usage example for scheme 1 with NAMD kernel
 
 
-###Usage example for scheme 1 with Amber kernel
+####Usage example for scheme 1 with Amber kernel
 
 
-###Usage example for scheme 2 with NAMD kernel
+####Usage example for scheme 2 with NAMD kernel
 
 
-###Usage example for scheme 2 with Amber kernel
+####Usage example for scheme 2 with Amber kernel
 
 
-###Usage example for scheme 2a with NAMD kernel
+####Usage example for scheme 2a with NAMD kernel
 
 
-###Usage example for scheme 2a with Amber kernel
+####Usage example for scheme 2a with Amber kernel
 
 
-###Usage example for scheme 3 with NAMD kernel
+####Usage example for scheme 3 with NAMD kernel
 
 
-###Usage example for scheme 3 with Amber kernel
+####Usage example for scheme 3 with Amber kernel
 
 
-###Usage example for scheme 4 with NAMD kernel
+####Usage example for scheme 4 with NAMD kernel
 
 
-###Usage example for scheme 4 with Amber kernel
+####Usage example for scheme 4 with Amber kernel
 
 
 
