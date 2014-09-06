@@ -85,6 +85,7 @@ class AmberKernelTex(MdKernelTex):
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
+        tbuffer = tbuffer.replace("@rstr@", self.amber_restraints )
         
         replica.cycle += 1
 
@@ -129,8 +130,8 @@ class AmberKernelTex(MdKernelTex):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
-                cu.input_data = [input_file, crds, parm, rstr]
-                cu.output_data = [new_coor, new_traj, new_info]
+                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
+                cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -144,8 +145,8 @@ class AmberKernelTex(MdKernelTex):
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
 
-                cu.input_data = [input_file, crds, parm, rstr, old_coor]
-                cu.output_data = [new_coor, new_traj, new_info]
+                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr), str(old_coor)]
+                cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
 
         return compute_replicas

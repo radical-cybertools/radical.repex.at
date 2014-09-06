@@ -61,8 +61,8 @@ if __name__ == "__main__":
             cu.pre_exec    = ["module load namd/2.9"]
             cu.executable  = "/opt/namd/bin/namd2"
             cu.arguments = "alanin_base_t.namd"
-            cu.input_data = ["namd_inp/alanin_base_t.namd", "namd_inp/alanin.psf", "namd_inp/unfolded.pdb", "namd_inp/alanin.params"]
-            cu.output_data  = ["basename.history", "basename.coor", "basename.vel", "basename.xsc"]
+            cu.input_staging = ["namd_inp/alanin_base_t.namd", "namd_inp/alanin.psf", "namd_inp/unfolded.pdb", "namd_inp/alanin.params"]
+            cu.output_staging  = ["basename.history", "basename.coor", "basename.vel", "basename.xsc"]
             cu.cores       = 1
             cu.mpi = False
             md_compute_units.append(cu)

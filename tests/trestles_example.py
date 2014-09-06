@@ -57,7 +57,7 @@ if __name__ == "__main__":
         for unit_count in range(0, 32):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable  = "/bin/date"
-            cu.output_data  = ["STDOUT"]
+            cu.output_staging  = ["STDOUT"]
             cu.cores       = 1
             md_compute_units.append(cu)
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         for unit_count in range(0, 32):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable  = "/bin/hostname"
-            cu.output_data  = ["STDOUT"]
+            cu.output_staging  = ["STDOUT"]
             cu.cores       = 1
             ex_compute_units.append(cu)
 

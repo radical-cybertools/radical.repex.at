@@ -20,6 +20,7 @@ import radical.pilot
 from kernels.kernels import KERNELS
 from replicas.replica import Replica
 from amber_kernel_tex import *
+import amber_kernels_tex.amber_matrix_calculator_scheme_2
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,11 +71,28 @@ class AmberKernelTexScheme2(AmberKernelTex):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
-        if (replica.cycle == 0):
-            old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1)) 
 
+        if (replica.cycle == 0):
+            restraints = self.amber_restraints
         else:
-            old_name = replica.old_path + "/%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+            ##################################
+            # changing first path from absolute 
+            # to relative so that Amber can 
+            # process it
+            ##################################
+            path_list = []
+            for char in reversed(replica.first_path):
+                if char == '/': break
+                path_list.append( char )
+
+            modified_first_path = ''
+            for char in reversed( path_list ):
+                modified_first_path += char
+
+            modified_first_path = '../' + modified_first_path.rstrip()
+            restraints = modified_first_path + "/" + self.amber_restraints
+
+
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
@@ -86,6 +104,7 @@ class AmberKernelTexScheme2(AmberKernelTex):
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
+        tbuffer = tbuffer.replace("@rstr@", restraints )
         
         replica.cycle += 1
 
@@ -135,8 +154,8 @@ class AmberKernelTexScheme2(AmberKernelTex):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
-                cu.input_data = [input_file, crds, parm, rstr]
-                cu.output_data = [new_coor, new_traj, new_info]
+                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
+                #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -150,9 +169,8 @@ class AmberKernelTexScheme2(AmberKernelTex):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
-
-                cu.input_data = [input_file, crds, parm, rstr]
-                cu.output_data = [new_coor, new_traj, new_info]
+                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
+                #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
 
         return compute_replicas
@@ -179,12 +197,13 @@ class AmberKernelTexScheme2(AmberKernelTex):
             basename = self.inp_basename
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = "python"
-            # matrix column calculator's name is hardcoded
-            calculator = self.work_dir_local + "/md_kernels/amber_kernels_tex/amber_matrix_calculator_scheme_2.py"
-            cu.input_data = [calculator]
+            # each scheme has it's own calculator!
+            calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_scheme_2.__file__)
+            calculator = calculator_path + "/amber_matrix_calculator_scheme_2.py" 
+            cu.input_staging = [str(calculator)]
             cu.arguments = ["amber_matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
-            cu.output_data = [matrix_col]
+            cu.output_data = [str(matrix_col)]
             exchange_replicas.append(cu)
 
         return exchange_replicas

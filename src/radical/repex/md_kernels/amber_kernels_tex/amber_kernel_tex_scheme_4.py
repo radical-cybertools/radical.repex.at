@@ -20,6 +20,7 @@ import radical.pilot
 from kernels.kernels import KERNELS
 from replicas.replica import Replica
 from amber_kernel_tex import *
+import amber_kernels_tex.amber_matrix_calculator_scheme_4
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -149,8 +150,8 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
 
-                cu.input_data = [input_file, crds, parm, rstr]
-                #cu.output_data = [new_coor, new_traj, new_info]
+                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
+                #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -205,8 +206,8 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", first_amber_parameters, "-c ", restart_file, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 
                 cu.cores = self.replica_cores
-                cu.input_data = [input_file]
-                #cu.output_data = [new_coor, new_traj, new_info]
+                cu.input_staging = [str(input_file)]
+                #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
 
         return compute_replicas
@@ -233,12 +234,13 @@ class AmberKernelTexScheme4(AmberKernelTex):
             basename = self.inp_basename
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = "python"
-            # matrix column calculator's name is hardcoded
-            calculator = self.work_dir_local + "/md_kernels/amber_kernels_tex/amber_matrix_calculator_scheme_4.py"
-            cu.input_data = [calculator]
+            # each scheme has it's own calculator!
+            calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_scheme_4.__file__)
+            calculator = calculator_path + "/amber_matrix_calculator_scheme_4.py" 
+            cu.input_staging = [str(calculator)]
             cu.arguments = ["amber_matrix_calculator_scheme_4.py", replicas[r].id, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
-            cu.output_data = [matrix_col]
+            cu.output_staging = [str(matrix_col)]
             exchange_replicas.append(cu)
 
         return exchange_replicas

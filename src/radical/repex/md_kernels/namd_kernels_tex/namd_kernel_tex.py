@@ -148,8 +148,8 @@ class NamdKernelTex(MdKernelTex):
                 structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
                 coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
                 params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
-                cu.input_data = [input_file, structure, coords, params]
-                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                cu.input_staging = [str(input_file), str(structure), str(coords), str(params)]
+                cu.output_staging = [str(new_coor), str(new_vel), str(new_history), str(new_ext_system) ]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -160,8 +160,8 @@ class NamdKernelTex(MdKernelTex):
                 structure = self.inp_folder + "/" + self.namd_structure
                 coords = self.inp_folder + "/" + self.namd_coordinates
                 params = self.inp_folder + "/" + self.namd_parameters
-                cu.input_data = [input_file, structure, coords, params, old_coor, old_vel, old_ext_system]
-                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                cu.input_staging = [str(input_file), str(structure), str(coords), str(params), str(old_coor), str(old_vel), str(old_ext_system)]
+                cu.output_staging = [str(new_coor), str(new_vel), str(new_history), str(new_ext_system) ]
                 compute_replicas.append(cu)
 
         return compute_replicas

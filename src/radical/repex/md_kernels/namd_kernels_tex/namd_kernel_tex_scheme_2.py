@@ -12,6 +12,7 @@ from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
 from namd_kernel_tex import *
+import namd_kernels_tex.namd_matrix_calculator_scheme_2
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -151,11 +152,11 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
                 coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
                 params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
-                cu.input_data = [input_file, structure, coords, params]
+                cu.input_staging = [str(input_file), str(structure), str(coords), str(params)]
                 # in principle it is not required to transfer simulation output files in order to 
                 # continue next cycle; this is done mainly to have these files on local system;
                 # an alternative approach would be to transfer all the files at the end of the simulation   
-                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                #cu.output_staging = [str(new_coor), str(new_vel), str(new_history), str(new_ext_system) ]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -167,11 +168,11 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 structure = self.inp_folder + "/" + self.namd_structure
                 coords = self.inp_folder + "/" + self.namd_coordinates
                 params = self.inp_folder + "/" + self.namd_parameters
-                cu.input_data = [input_file]
+                cu.input_staging = [str(input_file)]
                 # in principle it is not required to transfer simulation output files in order to 
                 # perform the next cycle; this is done mainly to have these files on local system;
                 # an alternative approach would be to transfer all the files at the end of the simulation
-                cu.output_data = [new_coor, new_vel, new_history, new_ext_system ]
+                #cu.output_staging = [str(new_coor), str(new_vel), str(new_history), str(new_ext_system) ]
                 compute_replicas.append(cu)
 
         return compute_replicas
@@ -198,12 +199,13 @@ class NamdKernelTexScheme2(NamdKernelTex):
             basename = self.inp_basename[:-5]
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = "python"
-            # matrix column calculator's name is hardcoded
-            calculator = self.work_dir_local + "/md_kernels/namd_kernels_tex/namd_matrix_calculator_scheme_2.py"
-            cu.input_data = [calculator]
+            # each scheme has it's own calculator!
+            calculator_path = os.path.dirname(namd_kernels_tex.namd_matrix_calculator_scheme_2.__file__)
+            calculator = calculator_path + "/namd_matrix_calculator_scheme_2.py"
+            cu.input_staging = [calculator]
             cu.arguments = ["namd_matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
-            cu.output_data = [matrix_col]
+            cu.output_staging = [matrix_col]
             exchange_replicas.append(cu)
 
         return exchange_replicas
