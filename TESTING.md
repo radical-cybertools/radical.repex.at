@@ -1,24 +1,60 @@
 ##Installation instructions
 
-Currently it is recommended to use development versions of both SAGA-Python and Radical Pilot in conjunction with RepEx.
+One of the prerequisites for RepEx installation is Python version >= 2.7. You can check your Python version with:
+
+```bash
+python -V
+```
+
+If default Python version on your machine is below 2.7, you will need to install Python 2.7.x. More information on this can be found at:
+
+```
+https://www.python.org/download 
+```
+
+The first step in installing RepEx is to create and activate a fresh Python virtual environment:
 
 ```bash
 virtualenv $HOME/myenv 
 source $HOME/myenv/bin/activate
-git clone -b devel https://github.com/radical-cybertools/saga-python.git
-cd saga-python
+```
+
+Next you need to install radical-utils:
+
+```bash
+git clone -b devel https://github.com/radical-cybertools/radical.utils.git
+cd radical.utils
 python setup.py install
 cd ..
-git clone -b devel https://github.com/radical-cybertools/radical.pilot.git
+```
+
+After that saga-python must be installed:
+
+```bash
+pip install saga-python
+```
+or
+```bash
+easy_install saga-python
+```
+
+Next radical-pilot must be installed:
+
+```bash
+git clone https://github.com/radical-cybertools/radical.pilot.git
 cd radical.pilot
 python setup.py install
-cd .. 
-git clone https://github.com/radical-cybertools/RepEx.git 
+cd ..
+```
+
+Finally you can install RepEx:
+```bash
+git clone https://github.com/radical-cybertools/RepEx.git
 cd RepEx
 python setup.py install
 ```
 
-Then you can verify that Radical Pilot was installed correctly:
+Now you can verify that Radical Pilot was installed correctly:
 ```bash
 radicalpilot-version
 ```
