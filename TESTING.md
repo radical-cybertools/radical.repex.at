@@ -4,18 +4,15 @@ One of the prerequisites for RepEx installation is Python version >= 2.7. You ca
 ```bash
 python -V
 ```
-
 If default Python version on your machine is below 2.7, you will need to install Python 2.7.x. More information on this can be found at:
 ```
 https://www.python.org/download 
 ```
-
 The first step in installing RepEx is to create and activate a fresh Python virtual environment:
 ```bash
 virtualenv $HOME/myenv 
 source $HOME/myenv/bin/activate
 ```
-
 In case if virtual environment is not available on your machine, follow these instructions:
 ```bash
 wget --no-check-certificate https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
@@ -23,7 +20,6 @@ tar xzf virtualenv-1.10.tar.gz
 python virtualenv-1.10/virtualenv.py $HOME/myenv
 source $HOME/myenv/bin/activate
 ```
-
 Next you need to install radical-utils:
 ```bash
 git clone -b devel https://github.com/radical-cybertools/radical.utils.git
@@ -31,7 +27,6 @@ cd radical.utils
 python setup.py install
 cd ..
 ```
-
 After that saga-python must be installed:
 ```bash
 pip install saga-python
@@ -40,7 +35,6 @@ or
 ```bash
 easy_install saga-python
 ```
-
 Next radical-pilot must be installed:
 ```bash
 git clone https://github.com/radical-cybertools/radical.pilot.git
@@ -48,53 +42,63 @@ cd radical.pilot
 python setup.py install
 cd ..
 ```
-
 Finally you can install RepEx:
 ```bash
 git clone https://github.com/radical-cybertools/RepEx.git
 cd RepEx
 python setup.py install
 ```
-
 Now you can verify that Radical Pilot was installed correctly:
 ```bash
 radicalpilot-version
 ```
-
 This should print Radical Pilot version in terminal
  
 ##Usage
 
-Current version of RepEx code supports three RE schemes described above. Before running her/his simulation user must make appropriate changes to /src/radical/repex/config/<kernel_name>_input.json file. To run simulation examples using any of the RE schemes, no changes are required below the line starting with "input.MD", unless user wants to specify her/his own MD input files or change number of replicas used for simulation. Instructions on how to modify <kernel_name>_input.json file to run simulation examples locally, on Stampede [1] supercomputer and Trestles [2] supercomputer are provided in /src/radical/repex/config/config.info file.       
-Before running any of the provided examples users must first change directory to:
-
-```bash
-cd /src/radical/repex/
+Current version of RepEx code supports four RE schemes. Usage examples for for each scheme with each of the two supported MD kernels are provided in:
 ```
-
-###Running simulation using RE scheme 1
-
-####Example NAMD
-
-To run RE simulation using this scheme and NAMD kernel in namd_input.json "number_of_replicas" and "cores" values must be equal. For this scheme exchange step can be performed locally or remotelly. For RE simulation with remote exchange step in terminal execute: 
-```bash
-python launch_simulation_scheme_1_namd.py --input='config/namd_input.json'
+RepEx/examples/<kernel_name>/<scheme_nr> 
 ```
-For RE simulation with local exchange step in terminal execute:
-```bash
-python launch_simulation_scheme_1a_namd.py --input='config/namd_input.json'
-``` 
-This will run RE temperature exchange simulation involving X replicas on your target system. During the simulation input files for each of the replicas will be generated. After simulation is done in RepEx/src/radical/repex/ directory you will see a number of new "replica_x" directories. Each directory will contain simulation output files. 
-
-
-To run RE simulation using scheme 1 and Amber kernel you will need to modify amber_input.json file so that "number_of_replicas" and "cores" values are equal. For RE simulation with remote exchange step in terminal execute: 
-```bash
-python launch_simulation_scheme_1_amber.py --input='config/amber_input.json'
+Before running any of the provided examples user must make appropriate changes to:
 ```
-For RE simulation with local exchange step in terminal execute:
-```bash
-python launch_simulation_scheme_1a_amber.py --input='config/amber_input.json'
-``` 
+RepEx/examples/<kernel_name>/<scheme_nr>/config/<kernel_name>_input.json 
+```
+Instructions on how to modify <kernel_name>_input.json file to run simulation examples locally, on Gordon, Trestles and Stampede supercomputers are provided in:
+```
+RepEx/examples/<kernel_name>/<scheme_nr>/config/config.info
+```    
+
+###Usage example for scheme 1 with NAMD kernel
+
+
+###Usage example for scheme 1 with Amber kernel
+
+
+###Usage example for scheme 2 with NAMD kernel
+
+
+###Usage example for scheme 2 with Amber kernel
+
+
+###Usage example for scheme 2a with NAMD kernel
+
+
+###Usage example for scheme 2a with Amber kernel
+
+
+###Usage example for scheme 3 with NAMD kernel
+
+
+###Usage example for scheme 3 with Amber kernel
+
+
+###Usage example for scheme 4 with NAMD kernel
+
+
+###Usage example for scheme 4 with Amber kernel
+
+
 
 ###Running simulation using RE scheme 2
 
