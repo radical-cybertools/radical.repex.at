@@ -1,0 +1,164 @@
+--------------------------------------------------------------------------------
+This is a private computing facility. Access to this system is limited to those
+who have been granted access by the operating service provider on behalf of the
+issuing authority and use is restricted to the purposes for which access was
+granted. All access and usage are governed by the terms and conditions of access
+agreed to by all registered users and are thus subject to the provisions of the
+Computer Misuse Act, 1990 under which unauthorised use is a criminal offence.
+
+If you are not authorised to use this service you must disconnect immediately.
+--------------------------------------------------------------------------------
+
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [INFO    ] RADICAL-Pilot multi-core agent for package/API version 0.19
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [INFO    ] Using SAGA version 0.15
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [INFO    ] Configured to run on system with PBSPRO.
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [INFO    ] Found PBSPro $PBS_NODEFILE /var/spool/PBS/aux/532462.sdb.
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [DEBUG   ] input: (archer_1992_0:ncpus=12+archer_1992_1:ncpus=12)
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [DEBUG   ] vnode: archer_1992_0 cpus: 12
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [DEBUG   ] vnode: archer_1992_1 cpus: 12
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [DEBUG   ] vnodes: ['archer_1992_0', 'archer_1992_1']
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [DEBUG   ] cpus: [12, 12]
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [DEBUG   ] Node list: ['archer_1992']
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [INFO    ] Discovered task launch command: '/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun' and MPI launch command: '/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun'.
+2014:09:02 21:26:28 MainThread   radical.pilot.agent   : [INFO    ] Discovered execution environment: ['archer_1992']
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] Started up <ExecWorker(ExecWorker-1, started daemon)> serving nodes ['archer_1992']
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] Started up <InputStagingWorker(InputStagingWorker-2, started daemon)>.
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] InputStagingWorker started ...
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] Started up <OutputStagingWorker(OutputStagingWorker-3, started daemon)>.
+2014:09:02 21:26:29 Thread-1     radical.pilot.agent   : [INFO    ] Agent 540627cd345f3f1a46bd84f1 starting ...
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] OutputStagingWorker started ...
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:29 Thread-1     radical.pilot.agent   : [INFO    ] Database updated! {u'updatedExisting': True, u'connectionId': 177915, u'ok': 1.0, u'err': None, u'n': 1}
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:29 Thread-1     radical.pilot.agent   : [INFO    ] Found new tasks in pilot queue: 540627cd345f3f1a46bd84f4
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Launching task with APRUN (/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun).
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] Node archer_1992 satisfies 1 cores at offset 0
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Created launch_script: /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f4/radical_pilot_cu_launch_script-Idqmgd.sh
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] Launching task 540627cd345f3f1a46bd84f4 via /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f4/radical_pilot_cu_launch_script-Idqmgd.sh in /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f4
+2014:09:02 21:26:29 Thread-1     radical.pilot.agent   : [INFO    ] Found new tasks in pilot queue: 540627cd345f3f1a46bd84fa
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Launching task with APRUN (/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun).
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] Node archer_1992 satisfies 1 cores at offset 1
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [DEBUG   ] Created launch_script: /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84fa/radical_pilot_cu_launch_script-3U45kn.sh
+2014:09:02 21:26:29 MainThread   radical.pilot.agent   : [INFO    ] Launching task 540627cd345f3f1a46bd84fa via /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84fa/radical_pilot_cu_launch_script-3U45kn.sh in /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84fa
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:30 Thread-1     radical.pilot.agent   : [INFO    ] Found new tasks in pilot queue: 540627cd345f3f1a46bd84f7
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Launching task with APRUN (/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun).
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [INFO    ] Node archer_1992 satisfies 1 cores at offset 2
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Created launch_script: /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f7/radical_pilot_cu_launch_script-fXuyeC.sh
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [INFO    ] Launching task 540627cd345f3f1a46bd84f7 via /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f7/radical_pilot_cu_launch_script-fXuyeC.sh in /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f7
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:30 Thread-1     radical.pilot.agent   : [INFO    ] Found new tasks in pilot queue: 540627cd345f3f1a46bd84f8
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Launching task with APRUN (/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun).
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [INFO    ] Node archer_1992 satisfies 1 cores at offset 3
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Created launch_script: /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f8/radical_pilot_cu_launch_script-cJYWzR.sh
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [INFO    ] Launching task 540627cd345f3f1a46bd84f8 via /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f8/radical_pilot_cu_launch_script-cJYWzR.sh in /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f8
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:30 Thread-1     radical.pilot.agent   : [INFO    ] Found new tasks in pilot queue: 540627cd345f3f1a46bd84f5
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Launching task with APRUN (/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun).
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [INFO    ] Node archer_1992 satisfies 1 cores at offset 4
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Created launch_script: /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f5/radical_pilot_cu_launch_script-LHdUZA.sh
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [INFO    ] Launching task 540627cd345f3f1a46bd84f5 via /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f5/radical_pilot_cu_launch_script-LHdUZA.sh in /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f5
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:30 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [INFO    ] Task 540627cd345f3f1a46bd84f4 terminated with return code 1.
+2014:09:02 21:26:31 Thread-1     radical.pilot.agent   : [INFO    ] Found new tasks in pilot queue: 540627cd345f3f1a46bd84fb
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  -  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Launching task with APRUN (/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun).
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [INFO    ] Node archer_1992 satisfies 1 cores at offset 0
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Created launch_script: /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84fb/radical_pilot_cu_launch_script-AhPoEq.sh
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [INFO    ] Launching task 540627cd345f3f1a46bd84fb via /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84fb/radical_pilot_cu_launch_script-AhPoEq.sh in /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84fb
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:31 Thread-1     radical.pilot.agent   : [INFO    ] Found new tasks in pilot queue: 540627cd345f3f1a46bd84f3
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Launching task with APRUN (/opt/cray/alps/5.1.1-2.0501.8507.1.1.ari/bin/aprun).
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [INFO    ] Node archer_1992 satisfies 1 cores at offset 5
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Created launch_script: /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f3/radical_pilot_cu_launch_script-qA7JZp.sh
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [INFO    ] Launching task 540627cd345f3f1a46bd84f3 via /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f3/radical_pilot_cu_launch_script-qA7JZp.sh in /home4/e290/e290/antonst/radical.pilot.sandbox/pilot-540627cd345f3f1a46bd84f1/unit-540627cd345f3f1a46bd84f3
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
+2014:09:02 21:26:31 Thread-1     radical.pilot.agent   : [INFO    ] Received Cancel Pilot command.
+2014:09:02 21:26:31 Thread-1     radical.pilot.agent   : [WARNING ] CANCEL received. Terminating.
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Slot status:
+archer_1992             :  X  X  X  X  X  X  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
+
+2014:09:02 21:26:31 MainThread   radical.pilot.agent   : [DEBUG   ] Sleep now for a jiffy ...
