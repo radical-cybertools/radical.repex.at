@@ -74,6 +74,8 @@ cd /src/radical/repex/
 
 ###Running simulation using RE scheme 1
 
+####Example NAMD
+
 To run RE simulation using this scheme and NAMD kernel in namd_input.json "number_of_replicas" and "cores" values must be equal. For this scheme exchange step can be performed locally or remotelly. For RE simulation with remote exchange step in terminal execute: 
 ```bash
 python launch_simulation_scheme_1_namd.py --input='config/namd_input.json'
