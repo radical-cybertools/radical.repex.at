@@ -14,7 +14,7 @@ KERNELS = {
             "amber": {
                 "environment" : {},
                 "pre_execution" : ["module load TACC", "module load amber/12.0"],
-                "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0"
+                "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI"
             },
             "namd": {
                 "environment" : {},

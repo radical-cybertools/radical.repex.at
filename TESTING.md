@@ -78,18 +78,32 @@ RepEx/examples/namd/namd_scheme_1/config/namd_input.json
 Suggested changes are:
 * "resource" must be: "stampede.tacc.utexas.edu", "trestles.sdsc.xsede.org", "gordon.sdsc.xsede.org" or "localhost"
 * "username" must be changed to username assigned to user on that resource
-* "project" must be changed to allocation number on target resourcel system
+* "project" must be changed to allocation number on target resource
 * if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "namd_path" which is a path pointing to namd executable on your system
 
 For scheme 1 "number_of_replicas" and "cores" values must be equal. For this scheme exchange step is performed remotelly. To run this example in terminal execute: 
 ```bash
 RADICAL_PILOT_VERBOSE=info python launch_simulation_scheme_1_namd.py --input='config/namd_input.json'
 ```
-This will run RE temperature exchange simulation involving 16 replicas on your target system. During the simulation input files for each of the replicas will be generated. After simulation is done in current directory you will see a number of new "replica_x" directories.
-
+This will run RE temperature exchange simulation involving 16 replicas on target system. During the simulation input files for each of the replicas will be generated. After simulation is done in current directory you will see a number of new "replica_x" directories.
 
 ####Usage example for scheme 1 with Amber kernel
 
+First user must make appropriate changes to:
+```
+RepEx/examples/amber/amber_scheme_1/config/amber_input.json
+```
+Suggested changes are:
+* "resource" must be: "stampede.tacc.utexas.edu", "trestles.sdsc.xsede.org", "gordon.sdsc.xsede.org" or "localhost"
+* "username" must be changed to username assigned to user on that resource
+* "project" must be changed to allocation number on target resource
+* if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
+
+For scheme 1 "number_of_replicas" and "cores" values must be equal. For this scheme exchange step is performed remotelly. To run this example in terminal execute: 
+```bash
+RADICAL_PILOT_VERBOSE=info python launch_simulation_scheme_1_amber.py --input='config/amber_input.json'
+```
+This will run RE temperature exchange simulation involving 16 replicas on target system. During the simulation input files for each of the replicas will be generated. After simulation is done in current directory you will see a number of new "replica_x" directories.
 
 ####Usage example for scheme 2 with NAMD kernel
 
