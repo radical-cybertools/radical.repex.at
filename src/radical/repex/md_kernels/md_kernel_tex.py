@@ -38,7 +38,11 @@ class MdKernelTex(object):
         self.max_temp = float(inp_file['input.MD']['max_temperature'])
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
-        self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
+        
+        try:
+            self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
+        except:
+            self.nr_cycles = None
 
         try:
             self.replica_mpi = inp_file['input.MD']['replica_mpi']

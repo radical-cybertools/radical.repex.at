@@ -53,6 +53,7 @@ class PilotKernelScheme3(PilotKernel):
             print "Using default cycle time: 1 minute"
             self.cycle_time = 60
         self.cycle_time = int(self.cycle_time)
+        self.simulation_time = self.runtime - 5
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -78,7 +79,7 @@ class PilotKernelScheme3(PilotKernel):
 
         sim_start = datetime.datetime.utcnow()
         runtime = 0.0
-        while (runtime < (self.runtime * 60.0)):
+        while (runtime < (self.simulation_time * 60.0)):
             ####################################################
             for r in replicas:
                 if r.state == 'I':

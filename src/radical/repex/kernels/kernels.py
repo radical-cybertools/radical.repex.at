@@ -55,6 +55,25 @@ KERNELS = {
                 "executable" : "/opt/amber/bin/sander.MPI"
             }
         }
+    },"gordon.sdsc.xsede.org":
+    {
+        "params":
+        {
+            "cores": 32,
+        },
+        "kernels":
+        {
+            "namd": {
+                "environment" : {},
+                "pre_execution" : ["module load namd/2.9"],
+                "executable" : "/opt/namd/bin/namd2"
+            },
+            "amber": {
+                "environment" : {},
+                "pre_execution" : ["module load amber/14"],
+                "executable" : "/opt/amber/bin/sander.MPI"
+            }
+        }
     },"localhost.linux.x86":
     {
         "params":
