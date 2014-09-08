@@ -1,21 +1,21 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
+        "resource": "trestles.sdsc.xsede.org",
         "username" : "antontre",
         "project" : "TG-MCB090174",
         "runtime" : "15",
         "cleanup" : "False",
-        "cores" : "16"
+        "cores" : "32"
     },
     "input.MD": {
         "number_of_cycles": "3",
-        "cycle_time": "5",
+        "cycle_time": "7",
         "input_folder": "namd_inp",
         "input_file_basename": "alanin_base.namd",
         "namd_structure": "alanin.psf",
         "namd_coordinates": "unfolded.pdb",
         "namd_parameters": "alanin.params",
-        "number_of_replicas": "4",
+        "number_of_replicas": "32",
         "replica_cores": "1",
         "min_temperature": "300",
         "max_temperature": "600",

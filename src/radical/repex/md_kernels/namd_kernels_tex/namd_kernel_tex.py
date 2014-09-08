@@ -32,7 +32,10 @@ class NamdKernelTex(MdKernelTex):
             self.namd_path = inp_file['input.MD']['namd_path']
         except:
             print "Using default NAMD path for %s" % inp_file['input.PILOT']['resource']
-            self.namd_path = KERNELS[self.resource]["kernels"]["namd"]["executable"]
+            try:
+                self.namd_path = KERNELS[self.resource]["kernels"]["namd"]["executable"]
+            except:
+                print "NAMD path for localhost is not defined..."
         
         self.namd_structure = inp_file['input.MD']['namd_structure']
         self.namd_coordinates = inp_file['input.MD']['namd_coordinates']

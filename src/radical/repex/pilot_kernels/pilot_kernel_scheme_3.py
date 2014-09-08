@@ -106,10 +106,13 @@ class PilotKernelScheme3(PilotKernel):
 
 
             print "Checking if replicas has finished..."
-            # check if replica finished
-            replicas_finished = md_kernel.check_replicas( replicas_to_pilot )
- 
-            print "%d replicas has finished..." % len(replicas_finished)
+            replicas_finished = []
+            while not replicas_finished:
+                # check if replica finished
+                replicas_finished = md_kernel.check_replicas( replicas_to_pilot )
+                print "%d replicas has finished..." % len(replicas_finished)
+                time.sleep(1)
+
             print "Updating replica state..."
             for r in replicas_finished:
                 r.state = 'F'

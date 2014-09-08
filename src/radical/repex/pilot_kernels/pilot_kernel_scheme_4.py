@@ -94,6 +94,7 @@ class PilotKernelScheme4(PilotKernel):
         print "Pilot is now active..."
 
         for i in range(md_kernel.nr_cycles):
+            print "Performing cycle: %s" % (i+1)
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas)
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             cycle_start = datetime.datetime.utcnow()
@@ -108,7 +109,7 @@ class PilotKernelScheme4(PilotKernel):
 
             # sanity check
             for s_replica in submitted_replicas:
-                while ((s_replica.state != 'Executing') and (s_replica.state != 'Done')):
+                while (s_replica.state != 'Executing'):
                     print "Compute Replica RP state is: %s" % s_replica.state
                     print "Waiting for Replica to start execution..."
                     time.sleep(1)
@@ -121,7 +122,7 @@ class PilotKernelScheme4(PilotKernel):
 
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
-                time.sleep(15)
+                time.sleep(120)
                 #####################################################################
                 # computing swap matrix
                 #####################################################################

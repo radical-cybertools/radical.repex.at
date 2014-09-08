@@ -8,13 +8,13 @@
         "cores" : "16"
     },
     "input.MD": {
-        "cycle_time": "45",
+        "cycle_time": "60",
         "input_folder": "namd_inp",
         "input_file_basename": "alanin_base.namd",
         "namd_structure": "alanin.psf",
         "namd_coordinates": "unfolded.pdb",
         "namd_parameters": "alanin.params",
-        "number_of_replicas": "32",
+        "number_of_replicas": "24",
         "replica_cores": "1",
         "min_temperature": "300",
         "max_temperature": "600",

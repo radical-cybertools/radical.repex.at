@@ -43,7 +43,10 @@ class AmberKernelTex(MdKernelTex):
             self.amber_path = inp_file['input.MD']['amber_path']
         except:
             print "Using default Amber path for %s" % inp_file['input.PILOT']['resource']
-            self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
+            try:
+                self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
+            except:
+                print "Amber path for localhost is not defined..."
 
         self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']

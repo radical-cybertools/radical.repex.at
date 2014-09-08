@@ -1,8 +1,9 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
+        "resource": "gordon.sdsc.xsede.org",
         "username" : "antontre",
-        "runtime" : "20",
+        "project" : "unc102",
+        "runtime" : "15",
         "cleanup" : "False",
         "cores" : "16"
     },

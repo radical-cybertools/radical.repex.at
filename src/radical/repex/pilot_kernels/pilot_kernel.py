@@ -88,7 +88,7 @@ class PilotKernel(object):
             pilot_manager.register_callback(pilot_state_cb)
 
             pilot_descripiton = radical.pilot.ComputePilotDescription()
-            if self.resource.startswith("localhost."):
+            if self.resource.startswith("localhost"):
                 pilot_descripiton.resource = "localhost:local"
             else:
                 pilot_descripiton.resource = self.resource

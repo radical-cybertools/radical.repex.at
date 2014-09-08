@@ -55,6 +55,7 @@ class PilotKernelScheme2a(PilotKernel):
         unit_manager.add_pilots(pilot_object)
         
         for i in range(md_kernel.nr_cycles):
+            print "Performing cycle: %s" % (i+1)
             # returns compute objects
             compute_replicas = md_kernel.prepare_replicas_local(replicas)
             submitted_replicas = unit_manager.submit_units(compute_replicas)
