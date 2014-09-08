@@ -1,15 +1,16 @@
 {
     "input.PILOT": {
-        "resource": "trestles.sdsc.xsede.org",
+        "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
         "runtime" : "20",
+        "project" : "TG-MCB090174",
         "cleanup" : "False",
-        "cores" : "32"
+        "cores" : "16"
     },
     "input.MD": {
         "number_of_cycles": "3",
         "cycle_time": "2",
-        "number_of_replicas": "4",
+        "number_of_replicas": "32",
         "amber_path": "/opt/amber/bin/sander.MPI",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
