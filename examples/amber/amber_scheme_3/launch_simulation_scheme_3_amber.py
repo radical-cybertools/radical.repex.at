@@ -13,7 +13,7 @@ import time
 from os import path
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from md_kernels.amber_kernels_tex.amber_kernel_tex_scheme_3 import AmberKernelTexScheme3
+from amber_kernels_tex.amber_kernel_tex_scheme_3 import AmberKernelTexScheme3
 from pilot_kernels.pilot_kernel_scheme_3 import PilotKernelScheme3
 
 #-----------------------------------------------------------------------------------------------------------------------------------
