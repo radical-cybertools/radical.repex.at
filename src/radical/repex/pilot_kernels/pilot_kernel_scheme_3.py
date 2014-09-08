@@ -79,6 +79,8 @@ class PilotKernelScheme3(PilotKernel):
 
         sim_start = datetime.datetime.utcnow()
         runtime = 0.0
+
+        running_replicas = []
         while (runtime < (self.simulation_time * 60.0)):
             ####################################################
             for r in replicas:
@@ -100,6 +102,8 @@ class PilotKernelScheme3(PilotKernel):
                 for r in replicas_to_pilot:
                     r.state = 'R'
 
+            running_replicas = running_replicas + replicas_to_pilot
+
             print "Start sleep..."
             time.sleep( self.cycle_time )
             print "Stop sleep..."
@@ -109,9 +113,14 @@ class PilotKernelScheme3(PilotKernel):
             replicas_finished = []
             while not replicas_finished:
                 # check if replica finished
-                replicas_finished = md_kernel.check_replicas( replicas_to_pilot )
+                replicas_finished = md_kernel.check_replicas( running_replicas )
                 print "%d replicas has finished..." % len(replicas_finished)
                 time.sleep(1)
+
+            for r in running_replicas:
+                for r_f in replicas_finished:
+                    if r.id == r_f.id:
+                        running_replicas.remove(r)
 
             print "Updating replica state..."
             for r in replicas_finished:
