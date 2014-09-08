@@ -20,7 +20,7 @@ langevinDamping 10.0
 
 set steps_per_run   @steps@
 set replica_id      @rid@
-timestep            10.0
+timestep            1.0
 
 set job_output_root @somename@
 set underscore  "_"

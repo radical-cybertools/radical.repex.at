@@ -20,39 +20,12 @@ tar xzf virtualenv-1.10.tar.gz
 python virtualenv-1.10/virtualenv.py $HOME/myenv
 source $HOME/myenv/bin/activate
 ```
-Next you need to install radical-utils:
-```bash
-git clone -b devel https://github.com/radical-cybertools/radical.utils.git
-cd radical.utils
-python setup.py install
-cd ..
-```
-After that saga-python must be installed:
-```bash
-pip install saga-python
-```
-or
-```bash
-easy_install saga-python
-```
-Next radical-pilot must be installed:
-```bash
-git clone https://github.com/radical-cybertools/radical.pilot.git
-cd radical.pilot
-python setup.py install
-cd ..
-```
-Finally you can install RepEx:
+Now you can install RepEx:
 ```bash
 git clone https://github.com/radical-cybertools/RepEx.git
 cd RepEx
 python setup.py install
 ```
-Now you can verify that Radical Pilot was installed correctly:
-```bash
-radicalpilot-version
-```
-This should print Radical Pilot version in terminal
  
 ##Usage
 

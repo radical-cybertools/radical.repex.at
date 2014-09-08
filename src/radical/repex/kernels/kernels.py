@@ -59,7 +59,7 @@ KERNELS = {
     {
         "params":
         {
-            "cores": 32,
+            "cores": 16,
         },
         "kernels":
         {

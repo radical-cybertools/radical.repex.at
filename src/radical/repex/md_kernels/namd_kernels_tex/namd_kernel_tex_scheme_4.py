@@ -234,7 +234,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = "python"
             # each scheme has it's own calculator!
-            calculator_path = os.path.dirname(namd_kernels_tex.namd_matrix_calculator_scheme_2.__file__)
+            calculator_path = os.path.dirname(namd_kernels_tex.namd_matrix_calculator_scheme_4.__file__)
             calculator = calculator_path + "/namd_matrix_calculator_scheme_4.py"
             cu.input_staging = [str(calculator)]
             cu.arguments = ["namd_matrix_calculator_scheme_4.py", r, (replicas[r].cycle-1), len(replicas), basename]
