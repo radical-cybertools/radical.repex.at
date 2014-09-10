@@ -11,7 +11,6 @@
         "number_of_cycles": "3",
         "cycle_time": "2",
         "number_of_replicas": "32",
-        "amber_path": "/opt/amber/bin/sander.MPI",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_parameters": "ala10.prmtop",
@@ -21,6 +20,6 @@
         "replica_cores": "1",
         "min_temperature": "300",
         "max_temperature": "600",
-        "steps_per_cycle": "1000"
+        "steps_per_cycle": "125000"
     }
 }

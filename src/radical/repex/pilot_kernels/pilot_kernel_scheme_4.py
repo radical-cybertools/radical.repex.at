@@ -110,7 +110,7 @@ class PilotKernelScheme4(PilotKernel):
             # sanity check
             for s_replica in submitted_replicas:
                 while (s_replica.state != 'Executing'):
-                    print "Compute Replica RP state is: %s" % s_replica.state
+                    print "Compute Unit (Replica) %s state is: %s" % (s_replica.uid, s_replica.state) 
                     print "Waiting for Replica to start execution..."
                     time.sleep(1)
 
