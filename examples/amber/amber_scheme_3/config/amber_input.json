@@ -3,12 +3,12 @@
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "20",
+        "runtime" : "15",
         "cleanup" : "False",
         "cores" : "16"
     },
     "input.MD": {
-        "cycle_time": "30",
+        "cycle_time": "10",
         "number_of_replicas": "32",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
