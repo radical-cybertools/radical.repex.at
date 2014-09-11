@@ -116,11 +116,13 @@ class PilotKernelScheme4(PilotKernel):
             for s_replica in submitted_replicas:
                 # replica is now cancelled
                 s_replica.cancel()
+
+            for s_replica in submitted_replicas:
                 s_replica.wait(radical.pilot.states.CANCELED)
 
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
-                time.sleep(10)
+                time.sleep(5)
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
