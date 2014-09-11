@@ -1,6 +1,6 @@
 #RepEX: Replica Exchange simulations Package
 
-This package is aimed to provide functionality to run Replica Exchange simulations using various RE schemes and MD kernels. Currectly RepEX supports NAMD and Amber as it's application kernels and allows to perform RE simulations on local and remote systems. Functionality to run three RE schemes is available.
+This package is aimed to provide functionality to run Replica Exchange simulations using various RE schemes and MD kernels. Currently RepEX supports NAMD and Amber as it's application kernels and allows to perform RE simulations on local and remote systems. Functionality to run four RE schemes is available.
 
 ###Theory of Replica Exchange simulations
 
@@ -47,9 +47,8 @@ This scheme can be summarized as follows:
 ###RE scheme 4
 
 This scheme is very similar to scheme 1. The main difference is in definition of the 
-cycle time. Contrary to scheme 1 (and scheme 2) here cycle time is defined as a real time 
-interval. That is all replicas are performing MD and after predifined real time interval 
-elapses each of MD runs is cancelled. For the next cycle is used last of the periodically generated restart files. The main characteristics of this scheme are:
+simulation cycle. Contrary to scheme 1 (and scheme 2) here simulation cycle is defined as 
+a real time interval. That is, all replicas are performing MD and after predefined real time interval elapses each of MD runs is cancelled. For the next cycle is used last of the periodically generated restart files. The main characteristics of this scheme are:
 * number of replicas equals to the number of allocated compute cores
 * simultaneous MD
 * simultaneous exchange
@@ -122,7 +121,10 @@ It is required to change directory to:
 ```
 RepEx/examples/<kernel_name>/<scheme_nr> 
 ```
-before running any of the examples
+If user intends to run simulations on a remote resource password-less access via ssh must be configured. More information can be found at:
+```
+http://www.linuxproblem.org/art_9.html
+```
 
 ####Usage example for scheme 1 with Amber kernel
 
