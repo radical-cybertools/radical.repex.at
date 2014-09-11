@@ -138,7 +138,7 @@ Suggested changes are:
 * "project" must be changed to allocation number on target resource
 * if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 
-For scheme 1 "number_of_replicas" and "cores" values must be equal. For this scheme exchange step is performed remotely. To run this example in terminal execute: 
+For scheme 1 "number_of_replicas" and "cores" values must be equal. For this scheme exchange step is performed remotely. To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_1/): 
 ```bash
 python launch_simulation_scheme_1_amber.py --input='config/amber_input.json'
 ```
@@ -157,7 +157,7 @@ Suggested changes are:
 * if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 * "number_of_replicas" must be greater than "cores". Recommended "cores" value is 50% of the "number_of_replicas"
 
-In this example exchange step is performed remotelly. To run this example in terminal execute: 
+In this example exchange step is performed remotelly. To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_2/): 
 ```bash
 python launch_simulation_scheme_2_amber.py --input='config/amber_input.json'
 ```
@@ -178,7 +178,7 @@ Suggested changes are:
 * if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 * "number_of_replicas" must be greater than "cores". Recommended "cores" value is 50% of the "number_of_replicas" 
 
-To run this example in terminal execute: 
+To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_2a/): 
 ```bash
 python launch_simulation_scheme_2a_amber.py --input='config/amber_input.json'
 ```
@@ -197,7 +197,7 @@ As you can see "number_of_cycles" field is gone but is added field "cycle_time".
 * if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 * "number_of_replicas" must be greater than "cores". Recommended "cores" value is 50% of the "number_of_replicas" 
 
-To run this example in terminal execute: 
+To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_3/): 
 ```bash
 python launch_simulation_scheme_3_amber.py --input='config/amber_input.json'
 ```
