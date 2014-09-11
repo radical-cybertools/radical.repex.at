@@ -110,19 +110,17 @@ class PilotKernelScheme4(PilotKernel):
             # sanity check
             for s_replica in submitted_replicas:
                 while (s_replica.state != 'Executing'):
-                    print "Compute Unit (Replica) %s state is: %s" % (s_replica.uid, s_replica.state) 
-                    print "Waiting for Replica to start execution..."
+                    print "Waiting for Compute Unit (Replica) %s to start execution (state is: %s)" % (s_replica.uid, s_replica.state) 
                     time.sleep(1)
 
             for s_replica in submitted_replicas:
-                print "Replica uid: %s" % s_replica._uid
                 # replica is now cancelled
                 s_replica.cancel()
                 s_replica.wait(radical.pilot.states.CANCELED)
 
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
-                time.sleep(120)
+                time.sleep(10)
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
