@@ -204,3 +204,15 @@ python launch_simulation_scheme_3_amber.py --input='config/amber_input.json'
 This will run RE temperature exchange simulation involving 32 replicas on target system.
 
 ####Usage example for scheme 4 with Amber kernel
+
+This scheme also has "cycle_time" field instead of "number_of_cycles" field. For the provided example value of "cycle_time" is relatively small (5 seconds). This is motivated by the need to cancel MD runs before they have actually finished. For their own examples users will need to adjust this parameter together with the "steps_per_cycle" parameter, which defines how many simulation time steps MD run should perform in case if it doesn't get cancelled. Notice, in comparison to all previous examples here value of "steps_per_cycle" parameter is significantly larger (250000). Again, users must change:
+* "resource" to: "stampede.tacc.utexas.edu", "trestles.sdsc.xsede.org", "gordon.sdsc.xsede.org" or "localhost"
+* "username" to username assigned to user on that resource
+* "project" to allocation number on target resource
+* "number_of_replicas" must be equal to "cores"
+
+To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_4/): 
+```bash
+python launch_simulation_scheme_4_amber.py --input='config/amber_input.json'
+```
+This will run RE temperature exchange simulation involving 16 replicas on target system.
