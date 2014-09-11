@@ -20,9 +20,14 @@ from pilot_kernels.pilot_kernel_scheme_4 import PilotKernelScheme4
 if __name__ == '__main__':
     """Runs RE simulation using scheme 4. 
 
-    RE scheme 4:
-    TODO...
-
+    RE scheme 2:
+    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
+    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
+    Global synchronization barrier.   
+    - Number of replicas equals number of allocated cores for both MD and exchange step.
+    - Simulation cycle is defined as a real time interval.
+    - Exchange probabilities are determined using Gibbs sampling.
+    - Exchange step is performed in decentralized fashion on target resource.
     """
  
     print "*********************************************************************"
