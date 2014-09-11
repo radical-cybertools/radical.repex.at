@@ -38,6 +38,7 @@ This scheme is asynchronous - MD run on target resource is overlapped with excha
 * concurrent MD
 * only fraction of replicas participate in exchange step
 * during time period of simulation cycle no replicas participate in exchange step
+
 This scheme can be summarized as follows:
  * All replicas are initialized and assigned a "waiting" state
  * While elapsed time is less that the total simulation time, do:  
