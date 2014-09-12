@@ -203,7 +203,7 @@ class AmberKernelTexScheme2(AmberKernelTex):
             cu.input_staging = [str(calculator)]
             cu.arguments = ["amber_matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
-            cu.output_data = [str(matrix_col)]
+            cu.output_staging = [str(matrix_col)]
             exchange_replicas.append(cu)
 
         return exchange_replicas
