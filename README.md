@@ -23,6 +23,8 @@ This is the conventional RE scheme where all replicas first run MD for a fixed p
 
 ###RE scheme 2
 
+![](https://github.com/radical-cybertools/RepEx/blob/gh-pages/images/Scheme_s2.jpg)
+
 The main difference of this scheme from scheme 1 is in number of compute cores used for simulation, which is less than the number of replicas (typically 50% of the number of replicas). This small detail results in both MD run and exchange step being performed concurrently. At the same time global synchronization barrier is still present - no replica can start exchange before all replicas has finished MD and vice versa. We define exchange step as concurrent since this step isn't performed simultaneouslhy (in parallel) for all replicas. Similarly to scheme 1 in this scheme simulation cycle for each replica is defined as fixed number of simulation time-steps. This scheme can be summarized as:
 * number of allocated compute cores equals 50% of replicas
 * concurrent MD
@@ -32,6 +34,8 @@ The main difference of this scheme from scheme 1 is in number of compute cores u
 * global barrier between MD and exchange step
 
 ###RE scheme 3
+
+![](https://github.com/radical-cybertools/RepEx/blob/gh-pages/images/Scheme_s3.jpg)
 
 This scheme is asynchronous - MD run on target resource is overlapped with exchange step. Similarly to scheme 2, the number of replicas exceeds allocated compute cores. Simulation cycle is defined as a fixed time interval during which replicas are performing MD run. After cycle time elapses, some of the replicas are still performing MD run but some are ready for exchange. At this point exchange step involving replicas which has finished MD run is performed. Main characteristics of this scheme are:
 * number of allocated compute cores equals 50% of replicas
