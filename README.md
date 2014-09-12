@@ -86,7 +86,7 @@ The first step in installing RepEx is to create and activate a fresh Python virt
 virtualenv $HOME/myenv 
 source $HOME/myenv/bin/activate
 ```
-In case if virtual environment is not available on your machine, follow these instructions:
+In case if virtualenv is not available on your machine, follow these instructions:
 ```bash
 wget --no-check-certificate https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
 tar xzf virtualenv-1.10.tar.gz
