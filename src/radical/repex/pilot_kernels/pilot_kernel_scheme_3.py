@@ -73,7 +73,7 @@ class PilotKernelScheme3(PilotKernel):
         # making sure that pilot is running
         current_state = pilot_object.state
         while current_state != 'Active':
-            print "pilot state: %s" % current_state
+            print "Pilot state: %s" % current_state
             time.sleep(5)
             current_state = pilot_object.state
 

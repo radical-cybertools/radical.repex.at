@@ -101,7 +101,9 @@ class PilotKernelScheme2(PilotKernel):
 
         for i in range(md_kernel.nr_cycles):
             print "Performing cycle: %s" % (i+1)
+            print "Preparing %d replicas for MD run" % self.nr_replicas
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas)
+            print "Submitting %d replicas for MD run" % self.nr_replicas
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             
@@ -110,15 +112,19 @@ class PilotKernelScheme2(PilotKernel):
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
+                print "Preparing %d replicas for Exchange run" % self.nr_replicas
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas)
+                print "Submitting %d replicas for Exchange run" % self.nr_replicas
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
 
                 #####################################################################
                 # compose swap matrix from individual files
                 #####################################################################
+                print "Composing swap matrix from individual files for all replicas"
                 swap_matrix = self.compose_swap_matrix(replicas)
             
+                print "Performing exchange"
                 for r_i in replicas:
                     r_j = md_kernel.gibbs_exchange(r_i, replicas, swap_matrix)
                     if (r_j != r_i):
