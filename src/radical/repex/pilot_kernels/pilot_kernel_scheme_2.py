@@ -101,9 +101,9 @@ class PilotKernelScheme2(PilotKernel):
 
         for i in range(md_kernel.nr_cycles):
             print "Performing cycle: %s" % (i+1)
-            print "Preparing %d replicas for MD run" % self.nr_replicas
+            print "Preparing %d replicas for MD run" % md_kernel.replicas
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas)
-            print "Submitting %d replicas for MD run" % self.nr_replicas
+            print "Submitting %d replicas for MD run" % md_kernel.replicas
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             
@@ -112,9 +112,9 @@ class PilotKernelScheme2(PilotKernel):
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
-                print "Preparing %d replicas for Exchange run" % self.nr_replicas
+                print "Preparing %d replicas for Exchange run" % md_kernel.replicas
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas)
-                print "Submitting %d replicas for Exchange run" % self.nr_replicas
+                print "Submitting %d replicas for Exchange run" % md_kernel.replicas
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
 

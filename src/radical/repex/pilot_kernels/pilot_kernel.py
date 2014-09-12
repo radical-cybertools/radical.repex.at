@@ -42,14 +42,8 @@ class PilotKernel(object):
         try:
             self.cores = int(inp_file['input.PILOT']['cores'])
         except:
-            try:
-                self.nr_replicas = int(inp_file['input.MD']['number_of_replicas'])
-            except:
-                print "Field 'number_of_replicas' must be defined!"
-
-            #node_size = KERNELS[self.resource]["params"]["cores"]
-            self.cores = nr_replicas / 2
-            print "Using default core count equal %s" %  self.cores
+            print "Field 'cores' must be defined"
+            
         self.runtime = int(inp_file['input.PILOT']['runtime'])
         try:
             self.dburl = inp_file['input.PILOT']['mongo_url']
