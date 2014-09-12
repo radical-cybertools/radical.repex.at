@@ -11,6 +11,8 @@ In Parallel Tempering (Replica Exchange) simulations N replicas of the original 
 
 ###RE scheme 1
 
+![](https://github.com/radical-cybertools/RepEx/blob/gh-pages/images/Scheme_s1.jpg)
+
 This is the conventional RE scheme where all replicas first run MD for a fixed period of simulation time (e.g. 2 ps) and then perform an exchange step. In this scheme a global barrier is present - all replicas must first finish MD run and only then exchnage step can occur. Main characteristics of this scheme are:
 * number of replicas equals to the number of allocated compute cores
 * simultaneous MD
@@ -89,7 +91,7 @@ cd RepEx
 python setup.py install
 ```
  
- 
+
 ##Usage
 
 Current version of RepEx code supports four RE schemes. Usage examples for each scheme using each of the two supported MD kernels are provided in:
