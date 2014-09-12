@@ -167,27 +167,6 @@ python launch_simulation_scheme_2_amber.py --input='config/amber_input.json'
 ```
 This will run RE temperature exchange simulation involving 32 replicas on target system. Similarly as for scheme 1, generated outputs can be found in replica_x directories.
 
-####Usage example for scheme 2a with Amber kernel
-
-This example demonstrates functionality to perform exchange step locally.
-
-First we modify input file:
-```
-RepEx/examples/amber/amber_scheme_2a/config/amber_input.json
-```
-Suggested changes are:
-* "resource" must be: "stampede.tacc.utexas.edu", "trestles.sdsc.xsede.org", "gordon.sdsc.xsede.org" or "localhost"
-* "username" must be changed to username assigned to user on that resource
-* "project" must be changed to allocation number on target resource
-* if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
-* "number_of_replicas" must be greater than "cores". Recommended "cores" value is 50% of the "number_of_replicas" 
-
-To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_2a/): 
-```bash
-python launch_simulation_scheme_2a_amber.py --input='config/amber_input.json'
-```
-This will run RE temperature exchange simulation involving 32 replicas on target system.
-
 ####Usage example for scheme 3 with Amber kernel
 
 For scheme 3 input file is slightly different than for all previous schemes:
