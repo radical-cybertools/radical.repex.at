@@ -68,6 +68,11 @@ a real time interval. That is, all replicas are performing MD and after predefin
 
 ##Installation instructions
 
+First you need to create a directory in your home directory for this tutorial:
+```
+mkdir tutorial
+cd tutorial
+``` 
 One of the prerequisites for RepEx installation is Python version >= 2.7. You can check your Python version with:
 ```bash
 python -V
@@ -94,21 +99,21 @@ git clone https://github.com/radical-cybertools/RepEx.git
 cd RepEx
 python setup.py install
 ```
- 
+If everythig installed successfully you are ready to go.
 
 ##Usage
 
 Current version of RepEx code supports four RE schemes. Usage examples for each scheme using each of the two supported MD kernels are provided in:
 ```
-RepEx/examples/<kernel_name>/<scheme_nr> 
+/examples/<kernel_name>/<scheme_nr> 
 ```
 Before running any of the provided examples user must make appropriate changes to:
 ```
-RepEx/examples/<kernel_name>/<scheme_nr>/config/<kernel_name>_input.json 
+/examples/<kernel_name>/<scheme_nr>/<kernel_name>_input.json 
 ```
-It is required to change directory to:
+To run each of the provided examples, it is required to change directory to:
 ```
-RepEx/examples/<kernel_name>/<scheme_nr> 
+/examples/<kernel_name>/<scheme_nr> 
 ```
 If user intends to run simulations on a remote resource password-less access via ssh must be configured. More information can be found at:
 ```
@@ -117,70 +122,99 @@ http://www.linuxproblem.org/art_9.html
 
 ####Usage example for scheme 1 with Amber kernel
 
-First user must make appropriate changes to:
+First we must change directory to:
 ```
-RepEx/examples/amber/amber_scheme_1/config/amber_input.json
+cd examples/amber/amber_scheme_1/
+```
+Then, make appropriate changes to file:
+```
+amber_input.json
 ```
 Suggested changes are:
-* "resource" must be: "stampede.tacc.utexas.edu", "trestles.sdsc.xsede.org", "gordon.sdsc.xsede.org" or "localhost"
+* "resource" must be: "stampede.tacc.utexas.edu"
 * "username" must be changed to username assigned to user on that resource
 * "project" must be changed to allocation number on target resource
 * if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 
-For scheme 1 "number_of_replicas" and "cores" values must be equal. For this scheme exchange step is performed remotely. To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_1/): 
+For scheme 1 "number_of_replicas" and "cores" values must be equal. For this scheme exchange step is performed remotely. To run this example in terminal execute: 
 ```bash
-python launch_simulation_scheme_1_amber.py --input='config/amber_input.json'
+python launch_simulation_scheme_1_amber.py --input='amber_input.json'
 ```
-This will run RE temperature exchange simulation involving 16 replicas on target system. During the simulation input files for each of the replicas will be generated. After simulation is done in current directory you will see a number of new "replica_x" directories. These directories contain input and output files generated for a given replica.
+This will run RE temperature exchange simulation involving 16 replicas on target system. During the simulation input files for each of the replicas will be generated. After simulation is done in current directory you will see a number of new "replica_x" directories. These directories contain input and output files generated for a given replica. 
 
 ####Usage example for scheme 2 with Amber kernel
 
-Again, we start by modifying input file:
+If you have run previous example change directory to:
 ```
-RepEx/examples/amber/amber_scheme_2/config/amber_input.json
+cd ../amber_scheme_2/
+```
+If this is first example you are trying change directory to:
+```
+cd examples/amber/amber_scheme_2/
+```
+Again, we need to modify input file:
+```
+amber_input.json
 ```
 Suggested changes are:
-* "resource" must be: "stampede.tacc.utexas.edu", "trestles.sdsc.xsede.org", "gordon.sdsc.xsede.org" or "localhost"
+* "resource" must be: "stampede.tacc.utexas.edu"
 * "username" must be changed to username assigned to user on that resource
 * "project" must be changed to allocation number on target resource
-* if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 * "number_of_replicas" must be greater than "cores". Recommended "cores" value is 50% of the "number_of_replicas"
+* if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 
-In this example exchange step is performed remotelly. To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_2/): 
+In this example exchange step is performed remotelly. To run this example in terminal execute: 
 ```bash
-python launch_simulation_scheme_2_amber.py --input='config/amber_input.json'
+python launch_simulation_scheme_2_amber.py --input='amber_input.json'
 ```
 This will run RE temperature exchange simulation involving 32 replicas on target system. Similarly as for scheme 1, generated outputs can be found in replica_x directories.
 
 ####Usage example for scheme 3 with Amber kernel
 
-For scheme 3 input file is slightly different than for all previous schemes:
+If you have run previous example change directory to:
 ```
-RepEx/examples/amber/amber_scheme_3/config/amber_input.json
+cd ../amber_scheme_3/
+```
+If this is first example you are trying change directory to:
+```
+cd examples/amber/amber_scheme_3/
+```
+For scheme 3 input file is slightly different than for all previous schemes. Open:
+```
+amber_input.json
 ```
 As you can see "number_of_cycles" field is gone but is added field "cycle_time". It is highly recommended to adjust "cycle_time" value to your setup, otherwise you will see either few or all replicas being submitted for the next cycle. Other suggested changes are:
-* "resource" must be: "stampede.tacc.utexas.edu", "trestles.sdsc.xsede.org", "gordon.sdsc.xsede.org" or "localhost"
+* "resource" must be: "stampede.tacc.utexas.edu"
 * "username" must be changed to username assigned to user on that resource
 * "project" must be changed to allocation number on target resource
-* if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
+* if you intend to run simulation on your local  (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 * "number_of_replicas" must be greater than "cores". Recommended "cores" value is 50% of the "number_of_replicas" 
 
-To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_3/): 
+To run this example in terminal execute: 
 ```bash
-python launch_simulation_scheme_3_amber.py --input='config/amber_input.json'
+python launch_simulation_scheme_3_amber.py --input='amber_input.json'
 ```
 This will run RE temperature exchange simulation involving 32 replicas on target system.
 
 ####Usage example for scheme 4 with Amber kernel
 
+If you have run previous example change directory to:
+```
+cd ../amber_scheme_4/
+```
+If this is first example you are trying change directory to:
+```
+cd examples/amber/amber_scheme_4/
+```
 This scheme also has "cycle_time" field instead of "number_of_cycles" field. For the provided example value of "cycle_time" is relatively small (5 seconds). This is motivated by the need to cancel MD runs before they have actually finished. For their own examples users will need to adjust this parameter together with the "steps_per_cycle" parameter, which defines how many simulation time steps MD run should perform in case if it doesn't get cancelled. Notice, in comparison to all previous examples here value of "steps_per_cycle" parameter is significantly larger (250000). Again, users must change:
-* "resource" to: "stampede.tacc.utexas.edu", "trestles.sdsc.xsede.org", "gordon.sdsc.xsede.org" or "localhost"
+* "resource" to: "stampede.tacc.utexas.edu"
 * "username" to username assigned to user on that resource
 * "project" to allocation number on target resource
 * "number_of_replicas" must be equal to "cores"
+* if you intend to run simulation on your local  (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 
-To run this example in terminal execute (from RepEx/examples/amber/amber_scheme_4/): 
+To run this example in terminal execute: 
 ```bash
-python launch_simulation_scheme_4_amber.py --input='config/amber_input.json'
+python launch_simulation_scheme_4_amber.py --input='amber_input.json'
 ```
 This will run RE temperature exchange simulation involving 16 replicas on target system.
