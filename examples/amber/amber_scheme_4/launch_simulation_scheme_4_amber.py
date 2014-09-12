@@ -60,8 +60,7 @@ if __name__ == '__main__':
     # finally we are moving all files to individual replica directories
     move_output_files(work_dir_local, base, replicas ) 
 
+    session.close()
     print "Simulation successfully finished!"
     print "Please check output files in replica_x directories."
-
-    session.close()
 
