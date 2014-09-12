@@ -99,7 +99,7 @@ git clone https://github.com/radical-cybertools/RepEx.git
 cd RepEx
 python setup.py install
 ```
-If everythig installed successfully you are ready to go.
+If installation completed successfully you are ready to go.
 
 ##Usage
 
