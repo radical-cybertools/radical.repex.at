@@ -43,7 +43,7 @@ class PilotKernel(object):
             self.cores = int(inp_file['input.PILOT']['cores'])
         except:
             try:
-                nr_replicas = int(inp_file['input.MD']['number_of_replicas'])
+                self.nr_replicas = int(inp_file['input.MD']['number_of_replicas'])
             except:
                 print "Field 'number_of_replicas' must be defined!"
 
