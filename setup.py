@@ -19,6 +19,6 @@ setup(
     scripts=[],
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Module',
-    long_description=open('README.md').read()
+    long_description=open('README.md').read(),
     install_requires=['radical.pilot']
 )
