@@ -102,7 +102,7 @@ def get_historical_data(history_name):
 
             #######################################
             # getting stopped_i_run
-            hist_name = sorted_restart_files[0]
+            hist_name = sorted_restart_files[1]
             
             i_run_list = []
             for char in reversed(hist_name):
