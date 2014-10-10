@@ -20,7 +20,7 @@ from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
 if __name__ == '__main__':
     """Runs RE simulation using pattern B. 
 
-    RE scheme 2:
+    RE pattern B:
     - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
     Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
     In other words global barrier is present.   
