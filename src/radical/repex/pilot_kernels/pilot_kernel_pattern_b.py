@@ -18,8 +18,8 @@ from pilot_kernels.pilot_kernel import *
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class PilotKernelScheme2(PilotKernel):
-    """This class is responsible for performing all Radical Pilot related operations for RE scheme 2.
+class PilotKernelPatternB(PilotKernel):
+    """This class is responsible for performing all Radical Pilot related operations for RE pattern B.
     This includes pilot launching, running main loop of RE simulation and using RP API for data staging in and out. 
 
     RE pattern B:
@@ -86,7 +86,7 @@ class PilotKernelScheme2(PilotKernel):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def run_simulation(self, replicas, pilot_object, session,  md_kernel ):
-        """This function runs the main loop of RE simulation for RE scheme 2a.
+        """This function runs the main loop of RE simulation for RE pattern B.
 
         Arguments:
         replicas - list of Replica objects
@@ -128,10 +128,8 @@ class PilotKernelScheme2(PilotKernel):
                 for r_i in replicas:
                     r_j = md_kernel.gibbs_exchange(r_i, replicas, swap_matrix)
                     if (r_j != r_i):
-                        # swap temperatures                    
-                        temperature = r_j.new_temperature
-                        r_j.new_temperature = r_i.new_temperature
-                        r_i.new_temperature = temperature
+                        # swap parameters
+                        md_kernel.exchange_params(r_i, r_j)               
                         # record that swap was performed
                         r_i.swap = 1
                         r_j.swap = 1
