@@ -46,72 +46,6 @@ class AmberKernelTexScheme4(AmberKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def build_input_file(self, replica):
-        """Builds input file for replica, based on template input file ala10.mdin
-        """
-
-        basename = self.inp_basename
-        template = self.inp_basename[:-5] + ".mdin"
-            
-        new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
-        outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
-        old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-        replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
-        replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
-        replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
-
-        if (replica.cycle == 0):
-            first_step = 0
-        elif (replica.cycle == 1):
-            first_step = int(self.cycle_steps)
-        else:
-            first_step = (replica.cycle - 1) * int(self.cycle_steps)
-
-
-        if (replica.cycle == 0):
-            restraints = self.amber_restraints
-        else:
-            ##################################
-            # changing first path from absolute 
-            # to relative so that Amber can 
-            # process it
-            ##################################
-            path_list = []
-            for char in reversed(replica.first_path):
-                if char == '/': break
-                path_list.append( char )
-
-            modified_first_path = ''
-            for char in reversed( path_list ):
-                modified_first_path += char
-
-            modified_first_path = '../' + modified_first_path.rstrip()
-            restraints = modified_first_path + "/" + self.amber_restraints
-            
-
-        try:
-            r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
-        except IOError:
-            print 'Warning: unable to access template file %s' % template
-
-        tbuffer = r_file.read()
-        r_file.close()
-
-        tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
-        tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
-        tbuffer = tbuffer.replace("@rstr@", restraints )
-        
-        replica.cycle += 1
-
-        try:
-            w_file = open(new_input_file, "w")
-            w_file.write(tbuffer)
-            w_file.close()
-        except IOError:
-            print 'Warning: unable to access file %s' % new_input_file
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
     def prepare_replicas_for_md(self, replicas):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
         specified input/output files to be transferred to/from target system. Note: input files for first and 
@@ -149,7 +83,6 @@ class AmberKernelTexScheme4(AmberKernelTex):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
-
                 cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
                 #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
