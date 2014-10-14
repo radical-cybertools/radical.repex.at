@@ -50,7 +50,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     # OK
-    def build_input_file(self, replica):
+    def build_input_file(self, replica, shared_data_url):
         """Builds input file for replica, based on template input file ala10.mdin
         """
 
@@ -71,25 +71,26 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
-        if (replica.cycle == 0):
-            restraints = self.amber_restraints
-        else:
+        restraints = self.amber_restraints
+        #if (replica.cycle == 0):
+        #    restraints = self.amber_restraints
+        #else:
             ##################################
             # changing first path from absolute 
             # to relative so that Amber can 
             # process it
             ##################################
-            path_list = []
-            for char in reversed(replica.first_path):
-                if char == '/': break
-                path_list.append( char )
+            #path_list = []
+            #for char in reversed(replica.first_path):
+            #    if char == '/': break
+            #    path_list.append( char )
 
-            modified_first_path = ''
-            for char in reversed( path_list ):
-                modified_first_path += char
+            #modified_first_path = ''
+            #for char in reversed( path_list ):
+            #    modified_first_path += char
 
-            modified_first_path = '../' + modified_first_path.rstrip()
-            restraints = modified_first_path + "/" + self.amber_restraints
+            #modified_first_path = '../' + modified_first_path.rstrip()
+            #restraints = modified_first_path + "/" + self.amber_restraints
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
@@ -112,9 +113,30 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
         except IOError:
             print 'Warning: unable to access file %s' % new_input_file
 
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+    
+    def prepare_shared_md_input(self):
+        """Creates a Compute Unit for shared data staging in
+        these are Amber input files shared between all replicas
+        """
+
+        shared_data_unit = radical.pilot.ComputeUnitDescription()
+
+        crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
+        parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
+        rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+
+        shared_data_unit.executable = "/bin/true"
+        shared_data_unit.cores = 1
+        shared_data_unit.input_staging = [str(crds), str(parm)]
+ 
+        return shared_data_unit
+
+
 #-----------------------------------------------------------------------------------------------------------------------------------
     # OK
-    def prepare_replicas_for_md(self, replicas):
+    def prepare_replicas_for_md(self, replicas, shared_data_url):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
         specified input/output files to be transferred to/from target system. Note: input files for first and 
         subsequent simulation cycles are different.
@@ -127,46 +149,64 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
         """
         compute_replicas = []
         for r in range(len(replicas)):
-            self.build_input_file(replicas[r])
-            input_file = "%s_%d_%d.mdin" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
+            # need to avoid this step!
+            self.build_input_file(replicas[r], shared_data_url)
+      
+            # in principle restraint file should be moved to shared directory
+            rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
+            input_file = "%s_%d_%d.mdin" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
             # this is not transferred back
             output_file = "%s_%d_%d.mdout" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
 
             new_coor = replicas[r].new_coor
             new_traj = replicas[r].new_traj
             new_info = replicas[r].new_info
-
             old_coor = replicas[r].old_coor
             old_traj = replicas[r].old_traj
 
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
-                crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-                parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-                rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
-
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
-                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
+                cu.arguments = ["-O", "-i ", input_file, 
+                                      "-o ", output_file, 
+                                      "-p ", shared_data_url + "/" + self.amber_parameters, 
+                                      "-c ", shared_data_url + "/" + self.amber_coordinates, 
+                                      "-r ", new_coor, 
+                                      "-x ", new_traj, 
+                                      "-inf ", new_info]
+
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
+                cu.input_staging = [str(input_file), str(rstr)]
+                #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
                 #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
 
-                old_coor = replicas[r].old_path + "/" + self.amber_coordinates
-                crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-                parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-                rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+                #old_coor = replicas[r].old_path + "/" + self.amber_coordinates
+
+                #crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
+                #parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
+                #rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
-                cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
+                cu.arguments = ["-O", "-i ", input_file, 
+                                      "-o ", output_file, 
+                                      "-p ", shared_data_url + "/" + self.amber_parameters, 
+                                      "-c ", shared_data_url + "/" + self.amber_coordinates, 
+                                      "-r ", new_coor, 
+                                      "-x ", new_traj, 
+                                      "-inf ", new_info]
+
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
+
+                cu.input_staging = [str(input_file), str(rstr)]
+                #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
                 #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
 
@@ -192,15 +232,18 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             # name of the file which contains swap matrix column data for each replica
             matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
             basename = self.inp_basename
+
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = "python"
             # each scheme has it's own calculator!
+            # consider moving this in shared input data folder!
             calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
             calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+
+            # in principle we can transfer this just once and use it multiple times later during the simulation
             cu.input_staging = [str(calculator)]
             cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
-            cu.output_staging = [str(matrix_col)]
             exchange_replicas.append(cu)
 
         return exchange_replicas

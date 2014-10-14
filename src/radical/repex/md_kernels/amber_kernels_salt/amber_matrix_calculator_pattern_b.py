@@ -80,7 +80,7 @@ def get_historical_data(history_name):
                      temp = float(lines[i].split()[8])
                  elif "EPtot" in lines[i]:
                      eptot = float(lines[i].split()[8])
-             print "history file %s found!" % ( history_name ) 
+             #print "history file %s found!" % ( history_name ) 
          except:
              pass 
          os.chdir("../")
@@ -182,7 +182,7 @@ if __name__ == '__main__':
 
     # getting history data for self
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
-    print "history name: %s" % history_name
+    #print "history name: %s" % history_name
     replica_temp, replica_energy, path_to_replica_folder = get_historical_data( history_name )
 
     # getting history data for all replicas
@@ -205,15 +205,11 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
-    try:
-        r_file = open( (os.path.join(pwd, matrix_col) ), "w")
-        for item in swap_column:
-            r_file.write( str(item) + " " )
-        # writing path to replica folder
-        r_file.write("\n")
-        r_file.write( str(path_to_replica_folder) )
-        r_file.close()
-    except IOError:
-        print 'Warning: unable to create column file %s for replica %s' % (matrix_col, replica_id) 
+    # printing replica id
+    print str(replica_id).rstrip()
+    # printing swap column
+    for item in swap_column:
+        print item,
 
-
+    # printing path
+    print str(path_to_replica_folder).rstrip()

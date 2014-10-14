@@ -40,8 +40,11 @@ class PilotKernelPatternB(PilotKernel):
         PilotKernel.__init__(self, inp_file)
 
 #-----------------------------------------------------------------------------------------------------------------------------------
+    def getkey(self, item):
+        return item[0]
 
-    def compose_swap_matrix(self, replicas):
+
+    def compose_swap_matrix(self, replicas, matrix_columns):
         """Creates a swap matrix from matrix_column_x.dat files. 
         matrix_column_x.dat - is populated on targer resource and then transferred back. This
         file is created for each replica and has data for one column of swap matrix. In addition to that,
@@ -55,31 +58,24 @@ class PilotKernelPatternB(PilotKernel):
         swap_matrix - 2D list of lists of dimension-less energies, where each column is a replica 
         and each row is a state
         """
-        base_name = "matrix_column"
  
         # init matrix
         swap_matrix = [[ 0. for j in range(len(replicas))] 
              for i in range(len(replicas))]
 
-        for r in replicas:
-            column_file = base_name + "_" + str(r.id) + "_" + str(r.cycle-1) + ".dat"       
-            try:
-                f = open(column_file)
-                lines = f.readlines()
-                f.close()
-                data = lines[0].split()
-                # populating one column at a time
-                for i in range(len(replicas)):
-                    swap_matrix[i][r.id] = float(data[i])
+        matrix_columns = sorted(matrix_columns)
 
-                # setting old_path and first_path for each replica
-                if ( r.cycle == 1 ):
-                    r.first_path = lines[1]
-                    r.old_path = lines[1]
-                else:
-                    r.old_path = lines[1]
-            except:
-                raise
+        for r in replicas:
+            # populating one column at a time
+            for i in range(len(replicas)):
+                swap_matrix[i][r.id] = float(matrix_columns[r.id][i+1])
+
+            # setting old_path and first_path for each replica
+            if ( r.cycle == 1 ):
+                r.first_path = matrix_columns[r.id][len(replicas)+1]
+                r.old_path = matrix_columns[r.id][len(replicas)+1]
+            else:
+                r.old_path = matrix_columns[r.id][len(replicas)+1]
 
         return swap_matrix
 
@@ -99,10 +95,18 @@ class PilotKernelPatternB(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
+        # staging shared input data in
+        shared_data_unit_descr = md_kernel.prepare_shared_md_input()
+        staging_unit = unit_manager.submit_units(shared_data_unit_descr)
+        unit_manager.wait_units()
+
+        # get the path to the directory containing the shared data
+        shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
+
         for i in range(md_kernel.nr_cycles):
             print "Performing cycle: %s" % (i+1)
             print "Preparing %d replicas for MD run" % md_kernel.replicas
-            compute_replicas = md_kernel.prepare_replicas_for_md(replicas)
+            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
             print "Submitting %d replicas for MD run" % md_kernel.replicas
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
@@ -118,11 +122,19 @@ class PilotKernelPatternB(PilotKernel):
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
 
+                matrix_columns = []
+                for r in submitted_replicas:
+                    # RPM - Radical Pilot Magic! 
+                    # calculated columns of swap matrix are available "immediately"
+                    # without need for file transfers
+                    d = str(r.stdout)
+                    matrix_columns.append(d.split())
+
                 #####################################################################
                 # compose swap matrix from individual files
                 #####################################################################
                 print "Composing swap matrix from individual files for all replicas"
-                swap_matrix = self.compose_swap_matrix(replicas)
+                swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
                 print "Performing exchange"
                 for r_i in replicas:
