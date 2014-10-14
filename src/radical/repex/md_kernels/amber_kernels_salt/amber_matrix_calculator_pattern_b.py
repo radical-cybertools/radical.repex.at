@@ -45,6 +45,17 @@ def get_historical_data(history_name):
     path_to_replica_folder - path to computeUnit directory on a target resource where all
     input/output files for a given replica recide.
        Get temperature and potential energy from mdinfo file.
+
+    ------------Haoyuan 2014/10/13--------------
+    This function obtain temperature and potential from mdinfo files, which is not the way to go in the long run.
+
+    The newly added "get_temperature" function will get temperature from input file (in this way we get the correct temperature 
+    we want, rather than the instanenous temperature.
+
+    The "get_potential" function will try to call AMBER to compute potential.
+
+    Further code reorganization required when the new functions are done...
+
     """
     home_dir = os.getcwd()
     os.chdir("../")
@@ -76,6 +87,82 @@ def get_historical_data(history_name):
  
     os.chdir(home_dir)
     return temp, eptot, path_to_replica_folder
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+def get_temperature(input_name):
+    """This function gets replica temperature from input.
+       Actually I think there's a way we can get the temperature value passed from some simulation objects to here.
+       That's gonna be a better way to do.
+    """
+
+    home_dir = os.getcwd()
+    os.chdir("../")
+
+    # getting all cu directories
+    replica_dirs = []
+    for name in os.listdir("."):
+        if os.path.isdir(name):
+            replica_dirs.append(name)
+
+    temp = 0.0    #temperature
+    for directory in replica_dirs:
+         os.chdir(directory)
+         try:
+             f = open(input_name)
+             lines = f.readlines()
+             f.close()
+             path_to_replica_folder = os.getcwd()
+             for i in range(len(lines)):
+                 if "temp0" in lines[i]:
+                     temp_idx = lines[i].index("temp0")+5
+                     temp = float(lines[i][temp_idx:].split(",")[0].replace("=",""))    #doesn't look very good but works for now
+             print "input file %s found!" % ( input_name )
+         except:
+             pass
+         os.chdir("../")
+
+    os.chdir(home_dir)
+    return temp, path_to_replica_folder
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+def get_potential(history_name):
+    """Doesn't change too much from the get_historical_data function but when calling this function,
+       the history_name should be the mdinfo generated in the single-point energy calculation which called Amber.
+    """
+
+    home_dir = os.getcwd()
+    os.chdir("../")
+
+    # getting all cu directories
+    replica_dirs = []
+    for name in os.listdir("."):
+        if os.path.isdir(name):
+            replica_dirs.append(name)
+
+    eptot = 0.0   #potential
+    for directory in replica_dirs:
+         os.chdir(directory)
+         try:
+             f = open(history_name)
+             lines = f.readlines()
+             f.close()
+             path_to_replica_folder = os.getcwd()
+             for i in range(len(lines)):
+                 if "EPtot" in lines[i]:
+                     eptot = float(lines[i].split()[8])
+             print "history file %s found!" % ( history_name )
+         except:
+             pass
+         os.chdir("../")
+
+    os.chdir(home_dir)
+    return eptot, path_to_replica_folder
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+def single_point_energy():
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
