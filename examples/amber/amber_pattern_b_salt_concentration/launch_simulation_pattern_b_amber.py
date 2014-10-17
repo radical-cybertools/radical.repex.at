@@ -10,6 +10,7 @@ import os
 import sys
 import json
 from os import path
+import radical.pilot
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
 from amber_kernels_salt.amber_kernel_salt_pattern_b import AmberKernelSaltPatternB
@@ -49,19 +50,33 @@ if __name__ == '__main__':
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
 
-    pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
-    
-    # now we can run RE simulation
-    pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
 
-    # this is a quick hack
-    base = md_kernel.inp_basename + ".mdin"
-
-    # finally we are moving all files to individual replica directories
-    move_output_files(work_dir_local, base, replicas ) 
-    session.close()
-
-    print "Simulation successfully finished!"
-    print "Please check output files in replica_x directories."
+    try:
+        pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
     
-    
+        # now we can run RE simulation
+        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+
+        # this is a quick hack
+        base = md_kernel.inp_basename + ".mdin"
+
+        # finally we are moving all files to individual replica directories
+        move_output_files(work_dir_local, base, replicas ) 
+        session.close()
+
+        print "Simulation successfully finished!"
+        print "Please check output files in replica_x directories."
+
+    except (KeyboardInterrupt, SystemExit) as e :
+        # the callback called sys.exit(), and we can here catch the
+        # corresponding KeyboardInterrupt exception for shutdown.  We also catch
+        # SystemExit (which gets raised if the main threads exits for some other
+        # reason).
+        print "need to exit now: %s" % e
+
+    finally :
+        # always clean up the session, no matter if we caught an exception or
+        # not.
+        print "closing session"
+        session.close ()
+

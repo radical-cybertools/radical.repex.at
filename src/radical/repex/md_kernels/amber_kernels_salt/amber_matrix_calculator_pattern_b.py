@@ -9,6 +9,16 @@ __license__ = "MIT"
 
 import os
 import sys
+import subprocess
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+def call_amber(amber_path, param_1, param_2):
+
+    # calling amber
+    subprocess.call([amber_path + ' ' + param_1 + ' ' + param_2])
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -101,24 +111,30 @@ if __name__ == '__main__':
     replicas = int(str(sys.argv[3]))
     base_name = str(sys.argv[4])
 
+    # INITIAL REPLICA TEMPERATURE:
+    init_temp = str(sys.argv[5])
+
+    # AMBER PATH ON THIS RESOURCE:
+    amber_path = str(sys.argv[6])
+
     pwd = os.getcwd()
     matrix_col = "matrix_column_%s_%s.dat" % ( replica_id, replica_cycle ) 
 
     # getting history data for self
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
     #print "history name: %s" % history_name
-    replica_temp, replica_energy, path_to_replica_folder = get_historical_data( history_name )
+    replica_energy, path_to_replica_folder = get_historical_data( history_name )
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
     # but this is easily changeble for arbitrary cycle numbers
-    temperatures = [0.0]*replicas    #need to pass the replica temperature here
+    temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
     for j in range(replicas):
         history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
         try:
-            rj_temp, rj_energy, temp = get_historical_data( history_name )
-            temperatures[j] = rj_temp
+            rj_energy, path_to_replica_folder = get_historical_data( history_name )
+            temperatures[j] = float(init_temp)
             energies[j] = rj_energy
         except:
              pass 

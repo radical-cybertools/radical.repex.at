@@ -36,6 +36,7 @@ class MdKernelSalt(object):
         self.replicas = int(inp_file['input.MD']['number_of_replicas'])
         self.min_salt = float(inp_file['input.MD']['min_salt'])
         self.max_salt = float(inp_file['input.MD']['max_salt'])
+        self.init_temperature = float(inp_file['input.MD']['init_temperature'])
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
         

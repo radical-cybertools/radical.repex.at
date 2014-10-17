@@ -101,7 +101,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
         r_file.close()
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
-        tbuffer = tbuffer.replace("@saltcon@",str(int(replica.new_salt_concentration)))
+        tbuffer = tbuffer.replace("@salt@",str(int(replica.new_salt_concentration)))
         tbuffer = tbuffer.replace("@rstr@", restraints )
         
         replica.cycle += 1
@@ -234,6 +234,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             basename = self.inp_basename
 
             cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec = ["module load amber/14"]
             cu.executable = "python"
             # each scheme has it's own calculator!
             # consider moving this in shared input data folder!
@@ -242,7 +243,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
 
             # in principle we can transfer this just once and use it multiple times later during the simulation
             cu.input_staging = [str(calculator)]
-            cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
+            cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename, self.init_temperature, self.amber_path]
             cu.cores = 1            
             exchange_replicas.append(cu)
 

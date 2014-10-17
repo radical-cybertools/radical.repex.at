@@ -70,9 +70,9 @@ class PilotKernel(object):
         pilot_manager = None
         pilot_object = None
    
-        try:
-            session = radical.pilot.Session(database_url=self.dburl)
+        session = radical.pilot.Session(database_url=self.dburl)
 
+        try:
             # Add an ssh identity to the session.
             cred = radical.pilot.Context('ssh')
             cred.user_id = self.user
@@ -109,18 +109,19 @@ class PilotKernel(object):
 def unit_state_change_cb(unit, state):
     """This is a callback function. It gets called very time a ComputeUnit changes its state.
     """
-    print "[Callback]: ComputeUnit '{0}' state changed to {1}.".format(
-        unit.uid, state)
+    print "[Callback]: ComputeUnit '{0}' state changed to {1}.".format( unit.uid, state)
+
     if state == radical.pilot.states.FAILED:
-        print "            Log: %s" % unit.log[-1]
+        print " Log: %s" % unit.log[-1]
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def pilot_state_cb(pilot, state):
     """This is a callback function. It gets called very time a ComputePilot changes its state.
     """
-    print "[Callback]: ComputePilot '{0}' state changed to {1}.".format(
-        pilot.uid, state)
+    print "[Callback]: ComputePilot '{0}' state changed to {1}.".format( pilot.uid, state)
 
     if state == radical.pilot.states.FAILED:
         sys.exit(1)
+
