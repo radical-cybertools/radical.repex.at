@@ -13,12 +13,13 @@ import subprocess
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def call_amber(amber_path, param_1, param_2):
+def call_amber(amber_path, params):
 
     # calling amber
-    subprocess.call([amber_path + ' ' + param_1 + ' ' + param_2])
-
-
+    command = amber_path
+    for param in params:
+        command += '  ' + param
+    subprocess.call([command])
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -91,15 +92,6 @@ def get_historical_data(history_name):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def single_point_energy():
-    """TODO:
-       1. make a new input file that differs from the old one only by setting nstlim=0
-       2. call Amber to run the calculation, output a mdinfo file for the get_historical_data to read
-    """
-    pass
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
 if __name__ == '__main__':
     """This module calculates one swap matrix column for replica and writes this column to 
     matrix_column_x_x.dat file. 
@@ -130,10 +122,31 @@ if __name__ == '__main__':
     # but this is easily changeble for arbitrary cycle numbers
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
+
+    # call amber to run 1-step energy calculation
     for j in range(replicas):
-        history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
+        energy_history_name = base_name + "_" + str(j) + "_" + replica_cycle + "_energy.mdinfo"
+        input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
+        energy_input_name = base_name + "_" + str(j) + "_" + replica_cycle + "_energy.mdin"
+
+        f = file(input_name,'r')
+        input_data = f.readlines()
+        f.close()
+
+        # change nstlim to be zero
+        f = file(energy_input_name,'w')
+        for line in input_data:
+            if "nstlim" in line:
+                f.write(line.replace("nstlim = "+line.split()[2], "nstlim = 0,"))
+            else:
+                f.write(line)
+        f.close()
+        
+        call_amber(amber_path, [' -i ' + energy_input_name, ' -p ' + replicas[j].amber_parameters, ' -c ' + replicas[j].new_corr, ' -inf ' + energy_history_name])
+
+    for j in range(replicas):
         try:
-            rj_energy, path_to_replica_folder = get_historical_data( history_name )
+            rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
             temperatures[j] = float(init_temp)
             energies[j] = rj_energy
         except:

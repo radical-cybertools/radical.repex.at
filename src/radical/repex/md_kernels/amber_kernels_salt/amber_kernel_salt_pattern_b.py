@@ -101,7 +101,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
         r_file.close()
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
-        tbuffer = tbuffer.replace("@salt@",str(int(replica.new_salt_concentration)))
+        tbuffer = tbuffer.replace("@salt@",str(float(replica.new_salt_concentration)))
         tbuffer = tbuffer.replace("@rstr@", restraints )
         
         replica.cycle += 1
