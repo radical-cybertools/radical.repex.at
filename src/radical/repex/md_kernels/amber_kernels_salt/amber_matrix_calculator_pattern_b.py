@@ -102,6 +102,7 @@ if __name__ == '__main__':
     replica_cycle = str(sys.argv[2])
     replicas = int(str(sys.argv[3]))
     base_name = str(sys.argv[4])
+    salt_conc = str(sys.argv[5])
 
     # INITIAL REPLICA TEMPERATURE:
     init_temp = str(sys.argv[5])

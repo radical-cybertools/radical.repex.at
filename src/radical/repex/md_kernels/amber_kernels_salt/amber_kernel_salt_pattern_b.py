@@ -240,10 +240,11 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             # consider moving this in shared input data folder!
             calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
             calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+            input_file = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
 
             # in principle we can transfer this just once and use it multiple times later during the simulation
-            cu.input_staging = [str(calculator)]
-            cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename, self.init_temperature, self.amber_path]
+            cu.input_staging = [str(calculator), str(input_file)]
+            cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename, self.init_temperature, self.amber_path, replicas[r].new_salt_concentration]
             cu.cores = 1            
             exchange_replicas.append(cu)
 
