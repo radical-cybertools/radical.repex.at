@@ -56,7 +56,7 @@ This scheme can be summarized as follows:
        
 ###RE scheme 4
 
-This scheme is very similar to scheme 1. The main difference is in definition of the 
+This scheme is similar to scheme 1. The main difference is in definition of the 
 simulation cycle. Contrary to scheme 1 (and scheme 2) here simulation cycle is defined as 
 a real time interval. That is, all replicas are performing MD and after predefined real time interval elapses each of MD runs is cancelled. For the next cycle is used last of the periodically generated restart files. The main characteristics of this scheme are:
 * number of replicas equals to the number of allocated compute cores
