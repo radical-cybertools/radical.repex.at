@@ -127,7 +127,9 @@ if __name__ == '__main__':
     # call amber to run 1-step energy calculation
     for j in range(replicas):
         energy_history_name = base_name + "_" + str(j) + "_" + replica_cycle + "_energy.mdinfo"
-        input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
+        #input_name = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
+        input_name = "ala10.mdin"    #temporary
+        #input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
         energy_input_name = base_name + "_" + str(j) + "_" + replica_cycle + "_energy.mdin"
 
         f = file(input_name,'r')
@@ -136,14 +138,17 @@ if __name__ == '__main__':
 
         # change nstlim to be zero
         f = file(energy_input_name,'w')
-        for line in input_data:
-            if "nstlim" in line:
-                f.write(line.replace("nstlim = "+line.split()[2], "nstlim = 0,"))
+        for line in input_data[:-3]:  #quick hack to get rid of the rstr stuff to avoid further file transfer issue--get it working first
+            if "@nstlim@" in line:
+                f.write(line.replace("@nstlim@","0"))
+            elif "@salt@" in line:
+                f.write(line.replace("@salt@",salt_conc))
             else:
                 f.write(line)
         f.close()
         
-        call_amber(amber_path, [' -i ' + energy_input_name, ' -p ' + replicas[j].amber_parameters, ' -c ' + replicas[j].new_corr, ' -inf ' + energy_history_name])
+        #problems here
+        call_amber(amber_path, [' -i ' + energy_input_name, ' -p ' + amber_parameters, ' -c ' + new_corr, ' -inf ' + energy_history_name])
 
     for j in range(replicas):
         try:
