@@ -13,13 +13,10 @@ import subprocess
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def call_amber(amber_path, params):
+def call_amber(amber_path, mdin, prmtop, crd, mdinfo):
 
     # calling amber
-    command = amber_path
-    for param in params:
-        command += '  ' + param
-    subprocess.call([command])
+    subprocess.call([amber_path + ' -O -i ' + mdin + ' -p ' + prmtop + ' -c ' + crd + ' -inf ' + mdinfo])
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -156,7 +153,10 @@ if __name__ == '__main__':
         f.close()
         
         #problems here
-        call_amber(amber_path, [' -i ' + energy_input_name, ' -p ' + amber_parameters, ' -c ' + new_corr, ' -inf ' + energy_history_name])
+        print "energy_input_name:    "+energy_input_name
+        print "parameter:    "+shared_path + "/" + input_name.replace('mdin','prmtop')
+        print "new_coor:    "+new_coor
+        call_amber(amber_path, energy_input_name, shared_path + '/' + input_name.replace('mdin','prmtop'), new_coor, energy_history_name)
 
     for j in range(replicas):
         try:
