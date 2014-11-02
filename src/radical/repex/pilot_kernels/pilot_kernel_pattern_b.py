@@ -117,7 +117,7 @@ class PilotKernelPatternB(PilotKernel):
                 # computing swap matrix
                 #####################################################################
                 print "Preparing %d replicas for Exchange run" % md_kernel.replicas
-                exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas)
+                exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas, shared_data_url)
                 print "Submitting %d replicas for Exchange run" % md_kernel.replicas
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()

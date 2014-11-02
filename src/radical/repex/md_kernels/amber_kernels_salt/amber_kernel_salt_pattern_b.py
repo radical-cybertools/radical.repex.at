@@ -180,6 +180,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
 
                 cu.cores = self.replica_cores
                 cu.input_staging = [str(input_file), str(rstr)]
+                cu.output_staging = [str(new_coor)]
                 #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
                 #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
@@ -206,6 +207,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
                 cu.cores = self.replica_cores
 
                 cu.input_staging = [str(input_file), str(rstr)]
+                cu.output_staging = [str(new_coor)]
                 #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
                 #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
@@ -214,7 +216,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     # OK
-    def prepare_replicas_for_exchange(self, replicas):
+    def prepare_replicas_for_exchange(self, replicas, shared_data_url):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.
         Number of matrix_calculator_s2.py instances invoked on resource is equal to the number 
         of replicas. 
@@ -243,8 +245,17 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             input_file = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
 
             # in principle we can transfer this just once and use it multiple times later during the simulation
-            cu.input_staging = [str(calculator), str(input_file)]
-            cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename, self.init_temperature, self.amber_path, replicas[r].new_salt_concentration]
+            cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
+            cu.arguments = ["amber_matrix_calculator_pattern_b.py", 
+                            r, 
+                            (replicas[r].cycle-1), 
+                            len(replicas), 
+                            basename, 
+                            self.init_temperature, 
+                            self.amber_path, 
+                            replicas[r].new_salt_concentration,
+                            shared_data_url]
+
             cu.cores = 1            
             exchange_replicas.append(cu)
 

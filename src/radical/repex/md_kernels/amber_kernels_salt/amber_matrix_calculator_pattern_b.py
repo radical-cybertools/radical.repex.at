@@ -102,13 +102,21 @@ if __name__ == '__main__':
     replica_cycle = str(sys.argv[2])
     replicas = int(str(sys.argv[3]))
     base_name = str(sys.argv[4])
-    salt_conc = str(sys.argv[5])
 
     # INITIAL REPLICA TEMPERATURE:
     init_temp = str(sys.argv[5])
 
     # AMBER PATH ON THIS RESOURCE:
     amber_path = str(sys.argv[6])
+
+    # SALT CONCENTRATION FOR THIS REPLICA
+    salt_conc = str(sys.argv[7])
+
+    # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
+    shared_path = str(sys.argv[8])    
+
+    # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
+    new_coor = "%s_%s_%s.rst" % (base_name, replica_id, replica_cycle)
 
     pwd = os.getcwd()
     matrix_col = "matrix_column_%s_%s.dat" % ( replica_id, replica_cycle ) 
