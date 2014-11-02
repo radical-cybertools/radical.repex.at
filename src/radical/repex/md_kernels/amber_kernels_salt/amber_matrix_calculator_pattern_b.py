@@ -9,14 +9,23 @@ __license__ = "MIT"
 
 import os
 import sys
+import os,sys,socket,time
+from subprocess import *
 import subprocess
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def call_amber(amber_path, mdin, prmtop, crd, mdinfo):
 
     # calling amber
-    subprocess.call([amber_path + ' -O -i ' + mdin + ' -p ' + prmtop + ' -c ' + crd + ' -inf ' + mdinfo])
+    commands = []
+    cmd = amber_path + ' -O -i ' + mdin + ' -p ' + prmtop + ' -c ' + crd + ' -inf ' + mdinfo
+    commands.append(cmd)
+
+    processes = [Popen(cmd, subprocess.PIPE, shell=True)  for cmd in commands]
+    for p in processes: p.wait()
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
