@@ -9,9 +9,4 @@ modified sample input from amber tutorial A7
   ntb = 0, igb = 5,
   cut = 999.0, rgbmax = 999.0,
   ntpr = 1000, ntwx = 1000, ntwr = -100,
-  nmropt = 1,
-  numexchg = 2,
  /
- &wt TYPE='END'
- /
-DISANG = @rstr@

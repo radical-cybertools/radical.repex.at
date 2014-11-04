@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
         # change nstlim to be zero
         f = file(energy_input_name,'w')
-        for line in input_data[:-3]:  #quick hack to get rid of the rstr stuff to avoid further file transfer issue--get it working first
+        for line in input_data:
             if "@nstlim@" in line:
                 f.write(line.replace("@nstlim@","0"))
             elif "@salt@" in line:
