@@ -94,12 +94,14 @@ class PilotKernelScheme2(PilotKernel):
         session - radical.pilot.session object, the *root* object for all other RADICAL-Pilot objects 
         md_kernel - an instance of NamdKernelScheme2a class
         """
-  
+        time_1 = datetime.datetime.utcnow()
+
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
         for i in range(md_kernel.nr_cycles):
+            start_time = datetime.datetime.utcnow()
             print "Performing cycle: %s" % (i+1)
             print "Preparing %d replicas for MD run" % md_kernel.replicas
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas)
@@ -107,8 +109,11 @@ class PilotKernelScheme2(PilotKernel):
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             
+            stop_time = datetime.datetime.utcnow()
+            print "Cycle %d: Time to perform MD run: %f" % (i, (stop_time - start_time).total_seconds())
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
+                start_time = datetime.datetime.utcnow()
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
@@ -117,7 +122,10 @@ class PilotKernelScheme2(PilotKernel):
                 print "Submitting %d replicas for Exchange run" % md_kernel.replicas
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
-
+               
+                stop_time = datetime.datetime.utcnow()
+                print "Cycle %d: Time to perform Exchange: %f" % (i, (stop_time - start_time).total_seconds())
+                start_time = datetime.datetime.utcnow()
                 #####################################################################
                 # compose swap matrix from individual files
                 #####################################################################
@@ -135,4 +143,9 @@ class PilotKernelScheme2(PilotKernel):
                         # record that swap was performed
                         r_i.swap = 1
                         r_j.swap = 1
+                stop_time = datetime.datetime.utcnow()
+                print "Cycle %d: Post-processing time: %f" % (i, (stop_time - start_time).total_seconds())
+
+        time_2 = datetime.datetime.utcnow()
+        print "Total simulation time: %f" % (time_2 - time_1).total_seconds()
 
