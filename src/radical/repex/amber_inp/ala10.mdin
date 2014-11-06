@@ -3,7 +3,7 @@ modified sample input from amber tutorial A7
   saltcon = @salt@,
   irest = 0, ntx = 1,
   nstlim = @nstlim@, dt = 0.001,
-  irest = 0, ntt = 3, gamma_ln = 1.0,
+  ntt = 3, gamma_ln = 1.0,
   temp0 = 323, ig = -1,
   ntc = 2, ntf = 2, nscm = 1000,
   ntb = 0, igb = 5,
