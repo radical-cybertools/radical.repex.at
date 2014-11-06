@@ -78,5 +78,5 @@ if __name__ == '__main__':
         # always clean up the session, no matter if we caught an exception or
         # not.
         print "closing session"
-        session.close ()
+        session.close (cleanup=False)
 

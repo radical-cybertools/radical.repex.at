@@ -70,7 +70,7 @@ class PilotKernel(object):
         pilot_manager = None
         pilot_object = None
    
-        session = radical.pilot.Session(database_url=self.dburl)
+        session = radical.pilot.Session(database_url=self.dburl, database_name='repex-tests')
 
         try:
             # Add an ssh identity to the session.
