@@ -9,6 +9,7 @@ __license__ = "MIT"
 
 import os
 import sys
+import json
 import os,sys,socket,time
 from subprocess import *
 import subprocess
@@ -104,6 +105,7 @@ if __name__ == '__main__':
     matrix_column_x_x.dat file. 
     """
 
+    """
     argument_list = str(sys.argv)
     replica_id = str(sys.argv[1])
     replica_cycle = str(sys.argv[2])
@@ -121,15 +123,44 @@ if __name__ == '__main__':
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
     shared_path = str(sys.argv[8])    
+    """
+
+    json_data = sys.argv[1]
+    data=json.loads(json_data)
+
+    replica_id = int(data["replica_id"])
+    replica_cycle = int(data["replica_cycle"])
+    replicas = int(data["replicas"])
+    base_name = data["base_name"]
+
+    # INITIAL REPLICA TEMPERATURE:
+    init_temp = float(data["init_temp"])
+
+    # AMBER PATH ON THIS RESOURCE:
+    amber_path = data["amber_path"]
+
+    # SALT CONCENTRATION FOR ALL REPLICAS
+    all_salt = (data["all_salt_ctr"])
+    all_salt_conc = all_salt.split(" ")
+    print "all salt concentrations: "
+    print all_salt_conc
+
+    # SALT CONCENTRATION FOR THIS REPLICA
+    salt_conc = all_salt_conc[replica_id]
+    print "salt concentration for replica %d is %f" % (replica_id, float(salt_conc))
+
+    # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
+    shared_path = data["shared_path"]
+
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
-    new_coor = "%s_%s_%s.rst" % (base_name, replica_id, replica_cycle)
+    new_coor = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
 
     pwd = os.getcwd()
-    matrix_col = "matrix_column_%s_%s.dat" % ( replica_id, replica_cycle ) 
+    matrix_col = "matrix_column_%d_%d.dat" % ( replica_id, replica_cycle ) 
 
     # getting history data for self
-    history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
+    history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     #print "history name: %s" % history_name
     replica_energy, path_to_replica_folder = get_historical_data( history_name )
 
@@ -141,11 +172,11 @@ if __name__ == '__main__':
 
     # call amber to run 1-step energy calculation
     for j in range(replicas):
-        energy_history_name = base_name + "_" + str(j) + "_" + replica_cycle + "_energy.mdinfo"
+        energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
         #input_name = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
         input_name = "ala10.mdin"    #temporary
         #input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
-        energy_input_name = base_name + "_" + str(j) + "_" + replica_cycle + "_energy.mdin"
+        energy_input_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdin"
 
         f = file(input_name,'r')
         input_data = f.readlines()

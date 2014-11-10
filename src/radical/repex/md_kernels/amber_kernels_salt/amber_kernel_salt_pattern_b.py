@@ -227,6 +227,14 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
         Returns:
         exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
+        all_salt = ""
+        for r in range(len(replicas)):
+            if r == 0:
+                all_salt = str(replicas[r].new_salt_concentration)
+            else:
+                all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
+
+        all_salt_list = all_salt.split(" ")
 
         exchange_replicas = []
         for r in range(len(replicas)):
@@ -244,18 +252,22 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
             input_file = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
 
+            data = {
+                "replica_id": str(r),
+                "replica_cycle" : str(replicas[r].cycle-1),
+                "replicas" : str(len(replicas)),
+                "base_name" : str(basename),
+                "init_temp" : str(self.init_temperature),
+                "amber_path" : str(self.amber_path),
+                "shared_path" : str(shared_data_url),
+                "all_salt_ctr" : all_salt 
+            }
+
+            dump_data = json.dumps(data)
+            json_data = dump_data.replace("\\", "")
             # in principle we can transfer this just once and use it multiple times later during the simulation
             cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
-            cu.arguments = ["amber_matrix_calculator_pattern_b.py", 
-                            r, 
-                            (replicas[r].cycle-1), 
-                            len(replicas), 
-                            basename, 
-                            self.init_temperature, 
-                            self.amber_path, 
-                            replicas[r].new_salt_concentration,
-                            shared_data_url]
-
+            cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
             cu.cores = 1            
             exchange_replicas.append(cu)
 
