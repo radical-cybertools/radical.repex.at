@@ -68,14 +68,14 @@ class PilotKernelPatternB(PilotKernel):
         for r in replicas:
             # populating one column at a time
             for i in range(len(replicas)):
-                swap_matrix[i][r.id] = float(matrix_columns[r.id][i+1])
+                swap_matrix[i][r.id] = float(matrix_columns[r.id][i])
 
             # setting old_path and first_path for each replica
             if ( r.cycle == 1 ):
-                r.first_path = matrix_columns[r.id][len(replicas)+1]
-                r.old_path = matrix_columns[r.id][len(replicas)+1]
+                r.first_path = matrix_columns[r.id][len(replicas)]
+                r.old_path = matrix_columns[r.id][len(replicas)]
             else:
-                r.old_path = matrix_columns[r.id][len(replicas)+1]
+                r.old_path = matrix_columns[r.id][len(replicas)]
 
         return swap_matrix
 
@@ -128,7 +128,10 @@ class PilotKernelPatternB(PilotKernel):
                     # calculated columns of swap matrix are available "immediately"
                     # without need for file transfers
                     d = str(r.stdout)
-                    matrix_columns.append(d.split())
+                    data = d.split()
+                    #for i in range (len(data-1)):
+                    #    data[i] = float(data[i])
+                    matrix_columns.append(data)
 
                 #####################################################################
                 # compose swap matrix from individual files

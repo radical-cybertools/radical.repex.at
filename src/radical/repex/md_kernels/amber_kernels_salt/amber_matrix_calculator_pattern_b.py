@@ -142,12 +142,12 @@ if __name__ == '__main__':
     # SALT CONCENTRATION FOR ALL REPLICAS
     all_salt = (data["all_salt_ctr"])
     all_salt_conc = all_salt.split(" ")
-    print "all salt concentrations: "
-    print all_salt_conc
+    #print "all salt concentrations: "
+    #print all_salt_conc
 
     # SALT CONCENTRATION FOR THIS REPLICA
     salt_conc = all_salt_conc[replica_id]
-    print "salt concentration for replica %d is %f" % (replica_id, float(salt_conc))
+    #print "salt concentration for replica %d is %f" % (replica_id, float(salt_conc))
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
     shared_path = data["shared_path"]
@@ -211,7 +211,7 @@ if __name__ == '__main__':
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
     # printing replica id
-    print str(replica_id).rstrip()
+    # print str(replica_id).rstrip()
     # printing swap column
     for item in swap_column:
         print item,
