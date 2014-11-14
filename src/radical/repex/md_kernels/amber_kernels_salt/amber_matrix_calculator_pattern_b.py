@@ -146,7 +146,7 @@ if __name__ == '__main__':
     #print all_salt_conc
 
     # SALT CONCENTRATION FOR THIS REPLICA
-    salt_conc = all_salt_conc[replica_id]
+    #salt_conc = all_salt_conc[replica_id]
     #print "salt concentration for replica %d is %f" % (replica_id, float(salt_conc))
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
@@ -188,7 +188,7 @@ if __name__ == '__main__':
             if "@nstlim@" in line:
                 f.write(line.replace("@nstlim@","0"))
             elif "@salt@" in line:
-                f.write(line.replace("@salt@",salt_conc))
+                f.write(line.replace("@salt@",all_salt_conc[j]))
             else:
                 f.write(line)
         f.close()
