@@ -196,7 +196,6 @@ if __name__ == '__main__':
         #problems here
         call_amber(amber_path, energy_input_name, shared_path + '/' + input_name.replace("mdin","prmtop") , new_coor, energy_history_name)
 
-    for j in range(replicas):
         try:
             rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
             temperatures[j] = float(init_temp)
@@ -208,7 +207,7 @@ if __name__ == '__main__':
     swap_column = [0.0]*replicas
 
     for j in range(replicas):        
-        swap_column[j] = reduced_energy(temperatures[j], replica_energy)
+        swap_column[j] = reduced_energy(temperatures[j], energies[j])
 
     # printing replica id
     # print str(replica_id).rstrip()
