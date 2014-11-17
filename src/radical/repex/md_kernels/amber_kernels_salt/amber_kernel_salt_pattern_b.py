@@ -55,7 +55,6 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
         """
 
         basename = self.inp_basename
-        template = self.inp_basename[:-5] + ".mdin"
             
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
         outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
@@ -93,9 +92,9 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             #restraints = modified_first_path + "/" + self.amber_restraints
 
         try:
-            r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
+            r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), self.amber_input)), "r")
         except IOError:
-            print 'Warning: unable to access template file %s' % template
+            print 'Warning: unable to access template file %s' % self.amber_input
 
         tbuffer = r_file.read()
         r_file.close()
@@ -250,7 +249,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             # consider moving this in shared input data folder!
             calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
             calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
-            input_file = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
+            input_file = self.work_dir_local + "/amber_inp/" + self.amber_input
 
             data = {
                 "replica_id": str(r),
@@ -260,6 +259,8 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
                 "init_temp" : str(self.init_temperature),
                 "amber_path" : str(self.amber_path),
                 "shared_path" : str(shared_data_url),
+                "amber_input" : str(self.amber_input),
+                "amber_parameters": str(self.amber_parameters),
                 "all_salt_ctr" : all_salt 
             }
 

@@ -133,6 +133,8 @@ if __name__ == '__main__':
     replicas = int(data["replicas"])
     base_name = data["base_name"]
 
+    prmtop_name = data["amber_parameters"]
+    mdin_name = data["amber_input"]
     # INITIAL REPLICA TEMPERATURE:
     init_temp = float(data["init_temp"])
 
@@ -174,11 +176,10 @@ if __name__ == '__main__':
     for j in range(replicas):
         energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
         #input_name = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
-        input_name = "ala10.mdin"    #temporary
         #input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
         energy_input_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdin"
 
-        f = file(input_name,'r')
+        f = file(mdin_name,'r')
         input_data = f.readlines()
         f.close()
 
@@ -194,7 +195,7 @@ if __name__ == '__main__':
         f.close()
         
         #problems here
-        call_amber(amber_path, energy_input_name, shared_path + '/' + input_name.replace("mdin","prmtop") , new_coor, energy_history_name)
+        call_amber(amber_path, energy_input_name, shared_path + '/' + prmtop_name , new_coor, energy_history_name)
 
         try:
             rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )

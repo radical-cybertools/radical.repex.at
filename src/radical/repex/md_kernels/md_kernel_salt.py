@@ -65,7 +65,7 @@ class MdKernelSalt(object):
         replicas = []
 
         for k in range(self.replicas):
-            new_salt = k * 0.1
+            new_salt = (self.max_salt-self.min_salt)/(self.replicas-1)*k + self.min_salt
             r = ReplicaSalt(k, new_salt)
             replicas.append(r)
             

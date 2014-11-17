@@ -51,6 +51,7 @@ class AmberKernelSalt(MdKernelSalt):
         self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
+        self.amber_input = inp_file['input.MD']['amber_input']
         
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -59,7 +60,6 @@ class AmberKernelSalt(MdKernelSalt):
         """
 
         basename = self.inp_basename
-        template = self.inp_basename[:-5] + ".mdin"
             
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
         outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
@@ -79,9 +79,9 @@ class AmberKernelSalt(MdKernelSalt):
         replica.old_info = old_name + ".mdinfo"
 
         try:
-            r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
+            r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), self.amber_input)), "r")
         except IOError:
-            print 'Warning: unable to access template file %s' % template
+            print 'Warning: unable to access template file %s' % self.amber_input
 
         tbuffer = r_file.read()
         r_file.close()
