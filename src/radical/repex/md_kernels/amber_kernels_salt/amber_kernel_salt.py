@@ -52,6 +52,7 @@ class AmberKernelSalt(MdKernelSalt):
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
+        self.input_folder = inp_file['input.MD']['input_folder']
         
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -79,7 +80,7 @@ class AmberKernelSalt(MdKernelSalt):
         replica.old_info = old_name + ".mdinfo"
 
         try:
-            r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), self.amber_input)), "r")
+            r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
         except IOError:
             print 'Warning: unable to access template file %s' % self.amber_input
 

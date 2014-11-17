@@ -92,7 +92,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             #restraints = modified_first_path + "/" + self.amber_restraints
 
         try:
-            r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), self.amber_input)), "r")
+            r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
         except IOError:
             print 'Warning: unable to access template file %s' % self.amber_input
 
@@ -249,7 +249,7 @@ class AmberKernelSaltPatternB(AmberKernelSalt):
             # consider moving this in shared input data folder!
             calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
             calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
-            input_file = self.work_dir_local + "/amber_inp/" + self.amber_input
+            input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
             data = {
                 "replica_id": str(r),
