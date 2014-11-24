@@ -81,23 +81,23 @@ class PilotKernel(object):
             pilot_manager = radical.pilot.PilotManager(session=session)
             pilot_manager.register_callback(pilot_state_cb)
 
-            pilot_descripiton = radical.pilot.ComputePilotDescription()
+            pilot_description = radical.pilot.ComputePilotDescription()
             if self.resource.startswith("localhost"):
-                pilot_descripiton.resource = "localhost:local"
+                pilot_description.resource = "localhost:local"
             else:
-                pilot_descripiton.resource = self.resource
+                pilot_description.resource = self.resource
 
             if(self.sandbox != None):
-                pilot_descripiton.sandbox = str(self.sandbox)
+                pilot_description.sandbox = str(self.sandbox)
 
             if(self.project != None):
-                pilot_descripiton.project = str(self.project)   
+                pilot_description.project = str(self.project)   
 
-            pilot_descripiton.cores = self.cores
-            pilot_descripiton.runtime = self.runtime
-            pilot_descripiton.cleanup = self.cleanup
+            pilot_description.cores = self.cores
+            pilot_description.runtime = self.runtime
+            pilot_description.cleanup = self.cleanup
 
-            pilot_object = pilot_manager.submit_pilots(pilot_descripiton)
+            pilot_object = pilot_manager.submit_pilots(pilot_description)
 
         except radical.pilot.PilotException, ex:
             print "Error: %s" % ex
