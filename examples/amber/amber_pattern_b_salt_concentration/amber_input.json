@@ -1,8 +1,8 @@
 {
     "input.PILOT": {
         "resource": "trestles.sdsc.xsede.org",
-        "username" : "chen1990",
-        "project" : "TG-MCB110101",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
         "runtime" : "10",
         "cleanup" : "False",
         "cores" : "16"

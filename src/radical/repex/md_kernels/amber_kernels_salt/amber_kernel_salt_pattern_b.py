@@ -17,14 +17,14 @@ import shutil
 import datetime
 from os import path
 import radical.pilot
+from md_kernels.md_kernel_salt import *
 from kernels.kernels import KERNELS
 from replicas.replica import Replica
-from amber_kernel_salt import *
 import amber_kernels_salt.amber_matrix_calculator_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernelSaltPatternB(MDKernelSalt):
+class AmberKernelSaltPatternB(MdKernelSalt):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
 
