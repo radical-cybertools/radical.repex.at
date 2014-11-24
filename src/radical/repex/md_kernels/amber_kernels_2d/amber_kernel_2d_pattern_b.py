@@ -24,7 +24,7 @@ import amber_kernels_salt.amber_matrix_calculator_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernelSaltPatternB(MdKernel2d):
+class AmberKernel2dPatternB(MdKernel2d):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
 

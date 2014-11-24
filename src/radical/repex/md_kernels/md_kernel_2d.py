@@ -19,7 +19,7 @@ from replicas.replica import ReplicaSalt
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class MdKernelSalt(object):
+class MdKernel2d(object):
     """
     """
     def __init__(self, inp_file,  work_dir_local):

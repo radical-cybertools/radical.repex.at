@@ -13,7 +13,7 @@ from os import path
 import radical.pilot
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_salt.amber_kernel_salt_pattern_b import AmberKernelSaltPatternB
+from amber_kernels_2d.amber_kernel_2d_pattern_b import AmberKernel2dPatternB
 from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -44,12 +44,11 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernelSaltPatternB( inp_file, work_dir_local )
+    md_kernel = AmberKernel2dPatternB( inp_file, work_dir_local )
     pilot_kernel = PilotKernelPatternB( inp_file )
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
-
 
     try:
         pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
