@@ -8,8 +8,8 @@
         "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "4",
-        "number_of_replicas": "4",
+        "number_of_cycles": "3",
+        "number_of_replicas": "8",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_input": "ala10.mdin",
@@ -18,6 +18,8 @@
         "amber_restraints": "ala10_chir.dat",
         "replica_mpi": "True",
         "replica_cores": "1",
+        "min_temperature": "300",
+        "max_temperature": "600",
         "min_salt": "0.0",
         "max_salt": "0.3",
         "init_temperature": "323.0",

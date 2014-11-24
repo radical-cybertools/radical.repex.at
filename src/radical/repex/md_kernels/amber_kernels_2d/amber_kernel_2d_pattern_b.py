@@ -69,43 +69,23 @@ class AmberKernel2dPatternB(MdKernel2d):
     def build_input_file(self, replica, shared_data_url):
         """Builds input file for replica, based on template input file ala10.mdin
         """
-
         basename = self.inp_basename
-            
+
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
         outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
         old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+
+        # new files
         replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
         replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
         replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
 
-        if (replica.cycle == 0):
-            first_step = 0
-        elif (replica.cycle == 1):
-            first_step = int(self.cycle_steps)
-        else:
-            first_step = (replica.cycle - 1) * int(self.cycle_steps)
+        # old files
+        replica.old_coor = old_name + ".rst"
+        replica.old_traj = old_name + ".mdcrd"
+        replica.old_info = old_name + ".mdinfo"
 
         restraints = self.amber_restraints
-        #if (replica.cycle == 0):
-        #    restraints = self.amber_restraints
-        #else:
-            ##################################
-            # changing first path from absolute 
-            # to relative so that Amber can 
-            # process it
-            ##################################
-            #path_list = []
-            #for char in reversed(replica.first_path):
-            #    if char == '/': break
-            #    path_list.append( char )
-
-            #modified_first_path = ''
-            #for char in reversed( path_list ):
-            #    modified_first_path += char
-
-            #modified_first_path = '../' + modified_first_path.rstrip()
-            #restraints = modified_first_path + "/" + self.amber_restraints
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
@@ -114,8 +94,9 @@ class AmberKernel2dPatternB(MdKernel2d):
 
         tbuffer = r_file.read()
         r_file.close()
-
+      
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
+        tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
         tbuffer = tbuffer.replace("@salt@",str(float(replica.new_salt_concentration)))
         tbuffer = tbuffer.replace("@rstr@", restraints )
         
@@ -127,8 +108,7 @@ class AmberKernel2dPatternB(MdKernel2d):
             w_file.close()
         except IOError:
             print 'Warning: unable to access file %s' % new_input_file
-
-
+     
 #-----------------------------------------------------------------------------------------------------------------------------------
     
     def prepare_shared_md_input(self):
@@ -148,20 +128,12 @@ class AmberKernel2dPatternB(MdKernel2d):
  
         return shared_data_unit
 
-
 #-----------------------------------------------------------------------------------------------------------------------------------
     # OK
     def prepare_replicas_for_md(self, replicas, shared_data_url):
-        """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
-        specified input/output files to be transferred to/from target system. Note: input files for first and 
-        subsequent simulation cycles are different.
-
-        Arguments:
-        replicas - list of Replica objects
-
-        Returns:
-        compute_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
+        """
+
         compute_replicas = []
         for r in range(len(replicas)):
             # need to avoid this step!
@@ -169,7 +141,6 @@ class AmberKernel2dPatternB(MdKernel2d):
       
             # in principle restraint file should be moved to shared directory
             rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
-
             input_file = "%s_%d_%d.mdin" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
             # this is not transferred back
             output_file = "%s_%d_%d.mdout" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
@@ -196,18 +167,9 @@ class AmberKernel2dPatternB(MdKernel2d):
                 cu.cores = self.replica_cores
                 cu.input_staging = [str(input_file), str(rstr)]
                 cu.output_staging = [str(new_coor)]
-                #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
-                #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
             else:
                 cu = radical.pilot.ComputeUnitDescription()
-
-                #old_coor = replicas[r].old_path + "/" + self.amber_coordinates
-
-                #crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-                #parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-                #rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
-
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
@@ -220,76 +182,88 @@ class AmberKernel2dPatternB(MdKernel2d):
                                       "-inf ", new_info]
 
                 cu.cores = self.replica_cores
-
                 cu.input_staging = [str(input_file), str(rstr)]
                 cu.output_staging = [str(new_coor)]
-                #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
-                #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
 
         return compute_replicas
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     # OK
-    def prepare_replicas_for_exchange(self, replicas, shared_data_url):
-        """Creates a list of ComputeUnitDescription objects for exchange step on resource.
-        Number of matrix_calculator_s2.py instances invoked on resource is equal to the number 
-        of replicas. 
-
-        Arguments:
-        replicas - list of Replica objects
-
-        Returns:
-        exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
+    def prepare_replicas_for_exchange(self, dimension, replicas, shared_data_url):
         """
-        all_salt = ""
-        for r in range(len(replicas)):
-            if r == 0:
-                all_salt = str(replicas[r].new_salt_concentration)
-            else:
-                all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
-
-        all_salt_list = all_salt.split(" ")
-
+        """
+        # name of the file which contains swap matrix column data for each replica
+        matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
+        basename = self.inp_basename
         exchange_replicas = []
-        for r in range(len(replicas)):
-           
-            # name of the file which contains swap matrix column data for each replica
-            matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
-            basename = self.inp_basename
 
-            cu = radical.pilot.ComputeUnitDescription()
-            cu.pre_exec = ["module load amber/14"]
-            cu.executable = "python"
-            # each scheme has it's own calculator!
-            # consider moving this in shared input data folder!
-            calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
-            calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
-            input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
+        if dimension == 1:
+            for r in range(len(replicas)):
+                cu = radical.pilot.ComputeUnitDescription()
+                cu.executable = "python"
+                # path!
+                calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
+                calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+                cu.input_staging = [str(calculator)]
+                cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
+                cu.cores = 1            
+                cu.output_staging = [str(matrix_col)]
+                exchange_replicas.append(cu)
+         
+        else:
+            all_salt = ""
+            for r in range(len(replicas)):
+                if r == 0:
+                    all_salt = str(replicas[r].new_salt_concentration)
+                else:
+                    all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
 
-            data = {
-                "replica_id": str(r),
-                "replica_cycle" : str(replicas[r].cycle-1),
-                "replicas" : str(len(replicas)),
-                "base_name" : str(basename),
-                "init_temp" : str(self.init_temperature),
-                "amber_path" : str(self.amber_path),
-                "shared_path" : str(shared_data_url),
-                "amber_input" : str(self.amber_input),
-                "amber_parameters": str(self.amber_parameters),
-                "all_salt_ctr" : all_salt 
-            }
+            all_salt_list = all_salt.split(" ")
 
-            dump_data = json.dumps(data)
-            json_data = dump_data.replace("\\", "")
-            # in principle we can transfer this just once and use it multiple times later during the simulation
-            cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
-            cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
-            cu.cores = 1            
-            exchange_replicas.append(cu)
+            for r in range(len(replicas)):
+                cu = radical.pilot.ComputeUnitDescription()
+                cu.pre_exec = ["module load amber/14"]
+                cu.executable = "python"
+                # path!
+                calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
+                calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+                input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
+
+                data = {
+                    "replica_id": str(r),
+                    "replica_cycle" : str(replicas[r].cycle-1),
+                    "replicas" : str(len(replicas)),
+                    "base_name" : str(basename),
+                    "init_temp" : str(self.init_temperature),
+                    "amber_path" : str(self.amber_path),
+                    "shared_path" : str(shared_data_url),
+                    "amber_input" : str(self.amber_input),
+                    "amber_parameters": str(self.amber_parameters),
+                    "all_salt_ctr" : all_salt 
+                }
+
+                dump_data = json.dumps(data)
+                json_data = dump_data.replace("\\", "")
+                # in principle we can transfer this just once and use it multiple times later during the simulation
+                cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
+                cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
+                cu.cores = 1            
+                exchange_replicas.append(cu)
+
 
         return exchange_replicas
 
 
-
+#-----------------------------------------------------------------------------------------------------------------------------------
+    # OK
+    def exchange_params(self, dimension, replica_1, replica_2):
+        if dimension == 1:
+            temp = replica_2.new_temperature
+            replica_2.new_temperature = replica_1.new_temperature
+            replica_1.new_temperature = salt
+        else:
+            salt = replica_2.new_salt_concentration
+            replica_2.new_salt_concentration = replica_1.new_salt_concentration
+            replica_1.new_salt_concentration = salt
 

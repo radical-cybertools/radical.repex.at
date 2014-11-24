@@ -60,14 +60,28 @@ class MdKernel2d(object):
     def initialize_replicas(self):
         """Initializes replicas and their attributes to default values
 
-           Changed to use geometrical progression for temperature assignment.
         """
         replicas = []
+        r_temperatures = []
+        N = self.replicas
+        factor = (self.max_temp/self.min_temp)**(1./(N-1))
+        for k in range(N):
+            new_temp = self.min_temp * (factor**k)
+            r_temperatures.append(new_temp)
 
-        for k in range(self.replicas):
-            new_salt = (self.max_salt-self.min_salt)/(self.replicas-1)*k + self.min_salt
-            r = ReplicaSalt(k, new_salt)
-            replicas.append(r)
+        r_salts = []
+        for k in range(N):
+            new_salt = (self.max_salt-self.min_salt)/(N-1)*k + self.min_salt
+            r_salts.append(new_salt)
+
+        self.replicas = len(r_temperatures) * len(r_salts)
+
+        for i in range(N):
+            new_temp = r_temperatures[i]
+            for j in range(N):
+                new_salt = r_salts[j]
+                r = Replica2d((i*N + j), new_temp, new_salt)
+                replicas.append(r)
             
         return replicas
 

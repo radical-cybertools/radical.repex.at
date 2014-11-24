@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     # initializing kernels
     md_kernel = AmberKernel2dPatternB( inp_file, work_dir_local )
-    pilot_kernel = PilotKernelPatternB( inp_file )
+    pilot_kernel = PilotKernelPatternB2d( inp_file )
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
