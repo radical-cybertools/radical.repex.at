@@ -19,12 +19,12 @@ from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
 from replicas.replica import Replica
-from amber_kernel_salt import *
+from md_kernels.md_kernel_2d import *
 import amber_kernels_salt.amber_matrix_calculator_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernelSaltPatternB(MdKernelSalt):
+class AmberKernelSaltPatternB(MdKernel2d):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
 
@@ -46,7 +46,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        MdKernelSalt.__init__(self, inp_file, work_dir_local)
+        MdKernel2d.__init__(self, inp_file, work_dir_local)
 
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
         try:
