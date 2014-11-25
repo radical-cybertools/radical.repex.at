@@ -21,6 +21,7 @@ from kernels.kernels import KERNELS
 from replicas.replica import Replica2d
 from md_kernels.md_kernel_2d import *
 import amber_kernels_salt.amber_matrix_calculator_pattern_b
+import amber_kernels_tex.amber_matrix_calculator_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -193,64 +194,64 @@ class AmberKernel2dPatternB(MdKernel2d):
     def prepare_replicas_for_exchange(self, dimension, replicas, shared_data_url):
         """
         """
-        # name of the file which contains swap matrix column data for each replica
-        matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
-        basename = self.inp_basename
-        exchange_replicas = []
+        for r in range(len(replicas)):
+            # name of the file which contains swap matrix column data for each replica
+            matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
+            basename = self.inp_basename
+            exchange_replicas = []
 
-        if dimension == 1:
-            for r in range(len(replicas)):
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.executable = "python"
-                # path!
-                calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
-                calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
-                cu.input_staging = [str(calculator)]
-                cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
-                cu.cores = 1            
-                cu.output_staging = [str(matrix_col)]
-                exchange_replicas.append(cu)
+            if dimension == 1:
+                for r in range(len(replicas)):
+                    cu = radical.pilot.ComputeUnitDescription()
+                    cu.executable = "python"
+                    # path!
+                    calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
+                    calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+                    cu.input_staging = [str(calculator)]
+                    cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
+                    cu.cores = 1            
+                    exchange_replicas.append(cu)
          
-        else:
-            all_salt = ""
-            for r in range(len(replicas)):
-                if r == 0:
-                    all_salt = str(replicas[r].new_salt_concentration)
-                else:
-                    all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
+            else:
+                all_salt = ""
+                for r in range(len(replicas)):
+                    if r == 0:
+                        all_salt = str(replicas[r].new_salt_concentration)
+                    else:
+                        all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
 
-            all_salt_list = all_salt.split(" ")
+                all_salt_list = all_salt.split(" ")
 
-            for r in range(len(replicas)):
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec = ["module load amber/14"]
-                cu.executable = "python"
-                # path!
-                calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
-                calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
-                input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
+                for r in range(len(replicas)):
+                    cu = radical.pilot.ComputeUnitDescription()
+                    cu.pre_exec = ["module load amber/14"]
+                    cu.executable = "python"
+                    # path!
+                    calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
+                    calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+                    input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
-                data = {
-                    "replica_id": str(r),
-                    "replica_cycle" : str(replicas[r].cycle-1),
-                    "replicas" : str(len(replicas)),
-                    "base_name" : str(basename),
-                    "init_temp" : str(self.init_temperature),
-                    "amber_path" : str(self.amber_path),
-                    "shared_path" : str(shared_data_url),
-                    "amber_input" : str(self.amber_input),
-                    "amber_parameters": str(self.amber_parameters),
-                    "all_salt_ctr" : all_salt 
-                }
+                    data = {
+                        "replica_id": str(r),
+                        "replica_cycle" : str(replicas[r].cycle-1),
+                        "replicas" : str(len(replicas)),
+                        "base_name" : str(basename),
+                        "init_temp" : str(replicas[r].new_temperature),
+                        #"init_temp" : str(self.init_temperature),
+                        "amber_path" : str(self.amber_path),
+                        "shared_path" : str(shared_data_url),
+                        "amber_input" : str(self.amber_input),
+                        "amber_parameters": str(self.amber_parameters),
+                        "all_salt_ctr" : all_salt 
+                    }
 
-                dump_data = json.dumps(data)
-                json_data = dump_data.replace("\\", "")
-                # in principle we can transfer this just once and use it multiple times later during the simulation
-                cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
-                cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
-                cu.cores = 1            
-                exchange_replicas.append(cu)
-
+                    dump_data = json.dumps(data)
+                    json_data = dump_data.replace("\\", "")
+                    # in principle we can transfer this just once and use it multiple times later during the simulation
+                    cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
+                    cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
+                    cu.cores = 1            
+                    exchange_replicas.append(cu)
 
         return exchange_replicas
 
@@ -261,7 +262,7 @@ class AmberKernel2dPatternB(MdKernel2d):
         if dimension == 1:
             temp = replica_2.new_temperature
             replica_2.new_temperature = replica_1.new_temperature
-            replica_1.new_temperature = salt
+            replica_1.new_temperature = temp
         else:
             salt = replica_2.new_salt_concentration
             replica_2.new_salt_concentration = replica_1.new_salt_concentration

@@ -76,6 +76,7 @@ class PilotKernel(object):
             # Add an ssh identity to the session.
             cred = radical.pilot.Context('ssh')
             cred.user_id = self.user
+            #cred.user_pass = 'xxx'
             session.add_context(cred)
 
             pilot_manager = radical.pilot.PilotManager(session=session)
