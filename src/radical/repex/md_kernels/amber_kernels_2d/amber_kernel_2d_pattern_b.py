@@ -18,7 +18,7 @@ import datetime
 from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
-from replicas.replica import Replica
+from replicas.replica import Replica2d
 from md_kernels.md_kernel_2d import *
 import amber_kernels_salt.amber_matrix_calculator_pattern_b
 

@@ -14,7 +14,7 @@ import radical.pilot
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
 from amber_kernels_2d.amber_kernel_2d_pattern_b import AmberKernel2dPatternB
-from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
+from pilot_kernels.pilot_kernel_pattern_b_2d import PilotKernelPatternB2d
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
