@@ -15,7 +15,7 @@ import math
 import random
 from os import path
 import radical.pilot
-from replicas.replica import ReplicaSalt, Replica2d
+from replicas.replica import Replica2d
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -36,7 +36,10 @@ class MdKernel2d(object):
         self.replicas = int(inp_file['input.MD']['number_of_replicas'])
         self.min_salt = float(inp_file['input.MD']['min_salt'])
         self.max_salt = float(inp_file['input.MD']['max_salt'])
-        self.init_temperature = float(inp_file['input.MD']['init_temperature'])
+        self.min_temp = float(inp_file['input.MD']['min_temperature'])
+        self.max_temp = float(inp_file['input.MD']['max_temperature'])
+
+        #self.init_temperature = float(inp_file['input.MD']['init_temperature'])
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
         self.min_temp = float(inp_file['input.MD']['min_temperature'])

@@ -73,9 +73,9 @@ if __name__ == '__main__':
         # reason).
         print "need to exit now: %s" % e
 
-    finally :
+    #finally :
         # always clean up the session, no matter if we caught an exception or
         # not.
-        print "closing session"
-        session.close (cleanup=False)
+        #print "closing session"
+        #session.close (cleanup=False)
 
