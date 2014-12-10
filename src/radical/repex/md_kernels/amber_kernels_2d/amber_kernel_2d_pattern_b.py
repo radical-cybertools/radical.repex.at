@@ -222,6 +222,16 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 all_salt_list = all_salt.split(" ")
 
+                all_temp = ""
+                for r in range(len(replicas)):
+                    if r == 0:
+                        all_temp = str(replicas[r].new_temperature)
+                    else:
+                        all_temp = all_temp + " " + str(replicas[r].new_temperature)
+
+                all_temp_list = all_temp.split(" ")
+
+
                 for r in range(len(replicas)):
                     cu = radical.pilot.ComputeUnitDescription()
                     cu.pre_exec = ["module load amber/14"]
@@ -242,7 +252,8 @@ class AmberKernel2dPatternB(MdKernel2d):
                         "shared_path" : str(shared_data_url),
                         "amber_input" : str(self.amber_input),
                         "amber_parameters": str(self.amber_parameters),
-                        "all_salt_ctr" : all_salt 
+                        "all_salt_ctr" : all_salt, 
+                        "all_temp" : all_temp
                     }
 
                     dump_data = json.dumps(data)
