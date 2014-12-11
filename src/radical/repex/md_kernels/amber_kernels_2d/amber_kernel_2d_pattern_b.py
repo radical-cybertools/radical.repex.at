@@ -22,6 +22,7 @@ from replicas.replica import Replica2d
 from md_kernels.md_kernel_2d import *
 import amber_kernels_salt.amber_matrix_calculator_pattern_b
 import amber_kernels_tex.amber_matrix_calculator_pattern_b
+import amber_kernels_2d.amber_matrix_calculator_2d_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -207,6 +208,8 @@ class AmberKernel2dPatternB(MdKernel2d):
                     # path!
                     calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
                     calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+                    #calculator_path = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
+                    #calculator = calculator_path + "/amber_matrix_calculator_2d_pattern_b.py"
                     cu.input_staging = [str(calculator)]
                     cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
                     cu.cores = 1            
@@ -237,8 +240,10 @@ class AmberKernel2dPatternB(MdKernel2d):
                     cu.pre_exec = ["module load amber/14"]
                     cu.executable = "python"
                     # path!
-                    calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
-                    calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+                    #calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
+                    #calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+                    calculator_path = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
+                    calculator = calculator_path + "/amber_matrix_calculator_2d_pattern_b.py"
                     input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
                     data = {
@@ -260,7 +265,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                     json_data = dump_data.replace("\\", "")
                     # in principle we can transfer this just once and use it multiple times later during the simulation
                     cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
-                    cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
+                    cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
                     cu.cores = 1            
                     exchange_replicas.append(cu)
 

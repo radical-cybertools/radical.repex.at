@@ -144,6 +144,8 @@ if __name__ == '__main__':
     # SALT CONCENTRATION FOR ALL REPLICAS
     all_salt = (data["all_salt_ctr"])
     all_salt_conc = all_salt.split(" ")
+    all_temp = (data["all_temp"])
+    all_temperature = all_temp.split(" ")
     #print "all salt concentrations: "
     #print all_salt_conc
 
@@ -190,6 +192,8 @@ if __name__ == '__main__':
                 f.write(line.replace("@nstlim@","0"))
             elif "@salt@" in line:
                 f.write(line.replace("@salt@",all_salt_conc[j]))
+            elif "@temp@" in line:
+                f.write(line.replace("@temp@",all_temperature[j]))
             else:
                 f.write(line)
         f.close()
