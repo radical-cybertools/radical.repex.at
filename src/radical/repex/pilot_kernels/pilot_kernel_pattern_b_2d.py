@@ -104,6 +104,7 @@ class PilotKernelPatternB2d(PilotKernel):
         shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
 
         for i in range(md_kernel.nr_cycles):
+            start_time = datetime.datetime.utcnow()
             print "Performing cycle: %s" % (i+1)
             #########
             # D1 run
@@ -114,8 +115,12 @@ class PilotKernelPatternB2d(PilotKernel):
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             
+            stop_time = datetime.datetime.utcnow()
+            print "Cycle %d; dimension 1; Time to perform MD run: %f" % ((i+1), (stop_time - start_time).total_seconds())            
+
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
+                start_time = datetime.datetime.utcnow()
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
@@ -124,6 +129,9 @@ class PilotKernelPatternB2d(PilotKernel):
                 print "Submitting %d replicas for Exchange run (dimension 1; cycle %d)" % (md_kernel.replicas, (i+1))
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
+                stop_time = datetime.datetime.utcnow()
+                print "Cycle %d; dimension 1; Time to perform Exchange: %f" % ((i+1), (stop_time - start_time).total_seconds())
+                start_time = datetime.datetime.utcnow()
 
                 matrix_columns = []
                 for r in submitted_replicas:
@@ -147,6 +155,10 @@ class PilotKernelPatternB2d(PilotKernel):
                         r_i.swap = 1
                         r_j.swap = 1
 
+                stop_time = datetime.datetime.utcnow()
+                print "Cycle %d; dimension 1; Post-processing time: %f" % ((i+1), (stop_time - start_time).total_seconds())
+ 
+            start_time = datetime.datetime.utcnow()
             ################################################################
             # D2 run
             D = 2
@@ -155,9 +167,14 @@ class PilotKernelPatternB2d(PilotKernel):
             print "Submitting %d replicas for MD run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
+
+            stop_time = datetime.datetime.utcnow()
+            print "Cycle %d; dimension 2; Time to perform MD run: %f" % ((i+1), (stop_time - start_time).total_seconds())
+
             
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
+                start_time = datetime.datetime.utcnow()
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
@@ -166,6 +183,10 @@ class PilotKernelPatternB2d(PilotKernel):
                 print "Submitting %d replicas for Exchange run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
+          
+                stop_time = datetime.datetime.utcnow()
+                print "Cycle %d; dimension 2; Time to perform Exchange: %f" % ((i+1), (stop_time - start_time).total_seconds())
+                start_time = datetime.datetime.utcnow()
 
                 matrix_columns = []
                 for r in submitted_replicas:
@@ -188,4 +209,7 @@ class PilotKernelPatternB2d(PilotKernel):
                         # record that swap was performed
                         r_i.swap = 1
                         r_j.swap = 1
+
+                stop_time = datetime.datetime.utcnow()
+                print "Cycle %d; dimension 2; Post-processing time: %f" % ((i+1), (stop_time - start_time).total_seconds())
 
