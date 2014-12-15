@@ -103,14 +103,14 @@ class PilotKernelPatternB2d(PilotKernel):
         # get the path to the directory containing the shared data
         shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
 
-        for i in range(md_kernel.nr_cycles * 2):
-            print "Performing cycle: %s" % ((i+1) / 2)
+        for i in range(md_kernel.nr_cycles):
+            print "Performing cycle: %s" % (i+1)
             #########
             # D1 run
             D = 1
-            print "Preparing %d replicas for MD run (dimension 1)" % md_kernel.replicas
+            print "Preparing %d replicas for MD run (dimension 1; cycle %d)" % (md_kernel.replicas, (i+1))
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
-            print "Submitting %d replicas for MD run (dimension 1)" % md_kernel.replicas
+            print "Submitting %d replicas for MD run (dimension 1; cycle %d)" % (md_kernel.replicas, (i+1))
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             
@@ -119,9 +119,9 @@ class PilotKernelPatternB2d(PilotKernel):
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
-                print "Preparing %d replicas for Exchange run (dimension 1)" % md_kernel.replicas
+                print "Preparing %d replicas for Exchange run (dimension 1; cycle %d)" % (md_kernel.replicas, (i+1))
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
-                print "Submitting %d replicas for Exchange run (dimension 1)" % md_kernel.replicas
+                print "Submitting %d replicas for Exchange run (dimension 1; cycle %d)" % (md_kernel.replicas, (i+1))
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
 
@@ -150,9 +150,9 @@ class PilotKernelPatternB2d(PilotKernel):
             ################################################################
             # D2 run
             D = 2
-            print "Preparing %d replicas for MD run (dimension 2)" % md_kernel.replicas
+            print "Preparing %d replicas for MD run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
-            print "Submitting %d replicas for MD run (dimension 2)" % md_kernel.replicas
+            print "Submitting %d replicas for MD run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             
@@ -161,9 +161,9 @@ class PilotKernelPatternB2d(PilotKernel):
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
-                print "Preparing %d replicas for Exchange run (dimension 2)" % md_kernel.replicas
+                print "Preparing %d replicas for Exchange run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
-                print "Submitting %d replicas for Exchange run (dimension 2)" % md_kernel.replicas
+                print "Submitting %d replicas for Exchange run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
 
