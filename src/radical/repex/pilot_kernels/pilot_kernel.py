@@ -38,6 +38,11 @@ class PilotKernel(object):
             self.project = inp_file['input.PILOT']['project']
         except:
             self.project = None
+ 
+        try:
+            self.queue = inp_file['input.PILOT']['queue']
+        except:
+            self.queue = None
 
         try:
             self.cores = int(inp_file['input.PILOT']['cores'])
