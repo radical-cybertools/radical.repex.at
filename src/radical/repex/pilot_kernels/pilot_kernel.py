@@ -40,6 +40,10 @@ class PilotKernel(object):
             self.project = None
 
         try:
+            self.queue = inp_file['input.PILOT']['queue']
+        except:
+            self.queue = None
+        try:
             self.cores = int(inp_file['input.PILOT']['cores'])
         except:
             print "Field 'cores' must be defined"
