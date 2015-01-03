@@ -103,11 +103,19 @@ class PilotKernelPatternB2d(PilotKernel):
         # get the path to the directory containing the shared data
         shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
 
+        print "###################################"
+        print "replica params are: "
+        for r in replicas:
+            print r.new_salt_concentration
+            print r.new_temperature
+
+        print "###################################"
+
         for i in range(md_kernel.nr_cycles):
             start_time = datetime.datetime.utcnow()
             print "Performing cycle: %s" % (i+1)
             #########
-            # D1 run
+            # D1 run (temperature exchange)
             D = 1
             print "Preparing %d replicas for MD run (dimension 1; cycle %d)" % (md_kernel.replicas, (i+1))
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
@@ -121,10 +129,14 @@ class PilotKernelPatternB2d(PilotKernel):
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
                 start_time = datetime.datetime.utcnow()
-                #####################################################################
+                #########################################
                 # computing swap matrix
-                #####################################################################
+                #########################################
                 print "Preparing %d replicas for Exchange run (dimension 1; cycle %d)" % (md_kernel.replicas, (i+1))
+                #########################################
+                # selecting replicas for exchange step
+                #########################################
+
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
                 print "Submitting %d replicas for Exchange run (dimension 1; cycle %d)" % (md_kernel.replicas, (i+1))
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
@@ -139,28 +151,21 @@ class PilotKernelPatternB2d(PilotKernel):
                     data = d.split()
                     matrix_columns.append(data)
 
-                #####################################################################
+                ##############################################
                 # compose swap matrix from individual files
-                #####################################################################
+                ##############################################
                 print "Composing swap matrix from individual files for all replicas"
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
                 print "Performing exchange"
-                for r_i in replicas:
-                    r_j = md_kernel.gibbs_exchange(r_i, replicas, swap_matrix)
-                    if (r_j != r_i):
-                        # swap parameters
-                        md_kernel.exchange_params(D, r_i, r_j)               
-                        # record that swap was performed
-                        r_i.swap = 1
-                        r_j.swap = 1
+                md_kernel.select_for_exchange(D, replicas, swap_matrix)
 
                 stop_time = datetime.datetime.utcnow()
                 print "Cycle %d; dimension 1; Post-processing time: %f" % ((i+1), (stop_time - start_time).total_seconds())
  
             start_time = datetime.datetime.utcnow()
-            ################################################################
-            # D2 run
+            #########################################
+            # D2 run (salt concentration exchange)
             D = 2
             print "Preparing %d replicas for MD run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
@@ -175,9 +180,9 @@ class PilotKernelPatternB2d(PilotKernel):
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
                 start_time = datetime.datetime.utcnow()
-                #####################################################################
+                ##########################
                 # computing swap matrix
-                #####################################################################
+                ##########################
                 print "Preparing %d replicas for Exchange run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
                 print "Submitting %d replicas for Exchange run (dimension 2; cycle %d)" % (md_kernel.replicas, (i+1))
@@ -194,21 +199,14 @@ class PilotKernelPatternB2d(PilotKernel):
                     data = d.split()
                     matrix_columns.append(data)
 
-                #####################################################################
+                ##############################################
                 # compose swap matrix from individual files
-                #####################################################################
+                ##############################################
                 print "Composing swap matrix from individual files for all replicas"
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
-                print "Performing exchange"
-                for r_i in replicas:
-                    r_j = md_kernel.gibbs_exchange(r_i, replicas, swap_matrix)
-                    if (r_j != r_i):
-                        # swap parameters
-                        md_kernel.exchange_params(D, r_i, r_j)               
-                        # record that swap was performed
-                        r_i.swap = 1
-                        r_j.swap = 1
+                print "Performing exchange of salt concentrations"
+                md_kernel.select_for_exchange(D, replicas, swap_matrix)
 
                 stop_time = datetime.datetime.utcnow()
                 print "Cycle %d; dimension 2; Post-processing time: %f" % ((i+1), (stop_time - start_time).total_seconds())

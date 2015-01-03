@@ -284,3 +284,73 @@ class AmberKernel2dPatternB(MdKernel2d):
             replica_2.new_salt_concentration = replica_1.new_salt_concentration
             replica_1.new_salt_concentration = salt
 
+#-----------------------------------------------------------------------------------------------------------------------------------
+    def do_exchange(self, dimension, replicas, swap_matrix):
+
+        for r_i in replicas:
+            r_j = self.gibbs_exchange(r_i, replicas, swap_matrix)
+            if (r_j != r_i):
+                # swap parameters
+                self.exchange_params(dimension, r_i, r_j)               
+                # record that swap was performed
+                r_i.swap = 1
+                r_j.swap = 1
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+    def select_for_exchange(self, dimension, replicas, swap_matrix):
+
+        salt_list = []
+        temp_list = []
+        for r1 in range(len(replicas)):
+            ###############################################
+            # temperature exchange
+            if dimension == 1:
+                current_salt = replicas[r1].new_salt_concentration
+                if current_salt not in salt_list:
+                    salt_list.append(current_salt)
+                    current_group = []
+                    current_group.append(replicas[r1])
+                    for r2 in replicas:
+                        if current_salt == r2.new_salt_concentration:
+                            current_group.append(r2)
+                    #######################################
+                    # remove
+                    print "current dimension: %d" % dimension
+                    print "current group: "
+                    for rt in current_group:
+                        print rt.new_salt_concentration
+                        print rt.new_temperature
+                    #######################################
+                    # perform exchange among group members
+                    #######################################
+                    self.do_exchange(dimension, current_group, swap_matrix)
+            ###############################################
+            # salt concentration exchange
+            else:
+                current_temp = replicas[r1].new_temperature
+                if current_temp not in temp_list:
+                    temp_list.append(current_temp)
+                    current_group = []
+                    current_group.append(replicas[r1])
+                    for r2 in replicas:
+                        if current_temp == r2.new_temperature:
+                            current_group.append(r2)
+                    #######################################
+                    # remove
+                    print "current dimension: %d" % dimension
+                    print "current group: "
+                    for rt in current_group:
+                        print rt.new_salt_concentration
+                        print rt.new_temperature
+                    #######################################
+                    # perform exchange among group members
+                    #######################################
+                    self.do_exchange(dimension, current_group, swap_matrix)
+
+
+
+
+
+
+
