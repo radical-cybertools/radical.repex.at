@@ -66,8 +66,14 @@ class AmberKernel2dPatternB(MdKernel2d):
         self.amber_input = inp_file['input.MD']['amber_input']
         self.input_folder = inp_file['input.MD']['input_folder']
 
+        self.id_matrix = []
+        self.temp_matrix = []
+        self.salt_matrix = []
+
+        self.current_cycle = -1
+
 #-----------------------------------------------------------------------------------------------------------------------------------
-    # OK
+
     def build_input_file(self, replica, shared_data_url):
         """Builds input file for replica, based on template input file ala10.mdin
         """
@@ -131,7 +137,6 @@ class AmberKernel2dPatternB(MdKernel2d):
         return shared_data_unit
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    # OK
     def prepare_replicas_for_md(self, replicas, shared_data_url):
         """
         """
@@ -191,7 +196,6 @@ class AmberKernel2dPatternB(MdKernel2d):
         return compute_replicas
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    # OK
     def prepare_replicas_for_exchange(self, dimension, replicas, shared_data_url):
         """
         """
@@ -273,7 +277,7 @@ class AmberKernel2dPatternB(MdKernel2d):
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    # OK
+
     def exchange_params(self, dimension, replica_1, replica_2):
         if dimension == 1:
             temp = replica_2.new_temperature
@@ -285,8 +289,8 @@ class AmberKernel2dPatternB(MdKernel2d):
             replica_1.new_salt_concentration = salt
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def do_exchange(self, dimension, replicas, swap_matrix):
 
+    def do_exchange(self, dimension, replicas, swap_matrix):
         for r_i in replicas:
             r_j = self.gibbs_exchange(r_i, replicas, swap_matrix)
             if (r_j != r_i):
@@ -295,10 +299,23 @@ class AmberKernel2dPatternB(MdKernel2d):
                 # record that swap was performed
                 r_i.swap = 1
                 r_j.swap = 1
+                # update id_matrix
+                self.id_matrix[r_i.id][self.current_cycle + 1] = r_j.id
+                self.id_matrix[r_j.id][self.current_cycle + 1] = r_i.id
 
+        for replica in replicas:
+            if dimension == 1:
+                # update temp_matrix
+                self.temp_matrix[replica.id][self.current_cycle + 1] = replica.new_temperature
+            else:
+                # update salt_matrix
+                self.salt_matrix[replica.id][self.current_cycle + 1] = replica.new_salt_concentration
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def select_for_exchange(self, dimension, replicas, swap_matrix):
+
+    def select_for_exchange(self, dimension, replicas, swap_matrix, cycle):
+
+        self.current_cycle = cycle
 
         salt_list = []
         temp_list = []
@@ -310,7 +327,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                 if current_salt not in salt_list:
                     salt_list.append(current_salt)
                     current_group = []
-                    current_group.append(replicas[r1])
+                    #current_group.append(replicas[r1])
                     for r2 in replicas:
                         if current_salt == r2.new_salt_concentration:
                             current_group.append(r2)
@@ -332,7 +349,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                 if current_temp not in temp_list:
                     temp_list.append(current_temp)
                     current_group = []
-                    current_group.append(replicas[r1])
+                    #current_group.append(replicas[r1])
                     for r2 in replicas:
                         if current_temp == r2.new_temperature:
                             current_group.append(r2)
@@ -349,8 +366,65 @@ class AmberKernel2dPatternB(MdKernel2d):
                     self.do_exchange(dimension, current_group, swap_matrix)
 
 
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def init_matrices(self, replicas):
+
+        # id_matrix
+        for r in replicas:
+            row = []
+            row.append(r.id)
+            for c in range(self.nr_cycles):
+                row.append( -1.0 )
+
+            self.id_matrix.append( row )
+
+        self.id_matrix = sorted(self.id_matrix)
+        print "id_matrix is: "
+        print self.id_matrix
+
+        # temp_matrix
+        for r in replicas:
+            row = []
+            row.append(r.id)
+            row.append(r.new_temperature)
+            for c in range(self.nr_cycles - 1):
+                row.append( -1.0 )
+
+            self.temp_matrix.append( row )
+
+        self.temp_matrix = sorted(self.temp_matrix)
+        print "temp_matrix is: "
+        print self.temp_matrix
+
+        # salt_matrix
+        for r in replicas:
+            row = []
+            row.append(r.id)
+            row.append(r.new_salt_concentration)
+            for c in range(self.nr_cycles - 1):
+                row.append( -1.0 )
+
+            self.salt_matrix.append( row )
+
+        self.salt_matrix = sorted(self.salt_matrix)
+        print "salt_matrix is: "
+        print self.salt_matrix
 
 
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def get_id_matrix(self):
+        return self.id_matrix
 
 
+#-----------------------------------------------------------------------------------------------------------------------------------
 
+    def get_temp_matrix(self):
+        return self.temp_matrix
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def get_salt_matrix(self):
+        return self.salt_matrix

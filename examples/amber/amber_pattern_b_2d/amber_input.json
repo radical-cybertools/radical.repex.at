@@ -4,7 +4,7 @@
         "username" : "antontre",
         "project" : "TG-MCB090174",
         "queue" : "shared",
-        "runtime" : "30",
+        "runtime" : "90",
         "cleanup" : "False",
         "cores" : "16"
     },

@@ -216,9 +216,3 @@ class MdKernel2d(object):
             except:
                 raise
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-    # OK
-    def exchange_params(self, replica_1, replica_2):
-        salt = replica_2.new_salt_concentration
-        replica_2.new_salt_concentration = replica_1.new_salt_concentration
-        replica_1.new_salt_concentration = salt
