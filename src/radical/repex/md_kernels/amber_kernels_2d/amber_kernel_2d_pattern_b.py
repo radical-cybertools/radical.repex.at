@@ -66,7 +66,8 @@ class AmberKernel2dPatternB(MdKernel2d):
         self.amber_input = inp_file['input.MD']['amber_input']
         self.input_folder = inp_file['input.MD']['input_folder']
 
-        self.id_matrix = []
+        self.d1_id_matrix = []
+        self.d2_id_matrix = []
         self.temp_matrix = []
         self.salt_matrix = []
 
@@ -291,6 +292,11 @@ class AmberKernel2dPatternB(MdKernel2d):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def do_exchange(self, dimension, replicas, swap_matrix):
+        print "dimension: %d" % dimension
+        print "replica id's in current group: "
+        for r_i in replicas:
+            print r_i.id
+
         for r_i in replicas:
             r_j = self.gibbs_exchange(r_i, replicas, swap_matrix)
             if (r_j != r_i):
@@ -299,9 +305,13 @@ class AmberKernel2dPatternB(MdKernel2d):
                 # record that swap was performed
                 r_i.swap = 1
                 r_j.swap = 1
-                # update id_matrix
-                self.id_matrix[r_i.id][self.current_cycle + 1] = r_j.id
-                self.id_matrix[r_j.id][self.current_cycle + 1] = r_i.id
+                # update id matrix
+                if dimension == 1:
+                    self.d1_id_matrix[r_i.id][self.current_cycle] = r_j.id
+                    self.d1_id_matrix[r_j.id][self.current_cycle] = r_i.id
+                else:
+                    self.d2_id_matrix[r_i.id][self.current_cycle] = r_j.id
+                    self.d2_id_matrix[r_j.id][self.current_cycle] = r_i.id
 
         for replica in replicas:
             if dimension == 1:
@@ -377,11 +387,16 @@ class AmberKernel2dPatternB(MdKernel2d):
             for c in range(self.nr_cycles):
                 row.append( -1.0 )
 
-            self.id_matrix.append( row )
+            self.d1_id_matrix.append( row )
+            self.d2_id_matrix.append( row )
 
-        self.id_matrix = sorted(self.id_matrix)
-        print "id_matrix is: "
-        print self.id_matrix
+        self.d1_id_matrix = sorted(self.d1_id_matrix)
+        self.d2_id_matrix = sorted(self.d2_id_matrix)
+        print "d1_id_matrix is: "
+        print self.d1_id_matrix
+
+        print "d2_id_matrix is: "
+        print self.d2_id_matrix
 
         # temp_matrix
         for r in replicas:
@@ -414,15 +429,18 @@ class AmberKernel2dPatternB(MdKernel2d):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def get_id_matrix(self):
-        return self.id_matrix
+    def get_d1_id_matrix(self):
+        return self.d1_id_matrix
 
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def get_d2_id_matrix(self):
+        return self.d2_id_matrix
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def get_temp_matrix(self):
         return self.temp_matrix
-
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 

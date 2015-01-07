@@ -218,15 +218,20 @@ class PilotKernelPatternB2d(PilotKernel):
                 print "Cycle %d; dimension 2; Post-processing time: %f" % (current_cycle, (stop_time - start_time).total_seconds())
 
         # end of loop
-        id_matrix = md_kernel.get_id_matrix()
+        d1_id_matrix = md_kernel.get_d1_id_matrix()
         temp_matrix = md_kernel.get_temp_matrix()
+        
+        d2_id_matrix = md_kernel.get_d2_id_matrix()
         salt_matrix = md_kernel.get_salt_matrix()
 
-        print "ID's of replicas exchanges were performed with: "
-        print id_matrix
+        print "Exchange matrix of replica id's for d1 (temperature) exchange: "
+        print d1_id_matrix
 
         print "Change in temperatures for each replica: "
         print temp_matrix
+
+        print "Exchange matrix of replica id's for d2 (salt concentration) exchange: "
+        print d2_id_matrix
 
         print "Change in salt concentration for each replica: "
         print salt_matrix
