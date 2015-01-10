@@ -242,7 +242,8 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 for r in range(len(replicas)):
                     cu = radical.pilot.ComputeUnitDescription()
-                    cu.pre_exec = ["module load amber/14"]
+                    #cu.pre_exec = ["module load amber/14"]
+                    cu.pre_exec = self.pre_exec
                     cu.executable = "python"
                     # path!
                     #calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
