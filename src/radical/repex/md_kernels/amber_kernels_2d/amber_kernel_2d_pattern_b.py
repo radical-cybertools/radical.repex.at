@@ -298,9 +298,13 @@ class AmberKernel2dPatternB(MdKernel2d):
         for r_i in replicas:
             print r_i.id
 
+        exchanged = []
         for r_i in replicas:
             r_j = self.gibbs_exchange(r_i, replicas, swap_matrix)
-            if (r_j != r_i):
+            if (r_j != r_i) and (r_j.id not in exchanged) and (r_i.id not in exchanged) :
+                exchanged.append(r_j.id)
+                exchanged.append(r_i.id)
+                print "exchange between replicas with ID: %d and %d " % (r_i.id, r_j.id)
                 # swap parameters
                 self.exchange_params(dimension, r_i, r_j)               
                 # record that swap was performed

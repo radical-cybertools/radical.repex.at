@@ -1,6 +1,6 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
+        "resource": "trestles.sdsc.xsede.org",
         "username" : "antontre",
         "project" : "TG-MCB090174",
         "queue" : "shared",
