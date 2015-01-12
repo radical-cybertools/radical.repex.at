@@ -11,9 +11,11 @@ import sys
 import math
 import json
 
+from radical.ensemblemd.patterns.replica_exchange import Replica
+
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class Replica(object):
+class Replica(Replica):
     """Class representing replica and it's associated data.
     """
     def __init__(self, my_id, new_temperature=None, cores=1):
