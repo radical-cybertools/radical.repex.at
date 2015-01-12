@@ -281,50 +281,61 @@ class AmberKernel2dPatternB(MdKernel2d):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def exchange_params(self, dimension, replica_1, replica_2):
+        print "exchange params..."
         if dimension == 1:
+            print "before: r1: %d r2: %d" % (replica_1.new_temperature, replica_2.new_temperature)
             temp = replica_2.new_temperature
             replica_2.new_temperature = replica_1.new_temperature
             replica_1.new_temperature = temp
+            print "after: r1: %d r2: %d" % (replica_1.new_temperature, replica_2.new_temperature)
         else:
+            print "before: r1: %f r2: %f" % (replica_1.new_salt_concentration, replica_2.new_salt_concentration)
             salt = replica_2.new_salt_concentration
             replica_2.new_salt_concentration = replica_1.new_salt_concentration
             replica_1.new_salt_concentration = salt
+            print "after: r1: %f r2: %f" % (replica_1.new_salt_concentration, replica_2.new_salt_concentration)
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def do_exchange(self, dimension, replicas, swap_matrix):
-        print "dimension: %d" % dimension
-        print "replica id's in current group: "
+
+        print "current dim: %d replicas in current group: " % (dimension)
         for r_i in replicas:
-            print r_i.id
+            print "replica id: %d salt: %f temp: %d " % (r_i.id, r_i.new_salt_concentration, r_i.new_temperature)
 
         exchanged = []
         for r_i in replicas:
             r_j = self.gibbs_exchange(r_i, replicas, swap_matrix)
-            if (r_j != r_i) and (r_j.id not in exchanged) and (r_i.id not in exchanged) :
+            print "gibbs: r_i.id: %d  r_j.id: %d " % (r_i.id, r_j.id)
+            if (r_j.id != r_i.id) and (r_j.id not in exchanged) and (r_i.id not in exchanged):
                 exchanged.append(r_j.id)
                 exchanged.append(r_i.id)
-                print "exchange between replicas with ID: %d and %d " % (r_i.id, r_j.id)
+                print "EXCHANGE BETWEEN REPLICAS WITH ID'S: %d AND %d " % (r_i.id, r_j.id)
                 # swap parameters
-                self.exchange_params(dimension, r_i, r_j)               
+                self.exchange_params(dimension, r_i, r_j)
                 # record that swap was performed
                 r_i.swap = 1
                 r_j.swap = 1
+
                 # update id matrix
                 if dimension == 1:
+                    print "EXCHANGE D1"
                     self.d1_id_matrix[r_i.id][self.current_cycle] = r_j.id
                     self.d1_id_matrix[r_j.id][self.current_cycle] = r_i.id
                 else:
+                    print "EXCHANGE D2"
                     self.d2_id_matrix[r_i.id][self.current_cycle] = r_j.id
                     self.d2_id_matrix[r_j.id][self.current_cycle] = r_i.id
+
 
         for replica in replicas:
             if dimension == 1:
                 # update temp_matrix
-                self.temp_matrix[replica.id][self.current_cycle + 1] = replica.new_temperature
+                self.temp_matrix[replica.id][self.current_cycle] = replica.new_temperature
             else:
                 # update salt_matrix
-                self.salt_matrix[replica.id][self.current_cycle + 1] = replica.new_salt_concentration
+                self.salt_matrix[replica.id][self.current_cycle] = replica.new_salt_concentration
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -346,13 +357,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                     for r2 in replicas:
                         if current_salt == r2.new_salt_concentration:
                             current_group.append(r2)
-                    #######################################
-                    # remove
-                    print "current dimension: %d" % dimension
-                    print "current group: "
-                    for rt in current_group:
-                        print rt.new_salt_concentration
-                        print rt.new_temperature
+
                     #######################################
                     # perform exchange among group members
                     #######################################
@@ -368,18 +373,17 @@ class AmberKernel2dPatternB(MdKernel2d):
                     for r2 in replicas:
                         if current_temp == r2.new_temperature:
                             current_group.append(r2)
-                    #######################################
-                    # remove
-                    print "current dimension: %d" % dimension
-                    print "current group: "
-                    for rt in current_group:
-                        print rt.new_salt_concentration
-                        print rt.new_temperature
+                    
                     #######################################
                     # perform exchange among group members
                     #######################################
                     self.do_exchange(dimension, current_group, swap_matrix)
 
+        print "CURRENT DIM: %d" % dimension
+        print "ID MATRIX D1---------------------------(end of select for exchange)"
+        print self.d1_id_matrix
+        print "ID MATRIX D2---------------------------(end of select for exchange)"
+        print self.d2_id_matrix
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 

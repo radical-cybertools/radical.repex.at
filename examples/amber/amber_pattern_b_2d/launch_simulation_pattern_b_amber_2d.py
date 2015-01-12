@@ -66,16 +66,19 @@ if __name__ == '__main__':
         print "Simulation successfully finished!"
         print "Please check output files in replica_x directories."
 
-    except (KeyboardInterrupt, SystemExit) as e :
+    except:
+        print "Unexpected error:", sys.exc_info()[0]
+        raise
+    #except (KeyboardInterrupt, SystemExit) as e :
         # the callback called sys.exit(), and we can here catch the
         # corresponding KeyboardInterrupt exception for shutdown.  We also catch
         # SystemExit (which gets raised if the main threads exits for some other
         # reason).
-        print "need to exit now: %s" % e
+        #print "need to exit now: %s" % e
 
-    finally :
+    #finally :
         # always clean up the session, no matter if we caught an exception or
         # not.
-        print "closing session"
-        session.close (cleanup=False)
+        # print "closing session"
+        # session.close (cleanup=False)
 

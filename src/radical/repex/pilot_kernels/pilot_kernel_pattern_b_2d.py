@@ -64,8 +64,6 @@ class PilotKernelPatternB2d(PilotKernel):
              for i in range(len(replicas))]
 
         matrix_columns = sorted(matrix_columns)
-        print "matrix columns: "
-        print matrix_columns
 
         for r in replicas:
             # populating one column at a time
@@ -105,13 +103,10 @@ class PilotKernelPatternB2d(PilotKernel):
         # get the path to the directory containing the shared data
         shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
 
-        print "###################################"
         print "replica params are: "
         for r in replicas:
-            print r.new_salt_concentration
-            print r.new_temperature
+            print "replica id: %d salt: %f temperature: %d " % (r.id, r.new_salt_concentration, r.new_temperature)
 
-        print "###################################"
 
         md_kernel.init_matrices(replicas)
 

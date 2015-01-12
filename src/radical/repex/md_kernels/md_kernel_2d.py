@@ -107,12 +107,20 @@ class MdKernel2d(object):
         r_j - replica to exchnage parameters with
         """
         #evaluate all i-j swap probabilities
-        ps = [0.0]*(self.replicas)
-  
-        for r_j in replicas:
-            ps[r_j.id] = -(swap_matrix[r_i.sid][r_j.id] + swap_matrix[r_j.sid][r_i.id] - 
-                      swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
+        ps = [0.0]*(len(replicas))
 
+        for r in replicas:
+            print "GIBBS: r.id: %d r.temp: %d r.salt: %f" % (r.id, r.new_temperature, r.new_salt_concentration)  
+        print "swap matrix in gibbs: "
+        print swap_matrix 
+  
+        j = 0
+        for r_j in replicas:
+            ps[j] = -(swap_matrix[r_i.sid][r_j.id] + swap_matrix[r_j.sid][r_i.id] - 
+                           swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
+            j += 1
+        
+        ######################################
         new_ps = []
         for item in ps:
             new_item = math.exp(item)
@@ -125,6 +133,9 @@ class MdKernel2d(object):
         
         # actual replica
         r_j = replicas[j]
+        ######################################
+
+        #r_j = replicas[0]
         return r_j
 
 #----------------------------------------------------------------------------------------------------------------------------------
