@@ -1,6 +1,6 @@
 #RepEx: Replica Exchange simulations Package
 
-This package is aimed to provide functionality to run Replica Exchange simulations using various RE algorithms and MD kernels. Currently RepEX supports NAMD and Amber as it's application kernels and allows to perform RE simulations on local and remote systems. Functionality to run four RE execution patterns is available. More information can be found at: http://radical-cybertools.github.io/RepEx/
+This package is aimed to provide functionality to run Replica Exchange simulations using various RE algorithms and MD kernels. Currently RepEX supports NAMD and Amber as it's application kernels and allows to perform RE simulations on local and remote systems. Functionality to run four RE execution patterns is available. More information can be found [here](http://radical-cybertools.github.io/RepEx/).
 
 
 ###Theory of Replica Exchange simulations
