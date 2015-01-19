@@ -67,28 +67,11 @@ if __name__ == '__main__':
         # run RE simulation  
         cluster.run(re_pattern, force_plugin="replica_exchange.static_pattern_2")
 
-
-        #############################################################################
-        # initializing kernels
-        #md_kernel = AmberKernelTexScheme2( inp_file, work_dir_local )
-        #pilot_kernel = PilotKernelScheme2( inp_file )
-
-        # initializing replicas
-        #replicas = md_kernel.initialize_replicas()
-
-        #pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
-    
-        # now we can run RE simulation
-        #pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
-        #############################################################################
-
-
         # this is a quick hack
-        base = md_kernel.inp_basename + ".mdin"
+        base = re_pattern.inp_basename + ".mdin"
 
         # finally we are moving all files to individual replica directories
         move_output_files(work_dir_local, base, replicas ) 
-        session.close(cleanup=False)
 
         print "Simulation successfully finished!"
         print "Please check output files in replica_x directories."
