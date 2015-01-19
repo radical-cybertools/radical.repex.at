@@ -53,7 +53,7 @@ if __name__ == '__main__':
             walltime=int(inp_file['input.PILOT']['runtime']),
             username=inp_file['input.PILOT']['username'], 
             allocation=inp_file['input.PILOT']['project'],
-            #cleanup=inp_file['input.PILOT']['cleanup']
+            queue=inp_file['input.PILOT']['queue']
         )
 
         # creating pattern object

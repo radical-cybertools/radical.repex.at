@@ -1,10 +1,11 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
+        "resource": "xsede.stampede",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "15",
+        "runtime" : "20",
         "cleanup" : "False",
+        "queue"   : "development",
         "cores" : "16"
     },
     "input.MD": {

@@ -58,10 +58,48 @@ class AmberTex(MdPattern, ReplicaExchange):
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
 
+        self.shared_urls = []
+        self.shared_files = []
+
         super(AmberTex, self).__init__(inp_file,  work_dir_local)
         
-#-----------------------------------------------------------------------------------------------------------------------------------
-   
+    # ------------------------------------------------------------------------------
+    #
+    def prepare_shared_data(self):
+ 
+        #structure_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
+        #coords_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
+        #params_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
+
+        #crds_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
+        parm_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
+        rstr_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+
+        #self.shared_files.append(self.amber_coordinates)
+        self.shared_files.append(self.amber_parameters)
+        self.shared_files.append(self.amber_restraints)
+
+        #crds_url = 'file://%s' % (crds_path)
+        #self.shared_urls.append(crds_url)
+ 
+        parm_url = 'file://%s' % (parm_path)
+        self.shared_urls.append(parm_url)     
+
+        rstr_url = 'file://%s' % (rstr_path)
+        self.shared_urls.append(rstr_url)
+
+    #-------------------------------------------------------------------------------
+    #
+    def get_shared_urls(self):
+        return self.shared_urls
+
+    #-------------------------------------------------------------------------------
+    #
+    def get_shared_files(self):
+        return self.shared_files
+
+    #-------------------------------------------------------------------------------
+    #
     def initialize_replicas(self):
         replicas = []
         N = self.replicas
@@ -162,9 +200,9 @@ class AmberTex(MdPattern, ReplicaExchange):
                 modified_first_path += char
 
             modified_first_path = '../' + modified_first_path.rstrip()
-            restraints = modified_first_path + "/" + self.amber_restraints
+            # restraints = modified_first_path + "/" + self.amber_restraints
+            restraints = self.amber_restraints
             
-
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
         except IOError:
@@ -186,6 +224,7 @@ class AmberTex(MdPattern, ReplicaExchange):
         except IOError:
             print 'Warning: unable to access file %s' % new_input_file
 
+        print "BUILD INPUT FILE, CYCLE = %d" % replica.cycle
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     # needed only for Pattern-C
@@ -259,6 +298,8 @@ class AmberTex(MdPattern, ReplicaExchange):
         #compute_replicas = []
         #for r in range(len(replicas)):
 
+        print "PREPARE MD, CYCLE = %d" % replica.cycle
+
         self.build_input_file(replica)
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
 
@@ -276,7 +317,7 @@ class AmberTex(MdPattern, ReplicaExchange):
         parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
         rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
-        if replica.cycle == 1:
+        if replica.cycle == 2:
             
             #################################################
             #cu = radical.pilot.ComputeUnitDescription()
@@ -292,8 +333,28 @@ class AmberTex(MdPattern, ReplicaExchange):
             #################################################
 
             k = Kernel(name="md.amber")
-            k.arguments         = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-            k.upload_input_data = [str(input_file), str(crds), str(parm), str(rstr)]
+            """
+            k.arguments         = ["-O", 
+                                   "-i ", input_file, 
+                                   "-o ", output_file, 
+                                   "-p ", self.amber_parameters, 
+                                   "-c ", self.amber_coordinates, 
+                                   "-r ", new_coor, 
+                                   "-x ", new_traj, 
+                                   "-inf ", new_info]
+            """
+            k.arguments         = ["--mdinfile="      + input_file, 
+                                   "--outfile="     + output_file, 
+                                   "--params="     + self.amber_parameters, 
+                                   "--coords="     + self.amber_coordinates, 
+                                   "--nwcoords=" + new_coor, 
+                                   "--nwtraj="   + new_traj, 
+                                   "--nwinfo="   + new_info]
+
+
+           
+            #k.upload_input_data = [str(input_file), str(crds), str(parm), str(rstr)]
+            k.upload_input_data = [str(input_file), str(crds)]
             k.cores             = int(self.replica_cores)
             #k.uses_mpi          = bool(self.replica_mpi)
         else:
@@ -313,8 +374,27 @@ class AmberTex(MdPattern, ReplicaExchange):
             #################################################
 
             k = Kernel(name="md.amber")
-            k.arguments         = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
-            k.upload_input_data = [str(input_file), str(crds), str(parm), str(rstr)]
+            """
+            k.arguments         = ["-O", 
+                                   "-i ", input_file, 
+                                   "-o ", output_file, 
+                                   "-p ", self.amber_parameters, 
+                                   "-c ", old_coor, 
+                                   "-r ", new_coor, 
+                                   "-x ", new_traj, 
+                                   "-inf ", new_info]
+            """
+            k.arguments         = ["--mdinfile="      + input_file,
+                                   "--outfile="     + output_file,
+                                   "--params="     + self.amber_parameters,
+                                   "--coords="     + old_coor,
+                                   "--nwcoords=" + new_coor,
+                                   "--nwtraj="   + new_traj,
+                                   "--nwinfo="   + new_info]
+
+
+            # k.upload_input_data = [str(input_file), str(crds), str(parm), str(rstr)]
+            k.upload_input_data = [str(input_file)]
             k.cores             = int(self.replica_cores)
             #k.uses_mpi          = bool(self.replica_mpi)
 
@@ -333,6 +413,7 @@ class AmberTex(MdPattern, ReplicaExchange):
         Returns:
         exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
+        print "PREPARE EXCHANGE, CYCLE = %d" % replica.cycle
 
         #exchange_replicas = []
         #for r in range(len(replicas)):
@@ -364,7 +445,6 @@ class AmberTex(MdPattern, ReplicaExchange):
         k.upload_input_data = calculator
 
         return k
-
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
