@@ -122,23 +122,44 @@ class PilotKernelPatternB2d(PilotKernel):
 
         md_kernel.init_matrices(replicas)
 
+        # for performance data collection
+        hl_performance_data = {}
+        cu_performance_data = {}
+
         for i in range(md_kernel.nr_cycles):
 
             current_cycle = i+1
+
+            cu_performance_data["cycle_{0}".format(current_cycle)] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)] = {}
             start_time = datetime.datetime.utcnow()
            
             self.get_logger().info("Performing cycle: {0}".format(current_cycle) )
             #########
             # D1 run (temperature exchange)
             D = 1
+
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_1"] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_1"] = {}
+
             self.get_logger().info("Dim 1: preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+            # builds input files as well
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
             self.get_logger().info("Dim 1: submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
-            
             stop_time = datetime.datetime.utcnow()
+            
+            for cu in submitted_replicas:
+                print "execution details: %s" % (cu.execution_details)
+                print "state history: %s" % (cu.state_history)
+                #cu_performance_data["cycle_{0}".format(current_cycle)]["dim_1"]["cu.uid_{0}".format(cu.uid)] = cu.state_history
+
+            
             self.get_logger().info("Dim 1: cycle {0}; time to perform MD run: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds())) 
+           
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_1"]["md_time"] = (stop_time-start_time).total_seconds()
+
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
                 start_time = datetime.datetime.utcnow()
