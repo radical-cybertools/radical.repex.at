@@ -118,7 +118,7 @@ class PilotKernelPatternB2d(PilotKernel):
         shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
 
         for r in replicas:
-            self.get_logger().info("Replica: id={0} salt={1} temperature={2}".format(r.id, r.new_salt_concentration, r.new_temperature) )
+            self.get_logger().debug("Replica: id={0} salt={1} temperature={2}".format(r.id, r.new_salt_concentration, r.new_temperature) )
 
         md_kernel.init_matrices(replicas)
 
@@ -187,7 +187,7 @@ class PilotKernelPatternB2d(PilotKernel):
             unit_manager.wait_units()
 
             stop_time = datetime.datetime.utcnow()
-            self.get_logger().info("Dim 2: cycle %d; time to perform MD run: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
+            self.get_logger().info("Dim 2: cycle {0}; time to perform MD run: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
 
             
             # this is not done for the last cycle
