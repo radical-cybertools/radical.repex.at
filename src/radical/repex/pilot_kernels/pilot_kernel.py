@@ -13,6 +13,7 @@ import json
 from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
+import radical.utils.logger as rul
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -34,6 +35,10 @@ class PilotKernel(object):
             self.sandbox = None
       
         self.user = inp_file['input.PILOT']['username']
+        try:
+            self.password = inp_file['input.PILOT']['password']
+        except:
+            self.password = None
         try:
             self.project = inp_file['input.PILOT']['project']
         except:
@@ -60,8 +65,21 @@ class PilotKernel(object):
         else:
             self.cleanup = False 
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+        self.name = 'pk'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
 
+    # --------------------------------------------------------------------------
+    #
+    def get_name(self):
+        return self.name
+
+    # --------------------------------------------------------------------------
+    #
+    def get_logger(self):
+        return self.logger
+
+    # --------------------------------------------------------------------------
+    #
     def launch_pilot(self):
         """Launches a Pilot on a target resource. This function uses parameters specified in <input_file>.json 
 
@@ -70,6 +88,20 @@ class PilotKernel(object):
         pilot_object - radical.pilot.ComputePilot object
         pilot_manager - radical.pilot.PilotManager object
         """
+ 
+        # --------------------------------------------------------------------------
+        #
+        def pilot_state_cb(pilot, state):
+            """This is a callback function. It gets called very time a ComputePilot changes its state.
+            """
+            self.get_logger().info("ComputePilot '{0}' state changed to {1}.".format(pilot.uid, state) )
+
+            if state == radical.pilot.states.FAILED:
+                self.get_logger().error("Pilot error: {0}".format(pilot.log) )
+                self.get_logger().error("RepEx execution FAILED.")
+                # sys.exit(1)
+        # --------------------------------------------------------------------------
+
         session = None
         pilot_manager = None
         pilot_object = None
@@ -105,28 +137,7 @@ class PilotKernel(object):
             pilot_object = pilot_manager.submit_pilots(pilot_description)
 
         except radical.pilot.PilotException, ex:
-            print "Error: %s" % ex
+            self.get_logger().error("Error: {0}".format(ex))
 
         return pilot_manager, pilot_object, session
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-def unit_state_change_cb(unit, state):
-    """This is a callback function. It gets called very time a ComputeUnit changes its state.
-    """
-    print "[Callback]: ComputeUnit '{0}' state changed to {1}.".format( unit.uid, state)
-
-    if state == radical.pilot.states.FAILED:
-        print " Log: %s" % unit.log[-1]
-
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-def pilot_state_cb(pilot, state):
-    """This is a callback function. It gets called very time a ComputePilot changes its state.
-    """
-    print "[Callback]: ComputePilot '{0}' state changed to {1}.".format( pilot.uid, state)
-
-    if state == radical.pilot.states.FAILED:
-        sys.exit(1)
 

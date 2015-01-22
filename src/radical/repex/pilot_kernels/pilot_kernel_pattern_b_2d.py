@@ -15,6 +15,7 @@ import datetime
 from os import path
 import radical.pilot
 from pilot_kernels.pilot_kernel import *
+import radical.utils.logger as rul
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -38,6 +39,9 @@ class PilotKernelPatternB2d(PilotKernel):
         inp_file - json input file with Pilot and NAMD related parameters as specified by user 
         """
         PilotKernel.__init__(self, inp_file)
+
+        self.name = 'pk-patternB-2d'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     def getkey(self, item):
@@ -90,7 +94,17 @@ class PilotKernelPatternB2d(PilotKernel):
         session - radical.pilot.session object, the *root* object for all other RADICAL-Pilot objects 
         md_kernel - an instance of NamdKernelScheme2a class
         """
-  
+        # --------------------------------------------------------------------------
+        #
+        def unit_state_change_cb(unit, state):
+            """This is a callback function. It gets called very time a ComputeUnit changes its state.
+            """
+            self.get_logger().info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+
+            if state == radical.pilot.states.FAILED:
+                self.get_logger().error("Log: {0:s}".format( unit.log[-1] ) )  
+
+
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
@@ -103,10 +117,8 @@ class PilotKernelPatternB2d(PilotKernel):
         # get the path to the directory containing the shared data
         shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
 
-        print "replica params are: "
         for r in replicas:
-            print "replica id: %d salt: %f temperature: %d " % (r.id, r.new_salt_concentration, r.new_temperature)
-
+            self.get_logger().info("Replica: id={0} salt={1} temperature={2}".format(r.id, r.new_salt_concentration, r.new_temperature) )
 
         md_kernel.init_matrices(replicas)
 
@@ -114,36 +126,36 @@ class PilotKernelPatternB2d(PilotKernel):
 
             current_cycle = i+1
             start_time = datetime.datetime.utcnow()
-            print "Performing cycle: %s" % current_cycle
+           
+            self.get_logger().info("Performing cycle: {0}".format(current_cycle) )
             #########
             # D1 run (temperature exchange)
             D = 1
-            print "Preparing %d replicas for MD run (dimension 1; cycle %d)" % (md_kernel.replicas, current_cycle)
+            self.get_logger().info("Dim 1: preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
-            print "Submitting %d replicas for MD run (dimension 1; cycle %d)" % (md_kernel.replicas, current_cycle)
+            self.get_logger().info("Dim 1: submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             
             stop_time = datetime.datetime.utcnow()
-            print "Cycle %d; dimension 1; Time to perform MD run: %f" % (current_cycle, (stop_time - start_time).total_seconds())            
-
+            self.get_logger().info("Dim 1: cycle {0}; time to perform MD run: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds())) 
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
                 start_time = datetime.datetime.utcnow()
                 #########################################
                 # computing swap matrix
                 #########################################
-                print "Preparing %d replicas for Exchange run (dimension 1; cycle %d)" % (md_kernel.replicas, current_cycle)
+                self.get_logger().info("Dim 1: preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
                 #########################################
                 # selecting replicas for exchange step
                 #########################################
 
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
-                print "Submitting %d replicas for Exchange run (dimension 1; cycle %d)" % (md_kernel.replicas, current_cycle)
+                self.get_logger().info("Dim 1: submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
                 stop_time = datetime.datetime.utcnow()
-                print "Cycle %d; dimension 1; Time to perform Exchange: %f" % (current_cycle, (stop_time - start_time).total_seconds())
+                self.get_logger().info("Dim 1: cycle {0}; time to perform Exchange: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
                 start_time = datetime.datetime.utcnow()
 
                 matrix_columns = []
@@ -155,27 +167,27 @@ class PilotKernelPatternB2d(PilotKernel):
                 ##############################################
                 # compose swap matrix from individual files
                 ##############################################
-                print "Composing swap matrix from individual files for all replicas"
+                self.get_logger().info("Dim 1: composing swap matrix from individual files for all replicas")
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
-                print "Performing exchange"
+                self.get_logger().info("Dim 1: performing exchange")
                 md_kernel.select_for_exchange(D, replicas, swap_matrix, current_cycle)
 
                 stop_time = datetime.datetime.utcnow()
-                print "Cycle %d; dimension 1; Post-processing time: %f" % (current_cycle, (stop_time - start_time).total_seconds())
+                self.get_logger().info("Dim 1: cycle {0}; post-processing time: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
  
             start_time = datetime.datetime.utcnow()
             #########################################
             # D2 run (salt concentration exchange)
             D = 2
-            print "Preparing %d replicas for MD run (dimension 2; cycle %d)" % (md_kernel.replicas, current_cycle)
+            self.get_logger().info("Dim 2: preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
-            print "Submitting %d replicas for MD run (dimension 2; cycle %d)" % (md_kernel.replicas, current_cycle)
+            self.get_logger().info("Dim 2: submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
 
             stop_time = datetime.datetime.utcnow()
-            print "Cycle %d; dimension 2; Time to perform MD run: %f" % (current_cycle, (stop_time - start_time).total_seconds())
+            self.get_logger().info("Dim 2: cycle %d; time to perform MD run: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
 
             
             # this is not done for the last cycle
@@ -184,14 +196,14 @@ class PilotKernelPatternB2d(PilotKernel):
                 ##########################
                 # computing swap matrix
                 ##########################
-                print "Preparing %d replicas for Exchange run (dimension 2; cycle %d)" % (md_kernel.replicas, current_cycle)
+                self.get_logger().info("Dim 2: preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
-                print "Submitting %d replicas for Exchange run (dimension 2; cycle %d)" % (md_kernel.replicas, current_cycle)
+                self.get_logger().info("Dim 2: submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
           
                 stop_time = datetime.datetime.utcnow()
-                print "Cycle %d; dimension 2; Time to perform Exchange: %f" % (current_cycle, (stop_time - start_time).total_seconds())
+                self.get_logger().info("Dim 2: cycle {0}; time to perform Exchange: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
                 start_time = datetime.datetime.utcnow()
 
                 matrix_columns = []
@@ -203,14 +215,14 @@ class PilotKernelPatternB2d(PilotKernel):
                 ##############################################
                 # compose swap matrix from individual files
                 ##############################################
-                print "Composing swap matrix from individual files for all replicas"
+                self.get_logger().info("Dim 2: Composing swap matrix from individual files for all replicas")
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
-                print "Performing exchange of salt concentrations"
+                self.get_logger().info("Dim 2: Performing exchange of salt concentrations")
                 md_kernel.select_for_exchange(D, replicas, swap_matrix, current_cycle)
 
                 stop_time = datetime.datetime.utcnow()
-                print "Cycle %d; dimension 2; Post-processing time: %f" % (current_cycle, (stop_time - start_time).total_seconds())
+                self.get_logger().info("Dim 2: cycle {0}; post-processing time: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
 
         # end of loop
         d1_id_matrix = md_kernel.get_d1_id_matrix()
@@ -219,14 +231,11 @@ class PilotKernelPatternB2d(PilotKernel):
         d2_id_matrix = md_kernel.get_d2_id_matrix()
         salt_matrix = md_kernel.get_salt_matrix()
 
-        print "Exchange matrix of replica id's for d1 (temperature) exchange: "
-        print d1_id_matrix
+        self.get_logger().debug("Exchange matrix of replica id's for Dim 1 (temperature) exchange: {0:s}".format(d1_id_matrix) )
+         
+        self.get_logger().debug("Change in temperatures for each replica: : {0:s}".format(temp_matrix) )
+       
+        self.get_logger().debug("Exchange matrix of replica id's for Dim 2 (salt concentration) exchange: {0:s}".format(d2_id_matrix) )
 
-        print "Change in temperatures for each replica: "
-        print temp_matrix
-
-        print "Exchange matrix of replica id's for d2 (salt concentration) exchange: "
-        print d2_id_matrix
-
-        print "Change in salt concentration for each replica: "
-        print salt_matrix
+        self.get_logger().debug("Change in salt concentration for each replica: {0:s}".format(salt_matrix) )
+        

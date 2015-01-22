@@ -110,9 +110,9 @@ class MdKernel2d(object):
         ps = [0.0]*(len(replicas))
 
         for r in replicas:
-            print "GIBBS: r.id: %d r.temp: %d r.salt: %f" % (r.id, r.new_temperature, r.new_salt_concentration)  
-        print "swap matrix in gibbs: "
-        print swap_matrix 
+            self.get_logger().debug("[gibbs_exchange] (before) r.id: {0} r.temp: {1:0.3f} r.salt: {2:0.3f}".format(r.id, r.new_temperature, r.new_salt_concentration) )
+        
+        self.get_logger().debug("[gibbs_exchange] (before) swap matrix: {0:s}".format(swap_matrix) )    
   
         j = 0
         for r_j in replicas:
