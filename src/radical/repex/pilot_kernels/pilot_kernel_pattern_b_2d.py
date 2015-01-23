@@ -104,7 +104,6 @@ class PilotKernelPatternB2d(PilotKernel):
             if state == radical.pilot.states.FAILED:
                 self.get_logger().error("Log: {0:s}".format( unit.log[-1] ) )  
 
-
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
@@ -113,6 +112,12 @@ class PilotKernelPatternB2d(PilotKernel):
         shared_data_unit_descr = md_kernel.prepare_shared_md_input()
         staging_unit = unit_manager.submit_units(shared_data_unit_descr)
         unit_manager.wait_units()
+
+        #------------------------
+        # RAW SIMULATION TIME
+        START = datetime.datetime.utcnow()
+        #------------------------
+
 
         # get the path to the directory containing the shared data
         shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
@@ -151,16 +156,19 @@ class PilotKernelPatternB2d(PilotKernel):
             stop_time = datetime.datetime.utcnow()
             
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")] = {}
             for cu in submitted_replicas:
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
+                #print ""
+                #print "CU description is %s" % (cu.description)
                 #print "CU timings by state: "
                 #for st in cu.state_history:
                 #    print st.as_dict()
-
+                #print ""
 
             self.get_logger().info("Dim 1: cycle {0}; time to perform MD run: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds())) 
            
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_1"]["md_time"] = (stop_time-start_time).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")] = (stop_time-start_time).total_seconds()
 
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
@@ -180,11 +188,14 @@ class PilotKernelPatternB2d(PilotKernel):
                 stop_time = datetime.datetime.utcnow()
 
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = {} 
+
                 for cu in submitted_replicas:
                     cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
                 #print "CU timings by state (exchange): "
                 #for st in cu.state_history:
                 #    print st.as_dict()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = (stop_time-start_time).total_seconds()
 
                 self.get_logger().info("Dim 1: cycle {0}; time to perform Exchange: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
                 start_time = datetime.datetime.utcnow()
@@ -205,6 +216,10 @@ class PilotKernelPatternB2d(PilotKernel):
                 md_kernel.select_for_exchange(D, replicas, swap_matrix, current_cycle)
 
                 stop_time = datetime.datetime.utcnow()
+ 
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("PP")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("PP")]=(stop_time-start_time).total_seconds()
+
                 self.get_logger().info("Dim 1: cycle {0}; post-processing time: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
  
             start_time = datetime.datetime.utcnow()
@@ -223,6 +238,9 @@ class PilotKernelPatternB2d(PilotKernel):
             stop_time = datetime.datetime.utcnow()
 
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")] = (stop_time-start_time).total_seconds() 
+
             for cu in submitted_replicas:
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
                 #print "CU timings by state: "
@@ -246,6 +264,9 @@ class PilotKernelPatternB2d(PilotKernel):
                 stop_time = datetime.datetime.utcnow()
 
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = (stop_time-start_time).total_seconds()
+
                 for cu in submitted_replicas:
                     cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
                 #print "CU timings by state exchange: "
@@ -271,6 +292,10 @@ class PilotKernelPatternB2d(PilotKernel):
                 md_kernel.select_for_exchange(D, replicas, swap_matrix, current_cycle)
 
                 stop_time = datetime.datetime.utcnow()
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("PP")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("PP")] = (stop_time-start_time).total_seconds()
+
                 self.get_logger().info("Dim 2: cycle {0}; post-processing time: {1:0.3f}".format(current_cycle, (stop_time-start_time).total_seconds()))
 
         # end of loop
@@ -291,8 +316,159 @@ class PilotKernelPatternB2d(PilotKernel):
         #------------------------------------------------
         # performance data
 
+        #------------------------
+        # RAW SIMULATION TIME
+        END = datetime.datetime.utcnow()
+        #------------------------
+        RAW_SIMULATION_TIME = (END-START).total_seconds()
+        print "RAW_SIMULATION_TIME: %f" % RAW_SIMULATION_TIME
+
+        #------------------------------------------------------------
+        # this is for graph
+        head = "New1; New2; exeStart1; exeStart2; exeEnd1; exeEnd2; Done1; Done2; Cycle; Dim; Run"
+        print head
+
+        for cycle in cu_performance_data:
+            for dim in cu_performance_data[cycle].keys():
+                for run in cu_performance_data[cycle][dim].keys():
+                    new_list = []
+                    exeStart_list = []
+                    exeStop_list = []
+                    done_list = [] 
+                    for cid in cu_performance_data[cycle][dim][run].keys():
+                        cu = cu_performance_data[cycle][dim][run][cid]
+                        st_data = {}
+                        for st in cu.state_history:
+                            st_dict = st.as_dict()
+                            st_data["{0}".format( st_dict["state"] )] = {}
+                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+
+                        new_list.append( (st_data['New']-START).total_seconds()  )
+                        exeStart_list.append( (cu.start_time-START).total_seconds()  )
+                        exeStop_list.append( (cu.stop_time-START).total_seconds()  )
+                        done_list.append( (st_data['Done']-START).total_seconds()  )
+                        
+                    row = "{New1}; {New2}; {exeStart1}; {exeStart2}; {exeStop1}; {exeStop2}; {Done1}; {Done2}; {Cycle}; {Dim}; {Run}".format(
+                            New1= min(new_list),
+                            New2= max(new_list),
+                            exeStart1=min(exeStart_list),
+                            exeStart2=max(exeStart_list), 
+                            exeStop1=min(exeStop_list),
+                            exeStop2=max(exeStop_list),
+                            Done1=min(done_list),
+                            Done2=max(done_list),
+                            Cycle=cycle,
+                            Dim=dim,
+                            Run=run)
+
+                    print row
+
+
+        #------------------------------------------------------------
+        #
+        head = "Cycle; Dim; Run; Duration"
+        print head
+
+        for cycle in hl_performance_data:
+            for dim in hl_performance_data[cycle].keys():
+                for run in hl_performance_data[cycle][dim].keys():
+                    dur = hl_performance_data[cycle][dim][run]
+
+                    row = "{Cycle}; {Dim}; {Run}; {Duration}".format(
+                        Duration=dur,
+                        Cycle=cycle,
+                        Dim=dim,
+                        Run=run)
+
+                    print row
+        #------------------------------------------------------------
+        # these timings are measured from simulation start!
+        head = "CU_ID; New; exeStart; exeEnd; Done; Cycle; Dim; Run"
+        print head
+
+        for cycle in cu_performance_data:
+            for dim in cu_performance_data[cycle].keys():
+                for run in cu_performance_data[cycle][dim].keys():
+                    for cid in cu_performance_data[cycle][dim][run].keys():
+                        cu = cu_performance_data[cycle][dim][run][cid]
+                        st_data = {}
+                        for st in cu.state_history:
+                            st_dict = st.as_dict()
+                            st_data["{0}".format( st_dict["state"] )] = {}
+                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+
+
+                        row = "{uid}; {New}; {exeStart}; {exeStop}; {Done}; {Cycle}; {Dim}; {Run}".format(
+                                uid=cu.uid,
+                                New= (st_data['New']-START).total_seconds(),
+                                exeStart=(cu.start_time-START).total_seconds(),
+                                exeStop=(cu.stop_time-START).total_seconds(),
+                                Done=(st_data['Done']-START).total_seconds(),
+                                Cycle=cycle,
+                                Dim=dim,
+                                Run=run)
+                        
+                        print row
+
+        
+        #-------------------------------
+        # TIMINGS BY STATE
+        #-------------------------------
+        """
         head = "CU_ID; New; StagingInput; PendingExecution; Scheduling; Executing; StagingOutput1; StagingOutput2; Done; Cycle; Dim; Run"
         print head
+
+        for cycle in cu_performance_data:
+            for dim in cu_performance_data[cycle].keys():  
+                for run in cu_performance_data[cycle][dim].keys():
+                    for cid in cu_performance_data[cycle][dim][run].keys():
+                        cu = cu_performance_data[cycle][dim][run][cid]
+                        st_data = {}
+                        for st in cu.state_history:
+                            st_dict = st.as_dict()
+                            if (st_dict["state"] != 'StagingOutput'):
+                                st_data["{0}".format( st_dict["state"] )] = {}
+                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+                            else:
+                                if "StagingOutput1" in st_data:
+                                    st_data["StagingOutput2"] = {}
+                                    st_data["StagingOutput2"] = st_dict["timestamp"]
+                                else:
+                                    st_data["StagingOutput1"] = {}
+                                    st_data["StagingOutput1"] = st_dict["timestamp"]
+
+                        if run == 'run_MD':      
+                            row = "{uid}; {New}; {StagingInput}; {PendingExecution}; {Scheduling}; {Executing}; {StagingOutput1}; {StagingOutput2}; {Done}; {Cycle}; {Dim}; {Run}".format(
+                                uid=cu.uid,
+                                New= (st_data['New']-START).total_seconds(),
+                                StagingInput=(st_data['StagingInput']-START).total_seconds(),
+                                PendingExecution=(st_data['PendingExecution']-START).total_seconds(),
+                                Scheduling=(st_data['Scheduling']-START).total_seconds(),
+                                Executing=(st_data['Executing']-START).total_seconds(),
+                                StagingOutput1=(st_data['StagingOutput1']-START).total_seconds(),
+                                StagingOutput2=(st_data['StagingOutput2']-START).total_seconds(),
+                                Done=(st_data['Done']-START).total_seconds(),
+                                Cycle=cycle,
+                                Dim=dim,
+                                Run=run)
+
+                            print row
+                        else:
+                            row = "{uid}; {New}; {StagingInput}; {PendingExecution}; {Scheduling}; {Executing}; {Done}; {Cycle}; {Dim}; {Run}".format(
+                                uid=cu.uid,
+                                New=(st_data['New']-START).total_seconds(),
+                                StagingInput=(st_data['StagingInput']-START).total_seconds(),
+                                PendingExecution=(st_data['PendingExecution']-START).total_seconds(),
+                                Scheduling=(st_data['Scheduling']-START).total_seconds(),
+                                Executing=(st_data['Executing']-START).total_seconds(),
+                                Done=(st_data['Done']-START).total_seconds(),
+                                Cycle=cycle,
+                                Dim=dim,
+                                Run=run)
+
+                            print row
+                            
+        
         for cycle in cu_performance_data:
             for dim in cu_performance_data[cycle].keys():  
                 for run in cu_performance_data[cycle][dim].keys():
@@ -342,6 +518,6 @@ class PilotKernelPatternB2d(PilotKernel):
                                 Run=run)
 
                             print row
-
+                            """
 
 
