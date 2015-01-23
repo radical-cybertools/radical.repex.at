@@ -315,40 +315,43 @@ class PilotKernelPatternB2d(PilotKernel):
        
         #------------------------------------------------
         # performance data
+        outfile = "execution_profile_{time}.csv".format(time=datetime.datetime.now().isoformat())
+        with open(outfile, 'w+') as f:
+            #------------------------
+            # RAW SIMULATION TIME
+            END = datetime.datetime.utcnow()
+            #------------------------
+            RAW_SIMULATION_TIME = (END-START).total_seconds()
+            #print "RAW_SIMULATION_TIME: %f" % RAW_SIMULATION_TIME
+            f.write("RAW_SIMULATION_TIME: {row}\n".format(row=RAW_SIMULATION_TIME))
 
-        #------------------------
-        # RAW SIMULATION TIME
-        END = datetime.datetime.utcnow()
-        #------------------------
-        RAW_SIMULATION_TIME = (END-START).total_seconds()
-        print "RAW_SIMULATION_TIME: %f" % RAW_SIMULATION_TIME
+            #------------------------------------------------------------
+            # this is for graph
+            head = "New1; New2; exeStart1; exeStart2; exeEnd1; exeEnd2; Done1; Done2; Cycle; Dim; Run"
+            #print head
+            f.write("{row}\n".format(row=head))
 
-        #------------------------------------------------------------
-        # this is for graph
-        head = "New1; New2; exeStart1; exeStart2; exeEnd1; exeEnd2; Done1; Done2; Cycle; Dim; Run"
-        print head
+            for cycle in cu_performance_data:
+                for dim in cu_performance_data[cycle].keys():
+                    for run in cu_performance_data[cycle][dim].keys():
+                        new_list = []
+                        exeStart_list = []
+                        exeStop_list = []
+                        done_list = [] 
+                        for cid in cu_performance_data[cycle][dim][run].keys():
+                            cu = cu_performance_data[cycle][dim][run][cid]
+                            st_data = {}
+                            for st in cu.state_history:
+                                st_dict = st.as_dict()
+                                st_data["{0}".format( st_dict["state"] )] = {}
+                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
 
-        for cycle in cu_performance_data:
-            for dim in cu_performance_data[cycle].keys():
-                for run in cu_performance_data[cycle][dim].keys():
-                    new_list = []
-                    exeStart_list = []
-                    exeStop_list = []
-                    done_list = [] 
-                    for cid in cu_performance_data[cycle][dim][run].keys():
-                        cu = cu_performance_data[cycle][dim][run][cid]
-                        st_data = {}
-                        for st in cu.state_history:
-                            st_dict = st.as_dict()
-                            st_data["{0}".format( st_dict["state"] )] = {}
-                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-
-                        new_list.append( (st_data['New']-START).total_seconds()  )
-                        exeStart_list.append( (cu.start_time-START).total_seconds()  )
-                        exeStop_list.append( (cu.stop_time-START).total_seconds()  )
-                        done_list.append( (st_data['Done']-START).total_seconds()  )
+                            new_list.append( (st_data['New']-START).total_seconds()  )
+                            exeStart_list.append( (cu.start_time-START).total_seconds()  )
+                            exeStop_list.append( (cu.stop_time-START).total_seconds()  )
+                            done_list.append( (st_data['Done']-START).total_seconds()  )
                         
-                    row = "{New1}; {New2}; {exeStart1}; {exeStart2}; {exeStop1}; {exeStop2}; {Done1}; {Done2}; {Cycle}; {Dim}; {Run}".format(
+                        row = "{New1}; {New2}; {exeStart1}; {exeStart2}; {exeStop1}; {exeStop2}; {Done1}; {Done2}; {Cycle}; {Dim}; {Run}".format(
                             New1= min(new_list),
                             New2= max(new_list),
                             exeStart1=min(exeStart_list),
@@ -361,44 +364,47 @@ class PilotKernelPatternB2d(PilotKernel):
                             Dim=dim,
                             Run=run)
 
-                    print row
+                        #print row
+                        f.write("{r}\n".format(r=row))
 
 
-        #------------------------------------------------------------
-        #
-        head = "Cycle; Dim; Run; Duration"
-        print head
+            #------------------------------------------------------------
+            #
+            head = "Cycle; Dim; Run; Duration"
+            #print head
+            f.write("{row}\n".format(row=head))
 
-        for cycle in hl_performance_data:
-            for dim in hl_performance_data[cycle].keys():
-                for run in hl_performance_data[cycle][dim].keys():
-                    dur = hl_performance_data[cycle][dim][run]
+            for cycle in hl_performance_data:
+                for dim in hl_performance_data[cycle].keys():
+                    for run in hl_performance_data[cycle][dim].keys():
+                        dur = hl_performance_data[cycle][dim][run]
 
-                    row = "{Cycle}; {Dim}; {Run}; {Duration}".format(
-                        Duration=dur,
-                        Cycle=cycle,
-                        Dim=dim,
-                        Run=run)
+                        row = "{Cycle}; {Dim}; {Run}; {Duration}".format(
+                            Duration=dur,
+                            Cycle=cycle,
+                            Dim=dim,
+                            Run=run)
 
-                    print row
-        #------------------------------------------------------------
-        # these timings are measured from simulation start!
-        head = "CU_ID; New; exeStart; exeEnd; Done; Cycle; Dim; Run"
-        print head
+                        #print row
+                        f.write("{r}\n".format(r=row))
+            #------------------------------------------------------------
+            # these timings are measured from simulation start!
+            head = "CU_ID; New; exeStart; exeEnd; Done; Cycle; Dim; Run"
+            #print head
+            f.write("{row}\n".format(row=head))
 
-        for cycle in cu_performance_data:
-            for dim in cu_performance_data[cycle].keys():
-                for run in cu_performance_data[cycle][dim].keys():
-                    for cid in cu_performance_data[cycle][dim][run].keys():
-                        cu = cu_performance_data[cycle][dim][run][cid]
-                        st_data = {}
-                        for st in cu.state_history:
-                            st_dict = st.as_dict()
-                            st_data["{0}".format( st_dict["state"] )] = {}
-                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+            for cycle in cu_performance_data:
+                for dim in cu_performance_data[cycle].keys():
+                    for run in cu_performance_data[cycle][dim].keys():
+                        for cid in cu_performance_data[cycle][dim][run].keys():
+                            cu = cu_performance_data[cycle][dim][run][cid]
+                            st_data = {}
+                            for st in cu.state_history:
+                                st_dict = st.as_dict()
+                                st_data["{0}".format( st_dict["state"] )] = {}
+                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
 
-
-                        row = "{uid}; {New}; {exeStart}; {exeStop}; {Done}; {Cycle}; {Dim}; {Run}".format(
+                            row = "{uid}; {New}; {exeStart}; {exeStop}; {Done}; {Cycle}; {Dim}; {Run}".format(
                                 uid=cu.uid,
                                 New= (st_data['New']-START).total_seconds(),
                                 exeStart=(cu.start_time-START).total_seconds(),
@@ -408,7 +414,8 @@ class PilotKernelPatternB2d(PilotKernel):
                                 Dim=dim,
                                 Run=run)
                         
-                        print row
+                            #print row
+                            f.write("{r}\n".format(r=row))
 
         
         #-------------------------------
