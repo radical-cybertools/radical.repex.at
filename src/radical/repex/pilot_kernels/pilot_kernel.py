@@ -130,6 +130,9 @@ class PilotKernel(object):
             if(self.project != None):
                 pilot_description.project = str(self.project)   
 
+            if(self.queue != None):
+                pilot_description.queue = str(self.queue)
+
             pilot_description.cores = self.cores
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
