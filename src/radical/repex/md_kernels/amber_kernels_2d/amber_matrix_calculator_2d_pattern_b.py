@@ -145,7 +145,7 @@ if __name__ == '__main__':
     all_temperature = all_temp.split(" ")
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
-    shared_path = data["shared_path"]
+    #shared_path = data["shared_path"]
     r_old_path = data["r_old_path"]
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
@@ -171,7 +171,8 @@ if __name__ == '__main__':
         #input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
         energy_input_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdin"
 
-        input_template = shared_path + "/" + mdin_name
+        #input_template = shared_path + "/" + mdin_name
+        input_template = mdin_name
         f = file(input_template,'r')
         input_data = f.readlines()
         f.close()
@@ -189,7 +190,7 @@ if __name__ == '__main__':
                 f.write(line)
         f.close()
         
-        call_amber(amber_path, energy_input_name, shared_path + '/' + prmtop_name, r_old_path + '/' +  new_coor, energy_history_name)
+        call_amber(amber_path, energy_input_name, prmtop_name, r_old_path + '/' +  new_coor, energy_history_name)
 
         try:
             rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )

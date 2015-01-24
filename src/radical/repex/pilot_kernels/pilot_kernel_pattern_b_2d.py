@@ -43,6 +43,8 @@ class PilotKernelPatternB2d(PilotKernel):
         self.name = 'pk-patternB-2d'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
+        self.sd_shared_list = []
+
 #-----------------------------------------------------------------------------------------------------------------------------------
     def getkey(self, item):
         return item[0]
@@ -85,7 +87,7 @@ class PilotKernelPatternB2d(PilotKernel):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def run_simulation(self, replicas, pilot_object, session,  md_kernel ):
+    def run_simulation(self, replicas, pilot_object, session,  md_kernel):
         """This function runs the main loop of RE simulation for RE pattern B.
 
         Arguments:
@@ -109,10 +111,32 @@ class PilotKernelPatternB2d(PilotKernel):
         unit_manager.add_pilots(pilot_object)
 
         # staging shared input data in
-        shared_data_unit_descr = md_kernel.prepare_shared_md_input()
-        staging_unit = unit_manager.submit_units(shared_data_unit_descr)
-        unit_manager.wait_units()
+        md_kernel.prepare_shared_data()
 
+        shared_input_file_urls = md_kernel.get_shared_urls()
+        shared_input_files = md_kernel.get_shared_files()
+
+        for i in range(len(shared_input_files)):
+
+            sd_pilot = {'source': shared_input_file_urls[i],
+                        'target': 'staging:///%s' % shared_input_files[i],
+                        'action': radical.pilot.TRANSFER
+            }
+
+            pilot_object.stage_in(sd_pilot)
+
+            sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
+                         'target': shared_input_files[i],
+                         'action': radical.pilot.LINK
+            }
+            self.sd_shared_list.append(sd_shared)
+
+        #shared_data_unit_descr = md_kernel.prepare_shared_md_input()
+        #staging_unit = unit_manager.submit_units(shared_data_unit_descr)
+        #unit_manager.wait_units()
+
+        # make sure data is staged
+        time.sleep(10)
         #------------------------
         # RAW SIMULATION TIME
         START = datetime.datetime.utcnow()
@@ -120,7 +144,7 @@ class PilotKernelPatternB2d(PilotKernel):
 
 
         # get the path to the directory containing the shared data
-        shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
+        #shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
 
         for r in replicas:
             self.get_logger().debug("Replica: id={0} salt={1} temperature={2}".format(r.id, r.new_salt_concentration, r.new_temperature) )
@@ -149,7 +173,8 @@ class PilotKernelPatternB2d(PilotKernel):
 
             self.get_logger().info("Dim 1: preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             # builds input files as well
-            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
+            #compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
+            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, self.sd_shared_list)
             self.get_logger().info("Dim 1: submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
@@ -181,7 +206,8 @@ class PilotKernelPatternB2d(PilotKernel):
                 # selecting replicas for exchange step
                 #########################################
 
-                exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
+                #exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
+                exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, self.sd_shared_list)
                 self.get_logger().info("Dim 1: submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
@@ -231,7 +257,8 @@ class PilotKernelPatternB2d(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)] = {}
  
             self.get_logger().info("Dim 2: preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
-            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
+            #compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
+            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, self.sd_shared_list)
             self.get_logger().info("Dim 2: submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
@@ -257,7 +284,8 @@ class PilotKernelPatternB2d(PilotKernel):
                 # computing swap matrix
                 ##########################
                 self.get_logger().info("Dim 2: preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
-                exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
+                # exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, shared_data_url)
+                exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, self.sd_shared_list)
                 self.get_logger().info("Dim 2: submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()

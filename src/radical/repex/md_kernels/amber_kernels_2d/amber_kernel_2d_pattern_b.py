@@ -77,15 +77,49 @@ class AmberKernel2dPatternB(MdKernel2d):
         self.name = 'ak-patternB-2d'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
+        self.shared_urls = []
+        self.shared_files = []
 
-    # --------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     #
     def get_logger(self):
         return self.logger
 
+    #-------------------------------------------------------------------------------
+    #
+    def get_shared_urls(self):
+        return self.shared_urls
+
+    #-------------------------------------------------------------------------------
+    #
+    def get_shared_files(self):
+        return self.shared_files
+
+    # ------------------------------------------------------------------------------
+    #
+    def prepare_shared_data(self):
+
+        parm_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
+        rstr_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+        inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
+
+        self.shared_files.append(self.amber_parameters)
+        self.shared_files.append(self.amber_restraints)
+        self.shared_files.append(self.amber_input)
+
+        parm_url = 'file://%s' % (parm_path)
+        self.shared_urls.append(parm_url)
+
+        rstr_url = 'file://%s' % (rstr_path)
+        self.shared_urls.append(rstr_url)
+
+        inp_url = 'file://%s' % (inp_path)
+        self.shared_urls.append(inp_url)
+ 
+
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def build_input_file(self, replica, shared_data_url):
+    def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin
         """
         basename = self.inp_basename
@@ -104,7 +138,7 @@ class AmberKernel2dPatternB(MdKernel2d):
         replica.old_traj = old_name + ".mdcrd"
         replica.old_info = old_name + ".mdinfo"
 
-        restraints = shared_data_url + "/" + self.amber_restraints
+        restraints = self.amber_restraints
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
@@ -129,7 +163,7 @@ class AmberKernel2dPatternB(MdKernel2d):
             self.get_logger().error("Warning: unable to access file: {0}".format(new_input_file) )
      
 #-----------------------------------------------------------------------------------------------------------------------------------
-    
+    # delete
     def prepare_shared_md_input(self):
         """Creates a Compute Unit for shared data staging in
         these are Amber input files shared between all replicas
@@ -149,14 +183,14 @@ class AmberKernel2dPatternB(MdKernel2d):
         return shared_data_unit
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def prepare_replicas_for_md(self, replicas, shared_data_url):
+    def prepare_replicas_for_md(self, replicas, sd_shared_list):
         """
         """
 
         compute_replicas = []
         for r in range(len(replicas)):
             # need to avoid this step!
-            self.build_input_file(replicas[r], shared_data_url)
+            self.build_input_file(replicas[r])
       
             # rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
             crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
@@ -178,14 +212,14 @@ class AmberKernel2dPatternB(MdKernel2d):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, 
                                       "-o ", output_file, 
-                                      "-p ", shared_data_url + "/" + self.amber_parameters, 
+                                      "-p ", self.amber_parameters, 
                                       "-c ", self.amber_coordinates, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
 
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file), str(crds)]
+                cu.input_staging = [str(input_file), str(crds)] + sd_shared_list
                 cu.output_staging = [str(new_info)]
                 compute_replicas.append(cu)
             else:
@@ -196,21 +230,21 @@ class AmberKernel2dPatternB(MdKernel2d):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, 
                                       "-o ", output_file, 
-                                      "-p ", shared_data_url + "/" + self.amber_parameters, 
+                                      "-p ", self.amber_parameters, 
                                       "-c ", old_coor, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
 
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file)]
+                cu.input_staging = [str(input_file)] + sd_shared_list
                 cu.output_staging = [str(new_info)]
                 compute_replicas.append(cu)
 
         return compute_replicas
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def prepare_replicas_for_exchange(self, dimension, replicas, shared_data_url):
+    def prepare_replicas_for_exchange(self, dimension, replicas, sd_shared_list):
         """
         """
         for r in range(len(replicas)):
@@ -273,7 +307,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                         "init_temp" : str(replicas[r].new_temperature),
                         #"init_temp" : str(self.init_temperature),
                         "amber_path" : str(self.amber_path),
-                        "shared_path" : str(shared_data_url),
+                        #"shared_path" : str(shared_data_url),
                         "amber_input" : str(self.amber_input),
                         "amber_parameters": str(self.amber_parameters),
                         "all_salt_ctr" : all_salt, 
@@ -285,7 +319,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                     json_data = dump_data.replace("\\", "")
                     # in principle we can transfer this just once and use it multiple times later during the simulation
                     #cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
-                    cu.input_staging = [str(calculator)]
+                    cu.input_staging = [str(calculator)] + sd_shared_list
                     cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
                     cu.cores = 1            
                     exchange_replicas.append(cu)
