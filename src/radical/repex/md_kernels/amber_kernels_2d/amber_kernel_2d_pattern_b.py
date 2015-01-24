@@ -104,7 +104,7 @@ class AmberKernel2dPatternB(MdKernel2d):
         replica.old_traj = old_name + ".mdcrd"
         replica.old_info = old_name + ".mdinfo"
 
-        restraints = self.amber_restraints
+        restraints = shared_data_url + "/" + self.amber_restraints
 
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
@@ -137,13 +137,14 @@ class AmberKernel2dPatternB(MdKernel2d):
 
         shared_data_unit = radical.pilot.ComputeUnitDescription()
 
-        crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
+        #crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
         parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
         rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+        inp  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input 
 
         shared_data_unit.executable = "/bin/true"
         shared_data_unit.cores = 1
-        shared_data_unit.input_staging = [str(crds), str(parm)]
+        shared_data_unit.input_staging = [str(rstr), str(parm), str(inp)]
  
         return shared_data_unit
 
@@ -157,8 +158,9 @@ class AmberKernel2dPatternB(MdKernel2d):
             # need to avoid this step!
             self.build_input_file(replicas[r], shared_data_url)
       
-            # in principle restraint file should be moved to shared directory
-            rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+            # rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+            crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
+
             input_file = "%s_%d_%d.mdin" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
             # this is not transferred back
             output_file = "%s_%d_%d.mdout" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
@@ -177,16 +179,17 @@ class AmberKernel2dPatternB(MdKernel2d):
                 cu.arguments = ["-O", "-i ", input_file, 
                                       "-o ", output_file, 
                                       "-p ", shared_data_url + "/" + self.amber_parameters, 
-                                      "-c ", shared_data_url + "/" + self.amber_coordinates, 
+                                      "-c ", self.amber_coordinates, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
 
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file), str(rstr)]
-                cu.output_staging = [str(new_coor)]
+                cu.input_staging = [str(input_file), str(crds)]
+                cu.output_staging = [str(new_info)]
                 compute_replicas.append(cu)
             else:
+                old_coor = replicas[r].first_path + "/" + self.amber_coordinates
                 cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
@@ -194,14 +197,14 @@ class AmberKernel2dPatternB(MdKernel2d):
                 cu.arguments = ["-O", "-i ", input_file, 
                                       "-o ", output_file, 
                                       "-p ", shared_data_url + "/" + self.amber_parameters, 
-                                      "-c ", shared_data_url + "/" + self.amber_coordinates, 
+                                      "-c ", old_coor, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
 
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file), str(rstr)]
-                cu.output_staging = [str(new_coor)]
+                cu.input_staging = [str(input_file)]
+                cu.output_staging = [str(new_info)]
                 compute_replicas.append(cu)
 
         return compute_replicas
@@ -212,7 +215,7 @@ class AmberKernel2dPatternB(MdKernel2d):
         """
         for r in range(len(replicas)):
             # name of the file which contains swap matrix column data for each replica
-            matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
+            # matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
             basename = self.inp_basename
             exchange_replicas = []
 
@@ -242,13 +245,13 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 all_temp = ""
                 for r in range(len(replicas)):
+
                     if r == 0:
                         all_temp = str(replicas[r].new_temperature)
                     else:
                         all_temp = all_temp + " " + str(replicas[r].new_temperature)
 
                 all_temp_list = all_temp.split(" ")
-
 
                 for r in range(len(replicas)):
                     cu = radical.pilot.ComputeUnitDescription()
@@ -260,7 +263,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                     #calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
                     calculator_path = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
                     calculator = calculator_path + "/amber_matrix_calculator_2d_pattern_b.py"
-                    input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
+                    #input_file = shared_data_url + "/" + self.amber_input
 
                     data = {
                         "replica_id": str(r),
@@ -274,13 +277,15 @@ class AmberKernel2dPatternB(MdKernel2d):
                         "amber_input" : str(self.amber_input),
                         "amber_parameters": str(self.amber_parameters),
                         "all_salt_ctr" : all_salt, 
-                        "all_temp" : all_temp
+                        "all_temp" : all_temp,
+                        "r_old_path": str(replicas[r].old_path),
                     }
 
                     dump_data = json.dumps(data)
                     json_data = dump_data.replace("\\", "")
                     # in principle we can transfer this just once and use it multiple times later during the simulation
-                    cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
+                    #cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
+                    cu.input_staging = [str(calculator)]
                     cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
                     cu.cores = 1            
                     exchange_replicas.append(cu)

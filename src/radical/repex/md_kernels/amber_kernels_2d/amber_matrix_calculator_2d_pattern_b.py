@@ -14,8 +14,6 @@ import os,sys,socket,time
 from subprocess import *
 import subprocess
 
-
-
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def call_amber(amber_path, mdin, prmtop, crd, mdinfo):
@@ -90,7 +88,6 @@ def get_historical_data(history_name):
                  #    temp = float(lines[i].split()[8])
                  if "EPtot" in lines[i]:
                      eptot = float(lines[i].split()[8])
-             #print "history file %s found!" % ( history_name ) 
          except:
              pass 
          os.chdir("../")
@@ -146,26 +143,19 @@ if __name__ == '__main__':
     all_salt_conc = all_salt.split(" ")
     all_temp = (data["all_temp"])
     all_temperature = all_temp.split(" ")
-    #print "all salt concentrations: "
-    #print all_salt_conc
-
-    # SALT CONCENTRATION FOR THIS REPLICA
-    #salt_conc = all_salt_conc[replica_id]
-    #print "salt concentration for replica %d is %f" % (replica_id, float(salt_conc))
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
     shared_path = data["shared_path"]
-
+    r_old_path = data["r_old_path"]
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
-    new_coor = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
+    new_coor_file = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
+    new_coor = r_old_path + "/" + new_coor_file 
 
     pwd = os.getcwd()
-    matrix_col = "matrix_column_%d_%d.dat" % ( replica_id, replica_cycle ) 
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    #print "history name: %s" % history_name
     replica_energy, path_to_replica_folder = get_historical_data( history_name )
 
     # getting history data for all replicas
@@ -181,7 +171,8 @@ if __name__ == '__main__':
         #input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
         energy_input_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdin"
 
-        f = file(mdin_name,'r')
+        input_template = shared_path + "/" + mdin_name
+        f = file(input_template,'r')
         input_data = f.readlines()
         f.close()
 
@@ -198,8 +189,7 @@ if __name__ == '__main__':
                 f.write(line)
         f.close()
         
-        #problems here
-        call_amber(amber_path, energy_input_name, shared_path + '/' + prmtop_name , new_coor, energy_history_name)
+        call_amber(amber_path, energy_input_name, shared_path + '/' + prmtop_name, r_old_path + '/' +  new_coor, energy_history_name)
 
         try:
             rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
@@ -214,9 +204,6 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], energies[j])
 
-    # printing replica id
-    # print str(replica_id).rstrip()
-    # printing swap column
     for item in swap_column:
         print item,
 
