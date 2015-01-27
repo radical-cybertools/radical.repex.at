@@ -96,6 +96,11 @@ class PilotKernelPatternB2d(PilotKernel):
         session - radical.pilot.session object, the *root* object for all other RADICAL-Pilot objects 
         md_kernel - an instance of NamdKernelScheme2a class
         """
+
+        unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+        unit_manager.register_callback(unit_state_change_cb)
+        unit_manager.add_pilots(pilot_object)
+
         # --------------------------------------------------------------------------
         #
         def unit_state_change_cb(unit, state):
@@ -104,11 +109,16 @@ class PilotKernelPatternB2d(PilotKernel):
             self.get_logger().info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
             if state == radical.pilot.states.FAILED:
-                self.get_logger().error("Log: {0:s}".format( unit.log[-1] ) )  
+                #self.get_logger().error("Log: {0:s}".format( unit.log[-1] ) )  
+                self.get_logger().error("Log: {0:s}".format( unit.as_dict() ) )
+                # restarting the replica
+                #self.get_logger().info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+                #unit_manager.submit_units( unit.description )
+                
 
-        unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
-        unit_manager.register_callback(unit_state_change_cb)
-        unit_manager.add_pilots(pilot_object)
+        #unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+        #unit_manager.register_callback(unit_state_change_cb)
+        #unit_manager.add_pilots(pilot_object)
 
         # staging shared input data in
         md_kernel.prepare_shared_data()

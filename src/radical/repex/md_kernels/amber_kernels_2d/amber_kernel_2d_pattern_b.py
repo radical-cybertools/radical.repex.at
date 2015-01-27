@@ -103,9 +103,18 @@ class AmberKernel2dPatternB(MdKernel2d):
         rstr_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
         inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
 
+        calc_b = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
+        calc_b_path = calc_b + "/amber_matrix_calculator_pattern_b.py"
+
+        calc_b_2d = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
+        calc_b_2d_path = calc_b_2d + "/amber_matrix_calculator_2d_pattern_b.py"
+   
+
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_restraints)
         self.shared_files.append(self.amber_input)
+        self.shared_files.append("amber_matrix_calculator_pattern_b.py")
+        self.shared_files.append("amber_matrix_calculator_2d_pattern_b.py")
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
@@ -115,6 +124,12 @@ class AmberKernel2dPatternB(MdKernel2d):
 
         inp_url = 'file://%s' % (inp_path)
         self.shared_urls.append(inp_url)
+
+        calc_b_url = 'file://%s' % (calc_b_path)
+        self.shared_urls.append(calc_b_url)
+
+        calc_b_2d_url = 'file://%s' % (calc_b_2d_path)
+        self.shared_urls.append(calc_b_2d_url)
  
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -258,11 +273,12 @@ class AmberKernel2dPatternB(MdKernel2d):
                     cu = radical.pilot.ComputeUnitDescription()
                     cu.executable = "python"
                     # path!
-                    calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
-                    calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
+                    #calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
+                    #calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
                     #calculator_path = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
                     #calculator = calculator_path + "/amber_matrix_calculator_2d_pattern_b.py"
-                    cu.input_staging = [str(calculator)]
+                    #cu.input_staging = [str(calculator)]
+                    cu.input_staging  = sd_shared_list[3]
                     cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
                     cu.cores = 1            
                     exchange_replicas.append(cu)
@@ -295,8 +311,8 @@ class AmberKernel2dPatternB(MdKernel2d):
                     # path!
                     #calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
                     #calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
-                    calculator_path = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
-                    calculator = calculator_path + "/amber_matrix_calculator_2d_pattern_b.py"
+                    #calculator_path = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
+                    #calculator = calculator_path + "/amber_matrix_calculator_2d_pattern_b.py"
                     #input_file = shared_data_url + "/" + self.amber_input
 
                     data = {
@@ -319,7 +335,8 @@ class AmberKernel2dPatternB(MdKernel2d):
                     json_data = dump_data.replace("\\", "")
                     # in principle we can transfer this just once and use it multiple times later during the simulation
                     #cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
-                    cu.input_staging = [str(calculator)] + sd_shared_list
+                    #cu.input_staging = [str(calculator)] + sd_shared_list
+                    cu.input_staging = sd_shared_list 
                     cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
                     cu.cores = 1            
                     exchange_replicas.append(cu)

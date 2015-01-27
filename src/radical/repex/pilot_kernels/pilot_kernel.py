@@ -140,8 +140,8 @@ class PilotKernel(object):
             pilot_object = pilot_manager.submit_pilots(pilot_description)
 
             # we wait for the pilot to start running on resource
-            #print "pilot.uid: %s" % pilot_object.uid
-            #pilot_manager.wait_pilots(pilot_object.uid,'Active') 
+            print "pilot.uid: %s" % pilot_object.uid
+            pilot_manager.wait_pilots(pilot_object.uid,'Active') 
 
         except radical.pilot.PilotException, ex:
             self.get_logger().error("Error: {0}".format(ex))
