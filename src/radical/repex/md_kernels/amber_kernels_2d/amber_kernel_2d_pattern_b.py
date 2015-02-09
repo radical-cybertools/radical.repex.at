@@ -262,60 +262,39 @@ class AmberKernel2dPatternB(MdKernel2d):
     def prepare_replicas_for_exchange(self, dimension, replicas, sd_shared_list):
         """
         """
-        for r in range(len(replicas)):
-            # name of the file which contains swap matrix column data for each replica
-            # matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
-            basename = self.inp_basename
-            exchange_replicas = []
+        # name of the file which contains swap matrix column data for each replica
+        basename = self.inp_basename
+        exchange_replicas = []
 
-            if dimension == 1:
-                for r in range(len(replicas)):
-                    cu = radical.pilot.ComputeUnitDescription()
-                    cu.executable = "python"
-                    # path!
-                    #calculator_path = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
-                    #calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
-                    #calculator_path = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
-                    #calculator = calculator_path + "/amber_matrix_calculator_2d_pattern_b.py"
-                    #cu.input_staging = [str(calculator)]
-                    cu.input_staging  = sd_shared_list[3]
-                    cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
-                    cu.cores = 1            
-                    exchange_replicas.append(cu)
+        if dimension == 1:
+            for r in range(len(replicas)):
+                cu = radical.pilot.ComputeUnitDescription()
+                cu.executable = "python"
+                cu.input_staging  = sd_shared_list[3]
+                cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
+                cu.cores = 1            
+                exchange_replicas.append(cu)
          
-            else:
-                all_salt = ""
-                for r in range(len(replicas)):
-                    if r == 0:
-                        all_salt = str(replicas[r].new_salt_concentration)
-                    else:
-                        all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
+        else:
+            all_salt = ""
+            all_temp = ""
+            for r in range(len(replicas)):
+                if r == 0:
+                    all_salt = str(replicas[r].new_salt_concentration)
+                    all_temp = str(replicas[r].new_temperature)
+                else:
+                    all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
+                    all_temp = all_temp + " " + str(replicas[r].new_temperature)
 
-                all_salt_list = all_salt.split(" ")
+            all_temp_list = all_temp.split(" ")
+            all_salt_list = all_salt.split(" ")
 
-                all_temp = ""
-                for r in range(len(replicas)):
+            for r in range(len(replicas)):
+                cu = radical.pilot.ComputeUnitDescription()
+                cu.pre_exec = self.pre_exec
+                cu.executable = "python"
 
-                    if r == 0:
-                        all_temp = str(replicas[r].new_temperature)
-                    else:
-                        all_temp = all_temp + " " + str(replicas[r].new_temperature)
-
-                all_temp_list = all_temp.split(" ")
-
-                for r in range(len(replicas)):
-                    cu = radical.pilot.ComputeUnitDescription()
-                    #cu.pre_exec = ["module load amber/14"]
-                    cu.pre_exec = self.pre_exec
-                    cu.executable = "python"
-                    # path!
-                    #calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
-                    #calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
-                    #calculator_path = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
-                    #calculator = calculator_path + "/amber_matrix_calculator_2d_pattern_b.py"
-                    #input_file = shared_data_url + "/" + self.amber_input
-
-                    data = {
+                data = {
                         "replica_id": str(r),
                         "replica_cycle" : str(replicas[r].cycle-1),
                         "replicas" : str(len(replicas)),
@@ -329,20 +308,16 @@ class AmberKernel2dPatternB(MdKernel2d):
                         "all_salt_ctr" : all_salt, 
                         "all_temp" : all_temp,
                         "r_old_path": str(replicas[r].old_path),
-                    }
+                }
 
-                    dump_data = json.dumps(data)
-                    json_data = dump_data.replace("\\", "")
-                    # in principle we can transfer this just once and use it multiple times later during the simulation
-                    #cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
-                    #cu.input_staging = [str(calculator)] + sd_shared_list
-                    cu.input_staging = sd_shared_list 
-                    cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
-                    cu.cores = 1            
-                    exchange_replicas.append(cu)
+                dump_data = json.dumps(data)
+                json_data = dump_data.replace("\\", "")
+                cu.input_staging = sd_shared_list 
+                cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
+                cu.cores = 1            
+                exchange_replicas.append(cu)
 
         return exchange_replicas
-
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
