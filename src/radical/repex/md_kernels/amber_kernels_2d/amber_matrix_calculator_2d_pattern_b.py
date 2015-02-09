@@ -148,15 +148,15 @@ if __name__ == '__main__':
     #shared_path = data["shared_path"]
     r_old_path = data["r_old_path"]
 
-    # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
-    new_coor_file = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
-    new_coor = r_old_path + "/" + new_coor_file 
-
     pwd = os.getcwd()
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     replica_energy, path_to_replica_folder = get_historical_data( history_name )
+
+    # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
+    new_coor_file = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
+    new_coor = path_to_replica_folder + "/" + new_coor_file
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
@@ -190,7 +190,7 @@ if __name__ == '__main__':
                 f.write(line)
         f.close()
         
-        call_amber(amber_path, energy_input_name, prmtop_name, r_old_path + '/' +  new_coor, energy_history_name)
+        call_amber(amber_path, energy_input_name, prmtop_name, new_coor, energy_history_name)
 
         try:
             rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
