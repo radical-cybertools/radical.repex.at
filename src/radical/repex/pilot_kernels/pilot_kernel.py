@@ -10,6 +10,7 @@ import os
 import sys
 import math
 import json
+import time
 from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
@@ -107,6 +108,7 @@ class PilotKernel(object):
         pilot_object = None
    
         session = radical.pilot.Session(database_url=self.dburl, database_name='repex-tests')
+        self.get_logger().info("Session ID: {0}".format(session.uid) )
 
         try:
             # Add an ssh identity to the session.
@@ -140,8 +142,9 @@ class PilotKernel(object):
             pilot_object = pilot_manager.submit_pilots(pilot_description)
 
             # we wait for the pilot to start running on resource
-            print "pilot.uid: %s" % pilot_object.uid
+            self.get_logger().info("Pilot ID: {0}".format(pilot_object.uid) )
             pilot_manager.wait_pilots(pilot_object.uid,'Active') 
+            
 
         except radical.pilot.PilotException, ex:
             self.get_logger().error("Error: {0}".format(ex))

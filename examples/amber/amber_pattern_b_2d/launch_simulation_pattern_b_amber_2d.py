@@ -52,6 +52,7 @@ if __name__ == '__main__':
     replicas = md_kernel.initialize_replicas()
 
     try:
+
         pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
     
         # now we can run RE simulation
@@ -82,3 +83,4 @@ if __name__ == '__main__':
         print "Closing session."
         session.close (cleanup=False)
 
+    

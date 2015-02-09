@@ -97,10 +97,6 @@ class PilotKernelPatternB2d(PilotKernel):
         md_kernel - an instance of NamdKernelScheme2a class
         """
 
-        unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
-        unit_manager.register_callback(unit_state_change_cb)
-        unit_manager.add_pilots(pilot_object)
-
         # --------------------------------------------------------------------------
         #
         def unit_state_change_cb(unit, state):
@@ -116,9 +112,9 @@ class PilotKernelPatternB2d(PilotKernel):
                 #unit_manager.submit_units( unit.description )
                 
 
-        #unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
-        #unit_manager.register_callback(unit_state_change_cb)
-        #unit_manager.add_pilots(pilot_object)
+        unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+        unit_manager.register_callback(unit_state_change_cb)
+        unit_manager.add_pilots(pilot_object)
 
         # staging shared input data in
         md_kernel.prepare_shared_data()
