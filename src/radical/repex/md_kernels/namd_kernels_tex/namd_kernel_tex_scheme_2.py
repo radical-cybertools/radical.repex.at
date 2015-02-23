@@ -42,6 +42,29 @@ class NamdKernelTexScheme2(NamdKernelTex):
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
+    # ------------------------------------------------------------------------------
+    #
+    def prepare_shared_data(self):
+ 
+        structure_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
+        coords_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
+        params_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
+
+        self.shared_files.append(self.namd_structure)
+        self.shared_files.append(self.namd_coordinates)
+        self.shared_files.append(self.namd_parameters)
+
+        struct_url = 'file://%s' % (structure_path)
+        self.shared_urls.append(struct_url)
+ 
+        coords_url = 'file://%s' % (coords_path)
+        self.shared_urls.append(coords_url)     
+
+        params_url = 'file://%s' % (params_path)
+        self.shared_urls.append(params_url)
+    
+    # ------------------------------------------------------------------------------
+    #
     def build_input_file(self, replica):
         """Generates input file for individual replica, based on template input file. Tokens @xxx@ are
         substituted with corresponding parameters. 
@@ -116,7 +139,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_for_md(self, replicas):
+    def prepare_replicas_for_md(self, replicas, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for MD simulation step. Here are
         specified input/output files to be transferred to/from target resource. Note: input 
         files for first and subsequent simulaition cycles are different.  
@@ -149,10 +172,10 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 cu.arguments = [input_file]
                 cu.cores = replicas[r].cores
                 cu.mpi = False
-                structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
-                coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
-                params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
-                cu.input_staging = [str(input_file), str(structure), str(coords), str(params)]
+                #structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
+                #coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
+                #params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
+                cu.input_staging = [str(input_file)] + sd_shared_list
                 # in principle it is not required to transfer simulation output files in order to 
                 # continue next cycle; this is done mainly to have these files on local system;
                 # an alternative approach would be to transfer all the files at the end of the simulation   
@@ -165,10 +188,10 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 cu.arguments = [input_file]
                 cu.cores = replicas[r].cores
                 cu.mpi = False
-                structure = self.inp_folder + "/" + self.namd_structure
-                coords = self.inp_folder + "/" + self.namd_coordinates
-                params = self.inp_folder + "/" + self.namd_parameters
-                cu.input_staging = [str(input_file)]
+                #structure = self.inp_folder + "/" + self.namd_structure
+                #coords = self.inp_folder + "/" + self.namd_coordinates
+                #params = self.inp_folder + "/" + self.namd_parameters
+                cu.input_staging = [str(input_file)] + sd_shared_list
                 # in principle it is not required to transfer simulation output files in order to 
                 # perform the next cycle; this is done mainly to have these files on local system;
                 # an alternative approach would be to transfer all the files at the end of the simulation
@@ -179,7 +202,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_for_exchange(self, replicas):
+    def prepare_replicas_for_exchange(self, replicas, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.
         Number of matrix_calculator_scheme_2.py instances invoked on resource is equal to the number 
         of replicas. 
@@ -202,7 +225,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
             # each scheme has it's own calculator!
             calculator_path = os.path.dirname(namd_kernels_tex.namd_matrix_calculator_scheme_2.__file__)
             calculator = calculator_path + "/namd_matrix_calculator_scheme_2.py"
-            cu.input_staging = [calculator]
+            cu.input_staging = [calculator] + sd_shared_list
             cu.arguments = ["namd_matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
             cu.output_staging = [matrix_col]
