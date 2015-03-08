@@ -190,7 +190,12 @@ class AmberKernel2dPatternB(MdKernel2d):
             old_traj = replicas[r].old_traj
 
             st_out = []
-            st_out.append(new_info)
+            info_out = {
+                'source': new_info,
+                'target': 'staging:///%s' % new_info,
+                'action': radical.pilot.COPY
+            }
+            st_out.append(info_out)
 
             coor_out = {
                 'source': new_coor,
@@ -198,22 +203,17 @@ class AmberKernel2dPatternB(MdKernel2d):
                 'action': radical.pilot.COPY
             }
             st_out.append(coor_out)
-         
-            new_info_out = {
-                'source': new_info,
-                'target': 'staging:///%s' % new_info,
-                'action': radical.pilot.COPY
-            }
-            st_out.append(new_info_out)
 
             if replicas[r].cycle == 1:
+                
+                replica_path = "replica_%d_%d/" % (replicas[r].id, 0)
                 crds_out = {
                     'source': self.amber_coordinates,
-                    'target': 'staging:///%s' % self.amber_coordinates,
+                    'target': 'staging:///%s' % (replica_path + self.amber_coordinates),
                     'action': radical.pilot.COPY
                 }
                 st_out.append(crds_out)
-
+                
                 cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
@@ -231,8 +231,9 @@ class AmberKernel2dPatternB(MdKernel2d):
                 cu.output_staging = st_out
                 compute_replicas.append(cu)
             else:
-                #old_coor = replicas[r].old_path + "/" + self.amber_coordinates
-                old_coor = "../staging_area/" + self.amber_coordinates
+                #old_coor = replicas[r].first_path + "/" + self.amber_coordinates
+                replica_path = "/replica_%d_%d/" % (replicas[r].id, 0)
+                old_coor = "../staging_area/" + replica_path + self.amber_coordinates
                 cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec

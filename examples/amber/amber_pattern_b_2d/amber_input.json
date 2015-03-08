@@ -3,7 +3,7 @@
         "resource": "trestles.sdsc.xsede.org",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "60",
+        "runtime" : "10",
         "cleanup" : "False",
         "cores" : "16"
     },
