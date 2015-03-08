@@ -21,8 +21,7 @@ import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 from replicas.replica import Replica2d
 from md_kernels.md_kernel_2d import *
-import amber_kernels_salt.amber_matrix_calculator_pattern_b
-import amber_kernels_tex.amber_matrix_calculator_pattern_b
+import amber_kernels_2d.amber_matrix_calculator_pattern_b
 import amber_kernels_2d.amber_matrix_calculator_2d_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
