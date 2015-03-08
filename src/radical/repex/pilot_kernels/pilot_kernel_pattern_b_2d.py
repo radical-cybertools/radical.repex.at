@@ -77,11 +77,13 @@ class PilotKernelPatternB2d(PilotKernel):
                 swap_matrix[i][r.id] = float(matrix_columns[r.id][i])
 
             # setting old_path and first_path for each replica
+            """
             if ( r.cycle == 1 ):
                 r.first_path = matrix_columns[r.id][len(replicas)]
                 r.old_path = matrix_columns[r.id][len(replicas)]
             else:
                 r.old_path = matrix_columns[r.id][len(replicas)]
+            """
 
         return swap_matrix
 
@@ -322,19 +324,14 @@ class PilotKernelPatternB2d(PilotKernel):
 
                 
         # end of loop
-        d1_id_matrix = md_kernel.get_d1_id_matrix()
-        temp_matrix = md_kernel.get_temp_matrix()
-        
-        d2_id_matrix = md_kernel.get_d2_id_matrix()
-        salt_matrix = md_kernel.get_salt_matrix()
 
-        self.logger.debug("Exchange matrix of replica id's for Dim 1 (temperature) exchange: {0:s}".format(d1_id_matrix) )
+        self.logger.debug("Exchange matrix of replica id's for Dim 1 (temperature) exchange: {0:s}".format(md_kernel.d1_id_matrix) )
          
-        self.logger.debug("Change in temperatures for each replica: : {0:s}".format(temp_matrix) )
+        self.logger.debug("Change in temperatures for each replica: : {0:s}".format(md_kernel.temp_matrix) )
        
-        self.logger.debug("Exchange matrix of replica id's for Dim 2 (salt concentration) exchange: {0:s}".format(d2_id_matrix) )
+        self.logger.debug("Exchange matrix of replica id's for Dim 2 (salt concentration) exchange: {0:s}".format(md_kernel.d2_id_matrix) )
 
-        self.logger.debug("Change in salt concentration for each replica: {0:s}".format(salt_matrix) )
+        self.logger.debug("Change in salt concentration for each replica: {0:s}".format(md_kernel.salt_matrix) )
        
         #------------------------------------------------
         # performance data

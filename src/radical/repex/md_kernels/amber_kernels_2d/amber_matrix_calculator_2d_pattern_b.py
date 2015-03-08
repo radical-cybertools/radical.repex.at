@@ -65,33 +65,27 @@ def get_historical_data(history_name):
 
     ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED FROM THE PROPERTY OF THE REPLICA OBJECT.
     """
+
     home_dir = os.getcwd()
     os.chdir("../")
-
-    # getting all cu directories
-    replica_dirs = []
-    for name in os.listdir("."):
-        if os.path.isdir(name):
-            replica_dirs.append(name)    
+    os.chdir("staging_area")
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
-    for directory in replica_dirs:
-         os.chdir(directory)
-         try:
-             f = open(history_name)
-             lines = f.readlines()
-             f.close()
-             path_to_replica_folder = os.getcwd()
-             for i in range(len(lines)):
-                 #if "TEMP(K)" in lines[i]:
-                 #    temp = float(lines[i].split()[8])
-                 if "EPtot" in lines[i]:
-                     eptot = float(lines[i].split()[8])
-         except:
-             pass 
-         os.chdir("../")
- 
+    try:
+        f = open(history_name)
+        lines = f.readlines()
+        f.close()
+        path_to_replica_folder = os.getcwd()
+        for i in range(len(lines)):
+            #if "TEMP(K)" in lines[i]:
+            #    temp = float(lines[i].split()[8])
+            if "EPtot" in lines[i]:
+                eptot = float(lines[i].split()[8])
+    except:
+        pass 
+        
+    os.chdir("../")
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
 

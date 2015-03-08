@@ -93,7 +93,7 @@ class AmberKernel2dPatternB(MdKernel2d):
         rstr_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
         inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
 
-        calc_b = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
+        calc_b = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_pattern_b.__file__)
         calc_b_path = calc_b + "/amber_matrix_calculator_pattern_b.py"
 
         calc_b_2d = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
@@ -190,6 +190,15 @@ class AmberKernel2dPatternB(MdKernel2d):
             old_coor = replicas[r].old_coor
             old_traj = replicas[r].old_traj
 
+            st_out = []
+ 
+            coor_out = {
+                'source': new_coor,
+                'target': 'staging:///%s' % new_coor,
+                'action': radical.pilot.COPY
+            }
+            st_out.append(coor_out)
+
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.amber_path
@@ -205,10 +214,11 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 cu.cores = self.replica_cores
                 cu.input_staging = [str(input_file), str(crds)] + sd_shared_list
-                cu.output_staging = [str(new_info)]
+                cu.output_staging = [str(new_info)] + st_out
                 compute_replicas.append(cu)
             else:
-                old_coor = replicas[r].first_path + "/" + self.amber_coordinates
+                #old_coor = replicas[r].old_path + "/" + self.amber_coordinates
+                old_coor = "../staging_area/" + self.amber_coordinates
                 cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
@@ -223,7 +233,7 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 cu.cores = self.replica_cores
                 cu.input_staging = [str(input_file)] + sd_shared_list
-                cu.output_staging = [str(new_info)]
+                cu.output_staging = [str(new_info)] + st_out
                 compute_replicas.append(cu)
 
         return compute_replicas
@@ -438,22 +448,3 @@ class AmberKernel2dPatternB(MdKernel2d):
         self.salt_matrix = sorted(self.salt_matrix)
         self.get_logger().debug("[init_matrices] salt_matrix: {0:s}".format(self.salt_matrix) )
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def get_d1_id_matrix(self):
-        return self.d1_id_matrix
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def get_d2_id_matrix(self):
-        return self.d2_id_matrix
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def get_temp_matrix(self):
-        return self.temp_matrix
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def get_salt_matrix(self):
-        return self.salt_matrix
