@@ -135,7 +135,7 @@ class PilotKernelPatternB2d(PilotKernel):
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],
-                         'action': radical.pilot.LINK
+                         'action': radical.pilot.COPY
             }
             self.sd_shared_list.append(sd_shared)
 

@@ -197,6 +197,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                 'action': radical.pilot.COPY
             }
             st_out.append(coor_out)
+            st_out.append(new_info)
 
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -213,7 +214,7 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 cu.cores = self.replica_cores
                 cu.input_staging = [str(input_file), str(crds)] + sd_shared_list
-                cu.output_staging = [str(new_info)] + st_out
+                cu.output_staging = st_out
                 compute_replicas.append(cu)
             else:
                 #old_coor = replicas[r].old_path + "/" + self.amber_coordinates
@@ -232,7 +233,7 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 cu.cores = self.replica_cores
                 cu.input_staging = [str(input_file)] + sd_shared_list
-                cu.output_staging = [str(new_info)] + st_out
+                cu.output_staging = st_out
                 compute_replicas.append(cu)
 
         return compute_replicas
@@ -291,7 +292,7 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 dump_data = json.dumps(data)
                 json_data = dump_data.replace("\\", "")
-                cu.input_staging = sd_shared_list 
+                cu.input_staging = sd_shared_list[4] 
                 cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
                 cu.cores = 1            
                 exchange_replicas.append(cu)
