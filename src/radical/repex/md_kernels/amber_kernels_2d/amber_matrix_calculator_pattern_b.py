@@ -48,8 +48,7 @@ def get_historical_data(history_name):
     """
 
     home_dir = os.getcwd()
-    os.chdir("../")
-    os.chdir("staging_area")
+    os.chdir("../staging_area")
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
