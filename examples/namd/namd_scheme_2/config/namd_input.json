@@ -1,20 +1,20 @@
 {
     "input.PILOT": {
-        "resource": "gordon.sdsc.xsede.org",
+        "resource": "trestles.sdsc.xsede.org",
         "username" : "antontre",
-        "project" : "unc102",
-        "runtime" : "15",
+        "project" : "TG-MCB090174",
+        "runtime" : "420",
         "cleanup" : "False",
-        "cores" : "16"
+        "cores" : "128"
     },
     "input.MD": {
-        "number_of_cycles": "3",
+        "number_of_cycles": "5",
         "input_folder": "namd_inp",
         "input_file_basename": "alanin_base.namd",
         "namd_structure": "alanin.psf",
         "namd_coordinates": "unfolded.pdb",
         "namd_parameters": "alanin.params",
-        "number_of_replicas": "32",
+        "number_of_replicas": "256",
         "replica_cores": "1",
         "min_temperature": "300",
         "max_temperature": "600",

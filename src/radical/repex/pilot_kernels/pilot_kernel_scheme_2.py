@@ -155,8 +155,8 @@ class PilotKernelScheme2(PilotKernel):
 
             T2 = datetime.datetime.utcnow()
 
-            hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = {}
-            hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = (T2-T1).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = (T2-T1).total_seconds()
 
             #print "Submitting %d replicas for MD run" % md_kernel.replicas
             self.get_logger().info("Submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
@@ -166,8 +166,8 @@ class PilotKernelScheme2(PilotKernel):
             unit_manager.wait_units()
             T2 = datetime.datetime.utcnow()
 
-            hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}
-            hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = (T2-T1).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = (T2-T1).total_seconds()
              
             #stop_time = datetime.datetime.utcnow()
             #print "Cycle %d: Time to perform MD run: %f" % (i, (stop_time - start_time).total_seconds())
@@ -185,8 +185,8 @@ class PilotKernelScheme2(PilotKernel):
                 exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas, self.sd_shared_list)
                 T2 = datetime.datetime.utcnow()
 
-                hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = {}
-                hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = (T2-T1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = (T2-T1).total_seconds()
 
 
                 #print "Submitting %d replicas for Exchange run" % md_kernel.replicas
@@ -197,8 +197,8 @@ class PilotKernelScheme2(PilotKernel):
                 unit_manager.wait_units()
                 T2 = datetime.datetime.utcnow()
 
-                hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = {}
-                hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = (T2-T1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = (T2-T1).total_seconds()
 
 
                 T1 = datetime.datetime.utcnow()
@@ -235,9 +235,8 @@ class PilotKernelScheme2(PilotKernel):
                 stop_time = datetime.datetime.utcnow()
                 #print "Cycle %d: Post-processing time: %f" % (i, (stop_time - start_time).total_seconds())
                 T2 = datetime.datetime.utcnow()
-                hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = {}
-                hl_dictionary["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = (T2-T1).total_seconds()
-
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = (T2-T1).total_seconds()
 
         time_2 = datetime.datetime.utcnow()
         #print "Total simulation time: %f" % (time_2 - time_1).total_seconds()

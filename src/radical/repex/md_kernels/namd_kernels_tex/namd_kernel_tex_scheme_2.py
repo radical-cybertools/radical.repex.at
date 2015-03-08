@@ -13,6 +13,7 @@ import radical.pilot
 from kernels.kernels import KERNELS
 from namd_kernel_tex import *
 import namd_kernels_tex.namd_matrix_calculator_scheme_2
+import radical.utils.logger as rul
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -37,10 +38,32 @@ class NamdKernelTexScheme2(NamdKernelTex):
         inp_file - package input file with Pilot and NAMD related parameters as specified by user 
         work_dir_local - directory from which main simulation script was invoked
         """
+
+        self.shared_urls = []
+        self.shared_files = []
+
+        self.name = 'nk-patternB-tex'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
+
         NamdKernelTex.__init__(self, inp_file, work_dir_local)
 
 
 #----------------------------------------------------------------------------------------------------------------------------------
+
+    # ------------------------------------------------------------------------------
+    #
+    def get_logger(self):
+        return self.logger
+
+    #-------------------------------------------------------------------------------
+    #
+    def get_shared_urls(self):
+        return self.shared_urls
+
+    #-------------------------------------------------------------------------------
+    #
+    def get_shared_files(self):
+        return self.shared_files
 
     # ------------------------------------------------------------------------------
     #
@@ -164,6 +187,37 @@ class NamdKernelTexScheme2(NamdKernelTex):
             old_vel = replicas[r].old_vel
             old_ext_system = replicas[r].old_ext_system 
 
+            st_out = []
+ 
+            history_out = {
+                'source': new_history,
+                'target': 'staging:///%s' % new_history,
+                'action': radical.pilot.COPY
+            }
+            st_out.append(history_out)
+        
+            coor_out = {
+                'source': new_coor,
+                'target': 'staging:///%s' % new_coor,
+                'action': radical.pilot.COPY
+            }                   
+            st_out.append(coor_out)        
+
+            vel_out = {
+                'source': new_vel,
+                'target': 'staging:///%s' % new_vel,
+                'action': radical.pilot.COPY
+            }
+            st_out.append(vel_out)
+        
+            ext_out = {
+                'source': new_ext_system,
+                'target': 'staging:///%s' % new_ext_system,
+                'action': radical.pilot.COPY
+            }
+            st_out.append(ext_out)
+
+
             # only for first cycle we transfer structure, coordinates and parameters files
             if replicas[r].cycle == 1:
                 cu = radical.pilot.ComputeUnitDescription()
@@ -176,6 +230,8 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 #coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
                 #params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
                 cu.input_staging = [str(input_file)] + sd_shared_list
+                cu.output_staging = st_out
+
                 # in principle it is not required to transfer simulation output files in order to 
                 # continue next cycle; this is done mainly to have these files on local system;
                 # an alternative approach would be to transfer all the files at the end of the simulation   
@@ -192,6 +248,8 @@ class NamdKernelTexScheme2(NamdKernelTex):
                 #coords = self.inp_folder + "/" + self.namd_coordinates
                 #params = self.inp_folder + "/" + self.namd_parameters
                 cu.input_staging = [str(input_file)] + sd_shared_list
+                cu.output_staging = st_out
+
                 # in principle it is not required to transfer simulation output files in order to 
                 # perform the next cycle; this is done mainly to have these files on local system;
                 # an alternative approach would be to transfer all the files at the end of the simulation
@@ -228,7 +286,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
             cu.input_staging = [calculator] + sd_shared_list
             cu.arguments = ["namd_matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
             cu.cores = 1            
-            cu.output_staging = [matrix_col]
+            #cu.output_staging = [matrix_col]
             exchange_replicas.append(cu)
 
         return exchange_replicas
