@@ -11,6 +11,7 @@ import sys
 import json
 from os import path
 import radical.pilot
+import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
 from amber_kernels_2d.amber_kernel_2d_pattern_b import AmberKernel2dPatternB
@@ -31,10 +32,13 @@ if __name__ == '__main__':
     - Exchange probabilities are determined using Gibbs sampling.
     - Exchange step is performed in decentralized fashion on target resource.
     """
+
+    name = 'launcher-2d'
+    logger  = rul.getLogger ('radical.repex', self.name)
  
-    print "*********************************************************************"
-    print "*    RepEx simulation: AMBER + Salt Concentration + RE pattern B    *"
-    print "*********************************************************************"
+    self.get_logger().info("*********************************************************************")
+    self.get_logger().info("*    RepEx simulation: AMBER + Salt Concentration + RE pattern B    *")
+    self.get_logger().info("*********************************************************************")
 
     work_dir_local = os.getcwd()
     params = parse_command_line()
@@ -64,11 +68,11 @@ if __name__ == '__main__':
         # finally we are moving all files to individual replica directories
         move_output_files(work_dir_local, base, replicas ) 
 
-        print "Simulation successfully finished!"
-        print "Please check output files in replica_x directories."
+        self.get_logger().info("Simulation successfully finished!")
+        self.get_logger().info("Please check output files in replica_x directories.")
 
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        self.get_logger().info("Unexpected error: {0}".format(sys.exc_info()[0]) )
         raise
     #except (KeyboardInterrupt, SystemExit) as e :
         # the callback called sys.exit(), and we can here catch the
@@ -80,7 +84,7 @@ if __name__ == '__main__':
     finally :
         # always clean up the session, no matter if we caught an exception or
         # not.
-        print "Closing session."
+        self.get_logger().info("Closing session.")
         session.close (cleanup=False)
 
     

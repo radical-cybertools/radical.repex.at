@@ -85,16 +85,6 @@ class AmberKernel2dPatternB(MdKernel2d):
     def get_logger(self):
         return self.logger
 
-    #-------------------------------------------------------------------------------
-    #
-    def get_shared_urls(self):
-        return self.shared_urls
-
-    #-------------------------------------------------------------------------------
-    #
-    def get_shared_files(self):
-        return self.shared_files
-
     # ------------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
@@ -177,26 +167,6 @@ class AmberKernel2dPatternB(MdKernel2d):
         except IOError:
             self.get_logger().error("Warning: unable to access file: {0}".format(new_input_file) )
      
-#-----------------------------------------------------------------------------------------------------------------------------------
-    # delete
-    def prepare_shared_md_input(self):
-        """Creates a Compute Unit for shared data staging in
-        these are Amber input files shared between all replicas
-        """
-
-        shared_data_unit = radical.pilot.ComputeUnitDescription()
-
-        #crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-        parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
-        inp  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input 
-
-        shared_data_unit.executable = "/bin/true"
-        shared_data_unit.cores = 1
-        shared_data_unit.input_staging = [str(rstr), str(parm), str(inp)]
- 
-        return shared_data_unit
-
 #-----------------------------------------------------------------------------------------------------------------------------------
     def prepare_replicas_for_md(self, replicas, sd_shared_list):
         """
