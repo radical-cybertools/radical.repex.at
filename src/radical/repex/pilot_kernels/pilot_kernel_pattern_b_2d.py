@@ -176,9 +176,13 @@ class PilotKernelPatternB2d(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)] = {}
 
             self.logger.info("Dim 1: preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
-            
+            submitted_replicas = []            
+
             t1 = datetime.datetime.utcnow()
-            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, self.sd_shared_list)
+            for replica in replicas:
+                comp_repl = md_kernel.prepare_replica_for_md(replica, self.sd_shared_list)
+                sub_repl = unit_manager.submit_units(comp_repl)
+                submitted_replicas.append(sub_repl)
             t2 = datetime.datetime.utcnow()
 
             self.logger.info("Dim 1: submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
@@ -187,7 +191,6 @@ class PilotKernelPatternB2d(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_prep"] = (t2-t1).total_seconds()
 
             t1 = datetime.datetime.utcnow()
-            submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             t2 = datetime.datetime.utcnow()
             
@@ -202,11 +205,14 @@ class PilotKernelPatternB2d(PilotKernel):
             
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
-                
+                exchange_replicas = []
                 self.logger.info("Dim 1: preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
                 t1 = datetime.datetime.utcnow()
-                exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, self.sd_shared_list)
+                for replica in replicas:
+                    ex_repl = md_kernel.prepare_replica_for_exchange(D, replica, self.sd_shared_list)
+                    sub_repl = unit_manager.submit_units(ex_repl)
+                    exchange_replicas.append(sub_repl)
                 t2 = datetime.datetime.utcnow()
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_prep"] = {}
@@ -215,7 +221,6 @@ class PilotKernelPatternB2d(PilotKernel):
                 self.logger.info("Dim 1: submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
                 t1 = datetime.datetime.utcnow()
-                submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
                 t2 = datetime.datetime.utcnow()
              
@@ -224,13 +229,13 @@ class PilotKernelPatternB2d(PilotKernel):
 
 
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = {}
-                for cu in submitted_replicas:
+                for cu in exchange_replicas:
                     cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
 
                 
                 t1 = datetime.datetime.utcnow()
                 matrix_columns = []
-                for r in submitted_replicas:
+                for r in exchange_replicas:
                     d = str(r.stdout)
                     data = d.split()
                     matrix_columns.append(data)
@@ -248,25 +253,27 @@ class PilotKernelPatternB2d(PilotKernel):
 
             #---------------------------------------------
             # D2 run (salt concentration exchange)
-            D = 2
-            t1 = datetime.datetime.utcnow() 
+            D = 2 
 
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)] = {}
  
             self.logger.info("Dim 2: preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
-            
-            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, self.sd_shared_list)
+            submitted_replicas = []        
+    
+            t1 = datetime.datetime.utcnow()
+            for replica in replicas:
+                comp_repl = md_kernel.prepare_replica_for_md(replica, self.sd_shared_list)
+                sub_repl = unit_manager.submit_units(comp_repl)
+                submitted_replicas.append(sub_repl)
+            t2 = datetime.datetime.utcnow()
 
             self.logger.info("Dim 2: submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
-
-            t2 = datetime.datetime.utcnow()
 
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_prep"] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_prep"] = (t2-t1).total_seconds()
 
             t1 = datetime.datetime.utcnow()
-            submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             t2 = datetime.datetime.utcnow()
 
@@ -282,9 +289,15 @@ class PilotKernelPatternB2d(PilotKernel):
             if (i != (md_kernel.nr_cycles-1)):
                
                 self.logger.info("Dim 2: preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+                exchange_replicas = []
+                
+                md_kernel.prepare_lists(replicas)
 
                 t1 = datetime.datetime.utcnow()
-                exchange_replicas = md_kernel.prepare_replicas_for_exchange(D, replicas, self.sd_shared_list)
+                for replica in replicas:
+                    ex_repl = md_kernel.prepare_replica_for_exchange(D, replica, self.sd_shared_list)
+                    sub_repl = unit_manager.submit_units(ex_repl)
+                    exchange_replicas.append(sub_repl)
                 t2 = datetime.datetime.utcnow()
 
                 self.logger.info("Dim 2: submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
@@ -293,7 +306,6 @@ class PilotKernelPatternB2d(PilotKernel):
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_prep"] = (t2-t1).total_seconds()
 
                 t1 = datetime.datetime.utcnow()
-                submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
                 t2 = datetime.datetime.utcnow()
 
@@ -301,13 +313,12 @@ class PilotKernelPatternB2d(PilotKernel):
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_run"] = (t2-t1).total_seconds()
 
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = {}
-                for cu in submitted_replicas:
+                for cu in exchange_replicas:
                     cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
-
 
                 t1 = datetime.datetime.utcnow()
                 matrix_columns = []
-                for r in submitted_replicas:
+                for r in exchange_replicas:
                     d = str(r.stdout)
                     data = d.split()
                     matrix_columns.append(data)
@@ -321,7 +332,6 @@ class PilotKernelPatternB2d(PilotKernel):
                 t2 = datetime.datetime.utcnow()
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["Post_proc"] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["Post_proc"] = (t2-t1).total_seconds()
-
                 
         # end of loop
 

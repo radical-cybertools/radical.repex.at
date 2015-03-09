@@ -79,6 +79,9 @@ class AmberKernel2dPatternB(MdKernel2d):
         self.shared_urls = []
         self.shared_files = []
 
+        self.all_temp_list = []
+        self.all_salt_list = []
+
     # ------------------------------------------------------------------------------
     #
     def get_logger(self):
@@ -167,155 +170,149 @@ class AmberKernel2dPatternB(MdKernel2d):
             self.get_logger().error("Warning: unable to access file: {0}".format(new_input_file) )
      
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def prepare_replicas_for_md(self, replicas, sd_shared_list):
+    def prepare_replica_for_md(self, replica, sd_shared_list):
         """
         """
 
-        compute_replicas = []
-        for r in range(len(replicas)):
-            # need to avoid this step!
-            self.build_input_file(replicas[r])
+        # need to avoid this step!
+        self.build_input_file(replica)
       
-            # rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
-            crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
+        # rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+        crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
 
-            input_file = "%s_%d_%d.mdin" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
-            # this is not transferred back
-            output_file = "%s_%d_%d.mdout" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
+        input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
+        # this is not transferred back
+        output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
 
-            new_coor = replicas[r].new_coor
-            new_traj = replicas[r].new_traj
-            new_info = replicas[r].new_info
-            old_coor = replicas[r].old_coor
-            old_traj = replicas[r].old_traj
+        new_coor = replica.new_coor
+        new_traj = replica.new_traj
+        new_info = replica.new_info
+        old_coor = replica.old_coor
+        old_traj = replica.old_traj
 
-            st_out = []
-            info_out = {
-                'source': new_info,
-                'target': 'staging:///%s' % new_info,
+        st_out = []
+        info_out = {
+            'source': new_info,
+            'target': 'staging:///%s' % new_info,
+            'action': radical.pilot.COPY
+        }
+        st_out.append(info_out)
+
+        coor_out = {
+            'source': new_coor,
+            'target': 'staging:///%s' % new_coor,
+            'action': radical.pilot.COPY
+        }
+        st_out.append(coor_out)
+
+        if replica.cycle == 1:       
+            replica_path = "replica_%d_%d/" % (replica.id, 0)
+            crds_out = {
+                'source': self.amber_coordinates,
+                'target': 'staging:///%s' % (replica_path + self.amber_coordinates),
                 'action': radical.pilot.COPY
             }
-            st_out.append(info_out)
-
-            coor_out = {
-                'source': new_coor,
-                'target': 'staging:///%s' % new_coor,
-                'action': radical.pilot.COPY
-            }
-            st_out.append(coor_out)
-
-            if replicas[r].cycle == 1:
+            st_out.append(crds_out)
                 
-                replica_path = "replica_%d_%d/" % (replicas[r].id, 0)
-                crds_out = {
-                    'source': self.amber_coordinates,
-                    'target': 'staging:///%s' % (replica_path + self.amber_coordinates),
-                    'action': radical.pilot.COPY
-                }
-                st_out.append(crds_out)
-                
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.executable = self.amber_path
-                cu.pre_exec = self.pre_exec
-                cu.mpi = self.replica_mpi
-                cu.arguments = ["-O", "-i ", input_file, 
-                                      "-o ", output_file, 
-                                      "-p ", self.amber_parameters, 
-                                      "-c ", self.amber_coordinates, 
-                                      "-r ", new_coor, 
-                                      "-x ", new_traj, 
-                                      "-inf ", new_info]
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.executable = self.amber_path
+            cu.pre_exec = self.pre_exec
+            cu.mpi = self.replica_mpi
+            cu.arguments = ["-O", "-i ", input_file, 
+                                  "-o ", output_file, 
+                                  "-p ", self.amber_parameters, 
+                                  "-c ", self.amber_coordinates, 
+                                  "-r ", new_coor, 
+                                  "-x ", new_traj, 
+                                  "-inf ", new_info]
 
-                cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file), str(crds)] + sd_shared_list
-                cu.output_staging = st_out
-                compute_replicas.append(cu)
-            else:
-                #old_coor = replicas[r].first_path + "/" + self.amber_coordinates
-                replica_path = "/replica_%d_%d/" % (replicas[r].id, 0)
-                old_coor = "../staging_area/" + replica_path + self.amber_coordinates
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.executable = self.amber_path
-                cu.pre_exec = self.pre_exec
-                cu.mpi = self.replica_mpi
-                cu.arguments = ["-O", "-i ", input_file, 
-                                      "-o ", output_file, 
-                                      "-p ", self.amber_parameters, 
-                                      "-c ", old_coor, 
-                                      "-r ", new_coor, 
-                                      "-x ", new_traj, 
-                                      "-inf ", new_info]
+            cu.cores = self.replica_cores
+            cu.input_staging = [str(input_file), str(crds)] + sd_shared_list
+            cu.output_staging = st_out
+        else:
+            #old_coor = replicas[r].first_path + "/" + self.amber_coordinates
+            replica_path = "/replica_%d_%d/" % (replica.id, 0)
+            old_coor = "../staging_area/" + replica_path + self.amber_coordinates
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.executable = self.amber_path
+            cu.pre_exec = self.pre_exec
+            cu.mpi = self.replica_mpi
+            cu.arguments = ["-O", "-i ", input_file, 
+                                  "-o ", output_file, 
+                                  "-p ", self.amber_parameters, 
+                                  "-c ", old_coor, 
+                                  "-r ", new_coor, 
+                                  "-x ", new_traj, 
+                                  "-inf ", new_info]
 
-                cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file)] + sd_shared_list
-                cu.output_staging = st_out
-                compute_replicas.append(cu)
+            cu.cores = self.replica_cores
+            cu.input_staging = [str(input_file)] + sd_shared_list
+            cu.output_staging = st_out
 
-        return compute_replicas
+        return cu
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def prepare_replicas_for_exchange(self, dimension, replicas, sd_shared_list):
+
+    def prepare_lists(self, replicas):
+        """
+        """
+
+        all_salt = ""
+        all_temp = ""
+        for r in range(len(replicas)):
+            if r == 0:
+                all_salt = str(replicas[r].new_salt_concentration)
+                all_temp = str(replicas[r].new_temperature)
+            else:
+                all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
+                all_temp = all_temp + " " + str(replicas[r].new_temperature)
+
+        self.all_temp_list = all_temp.split(" ")
+        self.all_salt_list = all_salt.split(" ")
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def prepare_replica_for_exchange(self, dimension, replica, sd_shared_list):
         """
         """
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
-        exchange_replicas = []
 
         if dimension == 1:
-            for r in range(len(replicas)):
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.executable = "python"
-                cu.input_staging  = sd_shared_list[3]
-                cu.arguments = ["amber_matrix_calculator_pattern_b.py", r, (replicas[r].cycle-1), len(replicas), basename]
-                cu.cores = 1            
-                exchange_replicas.append(cu)
-         
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.executable = "python"
+            cu.input_staging  = sd_shared_list[3]
+            cu.arguments = ["amber_matrix_calculator_pattern_b.py", replica.id, (replica.cycle-1), self.replicas, basename]
+            cu.cores = 1            
         else:
-            all_salt = ""
-            all_temp = ""
-            for r in range(len(replicas)):
-                if r == 0:
-                    all_salt = str(replicas[r].new_salt_concentration)
-                    all_temp = str(replicas[r].new_temperature)
-                else:
-                    all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
-                    all_temp = all_temp + " " + str(replicas[r].new_temperature)
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
 
-            all_temp_list = all_temp.split(" ")
-            all_salt_list = all_salt.split(" ")
+            data = {
+                "replica_id": str(replica.id),
+                "replica_cycle" : str(replica.cycle-1),
+                "replicas" : str(self.replicas),
+                "base_name" : str(basename),
+                "init_temp" : str(replica.new_temperature),
+                "amber_path" : str(self.amber_path),
+                "amber_input" : str(self.amber_input),
+                "amber_parameters": str(self.amber_parameters),
+                "all_salt_ctr" : self.all_salt_list, 
+                "all_temp" : self.all_temp_list,
+                "r_old_path": str(replica.old_path),
+            }
+            in_st = []
+            in_st.append(sd_shared_list[2])
+            in_st.append(sd_shared_list[4])
 
-            for r in range(len(replicas)):
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec = self.pre_exec
-                cu.executable = "python"
+            dump_data = json.dumps(data)
+            json_data = dump_data.replace("\\", "")
+            cu.input_staging = in_st
+            cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
+            cu.cores = 1            
 
-                data = {
-                        "replica_id": str(r),
-                        "replica_cycle" : str(replicas[r].cycle-1),
-                        "replicas" : str(len(replicas)),
-                        "base_name" : str(basename),
-                        "init_temp" : str(replicas[r].new_temperature),
-                        #"init_temp" : str(self.init_temperature),
-                        "amber_path" : str(self.amber_path),
-                        #"shared_path" : str(shared_data_url),
-                        "amber_input" : str(self.amber_input),
-                        "amber_parameters": str(self.amber_parameters),
-                        "all_salt_ctr" : all_salt, 
-                        "all_temp" : all_temp,
-                        "r_old_path": str(replicas[r].old_path),
-                }
-                in_st = []
-                in_st.append(sd_shared_list[2])
-                in_st.append(sd_shared_list[4])
-
-                dump_data = json.dumps(data)
-                json_data = dump_data.replace("\\", "")
-                cu.input_staging = in_st
-                cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
-                cu.cores = 1            
-                exchange_replicas.append(cu)
-
-        return exchange_replicas
+        return cu
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 

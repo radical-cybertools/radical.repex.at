@@ -133,10 +133,8 @@ if __name__ == '__main__':
     amber_path = data["amber_path"]
 
     # SALT CONCENTRATION FOR ALL REPLICAS
-    all_salt = (data["all_salt_ctr"])
-    all_salt_conc = all_salt.split(" ")
-    all_temp = (data["all_temp"])
-    all_temperature = all_temp.split(" ")
+    all_salt_conc = (data["all_salt_ctr"])
+    all_temperature = (data["all_temp"])
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
     #shared_path = data["shared_path"]
