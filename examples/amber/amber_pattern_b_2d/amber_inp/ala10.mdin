@@ -8,5 +8,5 @@ modified sample input from amber tutorial A7
   ntc = 2, ntf = 2, nscm = 1000,
   ntb = 0, igb = 5,
   cut = 999.0, rgbmax = 999.0,
-  ntpr = 1000, ntwx = 1000, ntwr = -100,
+  ntpr = 1000, ntwx = 1000, ntwr = -10000,
  /
