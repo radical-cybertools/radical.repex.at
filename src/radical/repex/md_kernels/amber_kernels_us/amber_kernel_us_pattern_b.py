@@ -17,14 +17,14 @@ import shutil
 import datetime
 from os import path
 import radical.pilot
-from md_kernels.md_kernel_salt import *
+from md_kernels.md_kernel_us import *
 from kernels.kernels import KERNELS
 from replicas.replica import Replica
-import amber_kernels_salt.amber_matrix_calculator_pattern_b
+import amber_kernels_us.amber_matrix_calculator_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernelSaltPatternB(MdKernelSalt):
+class AmberKernelUSPatternB(MdKernelUS):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
 
@@ -46,7 +46,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        MdKernelSalt.__init__(self, inp_file, work_dir_local)
+        MdKernelUS.__init__(self, inp_file, work_dir_local)
 
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
         try:
@@ -58,7 +58,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
             except:
                 print "Amber path for localhost is not defined..."
 
-        self.amber_restraints = inp_file['input.MD']['amber_restraints']
+        #self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
@@ -86,7 +86,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
-        restraints = self.amber_restraints
+        #restraints = self.amber_restraints
         #if (replica.cycle == 0):
         #    restraints = self.amber_restraints
         #else:
@@ -116,8 +116,8 @@ class AmberKernelSaltPatternB(MdKernelSalt):
         r_file.close()
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
-        tbuffer = tbuffer.replace("@salt@",str(float(replica.new_salt_concentration)))
-        tbuffer = tbuffer.replace("@rstr@", restraints )
+        tbuffer = tbuffer.replace("@disang@",replica.new_restraints)
+        #tbuffer = tbuffer.replace("@rstr@", restraints )
         
         replica.cycle += 1
 
@@ -140,7 +140,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
 
         crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
         parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+        #rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
         shared_data_unit.executable = "/bin/true"
         shared_data_unit.cores = 1
@@ -168,7 +168,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
             self.build_input_file(replicas[r], shared_data_url)
       
             # in principle restraint file should be moved to shared directory
-            rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+            #rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
             input_file = "%s_%d_%d.mdin" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
             # this is not transferred back
@@ -194,7 +194,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
                                       "-inf ", new_info]
 
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file), str(rstr)]
+                cu.input_staging = [str(input_file)]
                 cu.output_staging = [str(new_coor)]
                 #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
                 #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
@@ -221,7 +221,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
 
                 cu.cores = self.replica_cores
 
-                cu.input_staging = [str(input_file), str(rstr)]
+                cu.input_staging = [str(input_file)]
                 cu.output_staging = [str(new_coor)]
                 #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
                 #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
@@ -242,14 +242,14 @@ class AmberKernelSaltPatternB(MdKernelSalt):
         Returns:
         exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
-        all_salt = ""
+        all_restraints = ""
         for r in range(len(replicas)):
             if r == 0:
-                all_salt = str(replicas[r].new_salt_concentration)
+                all_restraints = str(replicas[r].new_restraints)
             else:
-                all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
+                all_restraints = all_restraints + " " + str(replicas[r].new_restraints)
 
-        all_salt_list = all_salt.split(" ")
+        all_restraints_list = all_restraints.split(" ")
 
         exchange_replicas = []
         for r in range(len(replicas)):
@@ -263,7 +263,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
             cu.executable = "python"
             # each scheme has it's own calculator!
             # consider moving this in shared input data folder!
-            calculator_path = os.path.dirname(amber_kernels_salt.amber_matrix_calculator_pattern_b.__file__)
+            calculator_path = os.path.dirname(amber_kernels_us.amber_matrix_calculator_pattern_b.__file__)
             calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
             input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
@@ -277,7 +277,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
                 "shared_path" : str(shared_data_url),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": str(self.amber_parameters),
-                "all_salt_ctr" : all_salt 
+                "all_restraints" : all_restraints_list
             }
 
             dump_data = json.dumps(data)

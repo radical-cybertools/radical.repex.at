@@ -100,6 +100,11 @@ KERNELS = {
                 "environment" : {},
                 "pre_execution" : [],
                 "executable" : "../../../../../NAMD_2.9_Linux-x86_64/namd2"
+            },
+            "amber": {
+                "environment" : {},
+                "pre_execution" : [],
+                "executable" : "/home/haoyuan/devel/git/Programs/Amber11/bin/sander.MPI"
             }
         }
     },"localhost.macos.x86":
