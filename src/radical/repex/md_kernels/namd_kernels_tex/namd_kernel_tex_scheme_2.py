@@ -52,21 +52,6 @@ class NamdKernelTexScheme2(NamdKernelTex):
 
     # ------------------------------------------------------------------------------
     #
-    def get_logger(self):
-        return self.logger
-
-    #-------------------------------------------------------------------------------
-    #
-    def get_shared_urls(self):
-        return self.shared_urls
-
-    #-------------------------------------------------------------------------------
-    #
-    def get_shared_files(self):
-        return self.shared_files
-
-    # ------------------------------------------------------------------------------
-    #
     def prepare_shared_data(self):
  
         structure_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
@@ -162,7 +147,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_for_md(self, replicas, sd_shared_list):
+    def prepare_replica_for_md(self, replica, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for MD simulation step. Here are
         specified input/output files to be transferred to/from target resource. Note: input 
         files for first and subsequent simulaition cycles are different.  
@@ -173,94 +158,75 @@ class NamdKernelTexScheme2(NamdKernelTex):
         Returns:
         compute_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
-        compute_replicas = []
-        for r in range(len(replicas)):
-            self.build_input_file(replicas[r])
-            input_file = "%s_%d_%d.namd" % (self.inp_basename[:-5], replicas[r].id, (replicas[r].cycle-1))
+        
+        self.build_input_file(replica)
+        input_file = "%s_%d_%d.namd" % (self.inp_basename[:-5], replica.id, (replica.cycle-1))
 
-            new_coor = replicas[r].new_coor
-            new_vel = replicas[r].new_vel
-            new_history = replicas[r].new_history
-            new_ext_system = replicas[r].new_ext_system
+        new_coor = replica.new_coor
+        new_vel = replica.new_vel
+        new_history = replica.new_history
+        new_ext_system = replica.new_ext_system
 
-            old_coor = replicas[r].old_coor
-            old_vel = replicas[r].old_vel
-            old_ext_system = replicas[r].old_ext_system 
+        old_coor = replica.old_coor
+        old_vel = replica.old_vel
+        old_ext_system = replica.old_ext_system 
 
-            st_out = []
+        st_out = []
  
-            history_out = {
-                'source': new_history,
-                'target': 'staging:///%s' % new_history,
-                'action': radical.pilot.COPY
-            }
-            st_out.append(history_out)
+        history_out = {
+            'source': new_history,
+            'target': 'staging:///%s' % new_history,
+            'action': radical.pilot.COPY
+        }
+        st_out.append(history_out)
         
-            coor_out = {
-                'source': new_coor,
-                'target': 'staging:///%s' % new_coor,
-                'action': radical.pilot.COPY
-            }                   
-            st_out.append(coor_out)        
+        coor_out = {
+            'source': new_coor,
+            'target': 'staging:///%s' % new_coor,
+            'action': radical.pilot.COPY
+        }                   
+        st_out.append(coor_out)        
 
-            vel_out = {
-                'source': new_vel,
-                'target': 'staging:///%s' % new_vel,
-                'action': radical.pilot.COPY
-            }
-            st_out.append(vel_out)
+        vel_out = {
+            'source': new_vel,
+            'target': 'staging:///%s' % new_vel,
+            'action': radical.pilot.COPY
+        }
+        st_out.append(vel_out)
         
-            ext_out = {
-                'source': new_ext_system,
-                'target': 'staging:///%s' % new_ext_system,
-                'action': radical.pilot.COPY
-            }
-            st_out.append(ext_out)
+        ext_out = {
+            'source': new_ext_system,
+            'target': 'staging:///%s' % new_ext_system,
+            'action': radical.pilot.COPY
+        }
+        st_out.append(ext_out)
 
+        # only for first cycle we transfer structure, coordinates and parameters files
+        if replica.cycle == 1:
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec    = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
+            cu.executable = self.namd_path
+            cu.arguments = [input_file]
+            cu.cores = replica.cores
+            cu.mpi = False
+            cu.input_staging = [str(input_file)] + sd_shared_list
+            cu.output_staging = st_out
+            
+        else:
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec    = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
+            cu.executable = self.namd_path
+            cu.arguments = [input_file]
+            cu.cores = replica.cores
+            cu.mpi = False
+            cu.input_staging = [str(input_file)] + sd_shared_list
+            cu.output_staging = st_out
 
-            # only for first cycle we transfer structure, coordinates and parameters files
-            if replicas[r].cycle == 1:
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec    = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
-                cu.executable = self.namd_path
-                cu.arguments = [input_file]
-                cu.cores = replicas[r].cores
-                cu.mpi = False
-                #structure = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_structure
-                #coords = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_coordinates
-                #params = self.work_dir_local + "/" + self.inp_folder + "/" + self.namd_parameters
-                cu.input_staging = [str(input_file)] + sd_shared_list
-                cu.output_staging = st_out
-
-                # in principle it is not required to transfer simulation output files in order to 
-                # continue next cycle; this is done mainly to have these files on local system;
-                # an alternative approach would be to transfer all the files at the end of the simulation   
-                #cu.output_staging = [str(new_coor), str(new_vel), str(new_history), str(new_ext_system) ]
-                compute_replicas.append(cu)
-            else:
-                cu = radical.pilot.ComputeUnitDescription()
-                cu.pre_exec    = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
-                cu.executable = self.namd_path
-                cu.arguments = [input_file]
-                cu.cores = replicas[r].cores
-                cu.mpi = False
-                #structure = self.inp_folder + "/" + self.namd_structure
-                #coords = self.inp_folder + "/" + self.namd_coordinates
-                #params = self.inp_folder + "/" + self.namd_parameters
-                cu.input_staging = [str(input_file)] + sd_shared_list
-                cu.output_staging = st_out
-
-                # in principle it is not required to transfer simulation output files in order to 
-                # perform the next cycle; this is done mainly to have these files on local system;
-                # an alternative approach would be to transfer all the files at the end of the simulation
-                #cu.output_staging = [str(new_coor), str(new_vel), str(new_history), str(new_ext_system) ]
-                compute_replicas.append(cu)
-
-        return compute_replicas
+        return cu
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replicas_for_exchange(self, replicas, sd_shared_list):
+    def prepare_replica_for_exchange(self, replica, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.
         Number of matrix_calculator_scheme_2.py instances invoked on resource is equal to the number 
         of replicas. 
@@ -271,23 +237,18 @@ class NamdKernelTexScheme2(NamdKernelTex):
         Returns:
         exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
-
-        exchange_replicas = []
-        for r in range(len(replicas)):
            
-            # name of the file which contains swap matrix column data for each replica
-            matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
-            basename = self.inp_basename[:-5]
-            cu = radical.pilot.ComputeUnitDescription()
-            cu.executable = "python"
-            # each scheme has it's own calculator!
-            calculator_path = os.path.dirname(namd_kernels_tex.namd_matrix_calculator_scheme_2.__file__)
-            calculator = calculator_path + "/namd_matrix_calculator_scheme_2.py"
-            cu.input_staging = [calculator] + sd_shared_list
-            cu.arguments = ["namd_matrix_calculator_scheme_2.py", r, (replicas[r].cycle-1), len(replicas), basename]
-            cu.cores = 1            
-            #cu.output_staging = [matrix_col]
-            exchange_replicas.append(cu)
-
-        return exchange_replicas
+        # name of the file which contains swap matrix column data for each replica
+        matrix_col = "matrix_column_%s_%s.dat" % (replica.id, (replica.cycle-1))
+        basename = self.inp_basename[:-5]
+        cu = radical.pilot.ComputeUnitDescription()
+        cu.executable = "python"
+        # each scheme has it's own calculator!
+        calculator_path = os.path.dirname(namd_kernels_tex.namd_matrix_calculator_scheme_2.__file__)
+        calculator = calculator_path + "/namd_matrix_calculator_scheme_2.py"
+        cu.input_staging = [calculator] + sd_shared_list
+        cu.arguments = ["namd_matrix_calculator_scheme_2.py", replica.id, (replica.cycle-1), self.replicas, basename]
+        cu.cores = 1            
+            
+        return cu
             

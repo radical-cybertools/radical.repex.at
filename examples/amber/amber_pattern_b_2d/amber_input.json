@@ -1,16 +1,15 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
-        "username" : "tg458185",
-        "project" : "TG-MCB110101",
-        "queue" : "development",
-        "runtime" : "120",
+        "resource": "trestles.sdsc.xsede.org",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
+        "runtime" : "20",
         "cleanup" : "False",
-        "cores" : "256"
+        "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "20",
-        "number_of_replicas": "24",
+        "number_of_cycles": "3",
+        "number_of_replicas": "2",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_input": "ala10.mdin",
@@ -24,6 +23,6 @@
         "min_salt": "0.0",
         "max_salt": "1.0",
         "init_temperature": "300.0",
-        "steps_per_cycle": "100000"
+        "steps_per_cycle": "1000"
     }
 }

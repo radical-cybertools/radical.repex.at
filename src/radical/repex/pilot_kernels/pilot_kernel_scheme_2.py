@@ -99,12 +99,10 @@ class PilotKernelScheme2(PilotKernel):
             """This is a callback function. It gets called very time a ComputeUnit changes its state.
             """
             
-            self.get_logger().info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+            self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
             if state == radical.pilot.states.FAILED:
-                
-                self.get_logger().error("Log: {0:s}".format( unit.as_dict() ) )
-
+                self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
 
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
@@ -113,8 +111,8 @@ class PilotKernelScheme2(PilotKernel):
         # staging shared input data in
         md_kernel.prepare_shared_data()
 
-        shared_input_file_urls = md_kernel.get_shared_urls()
-        shared_input_files = md_kernel.get_shared_files()
+        shared_input_file_urls = md_kernel.shared_urls
+        shared_input_files = md_kernel.shared_files
 
         for i in range(len(shared_input_files)):
 
@@ -139,61 +137,53 @@ class PilotKernelScheme2(PilotKernel):
 
         for i in range(md_kernel.nr_cycles):
             current_cycle = i+1
-            T1 = datetime.datetime.utcnow()
-            #start_time = datetime.datetime.utcnow()
 
             hl_performance_data["cycle_{0}".format(current_cycle)] = {}
 
-            #print "Performing cycle: %s" % (i+1)
-            self.get_logger().info("Performing cycle: {0}".format(current_cycle) )
+            self.logger.info("Performing cycle: {0}".format(current_cycle) )
 
-            #print "Preparing %d replicas for MD run" % md_kernel.replicas
-            self.get_logger().info("Preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+            self.logger.info("Preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
-            #compute_replicas = md_kernel.prepare_replicas_for_md(replicas)
-            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, self.sd_shared_list)
+            T1 = datetime.datetime.utcnow()
+            for r in replicas:
+                compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
+                sub_replica = unit_manager.submit_units(compute_replica)
 
             T2 = datetime.datetime.utcnow()
 
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = (T2-T1).total_seconds()
 
-            #print "Submitting %d replicas for MD run" % md_kernel.replicas
-            self.get_logger().info("Submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
-        
+            self.logger.info("Submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             T1 = datetime.datetime.utcnow()
-            submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
             T2 = datetime.datetime.utcnow()
 
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = (T2-T1).total_seconds()
              
-            #stop_time = datetime.datetime.utcnow()
-            #print "Cycle %d: Time to perform MD run: %f" % (i, (stop_time - start_time).total_seconds())
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
                 #start_time = datetime.datetime.utcnow()
-                T1 = datetime.datetime.utcnow()
                 #####################################################################
                 # computing swap matrix
                 #####################################################################
-                #print "Preparing %d replicas for Exchange run" % md_kernel.replicas
-                self.get_logger().info("Preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+                self.logger.info("Preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
-                #exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas)
-                exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas, self.sd_shared_list)
+                submitted_replicas = []
+                T1 = datetime.datetime.utcnow()
+                for r in replicas:
+                    exchange_replica = md_kernel.prepare_replica_for_exchange(r, self.sd_shared_list)
+                    sub_replica = unit_manager.submit_units(exchange_replica)
+                    submitted_replicas.append(sub_replica)
                 T2 = datetime.datetime.utcnow()
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = (T2-T1).total_seconds()
 
-
-                #print "Submitting %d replicas for Exchange run" % md_kernel.replicas
-                self.get_logger().info("Submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+                self.logger.info("Submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
                 T1 = datetime.datetime.utcnow()
-                submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()
                 T2 = datetime.datetime.utcnow()
 
@@ -208,20 +198,14 @@ class PilotKernelScheme2(PilotKernel):
                     data = d.split()
                     matrix_columns.append(data)
                
-                #stop_time = datetime.datetime.utcnow()
-                #print "Cycle %d: Time to perform Exchange: %f" % (i, (stop_time - start_time).total_seconds())
-                #start_time = datetime.datetime.utcnow()
                 #####################################################################
                 # compose swap matrix from individual files
                 #####################################################################
-                #print "Composing swap matrix from individual files for all replicas"
-                self.get_logger().info("Composing swap matrix from individual files for all replicas")
+                self.logger.info("Composing swap matrix from individual files for all replicas")
 
-                #swap_matrix = self.compose_swap_matrix(replicas)
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
-                #print "Performing exchange"
-                self.get_logger().info("Performing exchange")
+                self.logger.info("Performing exchange")
                 for r_i in replicas:
                     r_j = md_kernel.gibbs_exchange(r_i, replicas, swap_matrix)
                     if (r_j != r_i):
@@ -233,13 +217,12 @@ class PilotKernelScheme2(PilotKernel):
                         r_i.swap = 1
                         r_j.swap = 1
                 stop_time = datetime.datetime.utcnow()
-                #print "Cycle %d: Post-processing time: %f" % (i, (stop_time - start_time).total_seconds())
                 T2 = datetime.datetime.utcnow()
+
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = (T2-T1).total_seconds()
 
         time_2 = datetime.datetime.utcnow()
-        #print "Total simulation time: %f" % (time_2 - time_1).total_seconds()
         RAW_SIMULATION_TIME = (time_2-time_1).total_seconds()
 
         outfile = "execution_profile_{time}.csv".format(time=datetime.datetime.now().isoformat())
