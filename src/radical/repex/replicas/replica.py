@@ -101,6 +101,52 @@ class ReplicaSalt(object):
         self.stopped_run = -1
 
 
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+class ReplicaUS(object):
+    """Class representing replica and it's associated data.
+       US = Umbrella Sampling
+    """
+    def __init__(self, my_id, new_restraints=None, cores=1):
+        """Constructor.
+
+        Arguments:
+        my_id - integer representing replica's id
+        new_temperature - temperature at which replica is initialized (default: None)
+        cores - number of cores to be used by replica's NAMD instance (default: 1)
+        """
+        self.id = int(my_id)
+        self.sid = int(my_id)
+        self.state = 'I'
+        self.cycle = 0
+        if new_restraints is None:
+            self.new_restraints = ''
+        else:
+            self.new_restraints = new_restraints
+        self.old_restraints = new_restraints
+        self.potential = 0
+
+        # amber stuff
+        self.new_traj = ""
+        self.new_info = ""
+        self.old_traj = ""
+        self.old_info = ""
+        ###################
+
+        self.new_coor = ""
+        self.new_vel = ""
+        self.new_history = ""
+        self.new_ext_system = ""
+        self.old_coor = ""
+        self.old_vel = ""
+        self.old_ext_system = ""
+        self.old_path = ""
+        self.first_path = ""
+        self.swap = 0
+        self.cores = cores
+        self.stopped_run = -1
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
