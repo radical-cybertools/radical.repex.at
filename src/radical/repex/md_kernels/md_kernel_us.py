@@ -15,7 +15,6 @@ import math
 import random
 from os import path
 import radical.pilot
-from replicas.replica import ReplicaSalt
 from replicas.replica import ReplicaUS
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -58,6 +57,10 @@ class MdKernelUS(object):
         except:
             self.replica_cores = 1
 
+        self.restraints_files = []
+        for k in range(self.replicas):
+            self.restraints_files.append(self.work_dir_local + "/" + self.inp_folder + "/" + self.us_template + "." + str(k*(self.max_us_index-self.min_us_index)/self.replicas+self.min_us_index))
+
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def initialize_replicas(self):
@@ -69,9 +72,8 @@ class MdKernelUS(object):
         """
         replicas = []
 
-        for k in range(self.replicas):
-            new_restraints = self.inp_folder + "/" + self.us_template + "." + str(k*(self.max_us_index-self.min_us_index)/self.replicas+self.min_us_index)
-            r = ReplicaUS(k, new_restraints)
+        for k in range(len(self.restraints_files)):
+            r = ReplicaUS(k, self.restraints_files[k])
             replicas.append(r)
             
         return replicas

@@ -270,7 +270,7 @@ if __name__ == '__main__':
     init_temp = float(data["init_temp"])
 
     # AMBER PATH ON THIS RESOURCE:
-    amber_path = data["amber_path"]
+    #amber_path = data["amber_path"]
 
     # SALT CONCENTRATION FOR ALL REPLICAS
     all_restraints = (data["all_restraints_list"])
@@ -303,37 +303,23 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    # call amber to run 1-step energy calculation
     for j in range(replicas):
-        energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
-        #input_name = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
-        #input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
-        energy_input_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdin"
-
-        f = file(mdin_name,'r')
-        input_data = f.readlines()
-        f.close()
-
-        # change nstlim to be zero
-        f = file(energy_input_name,'w')
-        for line in input_data:
-            if "@nstlim@" in line:
-                f.write(line.replace("@nstlim@","0"))
-            elif "@disang@" in line:
-                f.write(line.replace("@disang@",all_restraints[j]))
-            else:
-                f.write(line)
-        f.close()
-        
-        #problems here
-        #call_amber(amber_path, energy_input_name, shared_path + '/' + prmtop_name , new_coor, energy_history_name)
 
         try:
-            rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
+            rstr_file = file(all_restraints[j],'r')
+            rstr_lines = rstr.readlines()
+            rstr_file.close()
+            rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
+            us_energy = 0.0
+            r = restraint()
+            r.set_crd(new_coor)
+            for rstr_entry in rstr_entries:
+                r.set_rstr(rstr_entry); r.calc_energy()
+                us_energy += r.energy
+            energies[j] = replica_energy + us_energy
             temperatures[j] = float(init_temp)
-            energies[j] = rj_energy
         except:
-             pass 
+            pass 
 
     # init swap column
     swap_column = [0.0]*replicas

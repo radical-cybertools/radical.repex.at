@@ -19,7 +19,7 @@ from os import path
 import radical.pilot
 from md_kernels.md_kernel_us import *
 from kernels.kernels import KERNELS
-from replicas.replica import Replica
+from replicas.replica import ReplicaUS
 import amber_kernels_us.amber_matrix_calculator_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -140,11 +140,13 @@ class AmberKernelUSPatternB(MdKernelUS):
 
         crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
         parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        #rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+        restraints = self.restraints_files
 
         shared_data_unit.executable = "/bin/true"
         shared_data_unit.cores = 1
         shared_data_unit.input_staging = [str(crds), str(parm)]
+        for rstr in restraints:
+            shared_data_unit.input_staging.append(str(rstr))
  
         return shared_data_unit
 
