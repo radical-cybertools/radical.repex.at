@@ -261,7 +261,7 @@ if __name__ == '__main__':
     #amber_path = data["amber_path"]
 
     # SALT CONCENTRATION FOR ALL REPLICAS
-    all_restraints = (data["all_restraints_list"])
+    all_restraints = (data["all_restraints"])
     #all_salt_conc = all_salt.split(" ")
     #print "all salt concentrations: "
     #print all_salt_conc

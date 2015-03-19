@@ -246,7 +246,7 @@ class AmberKernelUSPatternB(MdKernelUS):
                 cu.output_staging = st_out
                 compute_replicas.append(cu)
             else:
-                replica_path = "/replica_%d_%d/" % (replica.id, 0)
+                replica_path = "/replica_%d_%d/" % (replicas[r].id, 0)
                 old_coor = "../staging_area/" + replica_path + self.amber_coordinates
 
                 cu.input_staging = [str(input_file)] + sd_shared_list
@@ -300,7 +300,7 @@ class AmberKernelUSPatternB(MdKernelUS):
             basename = self.inp_basename
 
             cu = radical.pilot.ComputeUnitDescription()
-            cu.pre_exec = ["module load amber/14"]
+            cu.pre_exec = self.pre_exec
             cu.executable = "python"
             # each scheme has it's own calculator!
             # consider moving this in shared input data folder!
