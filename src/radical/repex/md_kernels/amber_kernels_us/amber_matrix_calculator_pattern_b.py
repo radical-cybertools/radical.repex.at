@@ -129,24 +129,6 @@ class restraint(object):
         print 'E = %10.6f\t\tR = %10.6f' %(self.energy,self.r)
 """
 
-"""
-if __name__ == '__main__':
-
-    import sys
-    crd_file = sys.argv[1]
-    rstr_file = sys.argv[2]
-    rstr = file(rstr_file,'r')
-    rstr_lines = rstr.readlines()
-    rstr.close()
-    rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
-    total_restraint_energy = 0.0
-    r = restraint()
-    r.set_crd(crd_file)
-    for rstr_entry in rstr_entries:
-        r.set_rstr(rstr_entry); r.calc_energy(); r.write_summary()
-        total_restraint_energy += r.energy
-    print '\nTOTAL\nE = %10.6f\n' %total_restraint_energy
-"""
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -186,34 +168,24 @@ def get_historical_data(history_name):
 
     ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED FROM THE PROPERTY OF THE REPLICA OBJECT.
     """
-    home_dir = os.getcwd()
-    os.chdir("../")
 
-    # getting all cu directories
-    replica_dirs = []
-    for name in os.listdir("."):
-        if os.path.isdir(name):
-            replica_dirs.append(name)    
+    home_dir = os.getcwd()
+    os.chdir("../staging_area")
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
-    for directory in replica_dirs:
-         os.chdir(directory)
-         try:
-             f = open(history_name)
-             lines = f.readlines()
-             f.close()
-             path_to_replica_folder = os.getcwd()
-             for i in range(len(lines)):
-                 #if "TEMP(K)" in lines[i]:
-                 #    temp = float(lines[i].split()[8])
-                 if "EPtot" in lines[i]:
-                     eptot = float(lines[i].split()[8])
-             #print "history file %s found!" % ( history_name ) 
-         except:
-             pass 
-         os.chdir("../")
- 
+    try:
+        f = open(history_name)
+        lines = f.readlines()
+        f.close()
+        path_to_replica_folder = os.getcwd()
+        for i in range(len(lines)):
+            if "EPtot" in lines[i]:
+                eptot = float(lines[i].split()[8])
+    except:
+        raise
+        
+    os.chdir("../")
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
 
