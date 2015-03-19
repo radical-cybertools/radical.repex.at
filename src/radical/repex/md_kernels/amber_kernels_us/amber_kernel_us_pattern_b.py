@@ -174,27 +174,6 @@ class AmberKernelUSPatternB(MdKernelUS):
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    
-    def prepare_shared_md_input(self):
-        """Creates a Compute Unit for shared data staging in
-        these are Amber input files shared between all replicas
-        """
-
-        shared_data_unit = radical.pilot.ComputeUnitDescription()
-
-        crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-        parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-
-        shared_data_unit.executable = "/bin/true"
-        shared_data_unit.cores = 1
-        shared_data_unit.input_staging = [str(crds), str(parm)]
-        for rstr in self.restraints_files:
-            shared_data_unit.input_staging.append(str(self.work_dir_local + "/" + self.inp_folder + "/" + rstr))
- 
-        return shared_data_unit
-
-
-#-----------------------------------------------------------------------------------------------------------------------------------
     # OK
     def prepare_replicas_for_md(self, replicas, sd_shared_list):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
@@ -318,7 +297,6 @@ class AmberKernelUSPatternB(MdKernelUS):
         for r in range(len(replicas)):
            
             # name of the file which contains swap matrix column data for each replica
-            matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
             basename = self.inp_basename
 
             cu = radical.pilot.ComputeUnitDescription()
@@ -346,7 +324,8 @@ class AmberKernelUSPatternB(MdKernelUS):
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
             # in principle we can transfer this just once and use it multiple times later during the simulation
-            cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
+            # cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
+            cu.input_staging = [str(calculator), str(input_file)]
             cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
             cu.cores = 1            
             exchange_replicas.append(cu)
