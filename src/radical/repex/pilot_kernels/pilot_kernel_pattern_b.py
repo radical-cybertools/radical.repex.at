@@ -91,6 +91,21 @@ class PilotKernelPatternB(PilotKernel):
         md_kernel - an instance of NamdKernelScheme2a class
         """
   
+        # --------------------------------------------------------------------------
+        #
+        def unit_state_change_cb(unit, state):
+            """This is a callback function. It gets called very time a ComputeUnit changes its state.
+            """
+
+            self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+
+            if state == radical.pilot.states.FAILED:
+
+                self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
+                # restarting the replica
+                #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+                #unit_manager.submit_units( unit.description )
+
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)

@@ -63,6 +63,53 @@ class AmberKernelUSPatternB(MdKernelUS):
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
         self.input_folder = inp_file['input.MD']['input_folder']
+        self.init_temperature = float(inp_file['input.MD']['init_temperature'])
+        self.current_cycle = -1
+
+        self.name = 'ak-patternB-us'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
+
+        self.shared_urls = []
+        self.shared_files = []
+
+    # ------------------------------------------------------------------------------
+    #
+    def get_logger(self):
+        return self.logger
+
+    # ------------------------------------------------------------------------------
+    #
+    def prepare_shared_data(self):
+
+        parm_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
+        rstr_path = []
+        inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
+
+        for rstr in self.restraints_files:
+            rstr_path.append(self.work_dir_local + "/" + self.inp_folder + "/" + rstr)
+
+        calc_b = os.path.dirname(amber_kernels_us.amber_matrix_calculator_pattern_b.__file__)
+        calc_b_path = calc_b + "/amber_matrix_calculator_pattern_b.py"
+
+        self.shared_files.append(self.amber_parameters)
+        for rstr in self.restraints_files:
+            self.shared_files.append(rstr)
+        self.shared_files.append(self.amber_input)
+        self.shared_files.append("amber_matrix_calculator_pattern_b.py")
+
+        parm_url = 'file://%s' % (parm_path)
+        self.shared_urls.append(parm_url)
+
+        for rstr_p in rstr_path:
+            rstr_url = 'file://%s' % (rstr_p)
+            self.shared_urls.append(rstr_url)
+
+        inp_url = 'file://%s' % (inp_path)
+        self.shared_urls.append(inp_url)
+
+        calc_b_url = 'file://%s' % (calc_b_path)
+        self.shared_urls.append(calc_b_url)
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     # OK
@@ -118,6 +165,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@disang@",replica.new_restraints)
         #tbuffer = tbuffer.replace("@rstr@", restraints )
+        tbuffer = tbuffer.replace("@temp@",str(self.init_temperature))
         
         replica.cycle += 1
 
@@ -140,13 +188,12 @@ class AmberKernelUSPatternB(MdKernelUS):
 
         crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
         parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        restraints = self.restraints_files
 
         shared_data_unit.executable = "/bin/true"
         shared_data_unit.cores = 1
         shared_data_unit.input_staging = [str(crds), str(parm)]
-        for rstr in restraints:
-            shared_data_unit.input_staging.append(str(rstr))
+        for rstr in self.restraints_files:
+            shared_data_unit.input_staging.append(str(self.work_dir_local + "/" + self.inp_folder + "/" + rstr))
  
         return shared_data_unit
 
@@ -182,7 +229,30 @@ class AmberKernelUSPatternB(MdKernelUS):
             old_coor = replicas[r].old_coor
             old_traj = replicas[r].old_traj
 
+            st_out = []
+            info_out = {
+                'source': new_info,
+                'target': 'staging:///%s' % new_info,
+                'action': radical.pilot.COPY
+            }
+            st_out.append(info_out)
+
+            coor_out = {
+                'source': new_coor,
+                'target': 'staging:///%s' % new_coor,
+                'action': radical.pilot.COPY
+            }
+            st_out.append(coor_out)
+
             if replicas[r].cycle == 1:
+                replica_path = "replica_%d_%d/" % (replicas[r].id, 0)
+                crds_out = {
+                    'source': self.amber_coordinates,
+                    'target': 'staging:///%s' % (replica_path + self.amber_coordinates),
+                    'action': radical.pilot.COPY
+                }
+                st_out.append(crds_out)
+
                 cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
@@ -196,20 +266,17 @@ class AmberKernelUSPatternB(MdKernelUS):
                                       "-inf ", new_info]
 
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file)]
-                cu.output_staging = [str(new_coor)]
-                #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
-                #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
+                cu.input_staging = [str(input_file), str(crds)] + sd_shared_list
+                cu.output_staging = st_out
                 compute_replicas.append(cu)
             else:
+                replica_path = "/replica_%d_%d/" % (replica.id, 0)
+                old_coor = "../staging_area/" + replica_path + self.amber_coordinates
+
+                cu.input_staging = [str(input_file)] + sd_shared_list
+                cu.output_staging = st_out
+
                 cu = radical.pilot.ComputeUnitDescription()
-
-                #old_coor = replicas[r].old_path + "/" + self.amber_coordinates
-
-                #crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-                #parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-                #rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
-
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
@@ -222,11 +289,8 @@ class AmberKernelUSPatternB(MdKernelUS):
                                       "-inf ", new_info]
 
                 cu.cores = self.replica_cores
-
-                cu.input_staging = [str(input_file)]
-                cu.output_staging = [str(new_coor)]
-                #cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
-                #cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
+                cu.input_staging = [str(input_file)] + sd_shared_list
+                cu.output_staging = st_out
                 compute_replicas.append(cu)
 
         return compute_replicas

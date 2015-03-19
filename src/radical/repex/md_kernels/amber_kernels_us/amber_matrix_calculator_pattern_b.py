@@ -150,18 +150,6 @@ if __name__ == '__main__':
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def call_amber(amber_path, mdin, prmtop, crd, mdinfo):
-
-    # calling amber
-    commands = []
-    cmd = amber_path + ' -O -i ' + mdin + ' -p ' + prmtop + ' -c ' + crd + ' -inf ' + mdinfo
-    commands.append(cmd)
-
-    processes = [Popen(cmd, subprocess.PIPE, shell=True)  for cmd in commands]
-    for p in processes: p.wait()
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 

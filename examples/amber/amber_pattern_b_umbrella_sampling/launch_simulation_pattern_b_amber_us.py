@@ -16,9 +16,6 @@ from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
 from amber_kernels_us.amber_kernel_us_pattern_b import AmberKernelUSPatternB
 from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
-from pilot_kernels.pilot_kernel_pattern_b_us import PilotKernelPatternBUS
-
-
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -52,7 +49,7 @@ if __name__ == '__main__':
 
     # initializing kernels
     md_kernel = AmberKernelUSPatternB( inp_file, work_dir_local )
-    pilot_kernel = PilotKernelPatternBUS( inp_file )
+    pilot_kernel = PilotKernelPatternB( inp_file )
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()

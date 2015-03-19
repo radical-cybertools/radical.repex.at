@@ -59,7 +59,7 @@ class MdKernelUS(object):
 
         self.restraints_files = []
         for k in range(self.replicas):
-            self.restraints_files.append(self.work_dir_local + "/" + self.inp_folder + "/" + self.us_template + "." + str(k*(self.max_us_index-self.min_us_index)/self.replicas+self.min_us_index))
+            self.restraints_files.append(self.us_template + "." + str(k*(self.max_us_index-self.min_us_index+1)/self.replicas+self.min_us_index))
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 

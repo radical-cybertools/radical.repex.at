@@ -9,4 +9,7 @@ umbrella sampling
   cut = 999.0, rgbmax = 999.0, nmropt = 1,
   ntpr = 1000, ntwx = 1000, ntwr = -100,
  /
+ &wt 
+   type='END' 
+ /
 DISANG=@disang@
