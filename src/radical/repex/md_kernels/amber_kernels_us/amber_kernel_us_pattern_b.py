@@ -220,6 +220,7 @@ class AmberKernelUSPatternB(MdKernelUS):
             }
             st_out.append(coor_out)
 
+            cu = radical.pilot.ComputeUnitDescription()
             if replicas[r].cycle == 1:
                 replica_path = "replica_%d_%d/" % (replicas[r].id, 0)
                 crds_out = {
@@ -229,7 +230,6 @@ class AmberKernelUSPatternB(MdKernelUS):
                 }
                 st_out.append(crds_out)
 
-                cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
@@ -251,15 +251,13 @@ class AmberKernelUSPatternB(MdKernelUS):
 
                 cu.input_staging = [str(input_file)] + sd_shared_list
                 cu.output_staging = st_out
-
-                cu = radical.pilot.ComputeUnitDescription()
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, 
                                       "-o ", output_file, 
                                       "-p ", self.amber_parameters, 
-                                      "-c ", self.amber_coordinates, 
+                                      "-c ", old_coor, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
