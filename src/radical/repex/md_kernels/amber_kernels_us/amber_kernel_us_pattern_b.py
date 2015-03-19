@@ -324,6 +324,8 @@ class AmberKernelUSPatternB(MdKernelUS):
             # in principle we can transfer this just once and use it multiple times later during the simulation
             # cu.input_staging = [str(calculator), str(input_file), str(replicas[r].new_coor)]
             cu.input_staging = [str(calculator), str(input_file)]
+            for rstr in all_restraints_list:
+                cu.input_staging.append(str(self.work_dir_local + "/" + self.input_folder + "/" + rstr))
             cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
             cu.cores = 1            
             exchange_replicas.append(cu)
