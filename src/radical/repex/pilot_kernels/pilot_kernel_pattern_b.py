@@ -14,6 +14,7 @@ import json
 import datetime
 from os import path
 import radical.pilot
+import radical.utils.logger as rul
 from pilot_kernels.pilot_kernel import *
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -38,6 +39,11 @@ class PilotKernelPatternB(PilotKernel):
         inp_file - json input file with Pilot and NAMD related parameters as specified by user 
         """
         PilotKernel.__init__(self, inp_file)
+
+        self.name = 'pk-patternB-us'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
+
+        self.sd_shared_list = []
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     def getkey(self, item):
@@ -96,32 +102,55 @@ class PilotKernelPatternB(PilotKernel):
         def unit_state_change_cb(unit, state):
             """This is a callback function. It gets called very time a ComputeUnit changes its state.
             """
+            if unit:
+                self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
-            self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
-
-            if state == radical.pilot.states.FAILED:
-
-                self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
-                # restarting the replica
-                #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
-                #unit_manager.submit_units( unit.description )
+                if state == radical.pilot.states.FAILED:
+                    self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
+                    # restarting the replica
+                    #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+                    #unit_manager.submit_units( unit.description )
 
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
         # staging shared input data in
-        shared_data_unit_descr = md_kernel.prepare_shared_md_input()
-        staging_unit = unit_manager.submit_units(shared_data_unit_descr)
-        unit_manager.wait_units()
+        md_kernel.prepare_shared_data()
+
+        shared_input_file_urls = md_kernel.shared_urls
+        shared_input_files = md_kernel.shared_files
+
+        for i in range(len(shared_input_files)):
+
+            sd_pilot = {'source': shared_input_file_urls[i],
+                        'target': 'staging:///%s' % shared_input_files[i],
+                        'action': radical.pilot.TRANSFER
+            }
+
+            pilot_object.stage_in(sd_pilot)
+
+            sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
+                         'target': shared_input_files[i],
+                         'action': radical.pilot.COPY
+            }
+            self.sd_shared_list.append(sd_shared)
+
+        # make sure data is staged
+        time.sleep(10)
+
+        # staging shared input data in
+        #shared_data_unit_descr = md_kernel.prepare_shared_md_input()
+        #staging_unit = unit_manager.submit_units(shared_data_unit_descr)
+        #unit_manager.wait_units()
 
         # get the path to the directory containing the shared data
-        shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
+        # shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
 
         for i in range(md_kernel.nr_cycles):
             print "Performing cycle: %s" % (i+1)
             print "Preparing %d replicas for MD run" % md_kernel.replicas
-            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
+            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, self.sd_shared_list)
             print "Submitting %d replicas for MD run" % md_kernel.replicas
             submitted_replicas = unit_manager.submit_units(compute_replicas)
             unit_manager.wait_units()
@@ -132,7 +161,7 @@ class PilotKernelPatternB(PilotKernel):
                 # computing swap matrix
                 #####################################################################
                 print "Preparing %d replicas for Exchange run" % md_kernel.replicas
-                exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas, shared_data_url)
+                exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas, self.sd_shared_list)
                 print "Submitting %d replicas for Exchange run" % md_kernel.replicas
                 submitted_replicas = unit_manager.submit_units(exchange_replicas)
                 unit_manager.wait_units()

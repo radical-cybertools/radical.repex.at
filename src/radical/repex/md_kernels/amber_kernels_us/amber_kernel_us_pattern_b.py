@@ -73,39 +73,34 @@ class AmberKernelUSPatternB(MdKernelUS):
         self.shared_files = []
 
     # ------------------------------------------------------------------------------
-    #
-    def get_logger(self):
-        return self.logger
-
-    # ------------------------------------------------------------------------------
-    #
+    # ok
     def prepare_shared_data(self):
 
         parm_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        rstr_path = []
         inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
 
+        rstr_list = []
         for rstr in self.restraints_files:
-            rstr_path.append(self.work_dir_local + "/" + self.inp_folder + "/" + rstr)
+            rstr_list.append(self.work_dir_local + "/" + self.inp_folder + "/" + rstr)
 
         calc_b = os.path.dirname(amber_kernels_us.amber_matrix_calculator_pattern_b.__file__)
         calc_b_path = calc_b + "/amber_matrix_calculator_pattern_b.py"
 
         self.shared_files.append(self.amber_parameters)
+        self.shared_files.append(self.amber_input)
         for rstr in self.restraints_files:
             self.shared_files.append(rstr)
-        self.shared_files.append(self.amber_input)
         self.shared_files.append("amber_matrix_calculator_pattern_b.py")
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
 
-        for rstr_p in rstr_path:
-            rstr_url = 'file://%s' % (rstr_p)
-            self.shared_urls.append(rstr_url)
-
         inp_url = 'file://%s' % (inp_path)
         self.shared_urls.append(inp_url)
+
+        for rstr_p in rstr_list:
+            rstr_url = 'file://%s' % (rstr_p)
+            self.shared_urls.append(rstr_url)
 
         calc_b_url = 'file://%s' % (calc_b_path)
         self.shared_urls.append(calc_b_url)
@@ -113,7 +108,7 @@ class AmberKernelUSPatternB(MdKernelUS):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     # OK
-    def build_input_file(self, replica, shared_data_url):
+    def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin
         """
 
@@ -200,7 +195,7 @@ class AmberKernelUSPatternB(MdKernelUS):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
     # OK
-    def prepare_replicas_for_md(self, replicas, shared_data_url):
+    def prepare_replicas_for_md(self, replicas, sd_shared_list):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
         specified input/output files to be transferred to/from target system. Note: input files for first and 
         subsequent simulation cycles are different.
@@ -214,7 +209,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         compute_replicas = []
         for r in range(len(replicas)):
             # need to avoid this step!
-            self.build_input_file(replicas[r], shared_data_url)
+            self.build_input_file(replicas[r])
       
             # in principle restraint file should be moved to shared directory
             #rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
@@ -259,8 +254,8 @@ class AmberKernelUSPatternB(MdKernelUS):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, 
                                       "-o ", output_file, 
-                                      "-p ", shared_data_url + "/" + self.amber_parameters, 
-                                      "-c ", shared_data_url + "/" + self.amber_coordinates, 
+                                      "-p ", self.amber_parameters, 
+                                      "-c ", self.amber_coordinates, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
@@ -282,8 +277,8 @@ class AmberKernelUSPatternB(MdKernelUS):
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, 
                                       "-o ", output_file, 
-                                      "-p ", shared_data_url + "/" + self.amber_parameters, 
-                                      "-c ", shared_data_url + "/" + self.amber_coordinates, 
+                                      "-p ", self.amber_parameters, 
+                                      "-c ", self.amber_coordinates, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
