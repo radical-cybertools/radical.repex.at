@@ -71,7 +71,7 @@ if __name__ == '__main__':
         logger.info("Please check output files in replica_x directories.")
 
     except:
-        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        #logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
         raise
     #except (KeyboardInterrupt, SystemExit) as e :
         # the callback called sys.exit(), and we can here catch the
