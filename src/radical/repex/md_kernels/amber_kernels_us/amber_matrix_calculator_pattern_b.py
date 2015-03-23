@@ -180,8 +180,8 @@ def get_historical_data(history_name):
         f.close()
         path_to_replica_folder = os.getcwd()
         for i in range(len(lines)):
-            if "EPtot" in lines[i]:
-                eptot = float(lines[i].split()[8])
+            if "EAMBER (non-restraint)" in lines[i]:   #this is the real potential energy without restraints!
+                eptot = float(lines[i].strip().split()[-1])
     except:
         raise
         
