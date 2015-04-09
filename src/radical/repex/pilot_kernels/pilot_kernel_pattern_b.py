@@ -194,14 +194,30 @@ class PilotKernelPatternB(PilotKernel):
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = (T2-T1).total_seconds()
 
-
+                # populating swap matrix                
                 T1 = datetime.datetime.utcnow()
                 matrix_columns = []
                 for r in submitted_replicas:
-                    d = str(r.stdout)
-                    data = d.split()
-                    matrix_columns.append(data)
-               
+                    if r.state != radical.pilot.DONE:
+                        self.logger.error('Exchange step failed for unit:  %s' % r.uid)
+                    else:
+                        d = str(r.stdout)
+                        data = d.split()
+                        data.append(r.uid)
+                        matrix_columns.append(data)
+
+                # writing swap matrix out
+                sw_file = "swap_matrix_" + "_" + str(current_cycle)
+                try:
+                    w_file = open( sw_file, "w")
+                    for i in matrix_columns:
+                        for j in i:
+                            w_file.write("%s " % j)
+                        w_file.write("\n")
+                    w_file.close()
+                except IOError:
+                    self.logger.info('Warning: unable to access file %s' % sw_file)
+
                 self.logger.info("Composing swap matrix from individual files for all replicas")
 
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
