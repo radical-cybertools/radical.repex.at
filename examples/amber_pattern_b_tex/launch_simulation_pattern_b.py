@@ -10,6 +10,7 @@ import os
 import sys
 import json
 from os import path
+import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
 from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
@@ -29,10 +30,12 @@ if __name__ == '__main__':
     - Exchange probabilities are determined using Gibbs sampling.
     - Exchange step is performed in decentralized fashion on target resource.
     """
- 
-    print "*********************************************************************"
-    print "*                RepEx simulation: AMBER + RE pattern B             *"
-    print "*********************************************************************"
+    name = 'launcher-tex'
+    logger  = rul.getLogger ('radical.repex', name)
+
+    logger.info("************************************************")
+    logger.info("*    RepEx simulation: AMBER + RE pattern B    *")
+    logger.info("************************************************")
 
     work_dir_local = os.getcwd()
     params = parse_command_line()
@@ -49,19 +52,29 @@ if __name__ == '__main__':
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
 
-    pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
+    try:
+        pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
     
-    # now we can run RE simulation
-    pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+        # now we can run RE simulation
+        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
 
-    # this is a quick hack
-    base = md_kernel.inp_basename + ".mdin"
+        # this is a quick hack
+        base = md_kernel.inp_basename + ".mdin"
 
-    # finally we are moving all files to individual replica directories
-    move_output_files(work_dir_local, base, replicas ) 
-    session.close(cleanup=False)
+        # finally we are moving all files to individual replica directories
+        move_output_files(work_dir_local, base, replicas ) 
+        session.close(cleanup=False)
 
-    print "Simulation successfully finished!"
-    print "Please check output files in replica_x directories."
-    
-    
+        logger.info("Simulation successfully finished!")
+        logger.info("Please check output files in replica_x directories.")
+
+    except:
+        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        raise 
+
+    finally :
+        # always clean up the session, no matter if we caught an exception or
+        # not.
+        logger.info("Closing session.")
+        session.close (cleanup=False)    
+

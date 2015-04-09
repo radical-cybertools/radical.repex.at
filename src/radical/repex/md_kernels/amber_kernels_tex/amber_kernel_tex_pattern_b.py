@@ -21,7 +21,8 @@ from kernels.kernels import KERNELS
 from replicas.replica import Replica
 from amber_kernel_tex import *
 import radical.utils.logger as rul
-import amber_kernels_tex.amber_matrix_calculator_scheme_2
+#import amber_kernels_tex.amber_matrix_calculator_scheme_2
+import amber_kernels_tex.amber_matrix_calculator_pattern_b
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,7 +87,7 @@ class AmberKernelTexPatternB(AmberKernelTex):
         rstr_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
         inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
 
-        calc_b = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_pattern_b.__file__)
+        calc_b = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
         calc_b_path = calc_b + "/amber_matrix_calculator_pattern_b.py"
 
         self.shared_files.append(self.amber_parameters)
@@ -108,7 +109,7 @@ class AmberKernelTexPatternB(AmberKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replica_for_md(self, replicas, sd_shared_list):
+    def prepare_replica_for_md(self, replica, sd_shared_list):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
         specified input/output files to be transferred to/from target system. Note: input files for first and 
         subsequent simulation cycles are different.
