@@ -4,16 +4,14 @@
         "username" : "antontre",
         "project" : "TG-MCB090174",
         "runtime" : "20",
-        "queue" : "development",
         "cleanup" : "False",
         "cores" : "16"
     },
     "input.MD": {
         "number_of_cycles": "3",
-        "number_of_replicas": "2",
+        "number_of_replicas": "32",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
-        "amber_input": "ala10.mdin",
         "amber_parameters": "ala10.prmtop",
         "amber_coordinates": "ala10_minimized.inpcrd",
         "amber_restraints": "ala10_chir.dat",
@@ -21,9 +19,6 @@
         "replica_cores": "1",
         "min_temperature": "300",
         "max_temperature": "600",
-        "min_salt": "0.0",
-        "max_salt": "1.0",
-        "init_temperature": "300.0",
         "steps_per_cycle": "1000"
     }
 }

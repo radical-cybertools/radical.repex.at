@@ -99,14 +99,20 @@ class PilotKernelScheme2(PilotKernel):
             """This is a callback function. It gets called very time a ComputeUnit changes its state.
             """
             
-            self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+            if unit:
+                self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
-            if state == radical.pilot.states.FAILED:
-                self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
+                if state == radical.pilot.states.FAILED:
+                    self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
 
+        # --------------------------------------------------------------------------
+
+        CYCLES = md_kernel.nr_cycles + 1
+       
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
+
 
         # staging shared input data in
         md_kernel.prepare_shared_data()
@@ -131,12 +137,13 @@ class PilotKernelScheme2(PilotKernel):
 
         # make sure data is staged
         time.sleep(10)
+        
+        # absolute simulation start time
         time_1 = datetime.datetime.utcnow()
 
         hl_performance_data = {}
 
-        for i in range(md_kernel.nr_cycles):
-            current_cycle = i+1
+        for current_cycle in range(1,CYCLE):
 
             hl_performance_data["cycle_{0}".format(current_cycle)] = {}
 
@@ -163,11 +170,8 @@ class PilotKernelScheme2(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = (T2-T1).total_seconds()
              
             # this is not done for the last cycle
-            if (i != (md_kernel.nr_cycles-1)):
-                #start_time = datetime.datetime.utcnow()
-                #####################################################################
-                # computing swap matrix
-                #####################################################################
+            if (current_cycle < CYCLES):
+
                 self.logger.info("Preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
                 submitted_replicas = []
@@ -198,9 +202,6 @@ class PilotKernelScheme2(PilotKernel):
                     data = d.split()
                     matrix_columns.append(data)
                
-                #####################################################################
-                # compose swap matrix from individual files
-                #####################################################################
                 self.logger.info("Composing swap matrix from individual files for all replicas")
 
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)

@@ -74,6 +74,7 @@ class PilotKernelPatternB2d(PilotKernel):
         for r in replicas:
             # populating one column at a time
             for i in range(len(replicas)):
+                # error here: ValueError: could not convert string to float: None
                 swap_matrix[i][r.id] = float(matrix_columns[r.id][i])
 
             # setting old_path and first_path for each replica
@@ -104,15 +105,18 @@ class PilotKernelPatternB2d(PilotKernel):
         def unit_state_change_cb(unit, state):
             """This is a callback function. It gets called very time a ComputeUnit changes its state.
             """
-            
-            self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
-            if state == radical.pilot.states.FAILED:
-                
-                self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
-                # restarting the replica
-                #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
-                #unit_manager.submit_units( unit.description )
+            if unit:            
+                self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+
+                if state == radical.pilot.states.FAILED:
+                    self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
+                    # restarting the replica
+                    #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+                    #unit_manager.submit_units( unit.description )
+
+        # --------------------------------------------------------------------------
+        CYCLES = md_kernel.nr_cycles + 1
                 
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
@@ -161,11 +165,10 @@ class PilotKernelPatternB2d(PilotKernel):
         matrix_init_time = (t2-t1).total_seconds()
         
 
-        for i in range(md_kernel.nr_cycles):
+        for current_cycle in range(1,CYCLES):
             #-------------------------------------------------------------------------------
             # D1 run (temperature exchange)
             D = 1
-            current_cycle = i+1
 
             cu_performance_data["cycle_{0}".format(current_cycle)] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)] = {}
@@ -197,11 +200,9 @@ class PilotKernelPatternB2d(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_run"] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_run"] = (t2-t1).total_seconds()
 
-
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")] = {}
             for cu in submitted_replicas:
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
-
             
             # this is not done for the last cycle
             if (i != (md_kernel.nr_cycles-1)):
@@ -227,19 +228,34 @@ class PilotKernelPatternB2d(PilotKernel):
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_run"] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_run"] = (t2-t1).total_seconds()
 
-
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = {}
                 for cu in exchange_replicas:
                     cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
 
-                
+                # populating swap matrix                
                 t1 = datetime.datetime.utcnow()
                 matrix_columns = []
                 for r in exchange_replicas:
-                    d = str(r.stdout)
-                    data = d.split()
-                    matrix_columns.append(data)
-
+                    if r.state != radical.pilot.DONE:
+                        self.logger.error('ERROR: In D1 exchange step failed for unit:  %s' % r.uid)
+                    else:
+                        d = str(r.stdout)
+                        data = d.split()
+                        data.append(r.uid)
+                        matrix_columns.append(data)
+ 
+                # writing swap matrix out
+                sw_file = "swap_matrix_" + str(D) + "_" + str(current_cycle)
+                try:
+                    w_file = open( sw_file, "w")
+                    for i in matrix_columns:
+                        for j in i:
+                            w_file.write("%s " % j)
+                        w_file.write("\n")
+                    w_file.close()
+                except IOError:
+                    self.logger.info('Warning: unable to access file %s' % sw_file)
+                
                 self.logger.info("Dim 1: composing swap matrix from individual files for all replicas")
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
@@ -319,10 +335,26 @@ class PilotKernelPatternB2d(PilotKernel):
                 t1 = datetime.datetime.utcnow()
                 matrix_columns = []
                 for r in exchange_replicas:
-                    d = str(r.stdout)
-                    data = d.split()
-                    matrix_columns.append(data)
-                
+                    if r.state != radical.pilot.DONE:
+                        self.logger.error('ERROR: In D2 exchange step failed for unit:  %s' % r.uid)
+                    else:
+                        d = str(r.stdout)
+                        data = d.split()
+                        data.append(r.uid)
+                        matrix_columns.append(data)
+
+                # writing swap matrix out
+                sw_file = "swap_matrix_" + str(D) + "_" + str(current_cycle)
+                try:
+                    w_file = open( sw_file, "w")
+                    for i in matrix_columns:
+                        for j in i:
+                            w_file.write("%s " % j)
+                        w_file.write("\n")
+                    w_file.close()
+                except IOError:
+                    self.logger.info('Warning: unable to access file %s' % sw_file)
+
                 self.logger.info("Dim 2: Composing swap matrix from individual files for all replicas")
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
@@ -375,6 +407,7 @@ class PilotKernelPatternB2d(PilotKernel):
                         #print row
                         f.write("{r}\n".format(r=row))
 
+            
             #------------------------------------------------------------
             # these timings are measured from simulation start!
             head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Dim; Run"
@@ -405,6 +438,7 @@ class PilotKernelPatternB2d(PilotKernel):
                             #print row
                             f.write("{r}\n".format(r=row))
 
+            
             """
             #------------------------------------------------------------
             # this is for graph

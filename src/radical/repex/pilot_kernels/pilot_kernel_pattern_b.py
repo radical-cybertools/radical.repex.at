@@ -15,11 +15,12 @@ import datetime
 from os import path
 import radical.pilot
 from pilot_kernels.pilot_kernel import *
+import radical.utils.logger as rul
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 class PilotKernelPatternB(PilotKernel):
-    """This class is responsible for performing all Radical Pilot related operations for RE pattern B.
+    """This class is responsible for performing all Radical Pilot related operations for RE scheme 2.
     This includes pilot launching, running main loop of RE simulation and using RP API for data staging in and out. 
 
     RE pattern B:
@@ -37,12 +38,14 @@ class PilotKernelPatternB(PilotKernel):
         Arguments:
         inp_file - json input file with Pilot and NAMD related parameters as specified by user 
         """
+        self.name = 'pk-patternB-tex'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
+
+        self.sd_shared_list = []
+
         PilotKernel.__init__(self, inp_file)
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def getkey(self, item):
-        return item[0]
-
 
     def compose_swap_matrix(self, replicas, matrix_columns):
         """Creates a swap matrix from matrix_column_x.dat files. 
@@ -82,7 +85,7 @@ class PilotKernelPatternB(PilotKernel):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def run_simulation(self, replicas, pilot_object, session,  md_kernel ):
-        """This function runs the main loop of RE simulation for RE pattern B.
+        """This function runs the main loop of RE simulation for RE scheme 2a.
 
         Arguments:
         replicas - list of Replica objects
@@ -90,62 +93,157 @@ class PilotKernelPatternB(PilotKernel):
         session - radical.pilot.session object, the *root* object for all other RADICAL-Pilot objects 
         md_kernel - an instance of NamdKernelScheme2a class
         """
-  
+        # --------------------------------------------------------------------------
+        #
+        def unit_state_change_cb(unit, state):
+            """This is a callback function. It gets called very time a ComputeUnit changes its state.
+            """
+            
+            if unit:
+                self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
+
+                if state == radical.pilot.states.FAILED:
+                    self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
+
+        # --------------------------------------------------------------------------
+
+        CYCLES = md_kernel.nr_cycles + 1
+       
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
+
         # staging shared input data in
-        shared_data_unit_descr = md_kernel.prepare_shared_md_input()
-        staging_unit = unit_manager.submit_units(shared_data_unit_descr)
-        unit_manager.wait_units()
+        md_kernel.prepare_shared_data()
 
-        # get the path to the directory containing the shared data
-        shared_data_url = radical.pilot.Url(staging_unit.working_directory).path
+        shared_input_file_urls = md_kernel.shared_urls
+        shared_input_files = md_kernel.shared_files
 
-        for i in range(md_kernel.nr_cycles):
-            print "Performing cycle: %s" % (i+1)
-            print "Preparing %d replicas for MD run" % md_kernel.replicas
-            compute_replicas = md_kernel.prepare_replicas_for_md(replicas, shared_data_url)
-            print "Submitting %d replicas for MD run" % md_kernel.replicas
-            submitted_replicas = unit_manager.submit_units(compute_replicas)
+        for i in range(len(shared_input_files)):
+
+            sd_pilot = {'source': shared_input_file_urls[i],
+                        'target': 'staging:///%s' % shared_input_files[i],
+                        'action': radical.pilot.TRANSFER
+            }
+
+            pilot_object.stage_in(sd_pilot)
+
+            sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
+                         'target': shared_input_files[i],
+                         'action': radical.pilot.LINK
+            }
+            self.sd_shared_list.append(sd_shared)
+
+        # make sure data is staged
+        time.sleep(10)
+        
+        # absolute simulation start time
+        time_1 = datetime.datetime.utcnow()
+
+        hl_performance_data = {}
+
+        for current_cycle in range(1,CYCLES):
+
+            hl_performance_data["cycle_{0}".format(current_cycle)] = {}
+
+            self.logger.info("Performing cycle: {0}".format(current_cycle) )
+
+            self.logger.info("Preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+
+            T1 = datetime.datetime.utcnow()
+            for r in replicas:
+                compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
+                sub_replica = unit_manager.submit_units(compute_replica)
+
+            T2 = datetime.datetime.utcnow()
+
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = (T2-T1).total_seconds()
+
+            self.logger.info("Submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+            T1 = datetime.datetime.utcnow()
             unit_manager.wait_units()
-            
-            # this is not done for the last cycle
-            if (i != (md_kernel.nr_cycles-1)):
-                #####################################################################
-                # computing swap matrix
-                #####################################################################
-                print "Preparing %d replicas for Exchange run" % md_kernel.replicas
-                exchange_replicas = md_kernel.prepare_replicas_for_exchange(replicas, shared_data_url)
-                print "Submitting %d replicas for Exchange run" % md_kernel.replicas
-                submitted_replicas = unit_manager.submit_units(exchange_replicas)
-                unit_manager.wait_units()
+            T2 = datetime.datetime.utcnow()
 
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = (T2-T1).total_seconds()
+             
+            # this is not done for the last cycle
+            if (current_cycle < CYCLES):
+
+                self.logger.info("Preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+
+                submitted_replicas = []
+                T1 = datetime.datetime.utcnow()
+                for r in replicas:
+                    exchange_replica = md_kernel.prepare_replica_for_exchange(r, self.sd_shared_list)
+                    sub_replica = unit_manager.submit_units(exchange_replica)
+                    submitted_replicas.append(sub_replica)
+                T2 = datetime.datetime.utcnow()
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = (T2-T1).total_seconds()
+
+                self.logger.info("Submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+
+                T1 = datetime.datetime.utcnow()
+                unit_manager.wait_units()
+                T2 = datetime.datetime.utcnow()
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = (T2-T1).total_seconds()
+
+
+                T1 = datetime.datetime.utcnow()
                 matrix_columns = []
                 for r in submitted_replicas:
-                    # RPM - Radical Pilot Magic! 
-                    # calculated columns of swap matrix are available "immediately"
-                    # without need for file transfers
                     d = str(r.stdout)
                     data = d.split()
-                    #for i in range (len(data-1)):
-                    #    data[i] = float(data[i])
                     matrix_columns.append(data)
+               
+                self.logger.info("Composing swap matrix from individual files for all replicas")
 
-                #####################################################################
-                # compose swap matrix from individual files
-                #####################################################################
-                print "Composing swap matrix from individual files for all replicas"
                 swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
-                print "Performing exchange"
+                self.logger.info("Performing exchange")
                 for r_i in replicas:
                     r_j = md_kernel.gibbs_exchange(r_i, replicas, swap_matrix)
                     if (r_j != r_i):
-                        # swap parameters
-                        md_kernel.exchange_params(r_i, r_j)               
+                        # swap temperatures                    
+                        temperature = r_j.new_temperature
+                        r_j.new_temperature = r_i.new_temperature
+                        r_i.new_temperature = temperature
                         # record that swap was performed
                         r_i.swap = 1
                         r_j.swap = 1
+                stop_time = datetime.datetime.utcnow()
+                T2 = datetime.datetime.utcnow()
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = (T2-T1).total_seconds()
+
+        time_2 = datetime.datetime.utcnow()
+        RAW_SIMULATION_TIME = (time_2-time_1).total_seconds()
+
+        outfile = "execution_profile_{time}.csv".format(time=datetime.datetime.now().isoformat())
+        #self.get_logger().info("Saving execution profile in {outfile}".format(outfile=outfile))
+
+        with open(outfile, 'w+') as f:
+            f.write("Total simulaiton time: {row}\n".format(row=RAW_SIMULATION_TIME))
+
+            #-----------------------------------------------
+            head = "Cycle; Run; Duration"
+            #print head
+            f.write("{row}\n".format(row=head))
+
+            for cycle in hl_performance_data:
+                for run in hl_performance_data[cycle].keys():
+                    duration = hl_performance_data[cycle][run]
+
+                    row = "{Cycle}; {Run}; {Duration}".format(Duration=duration, Cycle=cycle, Run=run)
+
+                    #print row
+                    f.write("{r}\n".format(r=row))
+            #------------------------------------------------        
 

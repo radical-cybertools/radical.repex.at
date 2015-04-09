@@ -51,7 +51,9 @@ class AmberKernelTex(MdKernelTex):
         self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
-        
+ 
+        self.input_folder = inp_file['input.MD']['input_folder']       
+
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def build_input_file_local(self, replica):
@@ -111,6 +113,7 @@ class AmberKernelTex(MdKernelTex):
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
         outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
         old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+
         replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
         replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
         replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
@@ -123,6 +126,8 @@ class AmberKernelTex(MdKernelTex):
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
 
+        restraints = self.amber_restraints
+        """
         if (replica.cycle == 0):
             restraints = self.amber_restraints
         else:
@@ -142,10 +147,10 @@ class AmberKernelTex(MdKernelTex):
 
             modified_first_path = '../' + modified_first_path.rstrip()
             restraints = modified_first_path + "/" + self.amber_restraints
-            
+        """ 
 
         try:
-            r_file = open( (os.path.join((self.work_dir_local + "/amber_inp/"), template)), "r")
+            r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), template)), "r")
         except IOError:
             print 'Warning: unable to access template file %s' % template
 

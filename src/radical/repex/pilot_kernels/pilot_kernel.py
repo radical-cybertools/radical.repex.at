@@ -85,12 +85,14 @@ class PilotKernel(object):
         def pilot_state_cb(pilot, state):
             """This is a callback function. It gets called very time a ComputePilot changes its state.
             """
-            self.logger.info("ComputePilot '{0}' state changed to {1}.".format(pilot.uid, state) )
+           
+            if pilot:
+                self.logger.info("ComputePilot '{0}' state changed to {1}.".format(pilot.uid, state) )
 
-            if state == radical.pilot.states.FAILED:
-                self.logger.error("Pilot error: {0}".format(pilot.log) )
-                self.logger.error("RepEx execution FAILED.")
-                # sys.exit(1)
+                if state == radical.pilot.states.FAILED:
+                    self.logger.error("Pilot error: {0}".format(pilot.log) )
+                    self.logger.error("RepEx execution FAILED.")
+                    # sys.exit(1)
         # --------------------------------------------------------------------------
 
         session = None
