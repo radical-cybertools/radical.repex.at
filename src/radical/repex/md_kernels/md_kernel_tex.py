@@ -45,7 +45,11 @@ class MdKernelTex(object):
             self.nr_cycles = None
 
         try:
-            self.replica_mpi = inp_file['input.MD']['replica_mpi']
+            mpi = inp_file['input.MD']['replica_mpi']
+            if mpi == "True":
+                self.replica_mpi = True
+            else:
+                self.replica_mpi = False
         except:
             self.replica_mpi = False
 

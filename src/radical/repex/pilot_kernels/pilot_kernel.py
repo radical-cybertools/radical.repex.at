@@ -27,6 +27,9 @@ class PilotKernel(object):
         Arguments:
         inp_file - json input file with Pilot and NAMD related parameters as specified by user 
         """
+
+        self.name = 'pk'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
         
         # pilot parameters
         self.resource = inp_file['input.PILOT']['resource']
@@ -52,13 +55,13 @@ class PilotKernel(object):
         try:
             self.cores = int(inp_file['input.PILOT']['cores'])
         except:
-            print "Field 'cores' must be defined"
+            self.logger.info("Field 'cores' must be defined" )
             
         self.runtime = int(inp_file['input.PILOT']['runtime'])
         try:
             self.dburl = inp_file['input.PILOT']['mongo_url']
         except:
-            print "Using default Mongo DB url"
+            self.logger.info("Using default Mongo DB url" )
             self.dburl = "mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/"
         cleanup = inp_file['input.PILOT']['cleanup']
         if (cleanup == "True"):
@@ -66,8 +69,6 @@ class PilotKernel(object):
         else:
             self.cleanup = False 
 
-        self.name = 'pk'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
 
     # --------------------------------------------------------------------------
     #

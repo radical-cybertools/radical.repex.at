@@ -219,6 +219,7 @@ class AmberKernelTexPatternB(AmberKernelTex):
         cu.input_staging  = sd_shared_list[3]
         cu.arguments = ["amber_matrix_calculator_pattern_b.py", replica.id, (replica.cycle-1), self.replicas, basename]
         cu.cores = 1
+        cu.mpi = False
         
         return cu
 

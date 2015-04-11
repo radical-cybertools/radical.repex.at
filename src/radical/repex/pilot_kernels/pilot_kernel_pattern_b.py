@@ -113,7 +113,6 @@ class PilotKernelPatternB(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
-
         # staging shared input data in
         md_kernel.prepare_shared_data()
 
@@ -139,22 +138,26 @@ class PilotKernelPatternB(PilotKernel):
         time.sleep(10)
         
         # absolute simulation start time
-        time_1 = datetime.datetime.utcnow()
+        start = datetime.datetime.utcnow()
 
         hl_performance_data = {}
+        cu_performance_data = {}
 
         for current_cycle in range(1,CYCLES):
 
             hl_performance_data["cycle_{0}".format(current_cycle)] = {}
+            cu_performance_data["cycle_{0}".format(current_cycle)] = {}
 
             self.logger.info("Performing cycle: {0}".format(current_cycle) )
 
             self.logger.info("Preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
+            submitted_replicas = [] 
             T1 = datetime.datetime.utcnow()
             for r in replicas:
                 compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
                 sub_replica = unit_manager.submit_units(compute_replica)
+                submitted_replicas.append(sub_replica)
 
             T2 = datetime.datetime.utcnow()
 
@@ -168,18 +171,22 @@ class PilotKernelPatternB(PilotKernel):
 
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = (T2-T1).total_seconds()
+
+            cu_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}
+            for cu in submitted_replicas:
+                cu_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
              
             # this is not done for the last cycle
             if (current_cycle < CYCLES):
 
                 self.logger.info("Preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
-                submitted_replicas = []
+                exchange_replicas = []
                 T1 = datetime.datetime.utcnow()
                 for r in replicas:
                     exchange_replica = md_kernel.prepare_replica_for_exchange(r, self.sd_shared_list)
                     sub_replica = unit_manager.submit_units(exchange_replica)
-                    submitted_replicas.append(sub_replica)
+                    exchange_replicas.append(sub_replica)
                 T2 = datetime.datetime.utcnow()
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = {}
@@ -193,11 +200,15 @@ class PilotKernelPatternB(PilotKernel):
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = (T2-T1).total_seconds()
+ 
+                cu_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = {}
+                for cu in exchange_replicas:
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
 
                 # populating swap matrix                
                 T1 = datetime.datetime.utcnow()
                 matrix_columns = []
-                for r in submitted_replicas:
+                for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
                         self.logger.error('Exchange step failed for unit:  %s' % r.uid)
                     else:
@@ -207,7 +218,7 @@ class PilotKernelPatternB(PilotKernel):
                         matrix_columns.append(data)
 
                 # writing swap matrix out
-                sw_file = "swap_matrix_" + "_" + str(current_cycle)
+                sw_file = "swap_matrix_" + str(current_cycle)
                 try:
                     w_file = open( sw_file, "w")
                     for i in matrix_columns:
@@ -239,8 +250,8 @@ class PilotKernelPatternB(PilotKernel):
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = (T2-T1).total_seconds()
 
-        time_2 = datetime.datetime.utcnow()
-        RAW_SIMULATION_TIME = (time_2-time_1).total_seconds()
+        end = datetime.datetime.utcnow()
+        RAW_SIMULATION_TIME = (end-start).total_seconds()
 
         outfile = "execution_profile_{time}.csv".format(time=datetime.datetime.now().isoformat())
         #self.get_logger().info("Saving execution profile in {outfile}".format(outfile=outfile))
@@ -261,5 +272,34 @@ class PilotKernelPatternB(PilotKernel):
 
                     #print row
                     f.write("{r}\n".format(r=row))
-            #------------------------------------------------        
+            #------------------------------------------------------------        
+
+            #------------------------------------------------------------
+            # these timings are measured from simulation start!
+            head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Run"
+            #print head
+            f.write("{row}\n".format(row=head))
+
+            for cycle in cu_performance_data:
+                for run in cu_performance_data[cycle].keys():
+                    for cid in cu_performance_data[cycle][run].keys():
+                        cu = cu_performance_data[cycle][run][cid]
+                        st_data = {}
+                        for st in cu.state_history:
+                            st_dict = st.as_dict()
+                            st_data["{0}".format( st_dict["state"] )] = {}
+                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+
+                        row = "{uid}; {New}; {exestart}; {exestop}; {Done}; {Cycle}; {Run}".format(
+                            uid=cu.uid,
+                            New=(st_data['New']-start).total_seconds(),
+                            exestart=(cu.start_time-start).total_seconds(),
+                            exestop=(cu.stop_time-start).total_seconds(),
+                            Done=(st_data['Done']-start).total_seconds(),
+                            Cycle=cycle,
+                            Run=run)
+
+                        #print row
+                        f.write("{r}\n".format(r=row))
+
 
