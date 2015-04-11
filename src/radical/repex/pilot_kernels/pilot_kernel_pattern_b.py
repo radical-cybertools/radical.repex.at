@@ -115,6 +115,11 @@ class PilotKernelPatternB(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
+        # creating restraint files for US case 
+        if md_kernel.name == 'ak-patternB-us':
+            for r in replicas:
+                md_kernel.build_restraint_file(r)
+
         # staging shared input data in
         md_kernel.prepare_shared_data()
 

@@ -243,7 +243,7 @@ if __name__ == '__main__':
     #print "salt concentration for replica %d is %f" % (replica_id, float(salt_conc))
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
-    shared_path = data["shared_path"]
+    # shared_path = data["shared_path"]
 
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
