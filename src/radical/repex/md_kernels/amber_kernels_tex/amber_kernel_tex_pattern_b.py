@@ -223,3 +223,10 @@ class AmberKernelTexPatternB(AmberKernelTex):
         
         return cu
 
+    #--------------------------------------------------------------------------------
+    # 
+    def exchange_params(self, replica_1, replica_2):
+        temp = replica_2.new_temperature
+        replica_2.new_temperature = replica_1.new_temperature
+        replica_1.new_temperature = temp
+
