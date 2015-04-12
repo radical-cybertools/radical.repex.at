@@ -122,13 +122,6 @@ class restraint(object):
         elif (self.r > r3) and (self.r <= r4): self.energy = rk3*(self.r-r3)**2
         elif self.r > r4: self.energy = rk3*(r4-r3)**2 - 2.0*rk3*(r4-r3)*(self.r-r4)
 
-"""
-    def write_summary(self):
-        #may be extended
-        print '\n%s' %self.rstr_type
-        print 'E = %10.6f\t\tR = %10.6f' %(self.energy,self.r)
-"""
-
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -147,6 +140,7 @@ def reduced_energy(temperature, potential):
         beta = 1. / (kb*temperature)
     else:
         beta = 1. / kb     
+
     return float(beta * potential)
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -192,28 +186,7 @@ def get_historical_data(history_name):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """This module calculates one swap matrix column for replica and writes this column to 
-    matrix_column_x_x.dat file. 
-    """
-
-    """
-    argument_list = str(sys.argv)
-    replica_id = str(sys.argv[1])
-    replica_cycle = str(sys.argv[2])
-    replicas = int(str(sys.argv[3]))
-    base_name = str(sys.argv[4])
-
-    # INITIAL REPLICA TEMPERATURE:
-    init_temp = str(sys.argv[5])
-
-    # AMBER PATH ON THIS RESOURCE:
-    amber_path = str(sys.argv[6])
-
-    # SALT CONCENTRATION FOR THIS REPLICA
-    salt_conc = str(sys.argv[7])
-
-    # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
-    shared_path = str(sys.argv[8])    
+    """ TODO 
     """
 
     json_data = sys.argv[1]
@@ -229,23 +202,9 @@ if __name__ == '__main__':
     # INITIAL REPLICA TEMPERATURE:
     init_temp = float(data["init_temp"])
 
-    # AMBER PATH ON THIS RESOURCE:
-    #amber_path = data["amber_path"]
-
     # SALT CONCENTRATION FOR ALL REPLICAS
     all_restraints = (data["all_restraints"])
-    #all_salt_conc = all_salt.split(" ")
-    #print "all salt concentrations: "
-    #print all_salt_conc
-
-    # SALT CONCENTRATION FOR THIS REPLICA
-    #salt_conc = all_salt_conc[replica_id]
-    #print "salt concentration for replica %d is %f" % (replica_id, float(salt_conc))
-
-    # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
-    # shared_path = data["shared_path"]
-
-
+   
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
     new_coor = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
 
@@ -254,7 +213,6 @@ if __name__ == '__main__':
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    #print "history name: %s" % history_name
     replica_energy, path_to_replica_folder = get_historical_data( history_name )
 
     # getting history data for all replicas
@@ -264,7 +222,6 @@ if __name__ == '__main__':
     energies = [0.0]*replicas
 
     for j in range(replicas):
-
         try:
             rstr_file = file(all_restraints[j],'r')
             rstr_lines = rstr_file.readlines()
@@ -272,7 +229,6 @@ if __name__ == '__main__':
             rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
             us_energy = 0.0
             r = restraint()
-            r.set_crd("../staging_area/" + new_coor)  #tmp fix
             for rstr_entry in rstr_entries:
                 r.set_rstr(rstr_entry); r.calc_energy()
                 us_energy += r.energy
@@ -287,11 +243,7 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], energies[j])
 
-    # printing replica id
-    # print str(replica_id).rstrip()
-    # printing swap column
     for item in swap_column:
         print item,
 
-    # printing path
     print str(path_to_replica_folder).rstrip()

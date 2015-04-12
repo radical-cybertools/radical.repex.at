@@ -155,27 +155,6 @@ class AmberKernelUSPatternB(MdKernelUS):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
-        #restraints = self.amber_restraints
-        #if (replica.cycle == 0):
-        #    restraints = self.amber_restraints
-        #else:
-            ##################################
-            # changing first path from absolute 
-            # to relative so that Amber can 
-            # process it
-            ##################################
-            #path_list = []
-            #for char in reversed(replica.first_path):
-            #    if char == '/': break
-            #    path_list.append( char )
-
-            #modified_first_path = ''
-            #for char in reversed( path_list ):
-            #    modified_first_path += char
-
-            #modified_first_path = '../' + modified_first_path.rstrip()
-            #restraints = modified_first_path + "/" + self.amber_restraints
-
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
         except IOError:
@@ -212,9 +191,8 @@ class AmberKernelUSPatternB(MdKernelUS):
         """
         compute_replicas = []
         for r in range(len(replicas)):
-            # need to avoid this step!
+
             self.build_input_file(replicas[r])
-            #crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates      
 
             input_file = "%s_%d_%d.mdin" % (self.inp_basename, replicas[r].id, (replicas[r].cycle-1))
             # this is not transferred back
@@ -240,7 +218,6 @@ class AmberKernelUSPatternB(MdKernelUS):
                 'action': radical.pilot.COPY
             }
             st_out.append(coor_out)
-
 
             cu = radical.pilot.ComputeUnitDescription()
             if replicas[r].cycle == 1:
@@ -333,16 +310,12 @@ class AmberKernelUSPatternB(MdKernelUS):
 
         exchange_replicas = []
         for r in range(len(replicas)):
-           
             # name of the file which contains swap matrix column data for each replica
             basename = self.inp_basename
 
             cu = radical.pilot.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
-
-            #calculator_path = os.path.dirname(amber_kernels_us.amber_matrix_calculator_pattern_b.__file__)
-            #calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py" 
  
             in_list = []
             # copying calculator from staging area to cu filder
@@ -350,6 +323,12 @@ class AmberKernelUSPatternB(MdKernelUS):
             rid = replicas[r].id
             # copying .RST file for replica from staging area to cu folder
             in_list.append(sd_shared_list[rid+4])
+
+            # copy new coordinates from MD run to CU directory
+            coor_directive = {'source': 'staging:///%s' % replicas[r].new_coor,
+                              'target': replicas[r].new_coor,
+                              'action': radical.pilot.COPY
+            }
 
             input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
@@ -360,7 +339,6 @@ class AmberKernelUSPatternB(MdKernelUS):
                 "base_name" : str(basename),
                 "init_temp" : str(self.init_temperature),
                 "amber_path" : str(self.amber_path),
-                # "shared_path" : str(sd_shared_list),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": str(self.amber_parameters),
                 "all_restraints" : all_restraints_list
@@ -369,9 +347,7 @@ class AmberKernelUSPatternB(MdKernelUS):
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
             
-            cu.input_staging = [str(input_file)] + in_list
-            #for rstr in all_restraints_list:
-            #    cu.input_staging.append(str(self.work_dir_local + "/" + self.input_folder + "/" + rstr))
+            cu.input_staging = [str(input_file)] + in_list + [coor_directive]
             cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
             cu.cores = 1            
             exchange_replicas.append(cu)
