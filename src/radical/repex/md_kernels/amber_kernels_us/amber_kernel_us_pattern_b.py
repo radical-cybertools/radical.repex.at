@@ -249,7 +249,6 @@ class AmberKernelUSPatternB(MdKernelUS):
             cu.cores = self.replica_cores
             cu.input_staging = [str(input_file)] + in_list
             cu.output_staging = st_out
-            compute_replicas.append(cu)
         else:
             # files needed to be moved in replica dir
             in_list = []
@@ -297,7 +296,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
         all_restraints = ""
-        for r in range(len(self.replicas)):
+        for r in range(self.replicas):
             if r == 0:
                 all_restraints = str(replica.new_restraints)
             else:
@@ -316,13 +315,13 @@ class AmberKernelUSPatternB(MdKernelUS):
         in_list = []
         # copying calculator from staging area to cu filder
         in_list.append(sd_shared_list[3])
-        rid = replicas[r].id
+        rid = replica.id
         # copying .RST file for replica from staging area to cu folder
         in_list.append(sd_shared_list[rid+4])
 
         # copy new coordinates from MD run to CU directory
-        coor_directive = {'source': 'staging:///%s' % replicas[r].new_coor,
-                          'target': replicas[r].new_coor,
+        coor_directive = {'source': 'staging:///%s' % replica.new_coor,
+                          'target': replica.new_coor,
                           'action': radical.pilot.COPY
         }
 
@@ -330,8 +329,8 @@ class AmberKernelUSPatternB(MdKernelUS):
 
         data = {
             "replica_id": str(r),
-            "replica_cycle" : str(replicas[r].cycle-1),
-            "replicas" : str(len(replicas)),
+            "replica_cycle" : str(replica.cycle-1),
+            "replicas" : str(self.replicas),
             "base_name" : str(basename),
             "init_temp" : str(self.init_temperature),
             "amber_path" : str(self.amber_path),
