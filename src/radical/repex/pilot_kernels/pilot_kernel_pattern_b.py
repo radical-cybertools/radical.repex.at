@@ -38,12 +38,13 @@ class PilotKernelPatternB(PilotKernel):
         Arguments:
         inp_file - json input file with Pilot and NAMD related parameters as specified by user 
         """
-        self.name = 'pk-patternB-tex'
+
+        PilotKernel.__init__(self, inp_file)
+
+        self.name = 'pk-patternB'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
         self.sd_shared_list = []
-
-        PilotKernel.__init__(self, inp_file)
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -98,7 +99,6 @@ class PilotKernelPatternB(PilotKernel):
         def unit_state_change_cb(unit, state):
             """This is a callback function. It gets called very time a ComputeUnit changes its state.
             """
-            
             if unit:
                 self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
@@ -112,6 +112,11 @@ class PilotKernelPatternB(PilotKernel):
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
+
+        # creating restraint files for US case 
+        if md_kernel.name == 'ak-patternB-us':
+            for r in replicas:
+                md_kernel.build_restraint_file(r)
 
         # staging shared input data in
         md_kernel.prepare_shared_data()
@@ -130,7 +135,7 @@ class PilotKernelPatternB(PilotKernel):
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],
-                         'action': radical.pilot.LINK
+                         'action': radical.pilot.COPY
             }
             self.sd_shared_list.append(sd_shared)
 
@@ -254,7 +259,6 @@ class PilotKernelPatternB(PilotKernel):
         RAW_SIMULATION_TIME = (end-start).total_seconds()
 
         outfile = "execution_profile_{time}.csv".format(time=datetime.datetime.now().isoformat())
-        #self.get_logger().info("Saving execution profile in {outfile}".format(outfile=outfile))
 
         with open(outfile, 'w+') as f:
             f.write("Total simulaiton time: {row}\n".format(row=RAW_SIMULATION_TIME))

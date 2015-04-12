@@ -115,7 +115,7 @@ class PilotKernel(object):
 
             pilot_description = radical.pilot.ComputePilotDescription()
             if self.resource.startswith("localhost"):
-                pilot_description.resource = "localhost:local"
+                pilot_description.resource = "local.localhost"
             else:
                 pilot_description.resource = self.resource
 
