@@ -36,8 +36,6 @@ class MdKernelUS(object):
         self.inp_folder = inp_file['input.MD']['input_folder']
         self.replicas = int(inp_file['input.MD']['number_of_replicas'])
         self.us_template = inp_file['input.MD']['us_template']                            #us.RST
-        self.min_us_index = int(inp_file['input.MD']['min_us_index'])                     #us.RST.1, us.RST.2, ...
-        self.max_us_index = int(inp_file['input.MD']['max_us_index'])
         self.init_temperature = float(inp_file['input.MD']['init_temperature'])
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
@@ -59,7 +57,6 @@ class MdKernelUS(object):
 
         self.restraints_files = []
         for k in range(self.replicas):
-            #self.restraints_files.append(self.us_template + "." + str(k*(self.max_us_index-self.min_us_index+1)/self.replicas+self.min_us_index))
             self.restraints_files.append(self.us_template + "." + str(k) )
 
 #-----------------------------------------------------------------------------------------------------------------------------------

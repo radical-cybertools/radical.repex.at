@@ -20,8 +20,8 @@
         "us_template": "ala10_us.RST",
         "replica_mpi": "True",
         "replica_cores": "1",
-        "min_us_index": "1",
-        "max_us_index": "4",
+        "us_start_param": "120",
+        "us_end_param": "160",
         "init_temperature": "300.0",
         "steps_per_cycle": "1000"
     }
