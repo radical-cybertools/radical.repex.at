@@ -259,7 +259,7 @@ class PilotKernelPatternB(PilotKernel):
         end = datetime.datetime.utcnow()
         RAW_SIMULATION_TIME = (end-start).total_seconds()
 
-        outfile = "execution_profile_{time}.csv".format(time=datetime.datetime.now().isoformat())
+        outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
 
         with open(outfile, 'w+') as f:
             f.write("Total simulaiton time: {row}\n".format(row=RAW_SIMULATION_TIME))
