@@ -63,6 +63,9 @@ class AmberKernelUSPatternB(MdKernelUS):
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
         self.input_folder = inp_file['input.MD']['input_folder']
+        self.us_start_param = float(inp_file['input.MD']['us_start_param'])
+        self.us_end_param = float(inp_file['input.MD']['us_end_param'])
+
         self.init_temperature = float(inp_file['input.MD']['init_temperature'])
         self.current_cycle = -1
 
@@ -124,12 +127,11 @@ class AmberKernelUSPatternB(MdKernelUS):
 
         # hardcoded for now but can be arguments as well
         i = replica.id
-        spacing = 10
-        starting_value = 120 + i*spacing
+        spacing = (self.us_end_param - self.us_start_param) / float(self.replicas)
+        starting_value = self.us_start_param + i*spacing
 
         w_file = open(self.us_template+"."+str(i), "w")
-        tbuffer = tbuffer.replace("@val1@", str(starting_value))
-        tbuffer = tbuffer.replace("@val2@", str(starting_value+spacing))
+        tbuffer = tbuffer.replace("@val@", str(starting_value+spacing))
         w_file.write(tbuffer)
         w_file.close()
 

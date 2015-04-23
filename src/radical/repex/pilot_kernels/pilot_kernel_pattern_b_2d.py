@@ -377,7 +377,7 @@ class PilotKernelPatternB2d(PilotKernel):
        
         #------------------------------------------------
         # performance data
-        outfile = "execution_profile_{time}.csv".format(time=datetime.datetime.now().isoformat())
+        outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
         with open(outfile, 'w+') as f:
             #------------------------
             # RAW SIMULATION TIME
