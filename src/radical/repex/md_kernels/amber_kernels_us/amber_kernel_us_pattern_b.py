@@ -299,7 +299,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         """
         all_restraints = []
         for repl in replicas:
-            all_restraints.append(str(replica.new_restraints))
+            all_restraints.append(str(repl.new_restraints))
         
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename

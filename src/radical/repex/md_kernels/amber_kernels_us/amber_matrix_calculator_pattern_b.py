@@ -229,6 +229,7 @@ if __name__ == '__main__':
             rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
             us_energy = 0.0
             r = restraint()
+            r.set_crd(new_coor)
             for rstr_entry in rstr_entries:
                 r.set_rstr(rstr_entry); r.calc_energy()
                 us_energy += r.energy
