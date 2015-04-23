@@ -297,7 +297,7 @@ class AmberKernel2dPatternB(MdKernel2d):
                 "init_temp" : str(replica.new_temperature),
                 "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
-                "amber_parameters": str(self.amber_parameters),
+                "amber_parameters": "../staging_area/"+str(self.amber_parameters),    #temp fix
                 "all_salt_ctr" : self.all_salt_list, 
                 "all_temp" : self.all_temp_list,
                 "r_old_path": str(replica.old_path),

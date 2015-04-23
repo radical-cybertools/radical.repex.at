@@ -16,15 +16,18 @@ import subprocess
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def call_amber(amber_path, mdin, prmtop, crd, mdinfo):
+#def call_amber(amber_path, mdin, prmtop, crd, mdinfo):
+def call_amber(amber_path, np, ng, groupfile):
 
     # calling amber
-    commands = []
-    cmd = amber_path + ' -O -i ' + mdin + ' -p ' + prmtop + ' -c ' + crd + ' -inf ' + mdinfo
-    commands.append(cmd)
+    #commands = []
+    #cmd = amber_path + ' -O -i ' + mdin + ' -p ' + prmtop + ' -c ' + crd + ' -inf ' + mdinfo
+    cmd = 'mpirun -np ' + str(np) + ' ' + amber_path + ' -ng ' + str(ng) + ' -groupfile ' + groupfile
+    #commands.append(cmd)
 
-    processes = [Popen(cmd, subprocess.PIPE, shell=True)  for cmd in commands]
-    for p in processes: p.wait()
+    #processes = [Popen(cmd, subprocess.PIPE, shell=True)  for cmd in commands]
+    processes = [Popen(cmd, subprocess.PIPE, shell=True)]
+    #for p in processes: p.wait()
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -48,7 +51,7 @@ def reduced_energy(temperature, potential):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def get_historical_data(history_name):
+def get_historical_data(history_name, data_path=os.getcwd()):
     """Retrieves temperature and potential energy from simulation output file .history file.
     This file is generated after each simulation run. The function searches for directory 
     where .history file recides by checking all computeUnit directories on target resource.
@@ -67,8 +70,7 @@ def get_historical_data(history_name):
     """
 
     home_dir = os.getcwd()
-    os.chdir("../")
-    os.chdir("staging_area")
+    os.chdir(data_path)
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
@@ -83,9 +85,8 @@ def get_historical_data(history_name):
             if "EPtot" in lines[i]:
                 eptot = float(lines[i].split()[8])
     except:
-        pass 
-        
-    os.chdir("../")
+        pass
+
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
 
@@ -144,7 +145,7 @@ if __name__ == '__main__':
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    replica_energy, path_to_replica_folder = get_historical_data( history_name )
+    replica_energy, path_to_replica_folder = get_historical_data( history_name, "../staging_area" )
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
     new_coor_file = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
@@ -156,6 +157,7 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
+    f_groupfile = file('groupfile','w')
     # call amber to run 1-step energy calculation
     for j in range(replicas):
         energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
@@ -182,8 +184,15 @@ if __name__ == '__main__':
                 f.write(line)
         f.close()
         
-        call_amber(amber_path, energy_input_name, prmtop_name, new_coor, energy_history_name)
+        line = ' -O -i ' + energy_input_name + ' -p ' + prmtop_name + ' -c ' + new_coor + ' -inf ' + energy_history_name + '\n'
+        f_groupfile.write(line)
+        #call_amber(amber_path, energy_input_name, prmtop_name, new_coor, energy_history_name)
+    f_groupfile.close()
 
+    call_amber(amber_path, replicas, replicas, 'groupfile')    #assume 1 core per replica for now
+
+    for j in range(replicas):
+        energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
         try:
             rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
             temperatures[j] = float(init_temp)
