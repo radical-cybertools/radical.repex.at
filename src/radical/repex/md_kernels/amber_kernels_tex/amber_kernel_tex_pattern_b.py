@@ -199,7 +199,7 @@ class AmberKernelTexPatternB(AmberKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replica_for_exchange(self, replica, sd_shared_list):
+    def prepare_replica_for_exchange(self, replicas, replica, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.
         Number of matrix_calculator_s2.py instances invoked on resource is equal to the number 
         of replicas. 

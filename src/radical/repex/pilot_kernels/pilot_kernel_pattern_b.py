@@ -189,7 +189,7 @@ class PilotKernelPatternB(PilotKernel):
                 exchange_replicas = []
                 T1 = datetime.datetime.utcnow()
                 for r in replicas:
-                    exchange_replica = md_kernel.prepare_replica_for_exchange(r, self.sd_shared_list)
+                    exchange_replica = md_kernel.prepare_replica_for_exchange(replicas, r, self.sd_shared_list)
                     sub_replica = unit_manager.submit_units(exchange_replica)
                     exchange_replicas.append(sub_replica)
                 T2 = datetime.datetime.utcnow()

@@ -235,7 +235,7 @@ if __name__ == '__main__':
             energies[j] = replica_energy + us_energy
             temperatures[j] = float(init_temp)
         except:
-            pass 
+            raise
 
     # init swap column
     swap_column = [0.0]*replicas

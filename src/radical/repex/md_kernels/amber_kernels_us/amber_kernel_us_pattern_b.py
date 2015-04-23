@@ -284,7 +284,7 @@ class AmberKernelUSPatternB(MdKernelUS):
 
     #------------------------------------------------------------------------------------------
     # 
-    def prepare_replica_for_exchange(self, replica, sd_shared_list):
+    def prepare_replica_for_exchange(self, replicas, replica, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.
         Number of matrix_calculator_s2.py instances invoked on resource is equal to the number 
         of replicas. 
@@ -295,15 +295,9 @@ class AmberKernelUSPatternB(MdKernelUS):
         Returns:
         exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
-        all_restraints = ""
-        for r in range(self.replicas):
-            if r == 0:
-                all_restraints = str(replica.new_restraints)
-            else:
-                all_restraints = all_restraints + " " + str(replica.new_restraints)
-
-        all_restraints_list = all_restraints.split(" ")
-
+        all_restraints = []
+        for repl in replicas:
+            all_restraints.append(str(replica.new_restraints))
         
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
@@ -316,8 +310,9 @@ class AmberKernelUSPatternB(MdKernelUS):
         # copying calculator from staging area to cu filder
         in_list.append(sd_shared_list[3])
         rid = replica.id
-        # copying .RST file for replica from staging area to cu folder
-        in_list.append(sd_shared_list[rid+4])
+        # copying .RST files from staging area to replica folder
+        for i in range(4,self.replicas+4):
+            in_list.append(sd_shared_list[i])
 
         # copy new coordinates from MD run to CU directory
         coor_directive = {'source': 'staging:///%s' % replica.new_coor,
@@ -328,7 +323,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
         data = {
-            "replica_id": str(r),
+            "replica_id": str(rid),
             "replica_cycle" : str(replica.cycle-1),
             "replicas" : str(self.replicas),
             "base_name" : str(basename),
@@ -336,7 +331,7 @@ class AmberKernelUSPatternB(MdKernelUS):
             "amber_path" : str(self.amber_path),
             "amber_input" : str(self.amber_input),
             "amber_parameters": str(self.amber_parameters),
-            "all_restraints" : all_restraints_list
+            "all_restraints" : all_restraints
         }
 
         dump_data = json.dumps(data)
