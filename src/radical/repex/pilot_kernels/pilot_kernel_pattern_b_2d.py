@@ -50,6 +50,53 @@ class PilotKernelPatternB2d(PilotKernel):
         return item[0]
 
 
+    #---------------------------------------------------------
+    #
+    def build_swap_matrix(self, replicas):
+        """Creates a swap matrix from matrix_column_x.dat files. 
+        matrix_column_x.dat - is populated on targer resource and then transferred back. This
+        file is created for each replica and has data for one column of swap matrix. In addition to that,
+        this file holds path to pilot compute unit of the previous run, where reside NAMD output files for 
+        a given replica. 
+
+        Arguments:
+        replicas - list of Replica objects
+
+        Returns:
+        swap_matrix - 2D list of lists of dimension-less energies, where each column is a replica 
+        and each row is a state
+        """
+
+        base_name = "matrix_column"
+
+        # init matrix
+        swap_matrix = [[ 0. for j in range(len(replicas))]
+             for i in range(len(replicas))]
+
+        for r in replicas:
+            column_file = base_name + "_" + str(r.cycle-1) + "_" + str(r.id) +  ".dat"       
+            try:
+                f = open(column_file)
+                lines = f.readlines()
+                f.close()
+                data = lines[0].split()
+                # populating one column at a time
+                for i in range(len(replicas)):
+                    swap_matrix[i][r.id] = float(data[i])
+
+                # setting old_path and first_path for each replica
+                #if ( r.cycle == 1 ):
+                #    r.first_path = lines[1]
+                #    r.old_path = lines[1]
+                #else:
+                #    r.old_path = lines[1]
+            except:
+                raise
+
+        return swap_matrix
+
+    #----------------------------------------------------------------------------
+    #
     def compose_swap_matrix(self, replicas, matrix_columns):
         """Creates a swap matrix from matrix_column_x.dat files. 
         matrix_column_x.dat - is populated on targer resource and then transferred back. This
@@ -333,15 +380,12 @@ class PilotKernelPatternB2d(PilotKernel):
                     cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
 
                 t1 = datetime.datetime.utcnow()
-                matrix_columns = []
+                
+                matrix_columns = self.build_swap_matrix(replicas)
+
                 for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
                         self.logger.error('ERROR: In D2 exchange step failed for unit:  %s' % r.uid)
-                    else:
-                        d = str(r.stdout)
-                        data = d.split()
-                        data.append(r.uid)
-                        matrix_columns.append(data)
 
                 # writing swap matrix out
                 sw_file = "swap_matrix_" + str(D) + "_" + str(current_cycle)
@@ -356,10 +400,10 @@ class PilotKernelPatternB2d(PilotKernel):
                     self.logger.info('Warning: unable to access file %s' % sw_file)
 
                 self.logger.info("Dim 2: Composing swap matrix from individual files for all replicas")
-                swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
+                #swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
                 self.logger.info("Dim 2: Performing exchange of salt concentrations")
-                md_kernel.select_for_exchange(D, replicas, swap_matrix, current_cycle)
+                md_kernel.select_for_exchange(D, replicas, matrix_columns, current_cycle)
 
                 t2 = datetime.datetime.utcnow()
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["Post_proc"] = {}
@@ -413,7 +457,7 @@ class PilotKernelPatternB2d(PilotKernel):
             head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Dim; Run"
             #print head
             f.write("{row}\n".format(row=head))
-
+            """
             for cycle in cu_performance_data:
                 for dim in cu_performance_data[cycle].keys():
                     for run in cu_performance_data[cycle][dim].keys():
@@ -427,7 +471,7 @@ class PilotKernelPatternB2d(PilotKernel):
 
                             row = "{uid}; {New}; {exestart}; {exestop}; {Done}; {Cycle}; {Dim}; {Run}".format(
                                 uid=cu.uid,
-                                New= (st_data['New']-start).total_seconds(),
+                                New= (st_data['Unscheduled']-start).total_seconds(),
                                 exestart=(cu.start_time-start).total_seconds(),
                                 exestop=(cu.stop_time-start).total_seconds(),
                                 Done=(st_data['Done']-start).total_seconds(),
@@ -437,160 +481,5 @@ class PilotKernelPatternB2d(PilotKernel):
                         
                             #print row
                             f.write("{r}\n".format(r=row))
-
-            
             """
-            #------------------------------------------------------------
-            # this is for graph
-            head = "New1; New2; exestart1; exestart2; exeEnd1; exeEnd2; Done1; Done2; Cycle; Dim; Run"
-
-            f.write("{row}\n".format(row=head))
-
-            for cycle in cu_performance_data:
-                for dim in cu_performance_data[cycle].keys():
-                    for run in cu_performance_data[cycle][dim].keys():
-                        new_list = []
-                        exestart_list = []
-                        exestop_list = []
-                        done_list = [] 
-                        for cid in cu_performance_data[cycle][dim][run].keys():
-                            cu = cu_performance_data[cycle][dim][run][cid]
-                            st_data = {}
-                            for st in cu.state_history:
-                                st_dict = st.as_dict()
-                                st_data["{0}".format( st_dict["state"] )] = {}
-                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-
-                            new_list.append( (st_data['New']-start).total_seconds()  )
-                            exestart_list.append( (cu.start_time-start).total_seconds()  )
-                            exestop_list.append( (cu.stop_time-start).total_seconds()  )
-                            done_list.append( (st_data['Done']-start).total_seconds()  )
-                        
-                        row = "{New1}; {New2}; {exestart1}; {exestart2}; {exestop1}; {exestop2}; {Done1}; {Done2}; {Cycle}; {Dim}; {Run}".format(
-                            New1= min(new_list),
-                            New2= max(new_list),
-                            exestart1=min(exestart_list),
-                            exestart2=max(exestart_list), 
-                            exestop1=min(exestop_list),
-                            exestop2=max(exestop_list),
-                            Done1=min(done_list),
-                            Done2=max(done_list),
-                            Cycle=cycle,
-                            Dim=dim,
-                            Run=run)
-
-                        #print row
-                        f.write("{r}\n".format(r=row))
-
-            """
-                    
-        #-------------------------------
-        # TIMINGS BY STATE
-        #-------------------------------
-        """
-        head = "CU_ID; New; StagingInput; PendingExecution; Scheduling; Executing; StagingOutput1; StagingOutput2; Done; Cycle; Dim; Run"
-        print head
-
-        for cycle in cu_performance_data:
-            for dim in cu_performance_data[cycle].keys():  
-                for run in cu_performance_data[cycle][dim].keys():
-                    for cid in cu_performance_data[cycle][dim][run].keys():
-                        cu = cu_performance_data[cycle][dim][run][cid]
-                        st_data = {}
-                        for st in cu.state_history:
-                            st_dict = st.as_dict()
-                            if (st_dict["state"] != 'StagingOutput'):
-                                st_data["{0}".format( st_dict["state"] )] = {}
-                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-                            else:
-                                if "StagingOutput1" in st_data:
-                                    st_data["StagingOutput2"] = {}
-                                    st_data["StagingOutput2"] = st_dict["timestamp"]
-                                else:
-                                    st_data["StagingOutput1"] = {}
-                                    st_data["StagingOutput1"] = st_dict["timestamp"]
-
-                        if run == 'run_MD':      
-                            row = "{uid}; {New}; {StagingInput}; {PendingExecution}; {Scheduling}; {Executing}; {StagingOutput1}; {StagingOutput2}; {Done}; {Cycle}; {Dim}; {Run}".format(
-                                uid=cu.uid,
-                                New= (st_data['New']-start).total_seconds(),
-                                StagingInput=(st_data['StagingInput']-start).total_seconds(),
-                                PendingExecution=(st_data['PendingExecution']-start).total_seconds(),
-                                Scheduling=(st_data['Scheduling']-start).total_seconds(),
-                                Executing=(st_data['Executing']-start).total_seconds(),
-                                StagingOutput1=(st_data['StagingOutput1']-start).total_seconds(),
-                                StagingOutput2=(st_data['StagingOutput2']-start).total_seconds(),
-                                Done=(st_data['Done']-start).total_seconds(),
-                                Cycle=cycle,
-                                Dim=dim,
-                                Run=run)
-
-                            print row
-                        else:
-                            row = "{uid}; {New}; {StagingInput}; {PendingExecution}; {Scheduling}; {Executing}; {Done}; {Cycle}; {Dim}; {Run}".format(
-                                uid=cu.uid,
-                                New=(st_data['New']-start).total_seconds(),
-                                StagingInput=(st_data['StagingInput']-start).total_seconds(),
-                                PendingExecution=(st_data['PendingExecution']-start).total_seconds(),
-                                Scheduling=(st_data['Scheduling']-start).total_seconds(),
-                                Executing=(st_data['Executing']-start).total_seconds(),
-                                Done=(st_data['Done']-start).total_seconds(),
-                                Cycle=cycle,
-                                Dim=dim,
-                                Run=run)
-
-                            print row
-                            
-        
-        for cycle in cu_performance_data:
-            for dim in cu_performance_data[cycle].keys():  
-                for run in cu_performance_data[cycle][dim].keys():
-                    for cid in cu_performance_data[cycle][dim][run].keys():
-                        cu = cu_performance_data[cycle][dim][run][cid]
-                        st_data = {}
-                        for st in cu.state_history:
-                            st_dict = st.as_dict()
-                            if (st_dict["state"] != 'StagingOutput'):
-                                st_data["{0}".format( st_dict["state"] )] = {}
-                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-                            else:
-                                if "StagingOutput1" in st_data:
-                                    st_data["StagingOutput2"] = {}
-                                    st_data["StagingOutput2"] = st_dict["timestamp"]
-                                else:
-                                    st_data["StagingOutput1"] = {}
-                                    st_data["StagingOutput1"] = st_dict["timestamp"]
-
-                        if run == 'run_MD':      
-                            row = "{uid}; {New}; {StagingInput}; {PendingExecution}; {Scheduling}; {Executing}; {StagingOutput1}; {StagingOutput2}; {Done}; {Cycle}; {Dim}; {Run}".format(
-                                uid=cu.uid,
-                                New= st_data['New'],
-                                StagingInput=st_data['StagingInput'],
-                                PendingExecution=st_data['PendingExecution'],
-                                Scheduling=st_data['Scheduling'],
-                                Executing=st_data['Executing'],
-                                StagingOutput1=st_data['StagingOutput1'],
-                                StagingOutput2=st_data['StagingOutput2'],
-                                Done=st_data['Done'],
-                                Cycle=cycle,
-                                Dim=dim,
-                                Run=run)
-
-                            print row
-                        else:
-                            row = "{uid}; {New}; {StagingInput}; {PendingExecution}; {Scheduling}; {Executing}; {Done}; {Cycle}; {Dim}; {Run}".format(
-                                uid=cu.uid,
-                                New= st_data['New'],
-                                StagingInput=st_data['StagingInput'],
-                                PendingExecution=st_data['PendingExecution'],
-                                Scheduling=st_data['Scheduling'],
-                                Executing=st_data['Executing'],
-                                Done=st_data['Done'],
-                                Cycle=cycle,
-                                Dim=dim,
-                                Run=run)
-
-                            print row
-                            """
-
 

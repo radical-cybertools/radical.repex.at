@@ -289,6 +289,8 @@ class AmberKernel2dPatternB(MdKernel2d):
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
 
+            matrix_col = "matrix_column_%s_%s.dat" % (str(replica.cycle-1), str(replica.id))
+
             data = {
                 "replica_id": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
@@ -310,6 +312,7 @@ class AmberKernel2dPatternB(MdKernel2d):
             json_data = dump_data.replace("\\", "")
             cu.input_staging = in_st
             cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
+            cu.output_staging = matrix_col 
             cu.cores = 1            
 
         return cu
