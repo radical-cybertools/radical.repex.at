@@ -281,15 +281,12 @@ class PilotKernelPatternB2d(PilotKernel):
 
                 # populating swap matrix                
                 t1 = datetime.datetime.utcnow()
-                matrix_columns = []
+                
+                matrix_columns = self.build_swap_matrix(replicas)
+
                 for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
                         self.logger.error('ERROR: In D1 exchange step failed for unit:  %s' % r.uid)
-                    else:
-                        d = str(r.stdout)
-                        data = d.split()
-                        data.append(r.uid)
-                        matrix_columns.append(data)
  
                 # writing swap matrix out
                 sw_file = "swap_matrix_" + str(D) + "_" + str(current_cycle)
@@ -304,10 +301,10 @@ class PilotKernelPatternB2d(PilotKernel):
                     self.logger.info('Warning: unable to access file %s' % sw_file)
                 
                 self.logger.info("Dim 1: composing swap matrix from individual files for all replicas")
-                swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
+                #swap_matrix = self.compose_swap_matrix(replicas, matrix_columns)
             
                 self.logger.info("Dim 1: performing exchange")
-                md_kernel.select_for_exchange(D, replicas, swap_matrix, current_cycle)
+                md_kernel.select_for_exchange(D, replicas, matrix_columns, current_cycle)
 
                 t2 = datetime.datetime.utcnow()
 

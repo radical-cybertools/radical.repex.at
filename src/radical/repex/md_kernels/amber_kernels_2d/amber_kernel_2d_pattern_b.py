@@ -277,6 +277,7 @@ class AmberKernel2dPatternB(MdKernel2d):
         """
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.cycle-1), str(replica.id))
 
         if dimension == 1:
             cu = radical.pilot.ComputeUnitDescription()
@@ -284,12 +285,11 @@ class AmberKernel2dPatternB(MdKernel2d):
             cu.input_staging  = sd_shared_list[3]
             cu.arguments = ["amber_matrix_calculator_pattern_b.py", replica.id, (replica.cycle-1), self.replicas, basename]
             cu.cores = 1            
+            cu.output_staging = matrix_col
         else:
             cu = radical.pilot.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
-
-            matrix_col = "matrix_column_%s_%s.dat" % (str(replica.cycle-1), str(replica.id))
 
             data = {
                 "replica_id": str(replica.id),
