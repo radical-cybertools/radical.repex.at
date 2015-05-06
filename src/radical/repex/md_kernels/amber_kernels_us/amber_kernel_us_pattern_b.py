@@ -256,11 +256,16 @@ class AmberKernelUSPatternB(MdKernelUS):
             in_list = []
 
             # restraint files are exchanged
-            rid = int(replica.new_restraints[-1:])               
- 
+            r_name = replica.new_restraints
+            rst_id = ""
+            for ch in r_name:
+                if ch.isdigit():
+                    rst_id = rst_id + str(i)
+            
+            rst_id = int(rst_id)
             in_list.append(sd_shared_list[0])
             in_list.append(sd_shared_list[1])
-            in_list.append(sd_shared_list[rid+4])
+            in_list.append(sd_shared_list[rst_id+4])
 
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
             old_coor = "../staging_area/" + replica_path + self.amber_coordinates
