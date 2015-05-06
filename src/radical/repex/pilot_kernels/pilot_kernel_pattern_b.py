@@ -46,8 +46,54 @@ class PilotKernelPatternB(PilotKernel):
 
         self.sd_shared_list = []
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------
+    #
+    def build_swap_matrix(self, replicas):
+        """Creates a swap matrix from matrix_column_x.dat files. 
+        matrix_column_x.dat - is populated on targer resource and then transferred back. This
+        file is created for each replica and has data for one column of swap matrix. In addition to that,
+        this file holds path to pilot compute unit of the previous run, where reside NAMD output files for 
+        a given replica. 
 
+        Arguments:
+        replicas - list of Replica objects
+
+        Returns:
+        swap_matrix - 2D list of lists of dimension-less energies, where each column is a replica 
+        and each row is a state
+        """
+
+        base_name = "matrix_column"
+        size = len(replicas)
+
+        # init matrix
+        swap_matrix = [[ 0. for j in range(size)]
+             for i in range(size)]
+
+        for r in replicas:
+            column_file = base_name + "_" + str(r.cycle-1) + "_" + str(r.id) +  ".dat"       
+            try:
+                f = open(column_file)
+                lines = f.readlines()
+                f.close()
+                data = lines[0].split()
+                # populating one column at a time
+                for i in range(size):
+                    swap_matrix[i][r.id] = float(data[i])
+
+                # setting old_path and first_path for each replica
+                if ( r.cycle == 1 ):
+                    r.first_path = str(data[size])
+                    r.old_path = str(data[size])
+                else:
+                    r.old_path = str(data[size])
+            except:
+                raise
+
+        return swap_matrix
+
+    #-----------------------------------------------------------------------------------------------------
+    #
     def compose_swap_matrix(self, replicas, matrix_columns):
         """Creates a swap matrix from matrix_column_x.dat files. 
         matrix_column_x.dat - is populated on targer resource and then transferred back. This
@@ -73,13 +119,6 @@ class PilotKernelPatternB(PilotKernel):
             # populating one column at a time
             for i in range(len(replicas)):
                 swap_matrix[i][r.id] = float(matrix_columns[r.id][i])
-
-            # setting old_path and first_path for each replica
-            if ( r.cycle == 1 ):
-                r.first_path = matrix_columns[r.id][len(replicas)]
-                r.old_path = matrix_columns[r.id][len(replicas)]
-            else:
-                r.old_path = matrix_columns[r.id][len(replicas)]
 
         return swap_matrix
 
@@ -213,14 +252,17 @@ class PilotKernelPatternB(PilotKernel):
                 # populating swap matrix                
                 T1 = datetime.datetime.utcnow()
                 matrix_columns = []
+          
                 for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
                         self.logger.error('Exchange step failed for unit:  %s' % r.uid)
-                    else:
-                        d = str(r.stdout)
-                        data = d.split()
-                        data.append(r.uid)
-                        matrix_columns.append(data)
+                    #else:
+                    #    d = str(r.stdout)
+                    #    data = d.split()
+                    #    data.append(r.uid)
+                    #    matrix_columns.append(data)
+
+                matrix_columns = self.build_swap_matrix(replicas)
 
                 # writing swap matrix out
                 sw_file = "swap_matrix_" + str(current_cycle)
@@ -297,7 +339,7 @@ class PilotKernelPatternB(PilotKernel):
 
                         row = "{uid}; {New}; {exestart}; {exestop}; {Done}; {Cycle}; {Run}".format(
                             uid=cu.uid,
-                            New=(st_data['New']-start).total_seconds(),
+                            New=(st_data['Scheduling']-start).total_seconds(),
                             exestart=(cu.start_time-start).total_seconds(),
                             exestop=(cu.stop_time-start).total_seconds(),
                             Done=(st_data['Done']-start).total_seconds(),

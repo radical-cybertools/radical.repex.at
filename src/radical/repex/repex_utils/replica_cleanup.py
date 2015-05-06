@@ -36,8 +36,9 @@ def move_output_files(work_dir_local, inp_basename, replicas):
         # moving matrix_column files
         col_name = "matrix_column_"
         swap_name = "swap_matrix_"
+        rst_name = "ala10_us."
         for item in files:
-            if (item.startswith(base_name) or item.startswith(col_name) or item.startswith(swap_name)):
+            if (item.startswith(base_name) or item.startswith(col_name) or item.startswith(swap_name) or item.startswith(rst_name)):
                 source =  work_dir_local + "/" + str(item)
                 destination = dir_path + "/"
                 shutil.move( source, destination)

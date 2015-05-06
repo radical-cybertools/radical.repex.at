@@ -303,6 +303,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.cycle-1), str(replica.id))
 
         cu = radical.pilot.ComputeUnitDescription()
         cu.pre_exec = self.pre_exec
@@ -340,6 +341,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         json_data = dump_data.replace("\\", "")
             
         cu.input_staging = [str(input_file)] + in_list + [coor_directive]
+        cu.output_staging = matrix_col
         cu.arguments = ["amber_matrix_calculator_pattern_b.py", json_data]
         cu.cores = 1            
 

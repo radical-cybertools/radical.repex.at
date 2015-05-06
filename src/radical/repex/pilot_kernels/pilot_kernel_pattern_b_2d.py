@@ -281,12 +281,12 @@ class PilotKernelPatternB2d(PilotKernel):
 
                 # populating swap matrix                
                 t1 = datetime.datetime.utcnow()
-                
-                matrix_columns = self.build_swap_matrix(replicas)
 
                 for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
                         self.logger.error('ERROR: In D1 exchange step failed for unit:  %s' % r.uid)
+
+                matrix_columns = self.build_swap_matrix(replicas)
  
                 # writing swap matrix out
                 sw_file = "swap_matrix_" + str(D) + "_" + str(current_cycle)

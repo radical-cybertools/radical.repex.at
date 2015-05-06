@@ -115,32 +115,21 @@ if __name__ == '__main__':
 
     #----------------------------------------------------------------
     # writing to file
-    outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
-    with open(outfile, 'w+') as f:
-        row_str = ""
-        for item in swap_column:
-            if len(row_str) != 0:
-                row_str = row_str + " " + str(item)
-            else:
-                row_str = str(item)
-        row_str + " " + (str(path_to_replica_folder).rstrip())
+    try:
+        outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
+        with open(outfile, 'w+') as f:
+            row_str = ""
+            for item in swap_column:
+                if len(row_str) != 0:
+                    row_str = row_str + " " + str(item)
+                else:
+                    row_str = str(item)
+            row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
 
-        f.write(row_str)
-    f.close()
+            f.write(row_str)
+        f.close()
 
-
-    #try:
-        #r_file = open( (os.path.join(pwd, matrix_col) ), "w")
-    #    for item in swap_column:
-            #r_file.write( str(item) + " " )
-    #        print item,
-        # writing path to replica folder
-    #    print str(path_to_replica_folder).rstrip()
-
-        #r_file.write("\n")
-        #r_file.write( str(path_to_replica_folder) )
-        #r_file.close()
-    #except IOError:
-    #    print 'Warning: unable to create column file %s for replica %s' % (matrix_col, replica_id) 
+    except IOError:
+        print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
 
 

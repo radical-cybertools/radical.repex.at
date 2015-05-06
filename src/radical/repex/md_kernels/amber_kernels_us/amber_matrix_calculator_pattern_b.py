@@ -122,7 +122,6 @@ class restraint(object):
         elif (self.r > r3) and (self.r <= r4): self.energy = rk3*(self.r-r3)**2
         elif self.r > r4: self.energy = rk3*(r4-r3)**2 - 2.0*rk3*(r4-r3)*(self.r-r4)
 
-
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
@@ -244,7 +243,27 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], energies[j])
 
-    for item in swap_column:
-        print item,
+    #for item in swap_column:
+    #    print item,
+    #print str(path_to_replica_folder).rstrip()
 
-    print str(path_to_replica_folder).rstrip()
+    #----------------------------------------------------------------
+    # writing to file
+    try:
+        outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
+        with open(outfile, 'w+') as f:
+            row_str = ""
+            for item in swap_column:
+                if len(row_str) != 0:
+                    row_str = row_str + " " + str(item)
+                else:
+                    row_str = str(item)
+            row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
+ 
+            f.write(row_str)
+        f.close()
+
+    except IOError:
+        print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
+
+
