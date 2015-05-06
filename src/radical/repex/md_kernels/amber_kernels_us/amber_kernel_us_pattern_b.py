@@ -260,7 +260,7 @@ class AmberKernelUSPatternB(MdKernelUS):
             rst_id = ""
             for ch in r_name:
                 if ch.isdigit():
-                    rst_id = rst_id + str(i)
+                    rst_id = rst_id + str(ch)
             
             rst_id = int(rst_id)
             in_list.append(sd_shared_list[0])
