@@ -269,7 +269,6 @@ class AmberKernelUSPatternB(MdKernelUS):
           
             in_list.append(sd_shared_list[0])
             in_list.append(sd_shared_list[1])
-            print "sd_shared_list: "
             in_list.append(sd_shared_list[rst_id+4])
 
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
