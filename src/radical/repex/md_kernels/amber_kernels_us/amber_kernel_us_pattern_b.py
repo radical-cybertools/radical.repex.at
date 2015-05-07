@@ -258,13 +258,18 @@ class AmberKernelUSPatternB(MdKernelUS):
             # restraint files are exchanged
             r_name = replica.new_restraints
             rst_id = ""
+            dot = False
             for ch in r_name:
-                if ch.isdigit():
+                if ch == '.':
+                    dot = True
+                if ch.isdigit() and (dot == True):
                     rst_id = rst_id + str(ch)
             
             rst_id = int(rst_id)
+          
             in_list.append(sd_shared_list[0])
             in_list.append(sd_shared_list[1])
+            print "sd_shared_list: "
             in_list.append(sd_shared_list[rst_id+4])
 
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
