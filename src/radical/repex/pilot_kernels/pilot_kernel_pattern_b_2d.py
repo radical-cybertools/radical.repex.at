@@ -252,7 +252,7 @@ class PilotKernelPatternB2d(PilotKernel):
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
             
             # this is not done for the last cycle
-            if (i != (md_kernel.nr_cycles-1)):
+            if (current_cycle != (CYCLES-1)):
                 exchange_replicas = []
                 self.logger.info("Dim 1: preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
@@ -346,7 +346,7 @@ class PilotKernelPatternB2d(PilotKernel):
 
             
             # this is not done for the last cycle
-            if (i != (md_kernel.nr_cycles-1)):
+            if (current_cycle != (CYCLES-1)):
                
                 self.logger.info("Dim 2: preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
                 exchange_replicas = []
