@@ -198,3 +198,69 @@ class Replica2d(object):
         self.swap = 0
         self.cores = cores
         self.stopped_run = -1
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+class Replica3d(object):
+    """Class representing replica and it's associated data.
+       US = Umbrella Sampling
+    """
+    def __init__(self, my_id, new_temperature_1=None, new_temperature_2=None, new_restraints_1=None, new_restraints_2=None, cores=1):
+        """Constructor.
+
+        Arguments:
+        my_id - integer representing replica's id
+        new_temperature - temperature at which replica is initialized (default: None)
+        cores - number of cores to be used by replica's NAMD instance (default: 1)
+        """
+        self.id = int(my_id)
+        self.sid = int(my_id)
+        self.state = 'I'
+        self.cycle = 0
+        if new_restraints_1 is None:
+            self.new_restraints_1 = ''
+            self.old_restraints_1 = ''
+        else:
+            self.new_restraints_1 = new_restraints_1
+            self.old_restraints_1 = new_restraints_1
+        self.potential_1 = 0
+
+        if new_restraints_2 is None:
+            self.new_restraints_2 = ''
+            self.old_restraints_2 = ''
+        else:
+            self.new_restraints_2 = new_restraints_2
+            self.old_restraints_2 = new_restraints_2
+        self.potential_2 = 0
+
+
+
+        if new_temperature_1 is None:
+            self.new_temperature_1 = 0
+        else:
+            self.new_temperature_1 = new_temperature_1
+        self.old_temperature_1 = new_temperature_1
+
+        if new_temperature_2 is None:
+            self.new_temperature_2 = 0
+        else:
+            self.new_temperature_2 = new_temperature_2
+        self.old_temperature_2 = new_temperature_2
+
+        # amber stuff
+        self.new_traj = ""  # ok
+        self.new_info = ""  # ok
+        self.new_coor = ""  # ok both namd and amber
+
+
+        self.old_traj = ""  # ok
+        self.old_info = ""  # ok 
+        self.old_coor = ""  # ok both namd and amber
+        ###################
+        ###################
+
+        self.old_path = ""
+        self.first_path = ""
+        self.swap = 0
+        self.cores = cores
+        self.stopped_run = -1
