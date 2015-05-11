@@ -190,7 +190,7 @@ if __name__ == '__main__':
     f_groupfile.close()
 
     call_amber(amber_path, replicas, replicas, 'groupfile')    #assume 1 core per replica for now
-
+    time.sleep(60)    #temporary fix, 1 second is not enough
     for j in range(replicas):
         energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
         try:
