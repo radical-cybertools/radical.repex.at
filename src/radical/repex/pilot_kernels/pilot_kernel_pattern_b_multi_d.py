@@ -182,6 +182,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
         hl_performance_data = {}
         cu_performance_data = {}
 
+        md_kernel.init_matrices(replicas)
+
         #------------------------
         # Raw simulation time
         start = datetime.datetime.utcnow()
@@ -192,7 +194,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
         D = 0
         DIMS = md_kernel.dims
-        for c in range(1,CYCLES*DIMS):
+        for c in range(0,CYCLES*DIMS):
             #-------------------------------------------------------------------------------
             # 
             if D < DIMS:
@@ -241,6 +243,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 exchange_replicas = []
                 self.logger.info("Dim {0}: preparing {1} replicas for Exchange run; cycle {2}".format(D, md_kernel.replicas, current_cycle) )
 
+                md_kernel.prepare_lists(replicas)
+
                 t1 = datetime.datetime.utcnow()
                 for replica in replicas:
                     ex_repl = md_kernel.prepare_replica_for_exchange(D, replica, self.sd_shared_list)
@@ -285,7 +289,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 except IOError:
                     self.logger.info('Warning: unable to access file %s' % sw_file)
             
-                self.logger.info("Dim {D}: performing exchange".format(D))
+                self.logger.info("Dim {0}: performing exchange".format(D))
                 md_kernel.select_for_exchange(D, replicas, matrix_columns, current_cycle)
 
                 t2 = datetime.datetime.utcnow()

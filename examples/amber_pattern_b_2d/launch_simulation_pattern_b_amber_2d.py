@@ -15,10 +15,7 @@ import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
 from amber_kernels_2d.amber_kernel_2d_pattern_b import AmberKernel2dPatternB
-from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
-from pilot_kernels.pilot_kernel_pattern_b_2d import PilotKernelPatternB2d
-
-
+from pilot_kernels.pilot_kernel_pattern_b_multi_d import PilotKernelPatternBmultiD
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -52,13 +49,12 @@ if __name__ == '__main__':
 
     # initializing kernels
     md_kernel = AmberKernel2dPatternB( inp_file, work_dir_local )
-    pilot_kernel = PilotKernelPatternB2d( inp_file )
+    pilot_kernel = PilotKernelPatternBmultiD( inp_file )
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
 
     try:
-
         pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
     
         # now we can run RE simulation
@@ -76,16 +72,8 @@ if __name__ == '__main__':
     except:
         logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
         raise
-    #except (KeyboardInterrupt, SystemExit) as e :
-        # the callback called sys.exit(), and we can here catch the
-        # corresponding KeyboardInterrupt exception for shutdown.  We also catch
-        # SystemExit (which gets raised if the main threads exits for some other
-        # reason).
-        #print "need to exit now: %s" % e
 
     finally :
-        # always clean up the session, no matter if we caught an exception or
-        # not.
         logger.info("Closing session.")
         session.close (cleanup=False)
 

@@ -81,6 +81,8 @@ class AmberKernel2dPatternB(MdKernel2d):
 
         self.all_temp_list = []
         self.all_salt_list = []
+        
+        self.dims = 2
 
     # ------------------------------------------------------------------------------
     #

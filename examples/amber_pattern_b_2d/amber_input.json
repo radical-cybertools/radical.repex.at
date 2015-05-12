@@ -24,6 +24,6 @@
         "min_salt": "0.0",
         "max_salt": "1.0",
         "init_temperature": "300.0",
-        "steps_per_cycle": "1000"
+        "steps_per_cycle": "10000"
     }
 }
