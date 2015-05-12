@@ -239,7 +239,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
             
             # this is not done for the last cycle
-            if (current_cycle != (md_kernel.nr_cycles-1)):
+            if (current_cycle < (CYCLES-1)):
                 exchange_replicas = []
                 self.logger.info("Dim {0}: preparing {1} replicas for Exchange run; cycle {2}".format(D, md_kernel.replicas, current_cycle) )
 
