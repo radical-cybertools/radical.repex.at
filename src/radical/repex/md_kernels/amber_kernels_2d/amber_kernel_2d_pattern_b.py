@@ -152,7 +152,7 @@ class AmberKernel2dPatternB(MdKernel2d):
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
         except IOError:
-            self.get_logger().error("Warning: unable to access template file: {0}".format(self.amber_input) )
+            self.logger.error("Warning: unable to access template file: {0}".format(self.amber_input) )
 
         tbuffer = r_file.read()
         r_file.close()
@@ -169,7 +169,7 @@ class AmberKernel2dPatternB(MdKernel2d):
             w_file.write(tbuffer)
             w_file.close()
         except IOError:
-            self.get_logger().error("Warning: unable to access file: {0}".format(new_input_file) )
+            self.logger.error("Warning: unable to access file: {0}".format(new_input_file) )
      
 #-----------------------------------------------------------------------------------------------------------------------------------
     def prepare_replica_for_md(self, replica, sd_shared_list):
@@ -324,35 +324,35 @@ class AmberKernel2dPatternB(MdKernel2d):
     def exchange_params(self, dimension, replica_1, replica_2):
         
         if dimension == 1:
-            self.get_logger().debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
+            self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
             temp = replica_2.new_temperature
             replica_2.new_temperature = replica_1.new_temperature
             replica_1.new_temperature = temp
-            self.get_logger().debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
+            self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
         else:
-            self.get_logger().debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_salt_concentration, replica_2.new_salt_concentration) )
+            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_salt_concentration, replica_2.new_salt_concentration) )
             salt = replica_2.new_salt_concentration
             replica_2.new_salt_concentration = replica_1.new_salt_concentration
             replica_1.new_salt_concentration = salt
-            self.get_logger().debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_salt_concentration, replica_2.new_salt_concentration) )
+            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_salt_concentration, replica_2.new_salt_concentration) )
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def do_exchange(self, dimension, replicas, swap_matrix):
 
-        self.get_logger().debug("[do_exchange] current dim: {0} replicas in current group: ".format(dimension) )
+        self.logger.debug("[do_exchange] current dim: {0} replicas in current group: ".format(dimension) )
         for r_i in replicas:
-            self.get_logger().debug("[do_exchange] replica id: {0} salt: {1:0.2f} temp: {2} ".format(r_i.id, r_i.new_salt_concentration, r_i.new_temperature) )
+            self.logger.debug("[do_exchange] replica id: {0} salt: {1:0.2f} temp: {2} ".format(r_i.id, r_i.new_salt_concentration, r_i.new_temperature) )
           
         exchanged = []
         for r_i in replicas:
             r_j = self.gibbs_exchange(r_i, replicas, swap_matrix)
-            self.get_logger().debug("[do_exchange] after gibbs_exchange: r_i.id: {0} r_j.id: {1}".format(r_i.id, r_j.id) )
+            self.logger.debug("[do_exchange] after gibbs_exchange: r_i.id: {0} r_j.id: {1}".format(r_i.id, r_j.id) )
             if (r_j.id != r_i.id) and (r_j.id not in exchanged) and (r_i.id not in exchanged):
                 exchanged.append(r_j.id)
                 exchanged.append(r_i.id)
-                self.get_logger().debug("[do_exchange] EXCHANGE BETWEEN REPLICAS WITH ID'S: {0} AND {1} ".format(r_i.id, r_j.id) )
+                self.logger.debug("[do_exchange] EXCHANGE BETWEEN REPLICAS WITH ID'S: {0} AND {1} ".format(r_i.id, r_j.id) )
                 # swap parameters
                 self.exchange_params(dimension, r_i, r_j)
                 # record that swap was performed
@@ -361,11 +361,11 @@ class AmberKernel2dPatternB(MdKernel2d):
 
                 # update id matrix
                 if dimension == 1:
-                    self.get_logger().debug("EXCHANGE Dim 1")
+                    self.logger.debug("EXCHANGE Dim 1")
                     self.d1_id_matrix[r_i.id][self.current_cycle] = r_j.id
                     self.d1_id_matrix[r_j.id][self.current_cycle] = r_i.id
                 else:
-                    self.get_logger().debug("EXCHANGE Dim 2")
+                    self.logger.debug("EXCHANGE Dim 2")
                     self.d2_id_matrix[r_i.id][self.current_cycle] = r_j.id
                     self.d2_id_matrix[r_j.id][self.current_cycle] = r_i.id
 
@@ -420,8 +420,8 @@ class AmberKernel2dPatternB(MdKernel2d):
                     #######################################
                     self.do_exchange(dimension, current_group, swap_matrix)
 
-        self.get_logger().debug("[select_for_exchange] after Dim: {0} d1_id_matrix: {1:s}".format(dimension, self.d1_id_matrix) )
-        self.get_logger().debug("[select_for_exchange] after Dim: {0} d2_id_matrix: {1:s}".format(dimension, self.d2_id_matrix) )
+        self.logger.debug("[select_for_exchange] after Dim: {0} d1_id_matrix: {1:s}".format(dimension, self.d1_id_matrix) )
+        self.logger.debug("[select_for_exchange] after Dim: {0} d2_id_matrix: {1:s}".format(dimension, self.d2_id_matrix) )
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -439,8 +439,8 @@ class AmberKernel2dPatternB(MdKernel2d):
 
         self.d1_id_matrix = sorted(self.d1_id_matrix)
         self.d2_id_matrix = sorted(self.d2_id_matrix)
-        self.get_logger().debug("[init_matrices] d1_id_matrix: {0:s}".format(self.d1_id_matrix) )
-        self.get_logger().debug("[init_matrices] d2_id_matrix: {0:s}".format(self.d2_id_matrix) )
+        self.logger.debug("[init_matrices] d1_id_matrix: {0:s}".format(self.d1_id_matrix) )
+        self.logger.debug("[init_matrices] d2_id_matrix: {0:s}".format(self.d2_id_matrix) )
 
         # temp_matrix
         for r in replicas:
@@ -453,7 +453,7 @@ class AmberKernel2dPatternB(MdKernel2d):
             self.temp_matrix.append( row )
 
         self.temp_matrix = sorted(self.temp_matrix)
-        self.get_logger().debug("[init_matrices] temp_matrix: {0:s}".format(self.temp_matrix) )
+        self.logger.debug("[init_matrices] temp_matrix: {0:s}".format(self.temp_matrix) )
 
         # salt_matrix
         for r in replicas:
@@ -466,5 +466,5 @@ class AmberKernel2dPatternB(MdKernel2d):
             self.salt_matrix.append( row )
 
         self.salt_matrix = sorted(self.salt_matrix)
-        self.get_logger().debug("[init_matrices] salt_matrix: {0:s}".format(self.salt_matrix) )
+        self.logger.debug("[init_matrices] salt_matrix: {0:s}".format(self.salt_matrix) )
 

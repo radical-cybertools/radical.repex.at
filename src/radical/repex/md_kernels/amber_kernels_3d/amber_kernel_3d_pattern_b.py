@@ -20,7 +20,7 @@ import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 from replicas.replica import Replica2d
-from md_kernels.md_kernel_2d import *
+from md_kernels.md_kernel_3d import *
 import amber_kernels_3d.amber_matrix_calculator_pattern_b_tex
 import amber_kernels_3d.amber_matrix_calculator_pattern_b_us
 
@@ -67,7 +67,16 @@ class AmberKernel3dPatternB(MdKernel3d):
         self.shared_files = []
 
         self.all_temp_list = []
-        self.all_salt_list = []
+        self.all_d1_us_list = []
+        self.all_d3_us_list = []
+
+        self.d1_id_matrix = []
+        self.d2_id_matrix = []
+        self.d3_id_matrix = []        
+
+        self.temp_matrix = []
+        self.d1_us_matrix = []
+        self.d3_us_matrix = []
 
     # ------------------------------------------------------------------------------
     #
@@ -78,15 +87,15 @@ class AmberKernel3dPatternB(MdKernel3d):
         coor_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
         inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
 
-        calc_tex = os.path.dirname(amber_kernels_3d.amber_matrix_calculator_pattern_b.__file__)
+        calc_tex = os.path.dirname(amber_kernels_3d.amber_matrix_calculator_pattern_b_tex.__file__)
         calc_tex_path = calc_tex + "/amber_matrix_calculator_pattern_b_tex.py"
 
-        calc_us = os.path.dirname(amber_kernels_3d.amber_matrix_calculator_pattern_b.__file__)
+        calc_us = os.path.dirname(amber_kernels_3d.amber_matrix_calculator_pattern_b_us.__file__)
         calc_us_path = calc_us + "/amber_matrix_calculator_pattern_b_us.py"
 
         rstr_list = []
         for rstr in self.restraints_files:
-            rstr_list.append(us_work_dir_local + "/" + rstr)
+            rstr_list.append(self.work_dir_local + "/" + rstr)
 
         #------------------------------------------------
         self.shared_files.append(self.amber_parameters)
@@ -135,11 +144,15 @@ class AmberKernel3dPatternB(MdKernel3d):
 
         # hardcoded for now but can be arguments as well
         i = replica.id
-        spacing = (self.us_end_param_d1 - self.us_start_param_d1) / float(self.replicas)
-        starting_value = self.us_start_param_d1 + i*spacing
+        spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / float(self.replicas_d1)
+        starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
+
+        spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / float(self.replicas_d3)
+        starting_value_d3 = self.us_start_param_d3 + i*spacing_d3
 
         w_file = open(self.us_template+"."+str(i), "w")
-        tbuffer = tbuffer.replace("@val@", str(starting_value+spacing))
+        tbuffer = tbuffer.replace("@val1@", str(starting_value_d1+spacing_d1))
+        tbuffer = tbuffer.replace("@val2@", str(starting_value_d3+spacing_d3))
         w_file.write(tbuffer)
         w_file.close()
 
@@ -394,17 +407,17 @@ class AmberKernel3dPatternB(MdKernel3d):
         """
         
         if dimension == 2:
-            self.get_logger().debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature_1, replica_2.new_temperature_1) )
+            self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature_1, replica_2.new_temperature_1) )
             temp = replica_2.new_temperature_1
             replica_2.new_temperature_1 = replica_1.new_temperature_1
             replica_1.new_temperature_1 = temp
-            self.get_logger().debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature_1, replica_2.new_temperature_1) )
+            self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature_1, replica_2.new_temperature_1) )
         else:
-            self.get_logger().debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints_1, replica_2.new_restraints_1) )
+            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints_1, replica_2.new_restraints_1) )
             rstr = replica_2.new_restraints_1
             replica_2.new_restraints_1 = replica_1.new_restraints_1
             replica_1.new_restraints_1 = rstr
-            self.get_logger().debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints_1, replica_2.new_restraints_1) )
+            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints_1, replica_2.new_restraints_1) )
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -413,18 +426,18 @@ class AmberKernel3dPatternB(MdKernel3d):
         """
         """
 
-        self.get_logger().debug("[do_exchange] current dim: {0} replicas in current group: ".format(dimension) )
+        self.logger.debug("[do_exchange] current dim: {0} replicas in current group: ".format(dimension) )
         for r_i in replicas:
-            self.get_logger().debug("[do_exchange] replica id: {0} restr: {1} temp: {2} ".format(r_i.id, r_i.new_restraints_1, r_i.new_temperature_1) )
+            self.logger.debug("[do_exchange] replica id: {0} restr: {1} temp: {2} ".format(r_i.id, r_i.new_restraints_1, r_i.new_temperature_1) )
           
         exchanged = []
         for r_i in replicas:
             r_j = self.gibbs_exchange(r_i, replicas, swap_matrix)
-            self.get_logger().debug("[do_exchange] after gibbs_exchange: r_i.id: {0} r_j.id: {1}".format(r_i.id, r_j.id) )
+            self.logger.debug("[do_exchange] after gibbs_exchange: r_i.id: {0} r_j.id: {1}".format(r_i.id, r_j.id) )
             if (r_j.id != r_i.id) and (r_j.id not in exchanged) and (r_i.id not in exchanged):
                 exchanged.append(r_j.id)
                 exchanged.append(r_i.id)
-                self.get_logger().debug("[do_exchange] EXCHANGE BETWEEN REPLICAS WITH ID'S: {0} AND {1} ".format(r_i.id, r_j.id) )
+                self.logger.debug("[do_exchange] EXCHANGE BETWEEN REPLICAS WITH ID'S: {0} AND {1} ".format(r_i.id, r_j.id) )
                 # swap parameters
                 self.exchange_params(dimension, r_i, r_j)
                 # record that swap was performed
@@ -477,4 +490,65 @@ class AmberKernel3dPatternB(MdKernel3d):
                     #######################################
                     self.do_exchange(dimension, current_group, swap_matrix)
 
-        
+       
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    def init_matrices(self, replicas):
+
+        # id_matrix
+        for r in replicas:
+            row = []
+            row.append(r.id)
+            for c in range(self.nr_cycles):
+                row.append( -1.0 )
+
+            self.d1_id_matrix.append( row )
+            self.d2_id_matrix.append( row )
+            self.d3_id_matrix.append( row )
+
+        self.d1_id_matrix = sorted(self.d1_id_matrix)
+        self.d2_id_matrix = sorted(self.d2_id_matrix)
+        self.d3_id_matrix = sorted(self.d3_id_matrix)
+
+        self.logger.debug("[init_matrices] d1_id_matrix: {0:s}".format(self.d1_id_matrix) )
+        self.logger.debug("[init_matrices] d2_id_matrix: {0:s}".format(self.d2_id_matrix) )
+
+        # temp_matrix
+        for r in replicas:
+            row = []
+            row.append(r.id)
+            row.append(r.new_temperature_1)
+            for c in range(self.nr_cycles - 1):
+                row.append( -1.0 )
+
+            self.temp_matrix.append( row )
+
+        self.temp_matrix = sorted(self.temp_matrix)
+        self.logger.debug("[init_matrices] temp_matrix: {0:s}".format(self.temp_matrix) )
+
+        # us_d1_matrix
+        for r in replicas:
+            row = []
+            row.append(r.id)
+            row.append(r.new_restraints_1)
+            for c in range(self.nr_cycles - 1):
+                row.append( -1.0 )
+
+            self.salt_matrix.append( row )
+
+        self.us_d1_matrix = sorted(self.us_d1_matrix)
+        self.logger.debug("[init_matrices] us_d1_matrix: {0:s}".format(self.us_d1_matrix) )
+
+        # us_d3_matrix
+        for r in replicas:
+            row = []
+            row.append(r.id)
+            row.append(r.new_restraints_2)
+            for c in range(self.nr_cycles - 1):
+                row.append( -1.0 )
+
+            self.us_d3_matrix.append( row )
+
+        self.us_d3_matrix = sorted(self.us_d3_matrix)
+        self.logger.debug("[init_matrices] us_d3_matrix: {0:s}".format(self.us_d3_matrix) )
+ 

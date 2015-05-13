@@ -32,7 +32,7 @@ class MdKernel3d(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.dims{}
+        self.dims = {}
     
         self.resource = inp_file['input.PILOT']['resource']
         if 'number_of_cycles' in inp_file['input.MD']:
@@ -66,12 +66,11 @@ class MdKernel3d(object):
         self.current_cycle = -1
 
         # hardcoded for now
-        self.replicas_d1 = inp_file['input.DIM']['umbrella_sampling_1']["number_of_replicas"]
-        self.replicas_d2 = inp_file['input.DIM']['temperature_2']["number_of_replicas"]
-        self.replicas_d3 = inp_file['input.DIM']['umbrella_sampling_3']["number_of_replicas"]
-
+        self.replicas_d1 = int(inp_file['input.DIM']['umbrella_sampling_1']["number_of_replicas"])
+        self.replicas_d2 = int(inp_file['input.DIM']['temperature_2']["number_of_replicas"])
+        self.replicas_d3 = int(inp_file['input.DIM']['umbrella_sampling_3']["number_of_replicas"])
         
-        self.replicas = self.replicas_d1 + self.replicas_d2 + self.replicas_d3 
+        self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3 
         self.restraints_files = []
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
@@ -85,13 +84,12 @@ class MdKernel3d(object):
         self.min_temp = float(inp_file['input.DIM']['temperature_2']['min_temperature'])
         self.max_temp = float(inp_file['input.DIM']['temperature_2']['max_temperature'])
 
-
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def initialize_replicas(self):
         """Initializes replicas and their attributes to default values
-
         """
+
         replicas = []
 
         d2_params = []
@@ -102,20 +100,19 @@ class MdKernel3d(object):
             d2_params.append(new_temp)
 
 
-        for i in range(len(self.replicas_d1)):
-            for j in range(len(self.replicas_d2)):
+        for i in range(self.replicas_d1):
+            for j in range(self.replicas_d2):
                 t1 = float(d2_params[j])
-                for k in range(len(self.replicas_d3)):
+                for k in range(self.replicas_d3):
                  
                     #---------------------------
-                    rid = k + j*len(d3_params) + i*len(d3_params)*len(d2_params)
+                    rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
                     r1 = self.restraints_files[rid]
 
                     r = Replica3d(rid, new_temperature_1=t1, new_restraints_1=r1, cores=1)
                     replicas.append(r)
 
         return replicas
-
 
 #----------------------------------------------------------------------------------------------------------------------------------
 
