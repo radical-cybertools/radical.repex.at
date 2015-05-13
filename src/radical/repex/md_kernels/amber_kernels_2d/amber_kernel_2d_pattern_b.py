@@ -274,7 +274,7 @@ class AmberKernel2dPatternB(MdKernel2d):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-    def prepare_replica_for_exchange(self, dimension, replica, sd_shared_list):
+    def prepare_replica_for_exchange(self, dimension, replica, replicas, sd_shared_list):
         """
         """
         # name of the file which contains swap matrix column data for each replica

@@ -32,7 +32,7 @@ class MdKernel3d(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.dims = {}
+        self.dims = 3
     
         self.resource = inp_file['input.PILOT']['resource']
         if 'number_of_cycles' in inp_file['input.MD']:
@@ -40,7 +40,7 @@ class MdKernel3d(object):
         else:
             self.nr_cycles = None
 
-        self.inp_folder = inp_file['input.MD']['input_folder']
+        self.input_folder = inp_file['input.MD']['input_folder']
         self.inp_basename = inp_file['input.MD']['input_file_basename']
          
         self.amber_restraints = inp_file['input.MD']['amber_restraints']

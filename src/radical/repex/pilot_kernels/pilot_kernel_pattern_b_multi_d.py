@@ -148,7 +148,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     #unit_manager.submit_units( unit.description )
 
         # --------------------------------------------------------------------------
-        CYCLES = md_kernel.nr_cycles + 1
+        cycles = md_kernel.nr_cycles + 1
                 
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
@@ -194,20 +194,17 @@ class PilotKernelPatternBmultiD(PilotKernel):
         start = datetime.datetime.utcnow()
         #------------------------
 
-        for r in replicas:
-            self.logger.debug("Replica: id={0} salt={1} temperature={2}".format(r.id, r.new_salt_concentration, r.new_temperature) )
-
         D = 0
-        DIMS = md_kernel.dims
-        for c in range(0,CYCLES*DIMS):
+        dimensions = md_kernel.dims
+        for c in range(0,cycles*dimensions):
             #-------------------------------------------------------------------------------
             # 
-            if D < DIMS:
+            if D < dimensions:
                 D = D + 1
             else:
                 D = 1
 
-            current_cycle = c / DIMS
+            current_cycle = c / dimensions
 
             if D == 1:
                 cu_performance_data["cycle_{0}".format(current_cycle)] = {}
@@ -244,7 +241,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
             
             # this is not done for the last cycle
-            if (current_cycle < (CYCLES-1)):
+            if (current_cycle < (cycles-1)):
                 exchange_replicas = []
                 self.logger.info("Dim {0}: preparing {1} replicas for Exchange run; cycle {2}".format(D, md_kernel.replicas, current_cycle) )
 
@@ -252,7 +249,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
                 t1 = datetime.datetime.utcnow()
                 for replica in replicas:
-                    ex_repl = md_kernel.prepare_replica_for_exchange(D, replica, self.sd_shared_list)
+                    ex_repl = md_kernel.prepare_replica_for_exchange(D, replicas, replica, self.sd_shared_list)
                     sub_repl = unit_manager.submit_units(ex_repl)
                     exchange_replicas.append(sub_repl)
                 t2 = datetime.datetime.utcnow()
