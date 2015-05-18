@@ -87,36 +87,6 @@ class MdKernel3d(object):
         self.min_temp = float(inp_file['input.DIM']['temperature_2']['min_temperature'])
         self.max_temp = float(inp_file['input.DIM']['temperature_2']['max_temperature'])
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
-    def initialize_replicas(self):
-        """Initializes replicas and their attributes to default values
-        """
-
-        replicas = []
-
-        d2_params = []
-        N = self.replicas_d2
-        factor = (self.max_temp/self.min_temp)**(1./(N-1))
-        for k in range(N):
-            new_temp = self.min_temp * (factor**k)
-            d2_params.append(new_temp)
-
-
-        for i in range(self.replicas_d1):
-            for j in range(self.replicas_d2):
-                t1 = float(d2_params[j])
-                for k in range(self.replicas_d3):
-                 
-                    #---------------------------
-                    rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
-                    r1 = self.restraints_files[rid]
-
-                    r = Replica3d(rid, new_temperature_1=t1, new_restraints_1=r1, cores=1)
-                    replicas.append(r)
-
-        return replicas
-
 #----------------------------------------------------------------------------------------------------------------------------------
 
     def gibbs_exchange(self, r_i, replicas, swap_matrix):

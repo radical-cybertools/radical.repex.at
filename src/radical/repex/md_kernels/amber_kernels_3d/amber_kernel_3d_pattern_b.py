@@ -67,6 +67,46 @@ class AmberKernel3dPatternB(MdKernel3d):
         self.us_d1_matrix = []
         self.us_d3_matrix = []
 
+
+    #---------------------------------------------------------------------------------------------------------------------
+    #
+    def initialize_replicas(self):
+        """Initializes replicas and their attributes to default values
+        """
+
+        replicas = []
+
+        d2_params = []
+        N = self.replicas_d2
+        factor = (self.max_temp/self.min_temp)**(1./(N-1))
+        for k in range(N):
+            new_temp = self.min_temp * (factor**k)
+            d2_params.append(new_temp)
+
+
+        for i in range(self.replicas_d1):
+            for j in range(self.replicas_d2):
+                t1 = float(d2_params[j])
+                for k in range(self.replicas_d3):
+                 
+                    #---------------------------
+                    rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
+                    r1 = self.restraints_files[rid]
+
+                    spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / float(self.replicas_d1)
+                    starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
+
+                    spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / float(self.replicas_d3)
+                    starting_value_d3 = self.us_start_param_d3 + i*spacing_d3
+
+                    rstr_val_d1 = str(starting_value_d1+spacing_d1)
+                    rstr_val_d3 = str(starting_value_d3+spacing_d3)
+
+                    r = Replica3d(rid, new_temperature_1=t1, new_restraints_1=r1, rstr_val_d1=float(rstr_val_d1), rstr_val_d3=float(rstr_val_d3),  cores=1)
+                    replicas.append(r)
+
+        return replicas
+
     #---------------------------------------------------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
@@ -127,53 +167,23 @@ class AmberKernel3dPatternB(MdKernel3d):
         """
 
         template = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
-        r_file = open(template, "r")
-        tbuffer = r_file.read()
-        r_file.close()
+        try:
+            r_file = open(template, "r")
+            tbuffer = r_file.read()
+            r_file.close()
+        except IOError:
+            print 'Warning: unable to access file %s' % self.us_template
 
-        # hardcoded for now but can be arguments as well
         i = replica.id
-        spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / float(self.replicas_d1)
-        starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
 
-        spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / float(self.replicas_d3)
-        starting_value_d3 = self.us_start_param_d3 + i*spacing_d3
-
-        w_file = open(self.us_template+"."+str(i), "w")
-        tbuffer = tbuffer.replace("@val1@", str(starting_value_d1+spacing_d1))
-        tbuffer = tbuffer.replace("@val2@", str(starting_value_d3+spacing_d3))
-        w_file.write(tbuffer)
-        w_file.close()
-
-
-    #---------------------------------------------------------------------------------------------------------------------
-    #  
-    def rebuild_restraint_file(self, replica):
-        """Builds restraint file for replica, based on template file
-        """
-
-        r_file = open(replica.new_restraints_1, "r")
-        tbuffer = r_file.read()
-        r_file.close()
-        tbuffer = tbuffer.split()
-
-        line = 2
-        for i in range(len(tbuffer)):
-            word = tbuffer[i]
-            if word == '/':
-                line = 3
-            if word.startswith("r2=") and line == 2:
-                tbuffer[i] = "r2=" + str(replica.rstr_val_d1)
-            if word.startswith("r3=") and line == 2:
-                tbuffer[i] = "r3=" + str(replica.rstr_val_d1)
-                
-            if word.startswith("r2=") and line == 3:
-                tbuffer[i] = "r2=" + str(replica.rstr_val_d3)
-            if word.startswith("r3=") and line == 3:
-                tbuffer[i] = "r2=" + str(replica.rstr_val_d3)
-   
-        w_file.write(tbuffer)
-        w_file.close()
+        try:
+            w_file = open(replica.new_restraints_1, "w")
+            tbuffer = tbuffer.replace("@val1@", str(replica.rstr_val_d1))
+            tbuffer = tbuffer.replace("@val2@", str(replica.rstr_val_d3))
+            w_file.write(tbuffer)
+            w_file.close()
+        except IOError:
+            print 'Warning: unable to access file %s' % replica.new_restraints_1
 
     #---------------------------------------------------------------------------------------------------------------------
     #
@@ -181,7 +191,7 @@ class AmberKernel3dPatternB(MdKernel3d):
         """Builds input file for replica, based on template input file ala10.mdin
         """
        
-        self.rebuild_restraint_file(replica)
+        self.build_restraint_file(replica)
 
         basename = self.inp_basename
             
@@ -291,16 +301,7 @@ class AmberKernel3dPatternB(MdKernel3d):
             # files needed to be moved in replica dir
             in_list = []
 
-            # restraint files are NOT! exchanged
-            #r_name = replica.new_restraints_1
-            #rst_id = ""
-            #dot = False
-            #for ch in r_name:
-            #    if ch == '.':
-            #        dot = True
-            #    if ch.isdigit() and (dot == True):
-            #        rst_id = rst_id + str(ch)
-            
+            rid = replica.id
             in_list.append(sd_shared_list[0])
             in_list.append(sd_shared_list[1])
             in_list.append(sd_shared_list[rid+6])

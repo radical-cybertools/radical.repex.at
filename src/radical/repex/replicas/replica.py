@@ -205,7 +205,7 @@ class Replica3d(object):
     """Class representing replica and it's associated data.
        US = Umbrella Sampling
     """
-    def __init__(self, my_id, new_temperature_1=None, new_temperature_2=None, new_restraints_1=None, cores=1):
+    def __init__(self, my_id, new_temperature_1=None, new_restraints_1=None, rstr_val_d1=None, rstr_val_d3=None, cores=1):
         """Constructor.
 
         Arguments:
@@ -231,14 +231,8 @@ class Replica3d(object):
             self.new_temperature_1 = new_temperature_1
         self.old_temperature_1 = new_temperature_1
 
-        if new_temperature_2 is None:
-            self.new_temperature_2 = 0
-        else:
-            self.new_temperature_2 = new_temperature_2
-        self.old_temperature_2 = new_temperature_2
-
-        self.rstr_val_d1 = None
-        self.rstr_val_d3 = None
+        self.rstr_val_d1 = rstr_val_d1
+        self.rstr_val_d3 = rstr_val_d3
 
         # amber stuff
         self.new_traj = ""  # ok
