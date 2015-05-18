@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernles.amber_kernels_salt.amber_kernel_salt_pattern_b
+.. module:: radical.repex.md_kernles.amber_kernels_3d.amber_kernel_3d_pattern_b
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
@@ -24,21 +24,11 @@ from md_kernels.md_kernel_3d import *
 import amber_kernels_3d.amber_matrix_calculator_pattern_b_tex
 import amber_kernels_3d.amber_matrix_calculator_pattern_b_us
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------
 
 class AmberKernel3dPatternB(MdKernel3d):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
-
-    RE pattern B:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
-    - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
-
     """
     def __init__(self, inp_file,  work_dir_local):
         """Constructor.
@@ -77,7 +67,7 @@ class AmberKernel3dPatternB(MdKernel3d):
         self.us_d1_matrix = []
         self.us_d3_matrix = []
 
-    # ------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
 
@@ -130,8 +120,8 @@ class AmberKernel3dPatternB(MdKernel3d):
             rstr_url = 'file://%s' % (rstr_p)
             self.shared_urls.append(rstr_url)
  
-    #-------------------------------------------------------------------------------------
-    #  TODO
+    #---------------------------------------------------------------------------------------------------------------------
+    #  
     def build_restraint_file(self, replica):
         """Builds restraint file for replica, based on template file
         """
@@ -155,11 +145,43 @@ class AmberKernel3dPatternB(MdKernel3d):
         w_file.write(tbuffer)
         w_file.close()
 
-    #-----------------------------------------------------------------------------------------------------------------------------------
+
+    #---------------------------------------------------------------------------------------------------------------------
+    #  
+    def rebuild_restraint_file(self, replica):
+        """Builds restraint file for replica, based on template file
+        """
+
+        r_file = open(replica.new_restraints_1, "r")
+        tbuffer = r_file.read()
+        r_file.close()
+        tbuffer = tbuffer.split()
+
+        line = 2
+        for i in range(len(tbuffer)):
+            word = tbuffer[i]
+            if word == '/':
+                line = 3
+            if word.startswith("r2=") and line == 2:
+                tbuffer[i] = "r2=" + str(replica.rstr_val_d1)
+            if word.startswith("r3=") and line == 2:
+                tbuffer[i] = "r3=" + str(replica.rstr_val_d1)
+                
+            if word.startswith("r2=") and line == 3:
+                tbuffer[i] = "r2=" + str(replica.rstr_val_d3)
+            if word.startswith("r3=") and line == 3:
+                tbuffer[i] = "r2=" + str(replica.rstr_val_d3)
+   
+        w_file.write(tbuffer)
+        w_file.close()
+
+    #---------------------------------------------------------------------------------------------------------------------
     #
     def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin
         """
+       
+        self.rebuild_restraint_file(replica)
 
         basename = self.inp_basename
             
@@ -199,12 +221,12 @@ class AmberKernel3dPatternB(MdKernel3d):
             print 'Warning: unable to access file %s' % new_input_file
 
      
-#-----------------------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------------------------------------------------
+    #
     def prepare_replica_for_md(self, replica, sd_shared_list):
         """
         """
 
-        # need to avoid this step!
         self.build_input_file(replica)
       
         crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
@@ -269,19 +291,19 @@ class AmberKernel3dPatternB(MdKernel3d):
             # files needed to be moved in replica dir
             in_list = []
 
-            # restraint files are exchanged
-            r_name = replica.new_restraints_1
-            rst_id = ""
-            dot = False
-            for ch in r_name:
-                if ch == '.':
-                    dot = True
-                if ch.isdigit() and (dot == True):
-                    rst_id = rst_id + str(ch)
+            # restraint files are NOT! exchanged
+            #r_name = replica.new_restraints_1
+            #rst_id = ""
+            #dot = False
+            #for ch in r_name:
+            #    if ch == '.':
+            #        dot = True
+            #    if ch.isdigit() and (dot == True):
+            #        rst_id = rst_id + str(ch)
             
             in_list.append(sd_shared_list[0])
             in_list.append(sd_shared_list[1])
-            in_list.append(sd_shared_list[int(rst_id)+6])
+            in_list.append(sd_shared_list[rid+6])
 
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
             old_coor = "../staging_area/" + replica_path + self.amber_coordinates
@@ -306,8 +328,8 @@ class AmberKernel3dPatternB(MdKernel3d):
 
         return cu
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------------------------------------------------
+    #
     def prepare_lists(self, replicas):
         """
         """
@@ -325,11 +347,10 @@ class AmberKernel3dPatternB(MdKernel3d):
         self.all_temp_list = all_temp.split(" ")
         self.all_rstr_list = all_rstr.split(" ")
      
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------------------------------------------------
+    #
     def prepare_replica_for_exchange(self, dimension, replicas, replica, sd_shared_list):
         """
-        TODO
         """
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
@@ -394,8 +415,8 @@ class AmberKernel3dPatternB(MdKernel3d):
 
         return cu
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------------------------------------------------
+    #
     def exchange_params(self, dimension, replica_1, replica_2):
         """
         """
@@ -406,16 +427,22 @@ class AmberKernel3dPatternB(MdKernel3d):
             replica_2.new_temperature_1 = replica_1.new_temperature_1
             replica_1.new_temperature_1 = temp
             self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature_1, replica_2.new_temperature_1) )
-        else:
-            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints_1, replica_2.new_restraints_1) )
-            rstr = replica_2.new_restraints_1
-            replica_2.new_restraints_1 = replica_1.new_restraints_1
-            replica_1.new_restraints_1 = rstr
-            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints_1, replica_2.new_restraints_1) )
+        elif dimension == 1:
+            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_d1, replica_2.rstr_val_d1) )
+            rstr = replica_2.rstr_val_d1
+            replica_2.rstr_val_d1 = replica_1.rstr_val_d1
+            replica_1.rstr_val_d1 = rstr
+            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_d1, replica_2.rstr_val_d1) )
+        elif dimension == 3:
+            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_d3, replica_2.rstr_val_d3) )
+            rstr = replica_2.rstr_val_d3
+            replica_2.rstr_val_d3 = replica_1.rstr_val_d3
+            replica_1.rstr_val_d3 = rstr
+            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_d3, replica_2.rstr_val_d3) )
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------------------------------------------------
+    #
     def do_exchange(self, dimension, replicas, swap_matrix):
         """
         """
@@ -439,11 +466,10 @@ class AmberKernel3dPatternB(MdKernel3d):
                 r_j.swap = 1
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------------------------------------------------
+    #
     def select_for_exchange(self, dimension, replicas, swap_matrix, cycle):
         """
-        TODO
         """
 
         # updating rstr_val's
@@ -469,7 +495,6 @@ class AmberKernel3dPatternB(MdKernel3d):
                 if word.startswith("r2=") and line == 3:
                     num_list = word.split('=')
                     r.rstr_val_d3 = float(num_list[1])
-
 
         self.current_cycle = cycle
 
@@ -533,8 +558,8 @@ class AmberKernel3dPatternB(MdKernel3d):
                     self.do_exchange(dimension, current_group, swap_matrix)
 
        
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------------------------------------------------
+    #
     def init_matrices(self, replicas):
 
         # id_matrix
