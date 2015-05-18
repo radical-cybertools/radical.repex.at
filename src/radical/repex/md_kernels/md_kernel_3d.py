@@ -49,12 +49,15 @@ class MdKernel3d(object):
         self.amber_input = inp_file['input.MD']['amber_input']
 
         if 'replica_mpi' in inp_file['input.MD']:
-            self.replica_mpi = inp_file['input.MD']['replica_mpi']
+            if inp_file['input.MD']['replica_mpi'] == "True":
+                self.replica_mpi = True
+            else:
+                self.replica_mpi = False
         else:
-            self.replica_mpi = False
+            self.replica_mpi= False
 
         if 'replica_cores' in inp_file['input.MD']:
-            self.replica_cores = inp_file['input.MD']['replica_cores']
+            self.replica_cores = int(inp_file['input.MD']['replica_cores'])
         else:
             self.replica_cores = 1
         
@@ -133,10 +136,10 @@ class MdKernel3d(object):
         #evaluate all i-j swap probabilities
         ps = [0.0]*(len(replicas))
 
-        for r in replicas:
-            self.get_logger().debug("[gibbs_exchange] (before) r.id: {0} r.temp: {1:0.3f} r.salt: {2:0.3f}".format(r.id, r.new_temperature, r.new_salt_concentration) )
+        #for r in replicas:
+        #    self.logger.debug("[gibbs_exchange] (before) r.id: {0} r.temp: {1:0.3f} r.salt: {2:0.3f}".format(r.id, r.new_restraints_1) )
         
-        self.get_logger().debug("[gibbs_exchange] (before) swap matrix: {0:s}".format(swap_matrix) )    
+        #self.logger.debug("[gibbs_exchange] (before) swap matrix: {0:s}".format(swap_matrix) )    
   
         j = 0
         for r_j in replicas:

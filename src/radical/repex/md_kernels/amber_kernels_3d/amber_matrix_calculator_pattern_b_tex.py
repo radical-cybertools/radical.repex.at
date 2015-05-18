@@ -46,35 +46,30 @@ def get_historical_data(history_name):
     input/output files for a given replica recide.
        Get temperature and potential energy from mdinfo file.
     """
-    home_dir = os.getcwd()
-    os.chdir("../")
 
-    # getting all cu directories
-    replica_dirs = []
-    for name in os.listdir("."):
-        if os.path.isdir(name):
-            replica_dirs.append(name)    
+    home_dir = os.getcwd()
+    os.chdir("../staging_area")
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
-    for directory in replica_dirs:
-         os.chdir(directory)
-         try:
-             f = open(history_name)
-             lines = f.readlines()
-             f.close()
-             path_to_replica_folder = os.getcwd()
-             for i in range(len(lines)):
-                 if "TEMP(K)" in lines[i]:
-                     temp = float(lines[i].split()[8])
-                 elif "EPtot" in lines[i]:
-                     eptot = float(lines[i].split()[8])
-             #print "history file %s found!" % ( history_name ) 
-         except:
-             pass 
-         os.chdir("../")
- 
+
+    try:
+        f = open(history_name)
+        lines = f.readlines()
+        f.close()
+        path_to_replica_folder = os.getcwd()
+        for i in range(len(lines)):
+            if "TEMP(K)" in lines[i]:
+                temp = float(lines[i].split()[8])
+            elif "EPtot" in lines[i]:
+                eptot = float(lines[i].split()[8])
+        #print "history file %s found!" % ( history_name ) 
+    except:
+        pass 
+
+    os.chdir("../")
     os.chdir(home_dir)
+    
     return temp, eptot, path_to_replica_folder
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -118,18 +113,24 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
+    #----------------------------------------------------------------
+    # writing to file
+    
     try:
-        #r_file = open( (os.path.join(pwd, matrix_col) ), "w")
-        for item in swap_column:
-            #r_file.write( str(item) + " " )
-            print item,
-        # writing path to replica folder
-        print str(path_to_replica_folder).rstrip()
+        outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
+        with open(outfile, 'w+') as f:
+            row_str = ""
+            for item in swap_column:
+                if len(row_str) != 0:
+                    row_str = row_str + " " + str(item)
+                else:
+                    row_str = str(item)
+            row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
 
-        #r_file.write("\n")
-        #r_file.write( str(path_to_replica_folder) )
-        #r_file.close()
+            f.write(row_str)
+        f.close()
+
     except IOError:
-        print 'Warning: unable to create column file %s for replica %s' % (matrix_col, replica_id) 
+        print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
 
 

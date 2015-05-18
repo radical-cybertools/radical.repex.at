@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.amber_kernels.launch_simulation_pattern_B
+.. module:: radical.repex.amber_kernels.launch_simulation_amber
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
@@ -10,11 +10,12 @@ import os
 import sys
 import json
 from os import path
+import radical.pilot
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
-from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
+from amber_kernels_3d.amber_kernel_3d_pattern_b import AmberKernel3dPatternB
+from pilot_kernels.pilot_kernel_pattern_b_multi_d import PilotKernelPatternBmultiD
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -30,51 +31,52 @@ if __name__ == '__main__':
     - Exchange probabilities are determined using Gibbs sampling.
     - Exchange step is performed in decentralized fashion on target resource.
     """
-    name = 'launcher-tex'
+
+    name = 'launcher-3d-us'
     logger  = rul.getLogger ('radical.repex', name)
 
-    logger.info("************************************************")
-    logger.info("*    RepEx simulation: AMBER + RE pattern B    *")
-    logger.info("************************************************")
+    logger.info("*********************************************************************")
+    logger.info("*            RepEx simulation: AMBER + QMMM + pattern B             *")
+    logger.info("*********************************************************************")
 
     work_dir_local = os.getcwd()
     params = parse_command_line()
-    
+
     # get input file
     json_data=open(params.input_file)
     inp_file = json.load(json_data)
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernelTexPatternB( inp_file, work_dir_local )
-    pilot_kernel = PilotKernelPatternB( inp_file )
+    md_kernel = AmberKernel3dPatternB( inp_file, work_dir_local )
+    pilot_kernel = PilotKernelPatternBmultiD( inp_file )
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
 
-    # try:
-    pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
-    
-    # now we can run RE simulation
-    pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+    try:
 
-    # this is a quick hack
-    base = md_kernel.inp_basename + ".mdin"
+        pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
 
-    # finally we are moving all files to individual replica directories
-    move_output_files(work_dir_local, base, replicas ) 
-    session.close(cleanup=False)
+        # now we can run RE simulation
+        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
 
-    logger.info("Simulation successfully finished!")
-    logger.info("Please check output files in replica_x directories.")
+        # this is a quick hack
+        base = md_kernel.inp_basename + ".mdin"
 
-    #except:
-    #    logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
-    #    raise 
+        # finally we are moving all files to individual replica directories
+        move_output_files(work_dir_local, base, replicas )
 
-    #finally :
+        logger.info("Simulation successfully finished!")
+        logger.info("Please check output files in replica_x directories.")
+
+    except:
+        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        raise
+
+    finally :
         # always clean up the session, no matter if we caught an exception or
         # not.
-    #    logger.info("Closing session.")
-    #    session.close (cleanup=False)    
+        logger.info("Closing session.")
+        session.close (cleanup=False)
 

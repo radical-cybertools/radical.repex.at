@@ -1,16 +1,15 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
+        "resource": "gordon.sdsc.xsede.org",
         "username" : "antontre",
-        "project" : "TG-MCB090174",
-        "queue" : "development",
-        "runtime" : "120",
+        "project" : "unc101",
+        "runtime" : "20",
         "cleanup" : "False",
-        "cores" : "240"
+        "cores" : "16"
     },
     "input.MD": {
         "number_of_cycles": "4",
-        "number_of_replicas": "484",
+        "number_of_replicas": "4",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_input": "ala10.mdin",

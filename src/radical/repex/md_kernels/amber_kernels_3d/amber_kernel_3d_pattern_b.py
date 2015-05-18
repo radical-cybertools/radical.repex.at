@@ -67,8 +67,7 @@ class AmberKernel3dPatternB(MdKernel3d):
         self.shared_files = []
 
         self.all_temp_list = []
-        self.all_rstr_d1_list = []
-        self.all_rstr_d3_list = []
+        self.all_rstr_list = []
 
         self.d1_id_matrix = []
         self.d2_id_matrix = []
@@ -209,9 +208,7 @@ class AmberKernel3dPatternB(MdKernel3d):
         self.build_input_file(replica)
       
         crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
-
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
-        # this is not transferred back
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
 
         new_coor = replica.new_coor
@@ -242,7 +239,7 @@ class AmberKernel3dPatternB(MdKernel3d):
                 in_list.append(sd_shared_list[i])
 
             rid = replica.id
-            in_list.append(sd_shared_list[rid+4])
+            in_list.append(sd_shared_list[rid+6])
 
             replica_path = "replica_%d_%d/" % (replica.id, 0)
             crds_out = {
@@ -273,7 +270,7 @@ class AmberKernel3dPatternB(MdKernel3d):
             in_list = []
 
             # restraint files are exchanged
-            r_name = replica.new_restraints
+            r_name = replica.new_restraints_1
             rst_id = ""
             dot = False
             for ch in r_name:
@@ -282,15 +279,14 @@ class AmberKernel3dPatternB(MdKernel3d):
                 if ch.isdigit() and (dot == True):
                     rst_id = rst_id + str(ch)
             
-            rst_id = int(rst_id)
-          
             in_list.append(sd_shared_list[0])
             in_list.append(sd_shared_list[1])
-            in_list.append(sd_shared_list[rst_id+4])
+            in_list.append(sd_shared_list[int(rst_id)+6])
 
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
             old_coor = "../staging_area/" + replica_path + self.amber_coordinates
 
+            cu = radical.pilot.ComputeUnitDescription()
             cu.input_staging = [str(input_file)] + in_list
             cu.output_staging = st_out
             cu.executable = self.amber_path
@@ -316,22 +312,18 @@ class AmberKernel3dPatternB(MdKernel3d):
         """
         """
 
-        all_rstr_1 = ""
+        all_rstr = ""
         all_temp = ""
-        all_rstr_2 = ""
         for r in range(len(replicas)):
             if r == 0:
-                all_rstr_1 = str(replicas[r].new_restraints_1)
+                all_rstr = str(replicas[r].new_restraints_1)
                 all_temp   = str(replicas[r].new_temperature_1)
-                all_rstr_2 = str(replicas[r].new_restraints_2)
             else:
-                all_rstr_1 = all_rstr_1 + " " + str(replicas[r].new_restraints_1)
+                all_rstr = all_rstr + " " + str(replicas[r].new_restraints_1)
                 all_temp   = all_temp + " " + str(replicas[r].new_temperature_1)
-                all_rstr_2 = all_rstr_2 + " " + str(replicas[r].new_restraints_2)
 
         self.all_temp_list = all_temp.split(" ")
-        self.all_rstr_d1_list = all_rstr_1.split(" ")
-        self.all_rstr_d3_list = all_rstr_2.split(" ")
+        self.all_rstr_list = all_rstr.split(" ")
      
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -365,11 +357,11 @@ class AmberKernel3dPatternB(MdKernel3d):
             cu.executable = "python"
  
             in_list = []
-            # copying calculator from staging area to cu filder
-            in_list.append(sd_shared_list[3])
+            # copying calculator from staging area to cu folder
+            in_list.append(sd_shared_list[5])
             rid = replica.id
             # copying .RST files from staging area to replica folder
-            for i in range(4,self.replicas+4):
+            for i in range(6,self.replicas+6):
                 in_list.append(sd_shared_list[i])
 
             # copy new coordinates from MD run to CU directory
@@ -454,21 +446,50 @@ class AmberKernel3dPatternB(MdKernel3d):
         TODO
         """
 
+        # updating rstr_val's
+        for r in replicas:
+            current_rstr = r.new_restraints_1
+            try:
+                r_file = open(current_rstr, "r")
+            except IOError:
+                print 'Warning: unable to access template file %s' % current_rstr
+
+            tbuffer = r_file.read()
+            r_file.close()
+
+            tbuffer = tbuffer.split()
+
+            line = 2
+            for word in tbuffer:
+                if word == '/':
+                    line = 3
+                if word.startswith("r2=") and line == 2:
+                    num_list = word.split('=')
+                    r.rstr_val_d1 = float(num_list[1])
+                if word.startswith("r2=") and line == 3:
+                    num_list = word.split('=')
+                    r.rstr_val_d3 = float(num_list[1])
+
+
         self.current_cycle = cycle
 
-        salt_list = []
-        temp_list = []
-        for r1 in range(len(replicas)):
+        d1_list = []
+        d2_list = []
+        d3_list = []
+
+        for r1 in replicas:
+            current_temp = r1.new_temperature_1
+            
             ###############################################
             # temperature exchange
             if dimension == 2:
-                current_salt = replicas[r1].new_salt_concentration
-                if current_salt not in salt_list:
-                    salt_list.append(current_salt)
+                r_pair = [r1.rstr_val_d1, r1.rstr_val_d3]
+                if r_pair not in d2_list:
+                    d2_list.append(r_pair)
                     current_group = []
-                    #current_group.append(replicas[r1])
+
                     for r2 in replicas:
-                        if current_salt == r2.new_salt_concentration:
+                        if (r1.rstr_val_d1 == r2.rstr_val_d1) and (r1.rstr_val_d3 == r2.rstr_val_d3):
                             current_group.append(r2)
 
                     #######################################
@@ -476,15 +497,34 @@ class AmberKernel3dPatternB(MdKernel3d):
                     #######################################
                     self.do_exchange(dimension, current_group, swap_matrix)
             ###############################################
-            # us exchange
-            else:
-                current_temp = replicas[r1].new_temperature_1
-                if current_temp not in temp_list:
-                    temp_list.append(current_temp)
+            # us exchange d1
+            elif dimension == 1:
+                r_pair = [r1.new_temperature_1, r1.rstr_val_d3]
+
+                if r_pair not in d1_list:
+                    d1_list.append(r_pair)
                     current_group = []
-                    #current_group.append(replicas[r1])
+                    
                     for r2 in replicas:
-                        if current_temp == r2.new_temperature_1:
+                        if (r1.new_temperature_1 == r2.new_temperature_1) and (r1.rstr_val_d3 == r2.rstr_val_d3):
+                            current_group.append(r2)
+                    
+                    #######################################
+                    # perform exchange among group members
+                    #######################################
+                    self.do_exchange(dimension, current_group, swap_matrix)
+
+            ###############################################
+            # us exchange d3
+            elif dimension == 3:
+                r_pair = [r1.new_temperature_1, r1.rstr_val_d1]
+
+                if r_pair not in d3_list:
+                    d3_list.append(r_pair)
+                    current_group = []
+                    
+                    for r2 in replicas:
+                        if (r1.new_temperature_1 == r2.new_temperature_1) and (r1.rstr_val_d1 == r2.rstr_val_d1):
                             current_group.append(r2)
                     
                     #######################################
@@ -514,6 +554,7 @@ class AmberKernel3dPatternB(MdKernel3d):
 
         self.logger.debug("[init_matrices] d1_id_matrix: {0:s}".format(self.d1_id_matrix) )
         self.logger.debug("[init_matrices] d2_id_matrix: {0:s}".format(self.d2_id_matrix) )
+        self.logger.debug("[init_matrices] d3_id_matrix: {0:s}".format(self.d3_id_matrix) )
 
         # temp_matrix
         for r in replicas:
@@ -540,15 +581,4 @@ class AmberKernel3dPatternB(MdKernel3d):
         self.us_d1_matrix = sorted(self.us_d1_matrix)
         self.logger.debug("[init_matrices] us_d1_matrix: {0:s}".format(self.us_d1_matrix) )
 
-        # us_d3_matrix
-        for r in replicas:
-            row = []
-            row.append(r.id)
-            row.append(r.new_restraints_2)
-            for c in range(self.nr_cycles - 1):
-                row.append( -1.0 )
-            self.us_d3_matrix.append( row )
-
-        self.us_d3_matrix = sorted(self.us_d3_matrix)
-        self.logger.debug("[init_matrices] us_d3_matrix: {0:s}".format(self.us_d3_matrix) )
- 
+       

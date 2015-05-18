@@ -71,7 +71,7 @@ KERNELS = {
             "amber": {
                 "environment" : {},
                 "pre_execution" : ["module load amber/14"],
-                "executable" : "/opt/amber/bin/sander.MPI"
+                "executable" : "/opt/amber/bin/sander"
             }
         }
     },"localhost.linux.x86":
