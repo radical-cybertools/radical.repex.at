@@ -8,7 +8,7 @@
         "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "3",
+        "number_of_cycles": "4",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_input": "ala10_us.mdin",
@@ -18,8 +18,7 @@
         "us_template": "ala10_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "1000",
-        "init_temperature": "300.0"
+        "steps_per_cycle": "1000"
         },
     "input.DIM": {
         "temperature_2": {
@@ -34,8 +33,8 @@
             },
         "umbrella_sampling_3": {
             "number_of_replicas": "2",
-            "us_start_param": "120",
-            "us_end_param": "160"
+            "us_start_param": "180",
+            "us_end_param": "220"
             }    
     }
 }

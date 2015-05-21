@@ -219,7 +219,7 @@ class AmberKernel3dPatternB(MdKernel3d):
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@disang@",replica.new_restraints_1)
-        tbuffer = tbuffer.replace("@temp@",str(self.init_temperature))
+        tbuffer = tbuffer.replace("@temp@",str(replica.new_temperature_1))
         
         replica.cycle += 1
 
@@ -399,7 +399,7 @@ class AmberKernel3dPatternB(MdKernel3d):
                 "replica_cycle" : str(replica.cycle-1),
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
-                "init_temp" : str(self.init_temperature),
+                "init_temp" : str(replica.new_temperature_1),
                 "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": str(self.amber_parameters),

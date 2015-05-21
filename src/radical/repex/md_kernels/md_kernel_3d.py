@@ -65,7 +65,6 @@ class MdKernel3d(object):
         self.work_dir_local = work_dir_local
 
         self.us_template = inp_file['input.MD']['us_template']                       
-        self.init_temperature = float(inp_file['input.MD']['init_temperature'])
         self.current_cycle = -1
 
         # hardcoded for now
