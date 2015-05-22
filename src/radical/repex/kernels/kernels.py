@@ -14,7 +14,8 @@ KERNELS = {
             "amber": {
                 "environment" : {},
                 "pre_execution" : ["module load TACC", "module load amber/12.0"],
-                "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander"
+                "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander",
+                "executable_mpi" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI"
             },
             "namd": {
                 "environment" : {},
@@ -71,7 +72,8 @@ KERNELS = {
             "amber": {
                 "environment" : {},
                 "pre_execution" : ["module load amber/14"],
-                "executable" : "/opt/amber/bin/sander"
+                "executable" : "/opt/amber/bin/sander",
+                "executable_mpi" : "/opt/amber/bin/sander.MPI"
             }
         }
     },"localhost.linux.x86":

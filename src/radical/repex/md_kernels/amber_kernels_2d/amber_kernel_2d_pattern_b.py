@@ -23,6 +23,8 @@ from replicas.replica import Replica2d
 from md_kernels.md_kernel_2d import *
 import amber_kernels_2d.amber_matrix_calculator_pattern_b
 import amber_kernels_2d.amber_matrix_calculator_2d_pattern_b
+import amber_kernels_2d.salt_conc_pre_exec
+import amber_kernels_2d.salt_conc_post_exec
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -60,6 +62,8 @@ class AmberKernel2dPatternB(MdKernel2d):
             except:
                 print "Amber path for localhost is not defined..."
 
+        self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"]["executable_mpi"]
+
         self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
@@ -84,6 +88,8 @@ class AmberKernel2dPatternB(MdKernel2d):
         
         self.dims = 2
 
+        self.node_cores = int(inp_file['input.PILOT']['node_cores'])
+
     # ------------------------------------------------------------------------------
     #
     def get_logger(self):
@@ -103,12 +109,20 @@ class AmberKernel2dPatternB(MdKernel2d):
         calc_b_2d = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
         calc_b_2d_path = calc_b_2d + "/amber_matrix_calculator_2d_pattern_b.py"
    
+        salt_pre_exec  = os.path.dirname(amber_kernels_2d.salt_conc_pre_exec.__file__)
+        salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
+
+        salt_post_exec  = os.path.dirname(amber_kernels_2d.salt_conc_post_exec.__file__)
+        salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
+
 
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_restraints)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("amber_matrix_calculator_pattern_b.py")
         self.shared_files.append("amber_matrix_calculator_2d_pattern_b.py")
+        self.shared_files.append("salt_conc_pre_exec.py")
+        self.shared_files.append("salt_conc_post_exec.py")
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
@@ -124,8 +138,13 @@ class AmberKernel2dPatternB(MdKernel2d):
 
         calc_b_2d_url = 'file://%s' % (calc_b_2d_path)
         self.shared_urls.append(calc_b_2d_url)
- 
 
+        salt_pre_exec_url = 'file://%s' % (salt_pre_exec_path)
+        self.shared_urls.append(salt_pre_exec_url)
+
+        salt_post_exec_url = 'file://%s' % (salt_post_exec_path)
+        self.shared_urls.append(salt_post_exec_url)
+ 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
     def build_input_file(self, replica):
@@ -290,9 +309,7 @@ class AmberKernel2dPatternB(MdKernel2d):
             cu.output_staging = matrix_col
         else:
             cu = radical.pilot.ComputeUnitDescription()
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
-
+            
             data = {
                 "replica_id": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
@@ -306,16 +323,34 @@ class AmberKernel2dPatternB(MdKernel2d):
                 "all_temp" : self.all_temp_list,
                 "r_old_path": str(replica.old_path),
             }
-            in_st = []
-            in_st.append(sd_shared_list[2])
-            in_st.append(sd_shared_list[4])
 
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
+
+            salt_pre_exec = ["python salt_conc_pre_exec.py " + "\'" + json_data + "\'"]
+            cu.pre_exec = self.pre_exec + salt_pre_exec
+
+            cu.executable = self.amber_path_mpi
+
+            salt_post_exec = ["python salt_conc_post_exec.py " + "\'" + json_data + "\'"]
+            cu.post_exec = salt_post_exec
+
+            in_st = []
+            in_st.append(sd_shared_list[2])
+            in_st.append(sd_shared_list[5])
+            in_st.append(sd_shared_list[6])
+            
             cu.input_staging = in_st
-            cu.arguments = ["amber_matrix_calculator_2d_pattern_b.py", json_data]
+
+            if self.node_cores > self.replicas:
+                cu.arguments = ['-ng', str(self.replicas), '-groupfile', 'groupfile']
+                cu.cores = self.node_cores
+            else:
+                cu.arguments = ['-ng', str(self.node_cores), '-groupfile', 'groupfile']
+                cu.cores = self.node_cores
+
             cu.output_staging = matrix_col 
-            cu.cores = 1            
+            cu.mpi = True            
 
         return cu
 
