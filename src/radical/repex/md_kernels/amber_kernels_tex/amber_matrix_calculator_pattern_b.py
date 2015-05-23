@@ -118,6 +118,7 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
+    """
     try:
         #r_file = open( (os.path.join(pwd, matrix_col) ), "w")
         for item in swap_column:
@@ -131,5 +132,22 @@ if __name__ == '__main__':
         #r_file.close()
     except IOError:
         print 'Warning: unable to create column file %s for replica %s' % (matrix_col, replica_id) 
+    """
+
+
+    #----------------------------------------------------------------
+    # writing to file
+    outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
+    with open(outfile, 'w+') as f:
+        row_str = ""
+        for item in swap_column:        
+            if len(row_str) != 0:
+                row_str = row_str + " " + str(item)
+            else:
+                row_str = str(item)   
+        row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
+
+        f.write(row_str)    
+    f.close()
 
 

@@ -48,7 +48,6 @@ class AmberKernelTex(MdKernelTex):
             except:
                 print "Amber path for localhost is not defined..."
 
-        self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
  
@@ -90,7 +89,6 @@ class AmberKernelTex(MdKernelTex):
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
-        tbuffer = tbuffer.replace("@rstr@", self.amber_restraints )
         
         replica.cycle += 1
 
@@ -125,30 +123,6 @@ class AmberKernelTex(MdKernelTex):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
-
-        restraints = self.amber_restraints
-        """
-        if (replica.cycle == 0):
-            restraints = self.amber_restraints
-        else:
-            ##################################
-            # changing first path from absolute 
-            # to relative so that Amber can 
-            # process it
-            ##################################
-            path_list = []
-            for char in reversed(replica.first_path):
-                if char == '/': break
-                path_list.append( char )
-
-            modified_first_path = ''
-            for char in reversed( path_list ):
-                modified_first_path += char
-
-            modified_first_path = '../' + modified_first_path.rstrip()
-            restraints = modified_first_path + "/" + self.amber_restraints
-        """ 
-
         try:
             r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), template)), "r")
         except IOError:
@@ -159,7 +133,6 @@ class AmberKernelTex(MdKernelTex):
 
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
-        tbuffer = tbuffer.replace("@rstr@", restraints )
         
         replica.cycle += 1
 
@@ -198,14 +171,13 @@ class AmberKernelTex(MdKernelTex):
                 cu = radical.pilot.ComputeUnitDescription()
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-                rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
 
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", self.amber_coordinates, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
-                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr)]
+                cu.input_staging = [str(input_file), str(crds), str(parm)]
                 cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
             else:
@@ -213,14 +185,13 @@ class AmberKernelTex(MdKernelTex):
                 
                 crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
                 parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-                rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
                 cu.executable = self.amber_path
                 cu.pre_exec = self.pre_exec
                 cu.mpi = self.replica_mpi
                 cu.arguments = ["-O", "-i ", input_file, "-o ", output_file, "-p ", self.amber_parameters, "-c ", old_coor, "-r ", new_coor, "-x ", new_traj, "-inf ", new_info]
                 cu.cores = self.replica_cores
 
-                cu.input_staging = [str(input_file), str(crds), str(parm), str(rstr), str(old_coor)]
+                cu.input_staging = [str(input_file), str(crds), str(parm), str(old_coor)]
                 cu.output_staging = [str(new_coor), str(new_traj), str(new_info)]
                 compute_replicas.append(cu)
 

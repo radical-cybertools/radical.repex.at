@@ -62,7 +62,6 @@ class AmberKernelTexPatternB(AmberKernelTex):
                 print "Amber path for localhost is not defined..."
         """
  
-        self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
@@ -84,22 +83,22 @@ class AmberKernelTexPatternB(AmberKernelTex):
     def prepare_shared_data(self):
 
         parm_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        rstr_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+        coor_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
         inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
 
         calc_b = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
         calc_b_path = calc_b + "/amber_matrix_calculator_pattern_b.py"
 
         self.shared_files.append(self.amber_parameters)
-        self.shared_files.append(self.amber_restraints)
+        self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("amber_matrix_calculator_pattern_b.py")
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
 
-        rstr_url = 'file://%s' % (rstr_path)
-        self.shared_urls.append(rstr_url)
+        coor_url = 'file://%s' % (coor_path)
+        self.shared_urls.append(coor_url)
 
         inp_url = 'file://%s' % (inp_path)
         self.shared_urls.append(inp_url)
@@ -123,11 +122,9 @@ class AmberKernelTexPatternB(AmberKernelTex):
         
         self.build_input_file(replica)
       
-        # rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
         crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
-        # this is not transferred back
+
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
 
         new_coor = replica.new_coor
@@ -211,12 +208,13 @@ class AmberKernelTexPatternB(AmberKernelTex):
         exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
            
-        # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.cycle-1), str(replica.id))
 
         cu = radical.pilot.ComputeUnitDescription()
         cu.executable = "python"
         cu.input_staging  = sd_shared_list[3]
+        cu.output_staging = matrix_col
         cu.arguments = ["amber_matrix_calculator_pattern_b.py", replica.id, (replica.cycle-1), self.replicas, basename]
         cu.cores = 1
         cu.mpi = False
