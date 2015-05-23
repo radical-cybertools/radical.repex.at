@@ -170,7 +170,7 @@ class AmberKernelTexPatternB(AmberKernelTex):
                                   "-inf ", new_info]
 
             cu.cores = self.replica_cores
-            cu.input_staging = [str(input_file), str(crds)] + sd_shared_list
+            cu.input_staging = [str(input_file)] + sd_shared_list
             cu.output_staging = st_out
         else:
             #old_coor = replicas[r].first_path + "/" + self.amber_coordinates
