@@ -50,7 +50,7 @@ def reduced_energy(temperature, potential):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def get_historical_data(history_name):
+def get_historical_data(history_name, data_path=os.getcwd()):
     """Retrieves temperature and potential energy from simulation output file .history file.
     This file is generated after each simulation run. The function searches for directory 
     where .history file recides by checking all computeUnit directories on target resource.
@@ -67,34 +67,25 @@ def get_historical_data(history_name):
 
     ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED FROM THE PROPERTY OF THE REPLICA OBJECT.
     """
-    home_dir = os.getcwd()
-    os.chdir("../")
 
-    # getting all cu directories
-    replica_dirs = []
-    for name in os.listdir("."):
-        if os.path.isdir(name):
-            replica_dirs.append(name)    
+    home_dir = os.getcwd()
+    os.chdir(data_path)
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
-    for directory in replica_dirs:
-         os.chdir(directory)
-         try:
-             f = open(history_name)
-             lines = f.readlines()
-             f.close()
-             path_to_replica_folder = os.getcwd()
-             for i in range(len(lines)):
-                 #if "TEMP(K)" in lines[i]:
-                 #    temp = float(lines[i].split()[8])
-                 if "EPtot" in lines[i]:
-                     eptot = float(lines[i].split()[8])
-             #print "history file %s found!" % ( history_name ) 
-         except:
-             pass 
-         os.chdir("../")
- 
+    try:
+        f = open(history_name)
+        lines = f.readlines()
+        f.close()
+        path_to_replica_folder = os.getcwd()
+        for i in range(len(lines)):
+            #if "TEMP(K)" in lines[i]:
+            #    temp = float(lines[i].split()[8])
+            if "EPtot" in lines[i]:
+                eptot = float(lines[i].split()[8])
+    except:
+        raise
+
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
 
@@ -152,19 +143,17 @@ if __name__ == '__main__':
     #print "salt concentration for replica %d is %f" % (replica_id, float(salt_conc))
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
-    shared_path = data["shared_path"]
+    #shared_path = data["shared_path"]
 
 
-    # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
-    new_coor = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
-
+    new_coor = data["new_coor"]
+    
     pwd = os.getcwd()
     matrix_col = "matrix_column_%d_%d.dat" % ( replica_id, replica_cycle ) 
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    #print "history name: %s" % history_name
-    replica_energy, path_to_replica_folder = get_historical_data( history_name )
+    replica_energy, path_to_replica_folder = get_historical_data( history_name, "../staging_area" )
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
@@ -175,8 +164,6 @@ if __name__ == '__main__':
     # call amber to run 1-step energy calculation
     for j in range(replicas):
         energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
-        #input_name = self.work_dir_local + "/amber_inp/" + "ala10.mdin"
-        #input_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdin"
         energy_input_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdin"
 
         f = file(mdin_name,'r')
@@ -194,8 +181,7 @@ if __name__ == '__main__':
                 f.write(line)
         f.close()
         
-        #problems here
-        call_amber(amber_path, energy_input_name, shared_path + '/' + prmtop_name , new_coor, energy_history_name)
+        call_amber(amber_path, energy_input_name, '../staging_area/' + prmtop_name , new_coor, energy_history_name)
 
         try:
             rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
@@ -210,11 +196,17 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], energies[j])
 
-    # printing replica id
-    # print str(replica_id).rstrip()
-    # printing swap column
-    for item in swap_column:
-        print item,
+    #----------------------------------------------------------------
+    # writing to file
+    outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
+    with open(outfile, 'w+') as f:
+        row_str = ""
+        for item in swap_column:        
+            if len(row_str) != 0:
+                row_str = row_str + " " + str(item)
+            else:
+                row_str = str(item)   
+        row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
 
-    # printing path
-    print str(path_to_replica_folder).rstrip()
+        f.write(row_str)    
+    f.close()

@@ -100,14 +100,13 @@ class PilotKernel(object):
         pilot_manager = None
         pilot_object = None
    
-        session = radical.pilot.Session(database_url=self.dburl)
+        session = radical.pilot.Session(database_url=self.dburl, database_name='repex-tests')
         self.logger.info("Session ID: {0}".format(session.uid) )
 
         try:
             # Add an ssh identity to the session.
             cred = radical.pilot.Context('ssh')
             cred.user_id = self.user
-            #cred.user_pass = 'xxx'
             session.add_context(cred)
 
             pilot_manager = radical.pilot.PilotManager(session=session)
