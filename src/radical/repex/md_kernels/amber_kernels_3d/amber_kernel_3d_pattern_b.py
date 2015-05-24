@@ -112,7 +112,6 @@ class AmberKernel3dPatternB(MdKernel3d):
     def prepare_shared_data(self):
 
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
-        rstr_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_restraints
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
@@ -128,7 +127,6 @@ class AmberKernel3dPatternB(MdKernel3d):
 
         #------------------------------------------------
         self.shared_files.append(self.amber_parameters)
-        self.shared_files.append(self.amber_restraints)
         self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("amber_matrix_calculator_pattern_b_tex.py")
@@ -140,9 +138,6 @@ class AmberKernel3dPatternB(MdKernel3d):
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
-
-        rstr_url = 'file://%s' % (rstr_path)
-        self.shared_urls.append(rstr_url)
 
         coor_url = 'file://%s' % (coor_path)
         self.shared_urls.append(coor_url)

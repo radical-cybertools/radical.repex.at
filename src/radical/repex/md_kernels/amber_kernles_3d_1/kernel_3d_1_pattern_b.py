@@ -21,25 +21,16 @@ import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 from replicas.replica import Replica2d
 from md_kernels.md_kernel_2d import *
-import amber_kernels_2d.amber_matrix_calculator_pattern_b
-import amber_kernels_2d.amber_matrix_calculator_2d_pattern_b
-import amber_kernels_2d.salt_conc_pre_exec
-import amber_kernels_2d.salt_conc_post_exec
+import amber_kernels_3d_1.matrix_calculator_temp_ex
+import amber_kernels_3d_1.matrix_calculator_us_ex
+import amber_kernels_3d_1.salt_conc_pre_exec
+import amber_kernels_3d_1.salt_conc_post_exec
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernel2dPatternB(MdKernel2d):
+class AmberKernel3d1PatternB(MdKernel3d1):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
-
-    RE pattern B:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
-    - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
 
     """
     def __init__(self, inp_file,  work_dir_local):
@@ -50,7 +41,7 @@ class AmberKernel2dPatternB(MdKernel2d):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        MdKernel2d.__init__(self, inp_file, work_dir_local)
+        MdKernel3d1.__init__(self, inp_file, work_dir_local)
 
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
         try:
@@ -64,45 +55,81 @@ class AmberKernel2dPatternB(MdKernel2d):
 
         self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"]["executable_mpi"]
 
-        self.amber_restraints = inp_file['input.MD']['amber_restraints']
-        self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
-        self.amber_parameters = inp_file['input.MD']['amber_parameters']
-        self.amber_input = inp_file['input.MD']['amber_input']
-        self.input_folder = inp_file['input.MD']['input_folder']
-
-        self.d1_id_matrix = []
-        self.d2_id_matrix = []
-        self.temp_matrix = []
-        self.salt_matrix = []
-
-        self.current_cycle = -1
-
         self.name = 'ak-patternB-2d'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
+        ########################
         self.shared_urls = []
         self.shared_files = []
 
         self.all_temp_list = []
         self.all_salt_list = []
-        
-        self.dims = 2
+        self.all_rstr_list = []
 
+        self.d1_id_matrix = []
+        self.d2_id_matrix = []
+        self.d3_id_matrix = []        
+
+        self.temp_matrix = []
+        self.us_salt_matrix = []
+        self.us_matrix = []
+        
         self.node_cores = int(inp_file['input.PILOT']['node_cores'])
+
+    #----------------------------------------------------------------------------------------------
+    # 
+    def initialize_replicas(self):
+        """Initializes replicas and their attributes to default values
+
+        """
+
+        replicas = []
+
+        d1_params = []
+        N = self.replicas_d1
+        factor = (self.max_temp/self.min_temp)**(1./(N-1))
+        for k in range(N):
+            new_temp = self.min_temp * (factor**k)
+            d1_params.append(new_temp)
+
+        d2_params = []
+        N = self.replicas_d2
+        for k in range(N):
+            new_salt = (self.max_salt-self.min_salt)/(N-1)*k + self.min_salt
+            d2_params.append(new_salt)
+
+        for i in range(self.replicas_d1):
+            t1 = float(d1_params[i])
+            for j in range(self.replicas_d2):
+                s1 = float(d2_params[j])
+                for k in range(self.replicas_d3):
+                 
+                    #---------------------------
+                    rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
+                    r1 = self.restraints_files[rid]
+
+                    spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / float(self.replicas_d1)
+                    starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
+                    rstr_val_d1 = str(starting_value_d1+spacing_d1)
+
+                    r = Replica3d(rid, new_temperature_1=t1, new_salt_1=s1, new_restraints_1=r1, rstr_val_d1=float(rstr_val_d1), cores=1)
+                    replicas.append(r)
+
+        return replicas
 
     # ------------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
 
-        parm_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        rstr_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
-        inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
+        parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
+        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
+        inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
-        calc_b = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_pattern_b.__file__)
-        calc_b_path = calc_b + "/amber_matrix_calculator_pattern_b.py"
+        calc_temp = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_pattern_b.__file__)
+        calc_temp_path = calc_b + "/matrix_calculator_temp_ex.py"
 
-        calc_b_2d = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
-        calc_b_2d_path = calc_b_2d + "/amber_matrix_calculator_2d_pattern_b.py"
+        calc_us = os.path.dirname(amber_kernels_2d.amber_matrix_calculator_2d_pattern_b.__file__)
+        calc_us_path = calc_b_2d + "/amber_matrix_calculator_us.py"
    
         salt_pre_exec  = os.path.dirname(amber_kernels_2d.salt_conc_pre_exec.__file__)
         salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
@@ -110,12 +137,15 @@ class AmberKernel2dPatternB(MdKernel2d):
         salt_post_exec  = os.path.dirname(amber_kernels_2d.salt_conc_post_exec.__file__)
         salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
 
+        rstr_list = []
+        for rstr in self.restraints_files:
+            rstr_list.append(self.work_dir_local + "/" + rstr)
 
         self.shared_files.append(self.amber_parameters)
-        self.shared_files.append(self.amber_restraints)
+        self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(self.amber_input)
-        self.shared_files.append("amber_matrix_calculator_pattern_b.py")
-        self.shared_files.append("amber_matrix_calculator_2d_pattern_b.py")
+        self.shared_files.append("matrix_calculator_temp_ex.py")
+        self.shared_files.append("matrix_calculator_us.py")
         self.shared_files.append("salt_conc_pre_exec.py")
         self.shared_files.append("salt_conc_post_exec.py")
 

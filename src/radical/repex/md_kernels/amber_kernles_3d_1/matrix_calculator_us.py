@@ -14,6 +14,7 @@ import os,sys,socket,time
 from subprocess import *
 import subprocess
 import math
+import time
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -71,9 +72,18 @@ class restraint(object):
 
         self.crd_data = []
         self.crd_file = crd_file
-        crd = file(self.crd_file,'r')
-        self.crd_data = crd.readlines()
-        crd.close()
+        try:
+            crd = file(self.crd_file,'r')
+            self.crd_data = crd.readlines()
+            crd.close()
+        except:
+            try:
+                time.sleep(1)
+                crd = file(self.crd_file,'r')
+                self.crd_data = crd.readlines()
+                crd.close()
+            except:
+                print "File %s is not found." % self.crd_file
 
     def set_rstr(self, rstr_entry):
 
@@ -185,7 +195,7 @@ def get_historical_data(history_name):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """ 
+    """ TODO 
     """
 
     json_data = sys.argv[1]

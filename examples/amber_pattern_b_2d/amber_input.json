@@ -10,7 +10,7 @@
         "node_cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "3",
+        "number_of_cycles": "4",
         "number_of_replicas": "10",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
@@ -24,7 +24,6 @@
         "max_temperature": "600",
         "min_salt": "0.0",
         "max_salt": "1.0",
-        "init_temperature": "300.0",
         "steps_per_cycle": "1000"
     }
 }

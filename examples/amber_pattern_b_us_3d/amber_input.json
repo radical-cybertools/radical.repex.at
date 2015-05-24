@@ -1,14 +1,15 @@
 {
     "input.PILOT": {
-        "resource": "gordon.sdsc.xsede.org",
+        "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
-        "project" : "unc101",
-        "runtime" : "120",
+        "project" : "TG-MCB090174",
+        "runtime" : "60",
+        "queue" : "development",
         "cleanup" : "False",
-        "cores" : "16"
+        "cores" : "32"
     },
     "input.MD": {
-        "number_of_cycles": "4",
+        "number_of_cycles": "3",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_input": "ala10_us.mdin",
@@ -22,17 +23,17 @@
         },
     "input.DIM": {
         "temperature_2": {
-            "number_of_replicas": "4",
+            "number_of_replicas": "2",
             "min_temperature": "300",
             "max_temperature": "600"
             },
         "umbrella_sampling_1": {
-            "number_of_replicas": "2",
+            "number_of_replicas": "4",
             "us_start_param": "120",
             "us_end_param": "160"
             },
         "umbrella_sampling_3": {
-            "number_of_replicas": "6",
+            "number_of_replicas": "8",
             "us_start_param": "180",
             "us_end_param": "220"
             }    
