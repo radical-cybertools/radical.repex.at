@@ -14,7 +14,7 @@ import radical.pilot
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_2d.amber_kernel_2d_pattern_b import AmberKernel2dPatternB
+from amber_kernels_2d.kernel_pattern_b_2d import AmberKernel2DpatternB
 from pilot_kernels.pilot_kernel_pattern_b_multi_d import PilotKernelPatternBmultiD
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernel2dPatternB( inp_file, work_dir_local )
+    md_kernel = AmberKernel2DpatternB( inp_file, work_dir_local )
     pilot_kernel = PilotKernelPatternBmultiD( inp_file )
 
     # initializing replicas
