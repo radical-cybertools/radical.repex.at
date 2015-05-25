@@ -57,7 +57,8 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
         self.shared_files = []
 
         self.all_temp_list = []
-        self.all_rstr_list = []
+        self.all_rstr_list_d1 = []
+        self.all_rstr_list_d3 = []
 
         self.d1_id_matrix = []
         self.d2_id_matrix = []
@@ -328,18 +329,22 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
         """
         """
 
-        all_rstr = ""
+        all_rstr_d1 = ""
+        all_rstr_d3 = ""
         all_temp = ""
         for r in range(len(replicas)):
             if r == 0:
-                all_rstr = str(replicas[r].new_restraints_1)
+                all_rstr_d1 = str(replicas[r].rstr_val_d1)
+                all_rstr_d3 = str(replicas[r].rstr_val_d3)
                 all_temp   = str(replicas[r].new_temperature_1)
             else:
-                all_rstr = all_rstr + " " + str(replicas[r].new_restraints_1)
+                all_rstr_d1 = all_rstr_d1 + " " + str(replicas[r].rstr_val_d1)
+                all_rstr_d3 = all_rstr_d3 + " " + str(replicas[r].rstr_val_d3)
                 all_temp   = all_temp + " " + str(replicas[r].new_temperature_1)
 
         self.all_temp_list = all_temp.split(" ")
-        self.all_rstr_list = all_rstr.split(" ")
+        self.all_rstr_list_d1 = all_rstr_d1.split(" ")
+        self.all_rstr_list_d3 = all_rstr_d3.split(" ")
      
     #---------------------------------------------------------------------------------------------------------------------
     #

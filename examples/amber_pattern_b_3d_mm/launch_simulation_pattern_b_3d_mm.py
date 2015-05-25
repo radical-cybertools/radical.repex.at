@@ -14,29 +14,20 @@ import radical.pilot
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_2d.amber_kernel_2d_pattern_b import AmberKernel2dPatternB
+from amber_kernels_3d_mm.kernel_pattern_b_3d_mm import AmberKernel3d1PatternB
 from pilot_kernels.pilot_kernel_pattern_b_multi_d import PilotKernelPatternBmultiD
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """Runs RE simulation using pattern B. 
-
-    RE pattern B:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
-    - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
     """
 
     name = 'launcher-2d'
     logger  = rul.getLogger ('radical.repex', name)
  
     logger.info("*********************************************************************")
-    logger.info("*    RepEx simulation: AMBER + Salt Concentration + RE pattern B    *")
+    logger.info("*          RepEx simulation: AMBER + MM-3D + RE pattern B           *")
     logger.info("*********************************************************************")
 
     work_dir_local = os.getcwd()
@@ -48,7 +39,7 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernel2dPatternB( inp_file, work_dir_local )
+    md_kernel = AmberKernel3d1PatternB( inp_file, work_dir_local )
     pilot_kernel = PilotKernelPatternBmultiD( inp_file )
 
     # initializing replicas

@@ -34,7 +34,6 @@ class MdKernel3dMM(object):
 
         self.resource = inp_file['input.PILOT']['resource']
 
-        #self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
 
@@ -222,4 +221,5 @@ class MdKernel3dMM(object):
                 print "Setting stopped i run to: %d for replica %d" % (r.stopped_run, r.id)
             except:
                 raise
+
 

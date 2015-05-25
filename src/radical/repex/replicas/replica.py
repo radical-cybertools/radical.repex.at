@@ -238,8 +238,15 @@ class Replica3d(object):
             self.new_temperature_1 = new_temperature_1
         self.old_temperature_1 = new_temperature_1
 
-        self.rstr_val_d1 = rstr_val_d1
-        self.rstr_val_d3 = rstr_val_d3
+        if rstr_val_d1 is None:
+            self.rstr_val_d1 = 0
+        else:
+            self.rstr_val_d1 = rstr_val_d1
+
+        if rstr_val_d3 is None:
+            self.rstr_val_d3 = 0
+        else:
+            self.rstr_val_d3 = rstr_val_d3
 
         # amber stuff
         self.new_traj = ""  # ok
