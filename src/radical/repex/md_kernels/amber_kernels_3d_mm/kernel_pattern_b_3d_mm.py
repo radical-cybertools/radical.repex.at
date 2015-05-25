@@ -28,7 +28,7 @@ import amber_kernels_3d_mm.salt_conc_post_exec
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernel3d1PatternB(MdKernel3dMM):
+class AmberKernelPatternB3dMM(MdKernel3dMM):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
     """
@@ -106,9 +106,9 @@ class AmberKernel3d1PatternB(MdKernel3dMM):
                     rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
                     r1 = self.restraints_files[rid]
 
-                    spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / float(self.replicas_d1)
-                    starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
-                    rstr_val_d1 = str(starting_value_d1+spacing_d1)
+                    spacing = (self.us_end_param - self.us_start_param) / float(self.replicas_d3)
+                    starting_value = self.us_start_param + i*spacing
+                    rstr_val_d1 = str(starting_value+spacing)
 
                     r = Replica3d(rid, new_temperature_1=t1, new_salt_1=s1, new_restraints_1=r1, rstr_val_d1=float(rstr_val_d1), cores=1)
                     replicas.append(r)
@@ -123,16 +123,16 @@ class AmberKernel3d1PatternB(MdKernel3dMM):
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
-        calc_temp = os.path.dirname(amber_kernels_2d.matrix_calculator_temp_ex.__file__)
-        calc_temp_path = calc_b + "/matrix_calculator_temp_ex.py"
+        calc_temp = os.path.dirname(amber_kernels_3d_mm.matrix_calculator_temp_ex.__file__)
+        calc_temp_path = calc_temp + "/matrix_calculator_temp_ex.py"
 
-        calc_us = os.path.dirname(amber_kernels_2d.matrix_calculator_us_ex.__file__)
-        calc_us_path = calc_b_2d + "/amber_matrix_calculator_us_ex.py"
+        calc_us = os.path.dirname(amber_kernels_3d_mm.matrix_calculator_us_ex.__file__)
+        calc_us_path = calc_us + "/matrix_calculator_us_ex.py"
    
-        salt_pre_exec  = os.path.dirname(amber_kernels_2d.salt_conc_pre_exec.__file__)
+        salt_pre_exec  = os.path.dirname(amber_kernels_3d_mm.salt_conc_pre_exec.__file__)
         salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
 
-        salt_post_exec  = os.path.dirname(amber_kernels_2d.salt_conc_post_exec.__file__)
+        salt_post_exec  = os.path.dirname(amber_kernels_3d_mm.salt_conc_post_exec.__file__)
         salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
 
         rstr_list = []
@@ -243,7 +243,7 @@ class AmberKernel3d1PatternB(MdKernel3dMM):
         # need to avoid this step!
         self.build_input_file(replica)
       
-        crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
+        crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
 
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
         # this is not transferred back
@@ -652,7 +652,7 @@ class AmberKernel3d1PatternB(MdKernel3dMM):
             row.append(r.rstr_val_d1)
             for c in range(self.nr_cycles - 1):
                 row.append( -1.0 )
-            self.us_d1_matrix.append( row )
+            self.us_matrix.append( row )
 
         self.us_matrix = sorted(self.us_matrix)
         self.logger.debug("[init_matrices] us_d1_matrix: {0:s}".format(self.us_matrix) )

@@ -42,7 +42,7 @@ class MdKernel3dMM(object):
         else:
             self.nr_cycles = None
         
-        self.inp_folder = inp_file['input.MD']['input_folder']
+        self.input_folder = inp_file['input.MD']['input_folder']
         self.inp_basename = inp_file['input.MD']['input_file_basename']
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
@@ -70,12 +70,12 @@ class MdKernel3dMM(object):
         self.replicas_d3 = int(inp_file['input.DIM']['umbrella_sampling_3']["number_of_replicas"])
 
         # temperature exchange
-        self.min_temp = float(inp_file['input.MD']['temperature_1']['min_temperature'])
-        self.max_temp = float(inp_file['input.MD']['temperature_1']['max_temperature'])
+        self.min_temp = float(inp_file['input.DIM']['temperature_1']['min_temperature'])
+        self.max_temp = float(inp_file['input.DIM']['temperature_1']['max_temperature'])
 
         # salt concentration
-        self.min_salt = float(inp_file['input.MD']['salt_concentration_2']['min_salt'])
-        self.max_salt = float(inp_file['input.MD']['salt_concentration_2']['max_salt'])
+        self.min_salt = float(inp_file['input.DIM']['salt_concentration_2']['min_salt'])
+        self.max_salt = float(inp_file['input.DIM']['salt_concentration_2']['max_salt'])
 
         # umbrella sampling
         self.us_start_param = float(inp_file['input.DIM']['umbrella_sampling_3']['us_start_param'])
