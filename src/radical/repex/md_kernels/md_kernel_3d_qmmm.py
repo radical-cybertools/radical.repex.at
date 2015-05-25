@@ -43,7 +43,6 @@ class MdKernel3dQMMM(object):
         self.input_folder = inp_file['input.MD']['input_folder']
         self.inp_basename = inp_file['input.MD']['input_file_basename']
          
-        self.amber_restraints = inp_file['input.MD']['amber_restraints']
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']

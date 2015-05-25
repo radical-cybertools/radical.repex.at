@@ -112,7 +112,6 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
     def prepare_shared_data(self):
 
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
-        rstr_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_restraints
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
@@ -128,7 +127,6 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
 
         #------------------------------------------------
         self.shared_files.append(self.amber_parameters)
-        self.shared_files.append(self.amber_restraints)
         self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("matrix_calculator_temp_ex.py")
@@ -140,9 +138,6 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
-
-        rstr_url = 'file://%s' % (rstr_path)
-        self.shared_urls.append(rstr_url)
 
         coor_url = 'file://%s' % (coor_path)
         self.shared_urls.append(coor_url)
@@ -266,11 +261,11 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
         if replica.cycle == 1:      
             # files needed to be moved in replica dir
             in_list = []
-            for i in range(4):
+            for i in range(3):
                 in_list.append(sd_shared_list[i])
 
             rid = replica.id
-            in_list.append(sd_shared_list[rid+6])
+            in_list.append(sd_shared_list[rid+5])
 
             replica_path = "replica_%d_%d/" % (replica.id, 0)
             crds_out = {
@@ -302,8 +297,7 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
 
             rid = replica.id
             in_list.append(sd_shared_list[0])
-            in_list.append(sd_shared_list[1])
-            in_list.append(sd_shared_list[rid+6])
+            in_list.append(sd_shared_list[rid+5])
 
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
             old_coor = "../staging_area/" + replica_path + self.amber_coordinates
@@ -359,7 +353,7 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
         if dimension == 2:
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = "python"
-            cu.input_staging  = sd_shared_list[4]
+            cu.input_staging  = sd_shared_list[3]
             cu.arguments = ["matrix_calculator_temp_ex.py", replica.id, (replica.cycle-1), self.replicas, basename]
             cu.cores = 1            
             cu.output_staging = matrix_col
@@ -379,10 +373,10 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
  
             in_list = []
             # copying calculator from staging area to cu folder
-            in_list.append(sd_shared_list[5])
+            in_list.append(sd_shared_list[4])
             rid = replica.id
             # copying .RST files from staging area to replica folder
-            for i in range(6,self.replicas+6):
+            for i in range(5,self.replicas+5):
                 in_list.append(sd_shared_list[i])
 
             # copy new coordinates from MD run to CU directory
