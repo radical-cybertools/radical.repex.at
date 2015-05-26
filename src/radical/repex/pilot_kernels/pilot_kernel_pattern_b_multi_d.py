@@ -154,8 +154,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
-        # creating restraint files for QMMM
-        if md_kernel.name == 'ak-patternB-3d-QMMM' or md_kernel.name == 'ak-patternB-3d-MM':
+        # creating restraint files  
+        if md_kernel.name == 'ak-patternB-3d-TUU' or md_kernel.name == 'ak-patternB-3d-TSU':
             for r in replicas:
                 md_kernel.build_restraint_file(r)
 

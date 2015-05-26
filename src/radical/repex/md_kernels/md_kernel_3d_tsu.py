@@ -19,7 +19,7 @@ from replicas.replica import Replica3d
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class MdKernel3dMM(object):
+class MdKernel3dTSU(object):
     """
     """
     def __init__(self, inp_file,  work_dir_local):

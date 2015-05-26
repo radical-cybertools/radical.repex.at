@@ -21,7 +21,7 @@ from amber_kernels_us.amber_kernel_us_pattern_b import AmberKernelUSPatternB
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class MdKernel3dQMMM(object):
+class MdKernel3dTUU(object):
     """
     """
     def __init__(self, inp_file,  work_dir_local):

@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernles.amber_kernels_salt.amber_kernel_salt_pattern_b
+.. module:: radical.repex.md_kernles.amber_kernels_3d_tsu.kernel_pattern_b_3d_tsu
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
@@ -20,15 +20,15 @@ import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 from replicas.replica import Replica2d
-from md_kernels.md_kernel_3d_mm import *
-import amber_kernels_3d_mm.matrix_calculator_temp_ex
-import amber_kernels_3d_mm.matrix_calculator_us_ex
-import amber_kernels_3d_mm.salt_conc_pre_exec
-import amber_kernels_3d_mm.salt_conc_post_exec
+from md_kernels.md_kernel_3d_tsu import *
+import amber_kernels_3d_tsu.matrix_calculator_temp_ex
+import amber_kernels_3d_tsu.matrix_calculator_us_ex
+import amber_kernels_3d_tsu.salt_conc_pre_exec
+import amber_kernels_3d_tsu.salt_conc_post_exec
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernelPatternB3dMM(MdKernel3dMM):
+class AmberKernelPatternB3dTSU(MdKernel3dTSU):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
     """
@@ -40,7 +40,7 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        MdKernel3dMM.__init__(self, inp_file, work_dir_local)
+        MdKernel3dTSU.__init__(self, inp_file, work_dir_local)
 
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
         try:
@@ -54,7 +54,7 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
 
         self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"]["executable_mpi"]
 
-        self.name = 'ak-patternB-3d-MM'
+        self.name = 'ak-patternB-3d-TSU'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
         ########################
@@ -123,16 +123,16 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
-        calc_temp = os.path.dirname(amber_kernels_3d_mm.matrix_calculator_temp_ex.__file__)
+        calc_temp = os.path.dirname(amber_kernels_3d_tsu.matrix_calculator_temp_ex.__file__)
         calc_temp_path = calc_temp + "/matrix_calculator_temp_ex.py"
 
-        calc_us = os.path.dirname(amber_kernels_3d_mm.matrix_calculator_us_ex.__file__)
+        calc_us = os.path.dirname(amber_kernels_3d_tsu.matrix_calculator_us_ex.__file__)
         calc_us_path = calc_us + "/matrix_calculator_us_ex.py"
    
-        salt_pre_exec  = os.path.dirname(amber_kernels_3d_mm.salt_conc_pre_exec.__file__)
+        salt_pre_exec  = os.path.dirname(amber_kernels_3d_tsu.salt_conc_pre_exec.__file__)
         salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
 
-        salt_post_exec  = os.path.dirname(amber_kernels_3d_mm.salt_conc_post_exec.__file__)
+        salt_post_exec  = os.path.dirname(amber_kernels_3d_tsu.salt_conc_post_exec.__file__)
         salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
 
         rstr_list = []

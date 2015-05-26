@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernles.amber_kernels_3d_qmmm.kernel_pattern_b_3d_qmmm
+.. module:: radical.repex.md_kernles.amber_kernels_3d_tuu.kernel_pattern_b_3d_tuu
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
@@ -20,13 +20,13 @@ import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 from replicas.replica import Replica2d
-from md_kernels.md_kernel_3d_qmmm import *
-import amber_kernels_3d_qmmm.matrix_calculator_temp_ex
-import amber_kernels_3d_qmmm.matrix_calculator_us_ex
+from md_kernels.md_kernel_3d_tuu import *
+import amber_kernels_3d_tuu.matrix_calculator_temp_ex
+import amber_kernels_3d_tuu.matrix_calculator_us_ex
 
 #--------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
+class AmberKernelPatternB3dTUU(MdKernel3dTUU):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
     """
@@ -38,7 +38,7 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        MdKernel3dQMMM.__init__(self, inp_file, work_dir_local)
+        MdKernel3dTUU.__init__(self, inp_file, work_dir_local)
 
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
         try:
@@ -50,7 +50,7 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
             except:
                 print "Amber path for localhost is not defined..."
 
-        self.name = 'ak-patternB-3d-QMMM'
+        self.name = 'ak-patternB-3d-TUU'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
         self.shared_urls = []
@@ -116,10 +116,10 @@ class AmberKernelPatternB3dQMMM(MdKernel3dQMMM):
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
-        calc_temp_ex = os.path.dirname(amber_kernels_3d_qmmm.matrix_calculator_temp_ex.__file__)
+        calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_temp_ex.__file__)
         calc_temp_ex_path = calc_temp_ex + "/matrix_calculator_temp_ex.py"
 
-        calc_us_ex = os.path.dirname(amber_kernels_3d_qmmm.matrix_calculator_us_ex.__file__)
+        calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_us_ex.__file__)
         calc_us_ex_path = calc_us_ex + "/matrix_calculator_us_ex.py"
 
         rstr_list = []
