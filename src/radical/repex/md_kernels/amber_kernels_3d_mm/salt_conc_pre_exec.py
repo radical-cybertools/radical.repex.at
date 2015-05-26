@@ -48,7 +48,7 @@ def get_historical_data(history_name, data_path=os.getcwd()):
             if "EPtot" in lines[i]:
                 eptot = float(lines[i].split()[8])
     except:
-        pass
+        raise
 
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
@@ -79,6 +79,7 @@ if __name__ == '__main__':
     # SALT CONCENTRATION FOR ALL REPLICAS
     all_salt_conc = (data["all_salt_ctr"])
     all_temperature = (data["all_temp"])
+    all_rstr = (data["all_rstr"])
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
     r_old_path = data["r_old_path"]
@@ -119,6 +120,8 @@ if __name__ == '__main__':
                 f.write(line.replace("@salt@",all_salt_conc[j]))
             elif "@temp@" in line:
                 f.write(line.replace("@temp@",all_temperature[j]))
+            elif "@disang@" in line:
+                f.write(line.replace("@disang@",all_rstr[j]))
             else:
                 f.write(line)
         f.close()

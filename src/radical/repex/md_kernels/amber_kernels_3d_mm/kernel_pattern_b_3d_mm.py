@@ -139,6 +139,7 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
         for rstr in self.restraints_files:
             rstr_list.append(self.work_dir_local + "/" + rstr)
 
+        #------------------------------------------------
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(self.amber_input)
@@ -146,6 +147,10 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
         self.shared_files.append("matrix_calculator_us_ex.py")
         self.shared_files.append("salt_conc_pre_exec.py")
         self.shared_files.append("salt_conc_post_exec.py")
+
+        for rstr in self.restraints_files:
+            self.shared_files.append(rstr)
+        #------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
@@ -167,6 +172,10 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
 
         salt_post_exec_url = 'file://%s' % (salt_post_exec_path)
         self.shared_urls.append(salt_post_exec_url)
+
+        for rstr_p in rstr_list:
+            rstr_url = 'file://%s' % (rstr_p)
+            self.shared_urls.append(rstr_url)
  
     #---------------------------------------------------------------------------------------------------------------------
     #  
@@ -225,6 +234,7 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
         tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature_1)))
         tbuffer = tbuffer.replace("@salt@",str(float(replica.new_salt_concentration)))
+        tbuffer = tbuffer.replace("@disang@",replica.new_restraints_1)
         
         replica.cycle += 1
 
@@ -270,7 +280,15 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
         }
         st_out.append(coor_out)
 
-        if replica.cycle == 1:       
+        if replica.cycle == 1:
+            # files needed to be moved in replica dir
+            in_list = []
+            for i in range(3):
+                in_list.append(sd_shared_list[i])
+
+            rid = replica.id
+            in_list.append(sd_shared_list[rid+7])
+
             replica_path = "replica_%d_%d/" % (replica.id, 0)
             crds_out = {
                 'source': self.amber_coordinates,
@@ -292,9 +310,17 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
                                   "-inf ", new_info]
 
             cu.cores = self.replica_cores
-            cu.input_staging = [str(input_file), str(crds)] + sd_shared_list
+            cu.input_staging = [str(input_file), str(crds)] + in_list
             cu.output_staging = st_out
         else:
+
+            # files needed to be moved in replica dir
+            in_list = []
+
+            rid = replica.id
+            in_list.append(sd_shared_list[0])
+            in_list.append(sd_shared_list[rid+7])
+
             #old_coor = replicas[r].first_path + "/" + self.amber_coordinates
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
             old_coor = "../staging_area/" + replica_path + self.amber_coordinates
@@ -311,7 +337,7 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
                                   "-inf ", new_info]
 
             cu.cores = self.replica_cores
-            cu.input_staging = [str(input_file)] + sd_shared_list
+            cu.input_staging = [str(input_file)] + in_list
             cu.output_staging = st_out
 
         return cu
@@ -329,11 +355,11 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
             if r == 0:
                 all_salt = str(replicas[r].new_salt_concentration)
                 all_temp = str(replicas[r].new_temperature_1)
-                all_rstr = str(replicas[r].rstr_val_d1)
+                all_rstr = str(replicas[r].new_restraints_1)
             else:
                 all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
                 all_temp = all_temp + " " + str(replicas[r].new_temperature_1)
-                all_rstr = all_rstr + " " + str(replicas[r].rstr_val_d1)
+                all_rstr = all_rstr + " " + str(replicas[r].new_restraints_1)
 
         self.all_temp_list = all_temp.split(" ")
         self.all_salt_list = all_salt.split(" ")
@@ -361,12 +387,13 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
                 "replica_cycle" : str(replica.cycle-1),
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
-                "init_temp" : str(replica.new_temperature),
+                "init_temp" : str(replica.new_temperature_1),
                 "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": "../staging_area/"+str(self.amber_parameters),    #temp fix
                 "all_salt_ctr" : self.all_salt_list, 
                 "all_temp" : self.all_temp_list,
+                "all_rstr" : self.all_rstr_list,
                 "r_old_path": str(replica.old_path),
             }
 
@@ -381,10 +408,15 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
             salt_post_exec = ["python salt_conc_post_exec.py " + "\'" + json_data + "\'"]
             cu.post_exec = salt_post_exec
 
+            rid = replica.id
             in_st = []
             in_st.append(sd_shared_list[2])
             in_st.append(sd_shared_list[5])
             in_st.append(sd_shared_list[6])
+
+            # copying .RST files from staging area to replica folder
+            for i in range(7,self.replicas+7):
+                in_st.append(sd_shared_list[i])
             
             cu.input_staging = in_st
 
@@ -410,7 +442,7 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
             in_list.append(sd_shared_list[4])
             rid = replica.id
             # copying .RST files from staging area to replica folder
-            for i in range(5,self.replicas+5):
+            for i in range(7,self.replicas+7):
                 in_list.append(sd_shared_list[i])
 
             # copy new coordinates from MD run to CU directory
@@ -510,8 +542,8 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
                 # update salt_matrix
                 self.salt_matrix[replica.id][self.current_cycle] = replica.new_salt_concentration
             else:
-                # update rstr_matrix
-                self.rstr_matrix[replica.id][self.current_cycle] = replica.rstr_val_d1
+                # update us_matrix
+                self.us_matrix[replica.id][self.current_cycle] = replica.rstr_val_d1
 
     #-----------------------------------------------------------------------------------------------------------------------------------
     #
@@ -541,7 +573,7 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
         d2_list = []
         d3_list = []
 
-        for r1 in range(len(replicas)):
+        for r1 in replicas:
             ###############################################
             # temperature exchange
             if dimension == 1:
@@ -562,7 +594,7 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
             # salt concentration exchange
             elif dimension == 2:
                 r_pair = [r1.new_temperature_1, r1.rstr_val_d1]
-                if current_temp not in d2_list:
+                if r_pair not in d2_list:
                     d2_list.append(r_pair)
                     current_group = []
                     
@@ -578,7 +610,6 @@ class AmberKernelPatternB3dMM(MdKernel3dMM):
             # us exchange d1
             else:
                 r_pair = [r1.new_temperature_1, r1.new_salt_concentration]
-
                 if r_pair not in d3_list:
                     d3_list.append(r_pair)
                     current_group = []

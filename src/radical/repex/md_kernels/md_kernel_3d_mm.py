@@ -106,9 +106,9 @@ class MdKernel3dMM(object):
         ps = [0.0]*(len(replicas))
 
         for r in replicas:
-            self.get_logger().debug("[gibbs_exchange] (before) r.id: {0} r.temp: {1:0.3f} r.salt: {2:0.3f}".format(r.id, r.new_temperature, r.new_salt_concentration) )
+            self.logger.debug("[gibbs_exchange] (before) r.id: {0} r.temp: {1:0.3f} r.salt: {2:0.3f}".format(r.id, r.new_temperature_1, r.new_salt_concentration) )
         
-        self.get_logger().debug("[gibbs_exchange] (before) swap matrix: {0:s}".format(swap_matrix) )    
+        self.logger.debug("[gibbs_exchange] (before) swap matrix: {0:s}".format(swap_matrix) )    
   
         j = 0
         for r_j in replicas:

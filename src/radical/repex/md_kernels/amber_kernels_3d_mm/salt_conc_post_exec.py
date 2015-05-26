@@ -69,7 +69,7 @@ def get_historical_data(history_name, data_path=os.getcwd()):
             if "EPtot" in lines[i]:
                 eptot = float(lines[i].split()[8])
     except:
-        pass
+        raise
 
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
@@ -137,7 +137,7 @@ if __name__ == '__main__':
             temperatures[j] = float(init_temp)
             energies[j] = rj_energy
         except:
-             pass 
+             raise
 
     # init swap column
     swap_column = [0.0]*replicas
