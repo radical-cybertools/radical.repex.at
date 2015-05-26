@@ -90,7 +90,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 t1 = float(d2_params[j])
                 for k in range(self.replicas_d3):
                  
-                    #---------------------------
                     rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
                     r1 = self.restraints_files[rid]
 
@@ -98,7 +97,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                     starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
 
                     spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / float(self.replicas_d3)
-                    starting_value_d3 = self.us_start_param_d3 + i*spacing_d3
+                    starting_value_d3 = self.us_start_param_d3 + k*spacing_d3
 
                     rstr_val_d1 = str(starting_value_d1+spacing_d1)
                     rstr_val_d3 = str(starting_value_d3+spacing_d3)
