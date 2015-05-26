@@ -103,6 +103,8 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                     rstr_val_d1 = str(starting_value_d1+spacing_d1)
                     rstr_val_d3 = str(starting_value_d3+spacing_d3)
 
+                    print "rid: %d temp: %f us1: %f us2: %f " % (rid, t1, float(rstr_val_d1), float(rstr_val_d3))
+
                     r = Replica3d(rid, new_temperature_1=t1, new_restraints_1=r1, rstr_val_d1=float(rstr_val_d1), rstr_val_d3=float(rstr_val_d3),  cores=1)
                     replicas.append(r)
 

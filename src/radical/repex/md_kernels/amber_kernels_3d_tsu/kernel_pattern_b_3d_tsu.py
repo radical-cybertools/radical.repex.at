@@ -107,8 +107,10 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
                     r1 = self.restraints_files[rid]
 
                     spacing = (self.us_end_param - self.us_start_param) / float(self.replicas_d3)
-                    starting_value = self.us_start_param + i*spacing
+                    starting_value = self.us_start_param + k*spacing
                     rstr_val_d1 = str(starting_value+spacing)
+
+                    print "rid: %d temp: %f salt: %f us: %f " % (rid, t1, float(s1), float(rstr_val_d1))
 
                     r = Replica3d(rid, new_temperature_1=t1, new_salt_1=s1, new_restraints_1=r1, rstr_val_d1=float(rstr_val_d1), cores=1)
                     replicas.append(r)
