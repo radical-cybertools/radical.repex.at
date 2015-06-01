@@ -100,7 +100,7 @@ class PilotKernel(object):
         pilot_manager = None
         pilot_object = None
    
-        session = radical.pilot.Session(database_url=self.dburl, database_name='repex-tests')
+        session = radical.pilot.Session(database_url=self.dburl, database_name='radicalpilot')
         self.logger.info("Session ID: {0}".format(session.uid) )
 
         try:
