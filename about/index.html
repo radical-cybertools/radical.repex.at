@@ -70,8 +70,8 @@
 <li>all replicas participate in exchange step</li>
 <li>constant simulation cycle time</li>
 <li>global barrier between MD and exchange step</li>
-</ul><h3>
-<a name="re-pattern-c" class="anchor" href="#re-pattern-c"><span class="octicon octicon-link"></span></a>RE pattern-C</h3>
+</ul>
+<h3><a name="re-pattern-c" class="anchor" href="#re-pattern-c"><span class="octicon octicon-link"></span></a>RE pattern-C</h3>
 <img src="../images/pattern-c.jpg" alt="pattern-c diagram">
 <p>This pattern is asynchronous - MD run on target resource is overlapped with exchange step. Similarly to pattern-B, the number of replicas exceeds allocated compute cores. Simulation cycle is defined as a fixed time interval during which replicas are performing MD run. After cycle time elapses, some of the replicas are still performing MD run but some are ready for exchange. At this point exchange step involving replicas which has finished MD run is performed. Main characteristics of this pattern are:</p>
 
@@ -98,5 +98,19 @@ This pattern can be summarized as follows:
 </li>
 </ul>
 	
+
+<h3><a name="re-pattern-d" class="anchor" href="#re-pattern-d"><span class="octicon octicon-link"></span></a>RE pattern-D</h3>
+<img src="../images/pattern-d.jpg" alt="pattern-d diagram">
+<p>This pattern is similar to pattern-A. The main difference is in definition of the simulation cycle. Contrary to pattern-A 
+(and pattern-B) here simulation cycle is defined as a real time interval. That is, all replicas are performing MD and after predefined real time interval elapses each of MD runs is cancelled. For the next cycle is used last of the periodically generated restart files. The main characteristics of this pattern are:</p>
+<ul>
+<li>number of replicas equals to the number of allocated compute cores</li>
+<li>simultaneous MD</li>
+<li>simultaneous exchange</li>
+<li>all replicas participate in exchange step</li>
+<li>simulation cycle is defined as fixed real time interval</li>
+<li>global barrier between MD and exchange step</li>
+</ul>
+
   </body>
 </html>
