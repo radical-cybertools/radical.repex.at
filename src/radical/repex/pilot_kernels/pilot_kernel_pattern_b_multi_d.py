@@ -197,6 +197,9 @@ class PilotKernelPatternBmultiD(PilotKernel):
         D = 0
         dimensions = md_kernel.dims
         for c in range(0,cycles*dimensions):
+
+            for r in replicas:
+                self.logger.info("rid: {0} temp: {1} us1: {2}  us3: {3}".format(r.id, r.new_temperature_1, r.rstr_val_d1, r.rstr_val_d3) )
             #-------------------------------------------------------------------------------
             # 
             if D < dimensions:
