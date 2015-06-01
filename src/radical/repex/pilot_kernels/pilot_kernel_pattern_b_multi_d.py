@@ -199,7 +199,10 @@ class PilotKernelPatternBmultiD(PilotKernel):
         for c in range(0,cycles*dimensions):
 
             for r in replicas:
-                self.logger.info("rid: {0} temp: {1} us1: {2}  us3: {3}".format(r.id, r.new_temperature_1, r.rstr_val_d1, r.rstr_val_d3) )
+                if md_kernel.name == 'ak-patternB-3d-TUU':
+                    self.logger.info("rid: {0} temp: {1} us1: {2}  us3: {3}".format(r.id, r.new_temperature_1, r.rstr_val_d1, r.rstr_val_d3) )
+                if md_kernel.name == 'ak-patternB-3d-TSU':
+                    self.logger.info("rid: {0} temp: {1} salt: {2}  us1: {3}".format(r.id, r.new_temperature_1, r.new_salt_concentration, r.rstr_val_d1) )
             #-------------------------------------------------------------------------------
             # 
             if D < dimensions:
