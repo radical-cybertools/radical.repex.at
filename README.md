@@ -54,6 +54,8 @@ This pattern can be summarized as follows:
        
 ###RE pattern-D
 
+![](https://github.com/radical-cybertools/RepEx/blob/gh-pages/images/pattern-d.jpg)
+
 This pattern is similar to pattern-A. The main difference is in definition of the 
 simulation cycle. Contrary to pattern-A (and pattern-B) here simulation cycle is defined as 
 a real time interval. That is, all replicas are performing MD and after predefined real time interval elapses each of MD runs is cancelled. For the next cycle is used last of the periodically generated restart files. The main characteristics of this pattern are:
@@ -118,11 +120,11 @@ If user intends to run simulations on a remote resource password-less access via
 http://www.linuxproblem.org/art_9.html
 ```
 
-####Usage example for scheme 1 with Amber kernel
+####Usage example for temperature-exchange REMD using pattern-A and Amber kernel
 
 First we must change directory to:
 ```
-cd examples/amber/amber_scheme_1/
+cd examples/amber_pattern_a_temp_ex/
 ```
 Then, make appropriate changes to file:
 ```
@@ -132,11 +134,88 @@ Suggested changes are:
 * "resource" must be: "stampede.tacc.utexas.edu"
 * "username" must be changed to username assigned to user on that resource
 * "project" must be changed to allocation number on target resource
-* if you intend to run simulation on your local system (e.g. "localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
+* if you intend to run simulation on your local system (e.g. "local.localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
 
-For scheme 1 "number_of_replicas" and "cores" values must be equal. For this scheme exchange step is performed remotely. To run this example in terminal execute: 
+For pattern-A "number_of_replicas" and "cores" values must be equal. For this pattern exchange step is performed remotely. To run this example in terminal execute: 
 ```bash
-python launch_simulation_scheme_1_amber.py --input='amber_input.json'
+import RADICAL_REPEX_VERBOSE=info
+python launch_simulation_pattern_a.py --input='amber_input.json'
 ```
-This will run RE temperature exchange simulation involving 16 replicas on target system. During the simulation input files for each of the replicas will be generated. After simulation is done in current directory you will see a number of new "replica_x" directories. These directories contain input and output files generated for a given replica. 
+This will run RE temperature exchange simulation involving 32 replicas on target system. During the simulation input files for each of the replicas will be generated. After simulation is done in current directory you will see a number of new "replica_x" directories. These directories contain input and output files generated for a given replica. 
 
+####Usage example for temperature-exchange REMD using pattern-A and Amber kernel
+
+If you have run previous example change directory to:
+```
+cd ../amber_pattern_b_temp_ex/
+```
+If this is first example you are trying change directory to:
+```
+cd examples/amber_pattern_b_temp_ex/
+```
+Again, we need to modify input file:
+```
+amber_input.json
+```
+Suggested changes are:
+* "resource" must be: "stampede.tacc.utexas.edu"
+* "username" must be changed to username assigned to user on that resource
+* "project" must be changed to allocation number on target resource
+* "number_of_replicas" must be greater than "cores". Recommended "cores" value is 50% of the "number_of_replicas"
+* if you intend to run simulation on your local system (e.g. "local.localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
+
+To run this example in terminal execute: 
+```bash
+python launch_simulation_pattern_b.py --input='amber_input.json'
+```
+This will run RE temperature exchange simulation involving 32 replicas on target system. Similarly as for pattern-A, generated outputs can be found in replica_x directories.
+
+####Usage example for temperature-exchange REMD using pattern-C and Amber kernel
+
+If you have run previous example change directory to:
+```
+cd ../amber_pattern_c_temp_ex/
+```
+If this is first example you are trying change directory to:
+```
+cd examples/amber_pattern_b_temp_ex/
+```
+For pattern-C input file is slightly different than for all previous schemes. Open:
+```
+amber_input.json
+```
+As you can see "number_of_cycles" field is gone but is added field "cycle_time". It is highly recommended to adjust "cycle_time" value to your setup, otherwise you will see either few or all replicas being submitted for the next cycle. Other suggested changes are:
+* "resource" must be: "stampede.tacc.utexas.edu"
+* "username" must be changed to username assigned to user on that resource
+* "project" must be changed to allocation number on target resource
+* if you intend to run simulation on your local  (e.g. "local.localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
+* "number_of_replicas" must be greater than "cores". Recommended "cores" value is 50% of the "number_of_replicas" 
+
+To run this example in terminal execute: 
+```bash
+python launch_simulation_pattern_c.py --input='amber_input.json'
+```
+This will run RE temperature exchange simulation involving 32 replicas on target system.
+
+####Usage example for temperature-exchange REMD using pattern-D and Amber kernel
+
+If you have run previous example change directory to:
+```
+cd ../amber_pattern_d_temp_ex/
+```
+If this is first example you are trying change directory to:
+```
+cd examples/amber_pattern_d_temp_ex/
+```
+This scheme also has "cycle_time" field instead of "number_of_cycles" field. For the provided example value of "cycle_time" is relatively small (5 seconds). This is motivated by the need to cancel MD runs before they have actually finished. For their own examples users will need to adjust this parameter together with the "steps_per_cycle" parameter, which defines how many simulation time steps MD run should perform in case if it doesn't get cancelled. Notice, in comparison to all previous examples here value of "steps_per_cycle" parameter is significantly larger (250000). Again, users must change:
+* "resource" to: "stampede.tacc.utexas.edu"
+* "username" to username assigned to user on that resource
+* "project" to allocation number on target resource
+* "number_of_replicas" must be equal to "cores"
+* if you intend to run simulation on your local  (e.g. "local.localhost") under "input.MD" you must provide "amber_path" which is a path pointing to Amber executable on your system
+
+To run this example in terminal execute: 
+```bash
+python launch_simulation_pattern_d.py --input='amber_input.json'
+```
+This will run RE temperature exchange simulation involving 32 replicas on target system.
