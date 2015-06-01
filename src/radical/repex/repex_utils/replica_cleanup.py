@@ -10,7 +10,6 @@ __license__ = "MIT"
 import os
 import sys
 import shutil
-from replicas.replica import Replica
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 

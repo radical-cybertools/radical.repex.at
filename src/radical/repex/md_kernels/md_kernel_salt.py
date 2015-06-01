@@ -15,7 +15,7 @@ import math
 import random
 from os import path
 import radical.pilot
-from replicas.replica import ReplicaSalt
+from replicas.replica import Replica1d
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ class MdKernelSalt(object):
 
         for k in range(self.replicas):
             new_salt = (self.max_salt-self.min_salt)/(self.replicas-1)*k + self.min_salt
-            r = ReplicaSalt(k, new_salt)
+            r = Replica1d(k, new_salt_concentration=new_salt)
             replicas.append(r)
             
         return replicas

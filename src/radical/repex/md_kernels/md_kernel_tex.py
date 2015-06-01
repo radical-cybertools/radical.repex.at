@@ -15,7 +15,7 @@ import math
 import random
 from os import path
 import radical.pilot
-from replicas.replica import Replica
+from replicas.replica import Replica1d
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ class MdKernelTex(object):
         factor = (self.max_temp/self.min_temp)**(1./(N-1))
         for k in range(N):
             new_temp = self.min_temp * (factor**k)
-            r = Replica(k, new_temp)
+            r = Replica1d(k, new_temperature=new_temp)
             replicas.append(r)
             
         return replicas

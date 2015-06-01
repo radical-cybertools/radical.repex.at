@@ -15,7 +15,7 @@ import math
 import random
 from os import path
 import radical.pilot
-from replicas.replica import ReplicaUS
+from replicas.replica import Replica1d
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ class MdKernelUS(object):
         replicas = []
 
         for k in range(len(self.restraints_files)):
-            r = ReplicaUS(k, self.restraints_files[k])
+            r = Replica1d(k, new_restraints=self.restraints_files[k])
             replicas.append(r)
             
         return replicas

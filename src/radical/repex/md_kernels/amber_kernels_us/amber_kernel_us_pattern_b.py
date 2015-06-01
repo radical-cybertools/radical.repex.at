@@ -19,7 +19,6 @@ from os import path
 import radical.pilot
 from md_kernels.md_kernel_us import *
 from kernels.kernels import KERNELS
-from replicas.replica import ReplicaUS
 import radical.utils.logger as rul
 import amber_kernels_us.amber_matrix_calculator_pattern_b
 
