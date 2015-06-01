@@ -15,6 +15,8 @@ import math
 import random
 from os import path
 import radical.pilot
+from kernels.kernels import KERNELS
+import radical.utils.logger as rul
 from replicas.replica import Replica1d
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -30,33 +32,59 @@ class MdKernelTex(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.resource = inp_file['input.PILOT']['resource']
-        self.inp_basename = inp_file['input.MD']['input_file_basename']
-        self.inp_folder = inp_file['input.MD']['input_folder']
-        self.replicas = int(inp_file['input.MD']['number_of_replicas'])
-        self.min_temp = float(inp_file['input.MD']['min_temperature'])
-        self.max_temp = float(inp_file['input.MD']['max_temperature'])
-        self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
-        self.work_dir_local = work_dir_local
-        
-        try:
+        self.name = 'md-tex'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
+
+        if 'number_of_cycles' in inp_file['input.MD']:
             self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
-        except:
+        else:
             self.nr_cycles = None
 
-        try:
+        if 'replica_mpi' in inp_file['input.MD']:
             mpi = inp_file['input.MD']['replica_mpi']
             if mpi == "True":
                 self.replica_mpi = True
             else:
                 self.replica_mpi = False
-        except:
+        else:
             self.replica_mpi = False
 
-        try:
-            self.replica_cores = inp_file['input.MD']['replica_cores']
-        except:
+        if 'replica_cores' in inp_file['input.MD']:
+            self.replica_cores = int(inp_file['input.MD']['replica_cores'])
+        else:
             self.replica_cores = 1
+
+        self.resource = inp_file['input.PILOT']['resource']
+        self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
+
+        if 'amber_path' in inp_file['input.MD']:
+            self.amber_path = inp_file['input.MD']['amber_path']
+        else:
+            self.logger.info("Using default Amber path for: {0}".format( inp_file['input.PILOT']['resource'] ) )
+            try:
+                self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
+            except:
+                self.logger.info("Amber path for {0} is not defined".format( inp_file['input.PILOT']['resource'] ) )
+
+        self.input_folder = inp_file['input.MD']['input_folder']   
+        self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
+        self.amber_parameters = inp_file['input.MD']['amber_parameters']
+        self.amber_input = inp_file['input.MD']['amber_input']
+        self.input_folder = inp_file['input.MD']['input_folder']
+        self.inp_basename = inp_file['input.MD']['input_file_basename']
+        self.replicas = int(inp_file['input.MD']['number_of_replicas'])
+        self.min_temp = float(inp_file['input.MD']['min_temperature'])
+        self.max_temp = float(inp_file['input.MD']['max_temperature'])
+        self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
+        self.work_dir_local = work_dir_local
+
+        self.current_cycle = -1
+ 
+        self.shared_urls = []
+        self.shared_files = []
+
+        self.all_temp_list = []
+        self.all_salt_list = []
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -197,7 +225,31 @@ class MdKernelTex(object):
                 # setting stopped_i_run
                 r.stopped_run = int(lines[2])
 
-                print "Setting stopped i run to: %d for replica %d" % (r.stopped_run, r.id)
+                self.logger.info("Setting stopped i run to: {0} for replica {1}".format( r.stopped_run, r.id ) )
             except:
                 raise
 
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+    # ok
+    def get_historical_data(self, replica, cycle):
+        """Retrieves temperature and potential energy from simulaion output file <file_name>.history
+        """
+
+        temp = 0.0    #temperature
+        eptot = 0.0   #potential
+        if not os.path.exists(replica.new_history):
+            self.logger.info("history file {0} not found".format( replica.new_history ) )
+        else:
+            f = open(replica.new_history)
+            lines = f.readlines()
+            f.close()
+
+            for i in range(len(lines)):
+                if "TEMP(K)" in lines[i]:
+                    temp = float(lines[i].split()[8])
+                elif "EPtot" in lines[i]:
+                    eptot = float(lines[i].split()[8])
+
+        return temp, eptot

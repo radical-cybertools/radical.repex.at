@@ -14,8 +14,8 @@ import json
 import datetime
 from os import path
 import radical.pilot
-from pilot_kernels.pilot_kernel import *
 import radical.utils.logger as rul
+from pilot_kernels.pilot_kernel import *
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 

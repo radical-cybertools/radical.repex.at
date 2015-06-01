@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.amber_kernels.launch_simulation_pattern_B
+.. module:: radical.repex.namd_kernels.launch_simulation_pattern_c
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
@@ -9,32 +9,41 @@ __license__ = "MIT"
 import os
 import sys
 import json
+import time
 from os import path
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
-from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
+from amber_kernels_tex.amber_kernel_tex_pattern_c import AmberKernelTexPatternC
+from pilot_kernels.pilot_kernel_pattern_c import PilotKernelPatternC
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """Runs RE simulation using pattern B. 
+    """Runs RE simulation using pattern-C. 
 
-    RE pattern B:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
+    RE pattern-C:
+    - Asynchronous RE scheme: MD run on target resource is overlapped with local exchange step. Thus both MD run
+    and exchange step are asynchronous.  
+    - Number of replicas is greater than number of allocated resources.
+    - Replica simulation cycle is defined by the fixed number of simulation time-steps each replica has to perform.
     - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
+    - Exchange step is performed locally
+    Overall algorithm is as follows:
+        - First replicas in "waiting" state are submitted to pilot.
+        - Then fixed time interval (cycle_time in input.json) must elapse before exchange step may take place.
+        - After this fixed time interval elapsed, some replicas are still running on target resource.
+        - In local exchange step are participating replicas which had finished MD run (state "finished") and
+        replicas in "waiting" state.
+        - After local exchanges step is performed replicas which participated in exchange are submitted to pilot
+        to perform next simulation cycle    
     """
-    name = 'launcher-tex'
+ 
+    name = 'launcher-tex-pattern-C'
     logger  = rul.getLogger ('radical.repex', name)
 
     logger.info("************************************************")
-    logger.info("*    RepEx simulation: AMBER + RE pattern B    *")
+    logger.info("*    RepEx simulation: AMBER + RE pattern-C    *")
     logger.info("************************************************")
 
     work_dir_local = os.getcwd()
@@ -46,12 +55,12 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernelTexPatternB( inp_file, work_dir_local )
-    pilot_kernel = PilotKernelPatternB( inp_file )
+    md_kernel = AmberKernelTexPatternC( inp_file, work_dir_local )
+    pilot_kernel = PilotKernelPatternC( inp_file )
 
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
-
+    
     try:
         pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
     
@@ -74,5 +83,4 @@ if __name__ == '__main__':
 
     finally :
         logger.info("Closing session.")
-        session.close (cleanup=False)    
-
+        session.close (cleanup=False)  

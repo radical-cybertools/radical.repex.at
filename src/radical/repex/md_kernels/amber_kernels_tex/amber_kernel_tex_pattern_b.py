@@ -21,22 +21,13 @@ from kernels.kernels import KERNELS
 from amber_kernel_tex import *
 import radical.utils.logger as rul
 import amber_kernels_tex.amber_matrix_calculator_pattern_b
+from md_kernels.md_kernel_tex import *
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-class AmberKernelTexPatternB(AmberKernelTex):
+class AmberKernelTexPatternB(MdKernelTex):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
-
-    RE scheme S2:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
-    - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
-
     """
     def __init__(self, inp_file,  work_dir_local):
         """Constructor.
@@ -46,43 +37,18 @@ class AmberKernelTexPatternB(AmberKernelTex):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        AmberKernelTex.__init__(self, inp_file, work_dir_local)
+        MdKernelTex.__init__(self, inp_file, work_dir_local)
 
-        """
-        self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
-        try:
-            self.amber_path = inp_file['input.MD']['amber_path']
-        except:
-            print "Using default Amber path for %s" % inp_file['input.PILOT']['resource']
-            try:
-                self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
-            except:
-                print "Amber path for localhost is not defined..."
-        """
- 
-        self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
-        self.amber_parameters = inp_file['input.MD']['amber_parameters']
-        self.amber_input = inp_file['input.MD']['amber_input']
-        self.input_folder = inp_file['input.MD']['input_folder']
-
-        self.name = 'ak-patternB'
+        self.name = 'ak-tex-patternB'
         self.logger  = rul.getLogger ('radical.repex', self.name)
  
-        self.current_cycle = -1
- 
-        self.shared_urls = []
-        self.shared_files = []
-
-        self.all_temp_list = []
-        self.all_salt_list = []
-
     # ------------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
 
-        parm_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        coor_path = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-        inp_path  = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_input
+        parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
+        coor_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
+        inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
         calc_b = os.path.dirname(amber_kernels_tex.amber_matrix_calculator_pattern_b.__file__)
         calc_b_path = calc_b + "/amber_matrix_calculator_pattern_b.py"
@@ -106,6 +72,52 @@ class AmberKernelTexPatternB(AmberKernelTex):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
+    def build_input_file(self, replica):
+        """Builds input file for replica, based on template input file ala10.mdin
+        """
+
+        basename = self.inp_basename
+        template = self.inp_basename[:-5] + ".mdin"
+            
+        new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
+        outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
+        old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+
+        replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
+        replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
+        replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
+
+        if (replica.cycle == 0):
+            first_step = 0
+        elif (replica.cycle == 1):
+            first_step = int(self.cycle_steps)
+        else:
+            first_step = (replica.cycle - 1) * int(self.cycle_steps)
+
+        try:
+            r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), template)), "r")
+        except IOError:
+            self.logger.info("Warning: unable to access template file {0}".format( template ) )
+
+
+        tbuffer = r_file.read()
+        r_file.close()
+
+        tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
+        tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
+        
+        replica.cycle += 1
+
+        try:
+            w_file = open(new_input_file, "w")
+            w_file.write(tbuffer)
+            w_file.close()
+        except IOError:
+            self.logger.info("Warning: unable to access file {0}".format( new_input_file ) )
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+
     def prepare_replica_for_md(self, replica, sd_shared_list):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
         specified input/output files to be transferred to/from target system. Note: input files for first and 
@@ -120,7 +132,7 @@ class AmberKernelTexPatternB(AmberKernelTex):
         
         self.build_input_file(replica)
       
-        crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
+        crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
 
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
