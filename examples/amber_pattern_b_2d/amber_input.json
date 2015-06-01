@@ -3,14 +3,14 @@
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "220",
+        "runtime" : "240",
         "cleanup" : "False",
-        "cores" : "128",
+        "cores" : "192",
         "node_cores" : "16"
     },
     "input.MD": {
         "number_of_cycles": "4",
-        "number_of_replicas": "16",
+        "number_of_replicas": "20",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_input": "ala10.mdin",
