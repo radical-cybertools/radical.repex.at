@@ -8,5 +8,5 @@ source:      .
 destination: ./_site
 plugins:     ./_plugins
 future:      true
-markdown:    maruku
+markdown:    kramdown
 permalink:   pretty
