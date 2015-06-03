@@ -3,22 +3,26 @@
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "20",
+        "runtime" : "25",
+        "queue" : "development",
         "cleanup" : "False",
         "cores" : "16"
     },
     "input.MD": {
         "number_of_cycles": "3",
-        "number_of_replicas": "32",
+        "number_of_replicas": "4",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
+        "amber_input": "ala10_us.mdin",
         "amber_parameters": "ala10.prmtop",
         "amber_coordinates": "ala10_minimized.inpcrd",
         "amber_restraints": "ala10_chir.dat",
+        "us_template": "ala10_us.RST",
         "replica_mpi": "True",
         "replica_cores": "1",
-        "min_temperature": "300",
-        "max_temperature": "600",
+        "us_start_param": "120",
+        "us_end_param": "160",
+        "init_temperature": "300.0",
         "steps_per_cycle": "1000"
     }
 }
