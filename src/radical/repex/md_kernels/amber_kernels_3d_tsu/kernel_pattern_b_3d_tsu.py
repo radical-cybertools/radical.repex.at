@@ -42,20 +42,20 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
         MdKernel3dTSU.__init__(self, inp_file, work_dir_local)
 
+        self.name = 'ak-patternB-3d-TSU'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
+
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
         try:
             self.amber_path = inp_file['input.MD']['amber_path']
         except:
-            print "Using default Amber path for %s" % inp_file['input.PILOT']['resource']
+            self.logger.info("Using default Amber path for: {0}".format(inp_file['input.PILOT']['resource']) )
             try:
                 self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
             except:
-                print "Amber path for localhost is not defined..."
+                self.logger.info("Amber path for localhost is not defined!")
 
         self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"]["executable_mpi"]
-
-        self.name = 'ak-patternB-3d-TSU'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
 
         ########################
         self.shared_urls = []
@@ -108,11 +108,11 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
                     spacing = (self.us_end_param - self.us_start_param) / float(self.replicas_d3)
                     starting_value = self.us_start_param + k*spacing
-                    rstr_val_d1 = str(starting_value+spacing)
+                    rstr_val_1 = str(starting_value+spacing)
 
-                    print "rid: %d temp: %f salt: %f us: %f " % (rid, t1, float(s1), float(rstr_val_d1))
+                    #print "rid: %d temp: %f salt: %f us: %f " % (rid, t1, float(s1), float(rstr_val_1))
 
-                    r = Replica3d(rid, new_temperature_1=t1, new_salt_1=s1, new_restraints_1=r1, rstr_val_d1=float(rstr_val_d1), cores=1)
+                    r = Replica3d(rid, new_temperature=t1, new_salt_1=s1, new_restraints=r1, rstr_val_1=float(rstr_val_1), cores=1)
                     replicas.append(r)
 
         return replicas
@@ -191,17 +191,17 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             tbuffer = r_file.read()
             r_file.close()
         except IOError:
-            print 'Warning: unable to access file %s' % self.us_template
+            self.logger.info("Warning: unable to access file: {0}".format(self.us_template) )
 
         i = replica.id
 
         try:
-            w_file = open(replica.new_restraints_1, "w")
-            tbuffer = tbuffer.replace("@val1@", str(replica.rstr_val_d1))
+            w_file = open(replica.new_restraints, "w")
+            tbuffer = tbuffer.replace("@val1@", str(replica.rstr_val_1))
             w_file.write(tbuffer)
             w_file.close()
         except IOError:
-            print 'Warning: unable to access file %s' % replica.new_restraints_1
+            self.logger.info("Warning: unable to access file: {0}".format(replica.new_restraints) )
 
 
     #-----------------------------------------------------------------------------------------------------------------------------------
@@ -234,9 +234,9 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         r_file.close()
       
         tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
-        tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature_1)))
+        tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
         tbuffer = tbuffer.replace("@salt@",str(float(replica.new_salt_concentration)))
-        tbuffer = tbuffer.replace("@disang@",replica.new_restraints_1)
+        tbuffer = tbuffer.replace("@disang@",replica.new_restraints)
         
         replica.cycle += 1
 
@@ -356,12 +356,12 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         for r in range(len(replicas)):
             if r == 0:
                 all_salt = str(replicas[r].new_salt_concentration)
-                all_temp = str(replicas[r].new_temperature_1)
-                all_rstr = str(replicas[r].new_restraints_1)
+                all_temp = str(replicas[r].new_temperature)
+                all_rstr = str(replicas[r].new_restraints)
             else:
                 all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
-                all_temp = all_temp + " " + str(replicas[r].new_temperature_1)
-                all_rstr = all_rstr + " " + str(replicas[r].new_restraints_1)
+                all_temp = all_temp + " " + str(replicas[r].new_temperature)
+                all_rstr = all_rstr + " " + str(replicas[r].new_restraints)
 
         self.all_temp_list = all_temp.split(" ")
         self.all_salt_list = all_salt.split(" ")
@@ -389,7 +389,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
                 "replica_cycle" : str(replica.cycle-1),
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
-                "init_temp" : str(replica.new_temperature_1),
+                "init_temp" : str(replica.new_temperature),
                 "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": "../staging_area/"+str(self.amber_parameters),    #temp fix
@@ -434,7 +434,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         else:
             all_restraints = []
             for repl in replicas:
-                all_restraints.append(str(repl.new_restraints_1))
+                all_restraints.append(str(repl.new_restraints))
     
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
@@ -460,7 +460,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
                 "replica_cycle" : str(replica.cycle-1),
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
-                "init_temp" : str(replica.new_temperature_1),
+                "init_temp" : str(replica.new_temperature),
                 "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": str(self.amber_parameters),
@@ -482,11 +482,11 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
     def exchange_params(self, dimension, replica_1, replica_2):
         
         if dimension == 1:
-            self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature_1, replica_2.new_temperature_1) )
-            temp = replica_2.new_temperature_1
-            replica_2.new_temperature_1 = replica_1.new_temperature_1
-            replica_1.new_temperature_1 = temp
-            self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature_1, replica_2.new_temperature_1) )
+            self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
+            temp = replica_2.new_temperature
+            replica_2.new_temperature = replica_1.new_temperature
+            replica_1.new_temperature = temp
+            self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
         elif dimension == 2:
             self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_salt_concentration, replica_2.new_salt_concentration) )
             salt = replica_2.new_salt_concentration
@@ -494,11 +494,11 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             replica_1.new_salt_concentration = salt
             self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_salt_concentration, replica_2.new_salt_concentration) )
         else:
-            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_d1, replica_2.rstr_val_d1) )
-            rstr = replica_2.rstr_val_d1
-            replica_2.rstr_val_d1 = replica_1.rstr_val_d1
-            replica_1.rstr_val_d1 = rstr
-            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_d1, replica_2.rstr_val_d1) )
+            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_1, replica_2.rstr_val_1) )
+            rstr = replica_2.rstr_val_1
+            replica_2.rstr_val_1 = replica_1.rstr_val_1
+            replica_1.rstr_val_1 = rstr
+            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_1, replica_2.rstr_val_1) )
 
     #-----------------------------------------------------------------------------------------------------------------------------------
     #
@@ -539,13 +539,13 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         for replica in replicas:
             if dimension == 1:
                 # update temp_matrix
-                self.temp_matrix[replica.id][self.current_cycle] = replica.new_temperature_1
+                self.temp_matrix[replica.id][self.current_cycle] = replica.new_temperature
             elif dimension == 2:
                 # update salt_matrix
                 self.salt_matrix[replica.id][self.current_cycle] = replica.new_salt_concentration
             else:
                 # update us_matrix
-                self.us_matrix[replica.id][self.current_cycle] = replica.rstr_val_d1
+                self.us_matrix[replica.id][self.current_cycle] = replica.rstr_val_1
 
     #-----------------------------------------------------------------------------------------------------------------------------------
     #
@@ -553,11 +553,11 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
         # updating rstr_val's
         for r in replicas:
-            current_rstr = r.new_restraints_1
+            current_rstr = r.new_restraints
             try:
                 r_file = open(current_rstr, "r")
             except IOError:
-                print 'Warning: unable to access template file %s' % current_rstr
+                self.logger.info("Warning: unable to access template file: {0}".format(current_rstr) )
 
             tbuffer = r_file.read()
             r_file.close()
@@ -567,7 +567,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             for word in tbuffer:
                 if word.startswith("r2="):
                     num_list = word.split('=')
-                    r.rstr_val_d1 = float(num_list[1])
+                    r.rstr_val_1 = float(num_list[1])
                 
         self.current_cycle = cycle
 
@@ -579,13 +579,13 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             ###############################################
             # temperature exchange
             if dimension == 1:
-                r_pair = [r1.new_salt_concentration, r1.rstr_val_d1]
+                r_pair = [r1.new_salt_concentration, r1.rstr_val_1]
                 if r_pair not in d1_list:
                     d1_list.append(r_pair)
                     current_group = []
 
                     for r2 in replicas:
-                        if (r1.new_salt_concentration == r2.new_salt_concentration) and (r1.rstr_val_d1 == r2.rstr_val_d1):
+                        if (r1.new_salt_concentration == r2.new_salt_concentration) and (r1.rstr_val_1 == r2.rstr_val_1):
                             current_group.append(r2)
 
                     #######################################
@@ -595,13 +595,13 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             ###############################################
             # salt concentration exchange
             elif dimension == 2:
-                r_pair = [r1.new_temperature_1, r1.rstr_val_d1]
+                r_pair = [r1.new_temperature, r1.rstr_val_1]
                 if r_pair not in d2_list:
                     d2_list.append(r_pair)
                     current_group = []
                     
                     for r2 in replicas:
-                        if (r1.new_temperature_1 == r2.new_temperature_1) and (r1.rstr_val_d1 == r2.rstr_val_d1):
+                        if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_1 == r2.rstr_val_1):
                             current_group.append(r2)
                     
                     #######################################
@@ -611,13 +611,13 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             ###############################################
             # us exchange d1
             else:
-                r_pair = [r1.new_temperature_1, r1.new_salt_concentration]
+                r_pair = [r1.new_temperature, r1.new_salt_concentration]
                 if r_pair not in d3_list:
                     d3_list.append(r_pair)
                     current_group = []
                     
                     for r2 in replicas:
-                        if (r1.new_temperature_1 == r2.new_temperature_1) and (r1.new_salt_concentration == r2.new_salt_concentration):
+                        if (r1.new_temperature == r2.new_temperature) and (r1.new_salt_concentration == r2.new_salt_concentration):
                             current_group.append(r2)
                     
                     #######################################
@@ -656,7 +656,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         for r in replicas:
             row = []
             row.append(r.id)
-            row.append(r.new_temperature_1)
+            row.append(r.new_temperature)
             for c in range(self.nr_cycles - 1):
                 row.append( -1.0 )
 
@@ -682,7 +682,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         for r in replicas:
             row = []
             row.append(r.id)
-            row.append(r.rstr_val_d1)
+            row.append(r.rstr_val_1)
             for c in range(self.nr_cycles - 1):
                 row.append( -1.0 )
             self.us_matrix.append( row )

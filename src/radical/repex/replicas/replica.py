@@ -130,7 +130,7 @@ class Replica3d(object):
     """Class representing replica and it's associated data.
        US = Umbrella Sampling
     """
-    def __init__(self, my_id, new_temperature_1=None, new_salt_1=None, new_restraints_1=None, rstr_val_d1=None, rstr_val_d3=None, cores=1):
+    def __init__(self, my_id, new_temperature=None, new_salt=None, new_restraints=None, rstr_val_1=None, rstr_val_2=None, cores=1):
         """Constructor.
 
         Arguments:
@@ -143,35 +143,35 @@ class Replica3d(object):
         self.state = 'I'
         self.cycle = 0
 
-        if new_salt_1 is None:
+        if new_salt is None:
             self.new_salt_concentration = 0
         else:
-            self.new_salt_concentration = new_salt_1
-        self.old_salt_concentration = new_salt_1
+            self.new_salt_concentration = new_salt
+        self.old_salt_concentration = new_salt
 
-        if new_restraints_1 is None:
-            self.new_restraints_1 = ''
-            self.old_restraints_1 = ''
+        if new_restraints is None:
+            self.new_restraints = ''
+            self.old_restraints = ''
         else:
-            self.new_restraints_1 = new_restraints_1
-            self.old_restraints_1 = new_restraints_1
+            self.new_restraints = new_restraints
+            self.old_restraints = new_restraints
         self.potential_1 = 0
 
-        if new_temperature_1 is None:
-            self.new_temperature_1 = 0
+        if new_temperature is None:
+            self.new_temperature = 0
         else:
-            self.new_temperature_1 = new_temperature_1
-        self.old_temperature_1 = new_temperature_1
+            self.new_temperature = new_temperature
+        self.old_temperature = new_temperature
 
-        if rstr_val_d1 is None:
-            self.rstr_val_d1 = 0
+        if rstr_val_1 is None:
+            self.rstr_val_1 = 0
         else:
-            self.rstr_val_d1 = rstr_val_d1
+            self.rstr_val_1 = rstr_val_1
 
-        if rstr_val_d3 is None:
-            self.rstr_val_d3 = 0
+        if rstr_val_2 is None:
+            self.rstr_val_2 = 0
         else:
-            self.rstr_val_d3 = rstr_val_d3
+            self.rstr_val_2 = rstr_val_2
 
         # amber stuff
         self.new_traj = ""  # ok

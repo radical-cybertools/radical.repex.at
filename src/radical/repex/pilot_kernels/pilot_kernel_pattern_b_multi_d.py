@@ -200,9 +200,9 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
             for r in replicas:
                 if md_kernel.name == 'ak-patternB-3d-TUU':
-                    self.logger.info("rid: {0} temp: {1} us1: {2}  us3: {3}".format(r.id, r.new_temperature_1, r.rstr_val_d1, r.rstr_val_d3) )
+                    self.logger.info("rid: {0} temp: {1} us1: {2}  us3: {3}".format(r.id, r.new_temperature, r.rstr_val_1, r.rstr_val_2) )
                 if md_kernel.name == 'ak-patternB-3d-TSU':
-                    self.logger.info("rid: {0} temp: {1} salt: {2}  us1: {3}".format(r.id, r.new_temperature_1, r.new_salt_concentration, r.rstr_val_d1) )
+                    self.logger.info("rid: {0} temp: {1} salt: {2}  us1: {3}".format(r.id, r.new_temperature, r.new_salt_concentration, r.rstr_val_1) )
             #-------------------------------------------------------------------------------
             # 
             if D < dimensions:
@@ -317,13 +317,11 @@ class PilotKernelPatternBmultiD(PilotKernel):
             end = datetime.datetime.utcnow()
             #------------------------
             RAW_SIMULATION_TIME = (end-start).total_seconds()
-            #print "RAW_SIMULATION_TIME: %f" % RAW_SIMULATION_TIME
             f.write("RAW_SIMULATION_TIME: {row}\n".format(row=RAW_SIMULATION_TIME))
 
             #------------------------------------------------------------
             #
             head = "Cycle; Dim; Run; Duration"
-            #print head
             f.write("{row}\n".format(row=head))
 
             for cycle in hl_performance_data:
@@ -337,14 +335,12 @@ class PilotKernelPatternBmultiD(PilotKernel):
                             Dim=dim,
                             Run=run)
 
-                        #print row
                         f.write("{r}\n".format(r=row))
 
             
             #------------------------------------------------------------
             # these timings are measured from simulation start!
             head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Dim; Run"
-            #print head
             f.write("{row}\n".format(row=head))
             """
             for cycle in cu_performance_data:
@@ -368,7 +364,6 @@ class PilotKernelPatternBmultiD(PilotKernel):
                                 Dim=dim,
                                 Run=run)
                         
-                            #print row
                             f.write("{r}\n".format(r=row))
             """
 
