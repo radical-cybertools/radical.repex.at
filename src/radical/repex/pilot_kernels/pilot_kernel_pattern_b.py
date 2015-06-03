@@ -187,6 +187,9 @@ class PilotKernelPatternB(PilotKernel):
         hl_performance_data = {}
         cu_performance_data = {}
 
+        # bulk = 0: do sequential submission
+        # bulk = 1: do bulk submission
+        bulk = 0
         for current_cycle in range(1,CYCLES):
 
             hl_performance_data["cycle_{0}".format(current_cycle)] = {}
@@ -196,14 +199,55 @@ class PilotKernelPatternB(PilotKernel):
 
             self.logger.info("Preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
-            submitted_replicas = [] 
-            T1 = datetime.datetime.utcnow()
-            for r in replicas:
-                compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
-                sub_replica = unit_manager.submit_units(compute_replica)
-                submitted_replicas.append(sub_replica)
+            submitted_replicas = []
+            ################################################################################
+            # sequential submission
+            outfile = "md_prep_submission_details_{0}.csv".format(session.uid)
+            if bulk == 0:
+                T1 = datetime.datetime.utcnow()
+                for r in replicas:
 
-            T2 = datetime.datetime.utcnow()
+                    with open(outfile, 'w+') as f:
+                        t_1 = datetime.datetime.utcnow()
+                        compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
+                        t_2 = datetime.datetime.utcnow()
+                        value =  (t_2-t_1).total_seconds()
+                        f.write("repex_md_prep_time {0}\n".format(value))
+
+                        t_1 = datetime.datetime.utcnow()
+                        sub_replica = unit_manager.submit_units(compute_replica)
+                        t_2 = datetime.datetime.utcnow()
+                        value = (t_2-t_1).total_seconds()
+                        f.write("rp_submit_time {0}\n".format(value))
+
+                        submitted_replicas.append(sub_replica)
+                f.close()
+                T2 = datetime.datetime.utcnow()
+            ################################################################################
+            # bulk submision
+            else:
+                c_replicas = []
+                T1 = datetime.datetime.utcnow()
+
+                t_1 = datetime.datetime.utcnow()
+                for r in replicas:
+                    compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
+                    c_replicas.append(compute_replica)
+                t_2 = datetime.datetime.utcnow()
+
+                with open(outfile, 'w+') as f:
+                    value =  (t_2-t_1).total_seconds()
+                    f.write("repex_md_prep_time {0}\n".format(value))
+
+                    t_1 = datetime.datetime.utcnow()
+                    submitted_replicas = unit_manager.submit_units(c_replicas)
+                    t_2 = datetime.datetime.utcnow()
+                    value = (t_2-t_1).total_seconds()
+                    f.write("rp_submit_time {0}\n".format(value))
+ 
+                T2 = datetime.datetime.utcnow()
+            
+            ################################################################################
 
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = (T2-T1).total_seconds()
@@ -226,12 +270,54 @@ class PilotKernelPatternB(PilotKernel):
                 self.logger.info("Preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
                 exchange_replicas = []
-                T1 = datetime.datetime.utcnow()
-                for r in replicas:
-                    exchange_replica = md_kernel.prepare_replica_for_exchange(replicas, r, self.sd_shared_list)
-                    sub_replica = unit_manager.submit_units(exchange_replica)
-                    exchange_replicas.append(sub_replica)
-                T2 = datetime.datetime.utcnow()
+
+                ################################################################################
+                # sequential submission
+                outfile = "ex_prep_submission_details_{0}.csv".format(session.uid)
+                if bulk == 0:
+                    T1 = datetime.datetime.utcnow()
+                    for r in replicas:
+                        with open(outfile, 'w+') as f:
+                            t_1 = datetime.datetime.utcnow()
+                            exchange_replica = md_kernel.prepare_replica_for_exchange(replicas, r, self.sd_shared_list)
+                            t_2 = datetime.datetime.utcnow()
+                            value =  (t_2-t_1).total_seconds()
+                            f.write("repex_ex_prep_time {0}\n".format(value))
+
+                            t_1 = datetime.datetime.utcnow()
+                            sub_replica = unit_manager.submit_units(exchange_replica)
+                            t_2 = datetime.datetime.utcnow()
+                            value =  (t_2-t_1).total_seconds()
+                            f.write("rp_submit_time {0}\n".format(value))
+
+                        exchange_replicas.append(sub_replica)
+                    f.close()
+                    T2 = datetime.datetime.utcnow()
+                ################################################################################
+                # bulk submision
+                else:
+                    e_replicas = []
+                    T1 = datetime.datetime.utcnow()
+
+                    t_1 = datetime.datetime.utcnow()
+                    for r in replicas:
+                        exchange_replica = md_kernel.prepare_replica_for_exchange(replicas, r, self.sd_shared_list)
+                        e_replicas.append(exchange_replica)
+                    t_2 = datetime.datetime.utcnow()
+                    with open(outfile, 'w+') as f:
+                        value =  (t_2-t_1).total_seconds()
+                        f.write("repex_ex_prep_time {0}\n".format(value))
+                   
+                        t_1 = datetime.datetime.utcnow()
+                        exchange_replicas = unit_manager.submit_units(e_replicas)
+                        t_2 = datetime.datetime.utcnow()
+
+                        value =  (t_2-t_1).total_seconds()
+                        f.write("rp_submit_time {0}\n".format(value))
+
+                    T2 = datetime.datetime.utcnow()
+
+                ################################################################################
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = (T2-T1).total_seconds()
