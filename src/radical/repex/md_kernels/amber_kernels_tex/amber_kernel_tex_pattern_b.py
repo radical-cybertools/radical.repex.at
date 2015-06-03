@@ -18,7 +18,6 @@ import datetime
 from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
-from amber_kernel_tex import *
 import radical.utils.logger as rul
 import amber_kernels_tex.amber_matrix_calculator_pattern_b
 from md_kernels.md_kernel_tex import *
