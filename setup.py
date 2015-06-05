@@ -11,9 +11,23 @@ def get_version():
     verstrline = open(VERSIONFILE, "rt").read()
     VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
     mo = re.search(VSRE, verstrline, re.M)
+
+    brach_str = subprocess.check_output(['git', 'branch'])
+    brach_str =  brach_str.split(' ')
+
+    branch = ''
+    current = 0
+    for i in range(len(brach_str)):
+        if current == 1:
+            branch += branch + brach_str[i] 
+            current = 0
+        if brach_str[i].startswith('*'):
+            current = 1
+    branch = branch[:-1]
+
     if mo:
         verstr = mo.group(1)
-        verstr = verstr + "@" + v_short
+        verstr = verstr + '@' + branch + '@' + v_short
     else:
         raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
     return verstr
