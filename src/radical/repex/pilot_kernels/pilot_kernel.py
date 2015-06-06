@@ -11,8 +11,11 @@ import sys
 import math
 import json
 import time
+import random
+import datetime
 from os import path
 import radical.pilot
+from random import randint
 from kernels.kernels import KERNELS
 import radical.utils.logger as rul
 
@@ -96,11 +99,14 @@ class PilotKernel(object):
                     # sys.exit(1)
         # --------------------------------------------------------------------------
 
+        
         session = None
         pilot_manager = None
         pilot_object = None
+
+        session_name = randint(0,99999999999)
    
-        session = radical.pilot.Session(database_url=self.dburl, database_name='repex-tests')
+        session = radical.pilot.Session(database_url=self.dburl, database_name='repex-tests', name=session_name)
         self.logger.info("Session ID: {0}".format(session.uid) )
 
         try:

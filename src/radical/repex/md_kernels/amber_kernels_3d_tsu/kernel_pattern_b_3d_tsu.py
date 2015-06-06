@@ -26,7 +26,7 @@ import amber_kernels_3d_tsu.matrix_calculator_us_ex
 import amber_kernels_3d_tsu.salt_conc_pre_exec
 import amber_kernels_3d_tsu.salt_conc_post_exec
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------
 
 class AmberKernelPatternB3dTSU(MdKernel3dTSU):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
@@ -117,7 +117,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
         return replicas
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
 
@@ -179,7 +179,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             rstr_url = 'file://%s' % (rstr_p)
             self.shared_urls.append(rstr_url)
  
-    #---------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------------------------
     #  
     def build_restraint_file(self, replica):
         """Builds restraint file for replica, based on template file
@@ -204,7 +204,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             self.logger.info("Warning: unable to access file: {0}".format(replica.new_restraints) )
 
 
-    #-----------------------------------------------------------------------------------------------------------------------------------
+    #-----------------------------------------------------------------------------------------------
     #
     def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin

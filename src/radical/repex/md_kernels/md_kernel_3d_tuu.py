@@ -19,7 +19,7 @@ from replicas.replica import Replica3d
 from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
 from amber_kernels_us.amber_kernel_us_pattern_b import AmberKernelUSPatternB
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
 
 class MdKernel3dTUU(object):
     """
@@ -85,8 +85,8 @@ class MdKernel3dTUU(object):
         self.min_temp = float(inp_file['input.DIM']['temperature_2']['min_temperature'])
         self.max_temp = float(inp_file['input.DIM']['temperature_2']['max_temperature'])
 
-#----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------------------------------
+    #
     def gibbs_exchange(self, r_i, replicas, swap_matrix):
         """Adopted from asyncre-bigjob [1]
         Produces a replica "j" to exchange with the given replica "i"
@@ -104,11 +104,6 @@ class MdKernel3dTUU(object):
         #evaluate all i-j swap probabilities
         ps = [0.0]*(len(replicas))
 
-        #for r in replicas:
-        #    self.logger.debug("[gibbs_exchange] (before) r.id: {0} r.temp: {1:0.3f} r.salt: {2:0.3f}".format(r.id, r.new_restraints_1) )
-        
-        #self.logger.debug("[gibbs_exchange] (before) swap matrix: {0:s}".format(swap_matrix) )    
-  
         j = 0
         for r_j in replicas:
             ps[j] = -(swap_matrix[r_i.sid][r_j.id] + swap_matrix[r_j.sid][r_i.id] - 
@@ -133,8 +128,8 @@ class MdKernel3dTUU(object):
         #r_j = replicas[0]
         return r_j
 
-#----------------------------------------------------------------------------------------------------------------------------------
-
+    #----------------------------------------------------------
+    #
     def weighted_choice_sub(self, weights):
         """Adopted from asyncre-bigjob [1]
         """
@@ -145,8 +140,7 @@ class MdKernel3dTUU(object):
             if rnd < 0:
                 return i
 
-#----------------------------------------------------------------------------------------------------------------------------------
-
+    #----------------------------------------------------------
     # 
     def reduced_energy(self, temperature, potential):
         """Adopted from asyncre-bigjob [1]
@@ -154,5 +148,4 @@ class MdKernel3dTUU(object):
         kb = 0.0019872041
         beta = 1. / (kb*temperature)     
         return float(beta * potential)
-
 

@@ -24,7 +24,7 @@ from md_kernels.md_kernel_3d_tuu import *
 import amber_kernels_3d_tuu.matrix_calculator_temp_ex
 import amber_kernels_3d_tuu.matrix_calculator_us_ex
 
-#--------------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------
 
 class AmberKernelPatternB3dTUU(MdKernel3dTUU):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
@@ -68,7 +68,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         self.us_d1_matrix = []
         self.us_d3_matrix = []
 
-    #---------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------
     #
     def initialize_replicas(self):
         """Initializes replicas and their attributes to default values
@@ -108,7 +108,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
         return replicas
 
-    #---------------------------------------------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
 
@@ -156,7 +156,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             rstr_url = 'file://%s' % (rstr_p)
             self.shared_urls.append(rstr_url)
  
-    #---------------------------------------------------------------------------------------------------------------------
+    #-----------------------------------------------------------------------------------------------
     #  
     def build_restraint_file(self, replica):
         """Builds restraint file for replica, based on template file
@@ -181,7 +181,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         except IOError:
             self.logger.info("Warning: unable to access file: {0}".format(replica.new_restraints) )
 
-    #---------------------------------------------------------------------------------------------------------------------
+    #----------------------------------------------------------------------------------------------
     #
     def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin
@@ -224,7 +224,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         except IOError:
             self.logger.info("Warning: unable to access file: {0}".format(new_input_file) )
 
-    #---------------------------------------------------------------------------------------------------------------------
+    #----------------------------------------------------------------------------------------
     #
     def prepare_replica_for_md(self, replica, sd_shared_list):
         """
@@ -335,7 +335,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
         return cu
 
-    #---------------------------------------------------------------------------------------------------------------------
+    #----------------------------------------------------------
     #
     def prepare_lists(self, replicas):
         """
@@ -359,7 +359,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         self.all_rstr_list_d1 = all_rstr_d1.split(" ")
         self.all_rstr_list_d3 = all_rstr_d3.split(" ")
      
-    #---------------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------------------
     #
     def prepare_replica_for_exchange(self, dimension, replicas, replica, sd_shared_list):
         """
@@ -486,7 +486,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 r_i.swap = 1
                 r_j.swap = 1
 
-    #---------------------------------------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     #
     def select_for_exchange(self, dimension, replicas, swap_matrix, cycle):
         """

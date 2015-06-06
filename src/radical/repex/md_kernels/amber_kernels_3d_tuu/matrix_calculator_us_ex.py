@@ -276,4 +276,3 @@ if __name__ == '__main__':
     except IOError:
         print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
 
-
