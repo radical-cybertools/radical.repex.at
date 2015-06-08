@@ -21,7 +21,6 @@ from pilot_kernels.pilot_kernel_pattern_b_multi_d import PilotKernelPatternBmult
 
 if __name__ == '__main__':
     """Runs RE simulation using pattern B. 
-
     """
 
     name = 'launcher-3d-TUU'
@@ -53,8 +52,7 @@ if __name__ == '__main__':
         # now we can run RE simulation
         pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
 
-        # this is a quick hack
-        base = md_kernel.inp_basename + ".mdin"
+        base = md_kernel.inp_basename
 
         # finally we are moving all files to individual replica directories
         move_output_files(work_dir_local, base, replicas )

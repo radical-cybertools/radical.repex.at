@@ -74,7 +74,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
              for i in range(len(replicas))]
 
         for r in replicas:
-            column_file = base_name + "_" + str(r.cycle-1) + "_" + str(r.id) +  ".dat"       
+            column_file = base_name + "_" + str(r.id) + "_" + str(r.cycle-1)  +  ".dat"       
             try:
                 f = open(column_file)
                 lines = f.readlines()
@@ -198,11 +198,13 @@ class PilotKernelPatternBmultiD(PilotKernel):
         dimensions = md_kernel.dims
         for c in range(0,cycles*dimensions):
 
+            """
             for r in replicas:
                 if md_kernel.name == 'ak-patternB-3d-TUU':
                     self.logger.info("rid: {0} temp: {1} us1: {2}  us3: {3}".format(r.id, r.new_temperature, r.rstr_val_1, r.rstr_val_2) )
                 if md_kernel.name == 'ak-patternB-3d-TSU':
                     self.logger.info("rid: {0} temp: {1} salt: {2}  us1: {3}".format(r.id, r.new_temperature, r.new_salt_concentration, r.rstr_val_1) )
+            """
             #-------------------------------------------------------------------------------
             # 
             if D < dimensions:

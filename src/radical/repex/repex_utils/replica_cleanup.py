@@ -22,6 +22,29 @@ def move_output_files(work_dir_local, inp_basename, replicas):
     replicas - list of Replica objects
     """
 
+    #----------------------------------------------------------
+    # moving shared files
+    #----------------------------------------------------------
+    dir_path = "%s/shared_files" % (work_dir_local)
+    if not os.path.exists(dir_path):
+        try:
+            os.makedirs(dir_path)
+        except: 
+            raise
+
+    swap_name = "swap_matrix"
+    files = os.listdir( work_dir_local )
+
+    for item in files:
+        if (item.startswith(swap_name)):
+            source =  work_dir_local + "/" + str(item)
+            destination = dir_path + "/"
+            shutil.move( source, destination)
+
+    #----------------------------------------------------------
+    # moving individual files
+    #----------------------------------------------------------
+
     for r in range(len(replicas)):
         dir_path = "%s/replica_%d" % (work_dir_local, r )
         if not os.path.exists(dir_path):
@@ -31,13 +54,13 @@ def move_output_files(work_dir_local, inp_basename, replicas):
                 raise
 
         files = os.listdir( work_dir_local )
+
         base_name =  inp_basename[:-5] + "_%s_" % replicas[r].id
-        # moving matrix_column files
-        col_name = "matrix_column_"
-        swap_name = "swap_matrix_"
-        rst_name = "ala10_us."
+        col_name = "matrix_column" + "_%s_" % replicas[r].id
+        rst_name = "ala10_us.RST." + "%s" % replicas[r].id
+
         for item in files:
-            if (item.startswith(base_name) or item.startswith(col_name) or item.startswith(swap_name) or item.startswith(rst_name)):
+            if (item.startswith(base_name) or item.startswith(col_name) or item.startswith(rst_name)):
                 source =  work_dir_local + "/" + str(item)
                 destination = dir_path + "/"
                 shutil.move( source, destination)
