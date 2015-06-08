@@ -52,7 +52,7 @@ if __name__ == '__main__':
         # now we can run RE simulation
         pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
 
-        base = md_kernel.inp_basename
+        base = md_kernel.inp_basename + ".mdin"
 
         # finally we are moving all files to individual replica directories
         move_output_files(work_dir_local, base, replicas )
