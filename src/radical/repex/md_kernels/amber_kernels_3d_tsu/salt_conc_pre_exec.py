@@ -12,7 +12,7 @@ import sys
 import json
 import os,sys,socket,time
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------
 
 def get_historical_data(history_name, data_path=os.getcwd()):
     """Retrieves temperature and potential energy from simulation output file .history file.
@@ -53,7 +53,7 @@ def get_historical_data(history_name, data_path=os.getcwd()):
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """This module calculates one swap matrix column for replica and writes this column to 
@@ -70,16 +70,21 @@ if __name__ == '__main__':
 
     prmtop_name = data["amber_parameters"]
     mdin_name = data["amber_input"]
-    # INITIAL REPLICA TEMPERATURE:
+
     init_temp = float(data["init_temp"])
 
     # AMBER PATH ON THIS RESOURCE:
     amber_path = data["amber_path"]
 
     # SALT CONCENTRATION FOR ALL REPLICAS
-    all_salt_conc = (data["all_salt_ctr"])
-    all_temperature = (data["all_temp"])
-    all_rstr = (data["all_rstr"])
+    #all_salt_conc = (data["all_salt_ctr"])
+    #all_temperature = (data["all_temp"])
+    #all_rstr = (data["all_rstr"])
+
+    current_group_tsu = data["current_group_tsu"]
+
+    #print "current_group_tsu: "
+    #print current_group_tsu
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
     r_old_path = data["r_old_path"]
@@ -102,9 +107,11 @@ if __name__ == '__main__':
 
     f_groupfile = file('groupfile','w')
     # call amber to run 1-step energy calculation
-    for j in range(replicas):
-        energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
-        energy_input_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdin"
+    #for j in range(replicas):
+    for j in current_group_tsu.keys():
+
+        energy_history_name = base_name + "_" + j + "_" + str(replica_cycle) + "_energy.mdinfo"
+        energy_input_name = base_name + "_" + j + "_" + str(replica_cycle) + "_energy.mdin"
 
         input_template = mdin_name
         f = file(input_template,'r')
@@ -117,11 +124,11 @@ if __name__ == '__main__':
             if "@nstlim@" in line:
                 f.write(line.replace("@nstlim@","0"))
             elif "@salt@" in line:
-                f.write(line.replace("@salt@",all_salt_conc[j]))
+                f.write(line.replace("@salt@",current_group_tsu[j][1]))
             elif "@temp@" in line:
-                f.write(line.replace("@temp@",all_temperature[j]))
+                f.write(line.replace("@temp@",current_group_tsu[j][0]))
             elif "@disang@" in line:
-                f.write(line.replace("@disang@",all_rstr[j]))
+                f.write(line.replace("@disang@",current_group_tsu[j][2]))
             else:
                 f.write(line)
         f.close()

@@ -420,8 +420,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 if str(repl.id) in current_group:
                     current_group_rst[str(repl.id)] = str(repl.new_restraints)  
 
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
+            
  
             in_list = []
             # copying calculator from staging area to cu folder
@@ -459,6 +458,9 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
             
+
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
             cu.input_staging = [str(input_file)] + in_list + [coor_directive]
             cu.output_staging = matrix_col
             cu.arguments = ["matrix_calculator_us_ex.py", json_data]

@@ -75,6 +75,20 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         
         self.node_cores = int(inp_file['input.PILOT']['node_cores'])
 
+    #---------------------------------------------------------------------
+    #
+    def get_rstr_id(self, restraint):
+        dot = 0
+        rstr_id = ''
+        for ch in restraint:
+            if dot == 2:
+                rstr_id += ch
+            if ch == '.':
+                dot += 1
+
+        return int(rstr_id)
+
+
     #----------------------------------------------------------------------------------------------
     # 
     def initialize_replicas(self):
@@ -112,7 +126,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
                     #print "rid: %d temp: %f salt: %f us: %f " % (rid, t1, float(s1), float(rstr_val_1))
 
-                    r = Replica3d(rid, new_temperature=t1, new_salt_1=s1, new_restraints=r1, rstr_val_1=float(rstr_val_1), cores=1)
+                    r = Replica3d(rid, new_temperature=t1, new_salt=s1, new_restraints=r1, rstr_val_1=float(rstr_val_1), cores=1)
                     replicas.append(r)
 
         return replicas
@@ -302,7 +316,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = self.amber_path
             cu.pre_exec = self.pre_exec
-            cu.mpi = self.replica_mpi
+            cu.mpi = False
             cu.arguments = ["-O", "-i ", input_file, 
                                   "-o ", output_file, 
                                   "-p ", self.amber_parameters, 
@@ -321,7 +335,9 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
             rid = replica.id
             in_list.append(sd_shared_list[0])
-            in_list.append(sd_shared_list[rid+7])
+
+            rstr_id = self.get_rstr_id(replica.new_restraints)
+            in_list.append(sd_shared_list[rstr_id+7])
 
             #old_coor = replicas[r].first_path + "/" + self.amber_coordinates
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
@@ -329,7 +345,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = self.amber_path
             cu.pre_exec = self.pre_exec
-            cu.mpi = self.replica_mpi
+            cu.mpi = False
             cu.arguments = ["-O", "-i ", input_file, 
                                   "-o ", output_file, 
                                   "-p ", self.amber_parameters, 
@@ -344,12 +360,11 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
         return cu
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #------------------------------------------------------------------------------------------------------------------
+    #
     def prepare_lists(self, replicas):
-        """
-        """
 
+        """
         all_salt = ""
         all_temp = ""
         all_rstr = ""
@@ -366,24 +381,49 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         self.all_temp_list = all_temp.split(" ")
         self.all_salt_list = all_salt.split(" ")
         self.all_rstr_list = all_rstr.split(" ")
+        """
 
-    #-----------------------------------------------------------------------------------------------------------------------------------
+        pass
+
+    #-----------------------------------------------------------------------------------------------------------------
     #
     def prepare_replica_for_exchange(self, dimension, replicas, replica, sd_shared_list):
         """
         """
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
-        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.cycle-1), str(replica.id))
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
+
+        current_group = self.get_current_group(dimension, replicas, replica)
 
         cu = radical.pilot.ComputeUnitDescription()
         if dimension == 1:
+
+            data = {
+                "replica_id": str(replica.id),
+                "replica_cycle" : str(replica.cycle-1),
+                "base_name" : str(basename),
+                "current_group" : current_group,
+                "replicas" : str(len(replicas)),
+                "amber_parameters": "../staging_area/"+str(self.amber_parameters)
+            }
+
+            dump_data = json.dumps(data)
+            json_data = dump_data.replace("\\", "")
+
             cu.executable = "python"
             cu.input_staging  = sd_shared_list[3]
-            cu.arguments = ["matrix_calculator_temp_ex.py", replica.id, (replica.cycle-1), self.replicas, basename]
+            cu.arguments = ["matrix_calculator_temp_ex.py", json_data]
             cu.cores = 1            
             cu.output_staging = matrix_col
+
         elif dimension == 2:
+            # 
+            current_group_tsu = {}
+            for repl in replicas:
+                if str(repl.id) in current_group:
+                    current_group_tsu[str(repl.id)] = [str(repl.new_temperature), str(repl.new_salt_concentration), str(repl.new_restraints)]
+
             data = {
                 "replica_id": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
@@ -393,9 +433,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
                 "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": "../staging_area/"+str(self.amber_parameters),    #temp fix
-                "all_salt_ctr" : self.all_salt_list, 
-                "all_temp" : self.all_temp_list,
-                "all_rstr" : self.all_rstr_list,
+                "current_group_tsu" : current_group_tsu, 
                 "r_old_path": str(replica.old_path),
             }
 
@@ -404,23 +442,27 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
             salt_pre_exec = ["python salt_conc_pre_exec.py " + "\'" + json_data + "\'"]
             cu.pre_exec = self.pre_exec + salt_pre_exec
-
             cu.executable = self.amber_path_mpi
-
             salt_post_exec = ["python salt_conc_post_exec.py " + "\'" + json_data + "\'"]
             cu.post_exec = salt_post_exec
 
             rid = replica.id
-            in_st = []
-            in_st.append(sd_shared_list[2])
-            in_st.append(sd_shared_list[5])
-            in_st.append(sd_shared_list[6])
+            in_list = []
+            in_list.append(sd_shared_list[2])
+            in_list.append(sd_shared_list[5])
+            in_list.append(sd_shared_list[6])
 
             # copying .RST files from staging area to replica folder
+            rst_group = []
+            for k in current_group_tsu.keys():
+                rstr_id = self.get_rstr_id(current_group_tsu[k][2])
+                rst_group.append(rstr_id)
+
             for i in range(7,self.replicas+7):
-                in_st.append(sd_shared_list[i])
-            
-            cu.input_staging = in_st
+                if (i-7) in rst_group:
+                    in_list.append(sd_shared_list[i])
+      
+            cu.input_staging = in_list
 
             if self.node_cores > self.replicas:
                 cu.arguments = ['-ng', str(self.replicas), '-groupfile', 'groupfile']
@@ -432,20 +474,25 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             cu.output_staging = matrix_col 
             cu.mpi = True 
         else:
-            all_restraints = []
+
+            current_group_rst = {}
             for repl in replicas:
-                all_restraints.append(str(repl.new_restraints))
-    
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
- 
+                if str(repl.id) in current_group:
+                    current_group_rst[str(repl.id)] = str(repl.new_restraints)  
+
             in_list = []
             # copying calculator from staging area to cu folder
             in_list.append(sd_shared_list[4])
             rid = replica.id
             # copying .RST files from staging area to replica folder
+            rst_group = []
+            for k in current_group_rst.keys():
+                rstr_id = self.get_rstr_id(current_group_rst[k])
+                rst_group.append(rstr_id)
+           
             for i in range(7,self.replicas+7):
-                in_list.append(sd_shared_list[i])
+                if (i-7) in rst_group:
+                    in_list.append(sd_shared_list[i])
 
             # copy new coordinates from MD run to CU directory
             coor_directive = {'source': 'staging:///%s' % replica.new_coor,
@@ -461,19 +508,20 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
                 "init_temp" : str(replica.new_temperature),
-                "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": str(self.amber_parameters),
-                "all_restraints" : all_restraints
+                "current_group_rst" : current_group_rst
             }
 
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
             
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
             cu.input_staging = [str(input_file)] + in_list + [coor_directive]
             cu.output_staging = matrix_col
             cu.arguments = ["matrix_calculator_us_ex.py", json_data]
-            cu.cores = 1            
+            cu.cores = 1         
 
         return cu
 
@@ -494,11 +542,11 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             replica_1.new_salt_concentration = salt
             self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_salt_concentration, replica_2.new_salt_concentration) )
         else:
-            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_1, replica_2.rstr_val_1) )
-            rstr = replica_2.rstr_val_1
-            replica_2.rstr_val_1 = replica_1.rstr_val_1
-            replica_1.rstr_val_1 = rstr
-            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.rstr_val_1, replica_2.rstr_val_1) )
+            self.logger.debug("[exchange_params] before: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints, replica_2.new_restraints) )
+            rstr = replica_2.new_restraints
+            replica_2.new_restraints = replica_1.new_restraints
+            replica_1.new_restraints = rstr
+            self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints, replica_2.new_restraints) )
 
     #-----------------------------------------------------------------------------------------------------------------------------------
     #
@@ -632,6 +680,9 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
     #-----------------------------------------------------------------------------------------------------------------------------------
     #
     def init_matrices(self, replicas):
+        """
+        change...
+        """
 
         # id_matrix
         for r in replicas:
@@ -689,4 +740,47 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
 
         self.us_matrix = sorted(self.us_matrix)
         self.logger.debug("[init_matrices] us_d1_matrix: {0:s}".format(self.us_matrix) )
+
+
+    #-------------------------------------------------------------------------
+    #
+    def get_current_group(self, dimension, replicas, replica):
+        """
+        """
+
+        current_group = []
+
+        for r1 in replicas:
+            
+            ###############################################
+            # temperature exchange
+            if dimension == 1:
+                
+                r1_pair = [r1.new_salt_concentration, r1.rstr_val_1]
+                my_pair = [replica.new_salt_concentration, replica.rstr_val_1]
+                  
+                if r1_pair == my_pair:
+                    current_group.append(str(r1.id))
+
+            ###############################################
+            # salt concentration exchange
+            elif dimension == 2:
+
+                r1_pair = [r1.new_temperature, r1.rstr_val_1]
+                my_pair = [replica.new_temperature, replica.rstr_val_1]
+
+                if r1_pair == my_pair:
+                    current_group.append(str(r1.id))
+
+            ###############################################
+            # us exchange 
+            elif dimension == 3:
+
+                r1_pair = [r1.new_temperature, r1.new_salt_concentration]
+                my_pair = [replica.new_temperature, replica.new_salt_concentration]
+
+                if r1_pair == my_pair:
+                    current_group.append(str(r1.id))
+
+        return current_group
 

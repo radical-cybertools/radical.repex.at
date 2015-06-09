@@ -1,12 +1,13 @@
 {
     "input.PILOT": {
-        "resource": "gordon.sdsc.xsede.org",
+        "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
-        "project" : "unc101",
+        "project" : "TG-MCB090174",
+        "queue" : "development",
         "runtime" : "20",
         "cleanup" : "False",
         "cores" : "16",
-        "node_cores" : "16"
+        "node_cores" : "2"
     },
     "input.MD": {
         "number_of_cycles": "3",

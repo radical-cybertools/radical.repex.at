@@ -220,6 +220,8 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
+    ###########################################################################################
+
     for j in range(replicas):
         try:
             rstr_file = file(all_restraints[j],'r')
@@ -236,6 +238,8 @@ if __name__ == '__main__':
             temperatures[j] = float(init_temp)
         except:
             raise
+
+    ###########################################################################################
 
     # init swap column
     swap_column = [0.0]*replicas

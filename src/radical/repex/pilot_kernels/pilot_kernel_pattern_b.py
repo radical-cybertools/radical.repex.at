@@ -96,7 +96,7 @@ class PilotKernelPatternB(PilotKernel):
     #
     def compose_swap_matrix(self, replicas, matrix_columns):
         """Creates a swap matrix from matrix_column_x.dat files. 
-        matrix_column_x.dat - is populated on targer resource and then transferred back. This
+        matrix_column_x.dat - is populated on target resource and then transferred back. This
         file is created for each replica and has data for one column of swap matrix. In addition to that,
         this file holds path to pilot compute unit of the previous run, where reside NAMD output files for 
         a given replica. 

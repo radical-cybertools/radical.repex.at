@@ -117,9 +117,7 @@ if __name__ == '__main__':
     # AMBER PATH ON THIS RESOURCE:
     amber_path = data["amber_path"]
 
-    # SALT CONCENTRATION FOR ALL REPLICAS
-    all_salt_conc = (data["all_salt_ctr"])
-    all_temperature = (data["all_temp"])
+    current_group_tsu = data["current_group_tsu"]
 
     r_old_path = data["r_old_path"]
 
@@ -130,24 +128,26 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas  
     energies = [0.0]*replicas
 
-    for j in range(replicas):
+    #for j in range(replicas):
+    for j in current_group_tsu.keys():
         energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
         try:
             rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
-            temperatures[j] = float(init_temp)
-            energies[j] = rj_energy
+            temperatures[int(j)] = float(init_temp)
+            energies[int(j)] = rj_energy
         except:
              raise
 
     # init swap column
     swap_column = [0.0]*replicas
 
-    for j in range(replicas):        
-        swap_column[j] = reduced_energy(temperatures[j], energies[j])
+    #for j in range(replicas):
+    for j in current_group_tsu.keys():       
+        swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 
     #----------------------------------------------------------------
     # writing to file
-    outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
+    outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
     with open(outfile, 'w+') as f:
         row_str = ""
         for item in swap_column:        

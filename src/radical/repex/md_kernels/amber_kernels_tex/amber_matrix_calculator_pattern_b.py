@@ -101,6 +101,9 @@ if __name__ == '__main__':
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
     # but this is easily changeble for arbitrary cycle numbers
+
+    ###########################################################################################
+    # WHY WE NEED TO DO THIS N TIMES???????
     temperatures = [0.0]*replicas
     energies = [0.0]*replicas
     for j in range(replicas):
@@ -111,6 +114,8 @@ if __name__ == '__main__':
             energies[j] = rj_energy
         except:
              pass 
+
+    ###########################################################################################
 
     # init swap column
     swap_column = [0.0]*replicas

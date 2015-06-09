@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernels.amber_kernels_tex.amber_matrix_calculator_scheme_2
+.. module:: radical.repex.md_kernels.amber_kernels_tex.matrix_calculator_tex
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
@@ -9,6 +9,7 @@ __license__ = "MIT"
 
 import os
 import sys
+import json
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -79,15 +80,23 @@ if __name__ == '__main__':
     matrix_column_x_x.dat file. 
     """
 
-    argument_list = str(sys.argv)
-    replica_id = str(sys.argv[1])
-    replica_cycle = str(sys.argv[2])
-    replicas = int(str(sys.argv[3]))
-    base_name = str(sys.argv[4])
+    json_data = sys.argv[1]
+    data=json.loads(json_data)
+
+    replica_id = data["replica_id"]
+    replica_cycle = data["replica_cycle"]
+    base_name = data["base_name"]
+    replicas = int(data["replicas"])
+    amber_parameters = data["amber_parameters"]
+
+    temp_group = data["current_group"]
+    current_group = []
+
+    for i in temp_group:
+        current_group.append(int(i))
 
     pwd = os.getcwd()
-    #matrix_col = "matrix_column_%s_%s.dat" % ( replica_id, replica_cycle ) 
-
+     
     # getting history data for self
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
     #print "history name: %s" % history_name
@@ -98,25 +107,28 @@ if __name__ == '__main__':
     # but this is easily changeble for arbitrary cycle numbers
     temperatures = [0.0]*replicas
     energies = [0.0]*replicas
-    for j in range(replicas):
+    #for j in range(replicas):
+    for j in current_group:
         history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
         try:
             rj_temp, rj_energy, temp = get_historical_data( history_name )
             temperatures[j] = rj_temp
             energies[j] = rj_energy
         except:
-             pass 
+            raise
 
     # init swap column
     swap_column = [0.0]*replicas
 
-    for j in range(replicas):        
+    #for j in range(replicas):  
+    for j in current_group:      
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
     #----------------------------------------------------------------
     # writing to file
+    
     try:
-        outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
+        outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
         with open(outfile, 'w+') as f:
             row_str = ""
             for item in swap_column:
@@ -124,7 +136,7 @@ if __name__ == '__main__':
                     row_str = row_str + " " + str(item)
                 else:
                     row_str = str(item)
-            row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
+            #row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
 
             f.write(row_str)
         f.close()

@@ -124,14 +124,29 @@ class MdKernelTex(object):
   
         for r_j in replicas:
             ps[r_j.id] = -(swap_matrix[r_i.sid][r_j.id] + swap_matrix[r_j.sid][r_i.id] - 
-                      swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
+                           swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
+
+        
+        test_matrix = [[0 for i in range(8)] for j in range(8)]
+        print "test_matrix init: "
+        print test_matrix
+
+        for r_j in replicas:
+            test_matrix[r_i.sid][r_j.id] = 1
+            test_matrix[r_j.sid][r_i.id] = 1
+            test_matrix[r_i.sid][r_i.id] = 1
+            test_matrix[r_j.sid][r_j.id] = 1
+
+        print "test_matrix: "
+        print test_matrix
+        
 
         new_ps = []
         for item in ps:
             new_item = math.exp(item)
             new_ps.append(new_item)
         ps = new_ps
-        # index of swap replica within replicas_waiting list
+        # index of swap replica
         j = len(replicas)
         while j > (len(replicas) - 1):
             j = self.weighted_choice_sub(ps)

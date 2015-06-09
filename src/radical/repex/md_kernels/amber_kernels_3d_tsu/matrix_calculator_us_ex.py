@@ -10,9 +10,6 @@ __license__ = "MIT"
 import os
 import sys
 import json
-import os,sys,socket,time
-from subprocess import *
-import subprocess
 import math
 import time
 
@@ -211,8 +208,7 @@ if __name__ == '__main__':
     # INITIAL REPLICA TEMPERATURE:
     init_temp = float(data["init_temp"])
 
-    # SALT CONCENTRATION FOR ALL REPLICAS
-    all_restraints = (data["all_restraints"])
+    current_group_rst = data["current_group_rst"]
    
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
     new_coor = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
@@ -230,9 +226,10 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    for j in range(replicas):
+    for j in current_group_rst.keys():        
+        current_rstr = current_group_rst[j]
         try:
-            rstr_file = file(all_restraints[j],'r')
+            rstr_file = file(current_rstr,'r')
             rstr_lines = rstr_file.readlines()
             rstr_file.close()
             rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
@@ -242,25 +239,22 @@ if __name__ == '__main__':
             for rstr_entry in rstr_entries:
                 r.set_rstr(rstr_entry); r.calc_energy()
                 us_energy += r.energy
-            energies[j] = replica_energy + us_energy
-            temperatures[j] = float(init_temp)
+            energies[int(j)] = replica_energy + us_energy
+            temperatures[int(j)] = float(init_temp)
         except:
             raise
 
     # init swap column
     swap_column = [0.0]*replicas
 
-    for j in range(replicas):        
-        swap_column[j] = reduced_energy(temperatures[j], energies[j])
-
-    #for item in swap_column:
-    #    print item,
-    #print str(path_to_replica_folder).rstrip()
+    #for j in range(replicas):
+    for j in current_group_rst.keys():      
+        swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 
     #----------------------------------------------------------------
     # writing to file
     try:
-        outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
+        outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
         with open(outfile, 'w+') as f:
             row_str = ""
             for item in swap_column:
@@ -268,12 +262,11 @@ if __name__ == '__main__':
                     row_str = row_str + " " + str(item)
                 else:
                     row_str = str(item)
-            row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
+            #row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
  
             f.write(row_str)
         f.close()
 
     except IOError:
         print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-
 
