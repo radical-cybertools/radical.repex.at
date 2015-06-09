@@ -198,7 +198,6 @@ if __name__ == '__main__':
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
-
     replica_id = int(data["replica_id"])
     replica_cycle = int(data["replica_cycle"])
     replicas = int(data["replicas"])
@@ -227,32 +226,30 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    for j in range(replicas):
+    for j in current_group_rst.keys():        
+        current_rstr = current_group_rst[j]
         try:
-            if str(j) in current_group_rst.keys():        
-                current_rstr = current_group_rst[str(j)]
-
-                rstr_file = file(current_rstr,'r')
-                rstr_lines = rstr_file.readlines()
-                rstr_file.close()
-                rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
-                us_energy = 0.0
-                r = restraint()
-                r.set_crd(new_coor)
-                for rstr_entry in rstr_entries:
-                    r.set_rstr(rstr_entry); r.calc_energy()
-                    us_energy += r.energy
-                energies[j] = replica_energy + us_energy
-                temperatures[j] = float(init_temp)
+            rstr_file = file(current_rstr,'r')
+            rstr_lines = rstr_file.readlines()
+            rstr_file.close()
+            rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
+            us_energy = 0.0
+            r = restraint()
+            r.set_crd(new_coor)
+            for rstr_entry in rstr_entries:
+                r.set_rstr(rstr_entry); r.calc_energy()
+                us_energy += r.energy
+            energies[int(j)] = replica_energy + us_energy
+            temperatures[int(j)] = float(init_temp)
         except:
             raise
 
     # init swap column
     swap_column = [0.0]*replicas
 
-    for j in range(replicas):
-        if str(j) in current_group_rst.keys():        
-            swap_column[j] = reduced_energy(temperatures[j], energies[j])
+    #for j in range(replicas):
+    for j in current_group_rst.keys():      
+        swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 
     #----------------------------------------------------------------
     # writing to file

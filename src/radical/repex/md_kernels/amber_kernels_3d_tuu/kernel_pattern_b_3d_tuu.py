@@ -270,6 +270,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         }
         st_out.append(coor_out)
 
+        cu = radical.pilot.ComputeUnitDescription()
         if replica.cycle == 1:      
             # files needed to be moved in replica dir
             in_list = []
@@ -287,10 +288,9 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             }
             st_out.append(crds_out)
                 
-            cu = radical.pilot.ComputeUnitDescription()
             cu.executable = self.amber_path
             cu.pre_exec = self.pre_exec
-            cu.mpi = self.replica_mpi
+            cu.mpi = self.md_replica_mpi
             cu.arguments = ["-O", "-i ", input_file, 
                                   "-o ", output_file, 
                                   "-p ", self.amber_parameters, 
@@ -299,7 +299,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                                   "-x ", new_traj, 
                                   "-inf ", new_info]
 
-            cu.cores = self.replica_cores
+            cu.cores = self.md_replica_cores
             cu.input_staging = [str(input_file)] + in_list
             cu.output_staging = st_out
         else:
@@ -332,13 +332,12 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
             replica_path = "/replica_%d_%d/" % (replica.id, 0)
             old_coor = "../staging_area/" + replica_path + self.amber_coordinates
-
-            cu = radical.pilot.ComputeUnitDescription()
+            
             cu.input_staging = [str(input_file)] + in_list
             cu.output_staging = st_out
             cu.executable = self.amber_path
             cu.pre_exec = self.pre_exec
-            cu.mpi = self.replica_mpi
+            cu.mpi = self.md_replica_mpi
             cu.arguments = ["-O", "-i ", input_file, 
                                   "-o ", output_file, 
                                   "-p ", self.amber_parameters, 
@@ -347,7 +346,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                                   "-x ", new_traj, 
                                   "-inf ", new_info]
 
-            cu.cores = self.replica_cores
+            cu.cores = self.md_replica_cores
             cu.input_staging = [str(input_file)] + in_list
             cu.output_staging = st_out
 
@@ -411,7 +410,8 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             cu.input_staging  = sd_shared_list[3]
             #cu.arguments = ["matrix_calculator_temp_ex.py" + "\'" + json_data + "\'"]
             cu.arguments = ["matrix_calculator_temp_ex.py", json_data]
-            cu.cores = 1            
+            cu.cores = self.temp_ex_cores
+            cu.mpi = self.temp_ex_mpi            
             cu.output_staging = matrix_col
         else:
 
@@ -420,8 +420,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 if str(repl.id) in current_group:
                     current_group_rst[str(repl.id)] = str(repl.new_restraints)  
 
-            
- 
             in_list = []
             # copying calculator from staging area to cu folder
             in_list.append(sd_shared_list[4])
@@ -458,13 +456,13 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
             
-
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             cu.input_staging = [str(input_file)] + in_list + [coor_directive]
             cu.output_staging = matrix_col
             cu.arguments = ["matrix_calculator_us_ex.py", json_data]
-            cu.cores = 1            
+            cu.mpi = self.us_ex_mpi
+            cu.cores = self.us_ex_cores            
 
         return cu
 

@@ -95,7 +95,6 @@ if __name__ == '__main__':
     for i in temp_group:
         current_group.append(int(i))
 
-
     pwd = os.getcwd()
      
     # getting history data for self
@@ -108,22 +107,22 @@ if __name__ == '__main__':
     # but this is easily changeble for arbitrary cycle numbers
     temperatures = [0.0]*replicas
     energies = [0.0]*replicas
-    for j in range(replicas):
-        if j in current_group:
-            history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
-            try:
-                rj_temp, rj_energy, temp = get_historical_data( history_name )
-                temperatures[j] = rj_temp
-                energies[j] = rj_energy
-            except:
-                raise
+    #for j in range(replicas):
+    for j in current_group:
+        history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
+        try:
+            rj_temp, rj_energy, temp = get_historical_data( history_name )
+            temperatures[j] = rj_temp
+            energies[j] = rj_energy
+        except:
+            raise
 
     # init swap column
     swap_column = [0.0]*replicas
 
-    for j in range(replicas):  
-        if j in current_group:      
-            swap_column[j] = reduced_energy(temperatures[j], replica_energy)
+    #for j in range(replicas):  
+    for j in current_group:      
+        swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
     #----------------------------------------------------------------
     # writing to file

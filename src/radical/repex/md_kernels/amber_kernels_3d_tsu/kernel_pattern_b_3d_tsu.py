@@ -72,8 +72,6 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
         self.temp_matrix = []
         self.salt_matrix = []
         self.us_matrix = []
-        
-        self.node_cores = int(inp_file['input.PILOT']['node_cores'])
 
     #---------------------------------------------------------------------
     #
@@ -316,7 +314,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = self.amber_path
             cu.pre_exec = self.pre_exec
-            cu.mpi = False
+            cu.mpi = self.md_replica_mpi
             cu.arguments = ["-O", "-i ", input_file, 
                                   "-o ", output_file, 
                                   "-p ", self.amber_parameters, 
@@ -325,7 +323,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
                                   "-x ", new_traj, 
                                   "-inf ", new_info]
 
-            cu.cores = self.replica_cores
+            cu.cores = self.md_replica_cores
             cu.input_staging = [str(input_file), str(crds)] + in_list
             cu.output_staging = st_out
         else:
@@ -345,7 +343,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             cu = radical.pilot.ComputeUnitDescription()
             cu.executable = self.amber_path
             cu.pre_exec = self.pre_exec
-            cu.mpi = False
+            cu.mpi = self.md_replica_mpi
             cu.arguments = ["-O", "-i ", input_file, 
                                   "-o ", output_file, 
                                   "-p ", self.amber_parameters, 
@@ -354,7 +352,7 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
                                   "-x ", new_traj, 
                                   "-inf ", new_info]
 
-            cu.cores = self.replica_cores
+            cu.cores = self.md_replica_cores
             cu.input_staging = [str(input_file)] + in_list
             cu.output_staging = st_out
 
@@ -414,7 +412,8 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             cu.executable = "python"
             cu.input_staging  = sd_shared_list[3]
             cu.arguments = ["matrix_calculator_temp_ex.py", json_data]
-            cu.cores = 1            
+            cu.cores = self.temp_ex_cores
+            cu.mpi = self.temp_ex_mpi          
             cu.output_staging = matrix_col
 
         elif dimension == 2:
@@ -464,15 +463,15 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
       
             cu.input_staging = in_list
 
-            if self.node_cores > self.replicas:
+            if self.salt_ex_cores > self.replicas:
                 cu.arguments = ['-ng', str(self.replicas), '-groupfile', 'groupfile']
-                cu.cores = self.node_cores
+                cu.cores = self.salt_ex_cores
             else:
-                cu.arguments = ['-ng', str(self.node_cores), '-groupfile', 'groupfile']
-                cu.cores = self.node_cores
+                cu.arguments = ['-ng', str(self.salt_ex_cores), '-groupfile', 'groupfile']
+                cu.cores = self.salt_ex_cores
 
+            cu.mpi = self.salt_ex_mpi
             cu.output_staging = matrix_col 
-            cu.mpi = True 
         else:
 
             current_group_rst = {}
@@ -521,7 +520,8 @@ class AmberKernelPatternB3dTSU(MdKernel3dTSU):
             cu.input_staging = [str(input_file)] + in_list + [coor_directive]
             cu.output_staging = matrix_col
             cu.arguments = ["matrix_calculator_us_ex.py", json_data]
-            cu.cores = 1         
+            cu.cores = self.us_ex_cores   
+            cu.mpi = self.us_ex_mpi    
 
         return cu
 

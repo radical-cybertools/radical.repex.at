@@ -50,16 +50,16 @@ class MdKernel3dTSU(object):
 
         if 'replica_mpi' in inp_file['input.MD']:
             if inp_file['input.MD']['replica_mpi'] == "True":
-                self.replica_mpi = True
+                self.md_replica_mpi = True
             else:
-                self.replica_mpi = False
+                self.md_replica_mpi = False
         else:
-            self.replica_mpi= False
+            self.md_replica_mpi= False
 
         if 'replica_cores' in inp_file['input.MD']:
-            self.replica_cores = int(inp_file['input.MD']['replica_cores'])
+            self.md_replica_cores = int(inp_file['input.MD']['replica_cores'])
         else:
-            self.replica_cores = 1
+            self.md_replica_cores = 1
 
         self.us_template = inp_file['input.MD']['us_template']                       
         self.current_cycle = -1
@@ -73,13 +73,34 @@ class MdKernel3dTSU(object):
         self.min_temp = float(inp_file['input.DIM']['temperature_1']['min_temperature'])
         self.max_temp = float(inp_file['input.DIM']['temperature_1']['max_temperature'])
 
+        self.temp_ex_cores = int(inp_file['input.DIM']['temperature_1']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['temperature_1']:
+            if inp_file['input.DIM']['temperature_1']['exchange_replica_mpi'] == 'True':
+                self.temp_ex_mpi = True
+            else:
+                self.temp_ex_mpi = False
+
         # salt concentration
         self.min_salt = float(inp_file['input.DIM']['salt_concentration_2']['min_salt'])
         self.max_salt = float(inp_file['input.DIM']['salt_concentration_2']['max_salt'])
 
+        self.salt_ex_cores = int(inp_file['input.DIM']['salt_concentration_2']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['salt_concentration_2']:
+            if inp_file['input.DIM']['salt_concentration_2']['exchange_replica_mpi'] == 'True':
+                self.salt_ex_mpi = True
+            else:
+                self.salt_ex_mpi = False
+
         # umbrella sampling
         self.us_start_param = float(inp_file['input.DIM']['umbrella_sampling_3']['us_start_param'])
         self.us_end_param = float(inp_file['input.DIM']['umbrella_sampling_3']['us_end_param'])
+
+        self.us_ex_cores = int(inp_file['input.DIM']['umbrella_sampling_3']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['umbrella_sampling_3']:
+            if inp_file['input.DIM']['umbrella_sampling_3']['exchange_replica_mpi'] == 'True':
+                self.us_ex_mpi = True
+            else:
+                self.us_ex_mpi = False
 
         self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3 
         self.restraints_files = []

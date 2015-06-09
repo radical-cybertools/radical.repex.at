@@ -49,16 +49,16 @@ class MdKernel3dTUU(object):
 
         if 'replica_mpi' in inp_file['input.MD']:
             if inp_file['input.MD']['replica_mpi'] == "True":
-                self.replica_mpi = True
+                self.md_replica_mpi = True
             else:
-                self.replica_mpi = False
+                self.md_replica_mpi = False
         else:
-            self.replica_mpi= False
+            self.md_replica_mpi= False
 
         if 'replica_cores' in inp_file['input.MD']:
-            self.replica_cores = int(inp_file['input.MD']['replica_cores'])
+            self.md_replica_cores = int(inp_file['input.MD']['replica_cores'])
         else:
-            self.replica_cores = 1
+            self.md_replica_cores = 1
         
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
@@ -78,12 +78,33 @@ class MdKernel3dTUU(object):
  
         self.us_start_param_d1 = float(inp_file['input.DIM']['umbrella_sampling_1']['us_start_param'])
         self.us_end_param_d1 = float(inp_file['input.DIM']['umbrella_sampling_1']['us_end_param'])
+
+        self.us_ex_cores = int(inp_file['input.DIM']['umbrella_sampling_1']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['umbrella_sampling_1']:
+            if inp_file['input.DIM']['umbrella_sampling_1']['exchange_replica_mpi'] == 'True':
+                self.us_ex_mpi = True
+            else:
+                self.us_ex_mpi = False
  
         self.us_start_param_d3 = float(inp_file['input.DIM']['umbrella_sampling_3']['us_start_param'])
         self.us_end_param_d3 = float(inp_file['input.DIM']['umbrella_sampling_3']['us_end_param'])
+
+        self.us_ex_cores = int(inp_file['input.DIM']['umbrella_sampling_3']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['umbrella_sampling_3']:
+            if inp_file['input.DIM']['umbrella_sampling_3']['exchange_replica_mpi'] == 'True':
+                self.us_ex_mpi = True
+            else:
+                self.us_ex_mpi = False
         
         self.min_temp = float(inp_file['input.DIM']['temperature_2']['min_temperature'])
         self.max_temp = float(inp_file['input.DIM']['temperature_2']['max_temperature'])
+
+        self.temp_ex_cores = int(inp_file['input.DIM']['temperature_2']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['temperature_2']:
+            if inp_file['input.DIM']['temperature_2']['exchange_replica_mpi'] == 'True':
+                self.temp_ex_mpi = True
+            else:
+                self.temp_ex_mpi = False
 
     #---------------------------------------------------------------------------------------------------
     #

@@ -3,9 +3,9 @@
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "30",
-        "cleanup" : "False",
         "queue" : "development",
+        "runtime" : "20",
+        "cleanup" : "False",
         "cores" : "16"
     },
     "input.MD": {
@@ -23,16 +23,22 @@
     "input.DIM": {
         "temperature_2": {
             "number_of_replicas": "2",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False",
             "min_temperature": "300",
             "max_temperature": "302"
             },
         "umbrella_sampling_1": {
             "number_of_replicas": "2",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False",
             "us_start_param": "150",
             "us_end_param": "152"
             },
         "umbrella_sampling_3": {
             "number_of_replicas": "2",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False",
             "us_start_param": "160",
             "us_end_param": "162"
             }    
