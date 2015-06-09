@@ -194,7 +194,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
         start = datetime.datetime.utcnow()
         #------------------------
 
-        D = 0
+        DIM = 0
         dimensions = md_kernel.dims
         for c in range(0,cycles*dimensions):
 
@@ -207,22 +207,22 @@ class PilotKernelPatternBmultiD(PilotKernel):
             """
             #-------------------------------------------------------------------------------
             # 
-            if D < dimensions:
-                D = D + 1
+            if DIM < dimensions:
+                DIM = DIM + 1
             else:
-                D = 1
+                DIM = 1
 
             current_cycle = c / dimensions
 
-            if D == 1:
+            if DIM == 1:
                 cu_performance_data["cycle_{0}".format(current_cycle)] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)] = {}
                 self.logger.info("Performing cycle: {0}".format(current_cycle) )
             
-            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)] = {}
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)] = {}
 
-            self.logger.info("Dim {0}: preparing {1} replicas for MD run; cycle {2}".format(D, md_kernel.replicas, current_cycle) )
+            self.logger.info("Dim {0}: preparing {1} replicas for MD run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
             submitted_replicas = []            
 
             t1 = datetime.datetime.utcnow()
@@ -232,63 +232,63 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 submitted_replicas.append(sub_repl)
             t2 = datetime.datetime.utcnow()
 
-            self.logger.info("Dim {0}: submitting {1} replicas for MD run; cycle {2}".format(D, md_kernel.replicas, current_cycle) )
+            self.logger.info("Dim {0}: submitting {1} replicas for MD run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
 
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_prep"] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_prep"] = (t2-t1).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = (t2-t1).total_seconds()
 
             t1 = datetime.datetime.utcnow()
             unit_manager.wait_units()
             t2 = datetime.datetime.utcnow()
             
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_run"] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["MD_run"] = (t2-t1).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
 
-            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")] = {}
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("MD")] = {}
             for cu in submitted_replicas:
-                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
+                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
             
             # this is not done for the last cycle
             if (current_cycle < (cycles-1)):
                 exchange_replicas = []
-                self.logger.info("Dim {0}: preparing {1} replicas for Exchange run; cycle {2}".format(D, md_kernel.replicas, current_cycle) )
+                self.logger.info("Dim {0}: preparing {1} replicas for Exchange run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
 
                 md_kernel.prepare_lists(replicas)
 
                 t1 = datetime.datetime.utcnow()
                 for replica in replicas:
-                    ex_repl = md_kernel.prepare_replica_for_exchange(D, replicas, replica, self.sd_shared_list)
+                    ex_repl = md_kernel.prepare_replica_for_exchange(DIM, replicas, replica, self.sd_shared_list)
                     sub_repl = unit_manager.submit_units(ex_repl)
                     exchange_replicas.append(sub_repl)
                 t2 = datetime.datetime.utcnow()
 
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_prep"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_prep"] = (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep"] = (t2-t1).total_seconds()
 
-                self.logger.info("Dim {0}: submitting {1} replicas for Exchange run; cycle {2}".format(D, md_kernel.replicas, current_cycle) )
+                self.logger.info("Dim {0}: submitting {1} replicas for Exchange run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
 
                 t1 = datetime.datetime.utcnow()
                 unit_manager.wait_units()
                 t2 = datetime.datetime.utcnow()
              
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_run"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["EX_run"] = (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run"] = (t2-t1).total_seconds()
 
-                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")] = {}
+                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX")] = {}
                 for cu in exchange_replicas:
-                    cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
 
                 # populating swap matrix                
                 t1 = datetime.datetime.utcnow()
 
                 for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
-                        self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (D, r.uid))
+                        self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, r.uid))
 
                 matrix_columns = self.build_swap_matrix(replicas)
  
                 # writing swap matrix out
-                sw_file = "swap_matrix_" + str(D) + "_" + str(current_cycle)
+                sw_file = "swap_matrix_" + str(DIM) + "_" + str(current_cycle)
                 try:
                     w_file = open( sw_file, "w")
                     for i in matrix_columns:
@@ -299,13 +299,13 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 except IOError:
                     self.logger.info('Warning: unable to access file %s' % sw_file)
             
-                self.logger.info("Dim {0}: performing exchange".format(D))
-                md_kernel.select_for_exchange(D, replicas, matrix_columns, current_cycle)
+                self.logger.info("Dim {0}: performing exchange".format(DIM))
+                md_kernel.select_for_exchange(DIM, replicas, matrix_columns, current_cycle)
 
                 t2 = datetime.datetime.utcnow()
 
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["Post_proc"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(D)]["Post_proc"] = (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["Post_proc"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["Post_proc"] = (t2-t1).total_seconds()
             
         #--------------------------------------------------------------------------------------------------------------------------
         # end of loop
@@ -339,12 +339,11 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
                         f.write("{r}\n".format(r=row))
 
-            
             #------------------------------------------------------------
             # these timings are measured from simulation start!
             head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Dim; Run"
             f.write("{row}\n".format(row=head))
-            """
+            
             for cycle in cu_performance_data:
                 for dim in cu_performance_data[cycle].keys():
                     for run in cu_performance_data[cycle][dim].keys():
@@ -356,9 +355,11 @@ class PilotKernelPatternBmultiD(PilotKernel):
                                 st_data["{0}".format( st_dict["state"] )] = {}
                                 st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
 
+                            #print st_data
                             row = "{uid}; {New}; {exestart}; {exestop}; {Done}; {Cycle}; {Dim}; {Run}".format(
                                 uid=cu.uid,
-                                New= (st_data['Unscheduled']-start).total_seconds(),
+                                #New= (st_data['Unscheduled']-start).total_seconds(),
+                                New=(st_data['Scheduling']-start).total_seconds(),
                                 exestart=(cu.start_time-start).total_seconds(),
                                 exestop=(cu.stop_time-start).total_seconds(),
                                 Done=(st_data['Done']-start).total_seconds(),
@@ -367,5 +368,4 @@ class PilotKernelPatternBmultiD(PilotKernel):
                                 Run=run)
                         
                             f.write("{r}\n".format(r=row))
-            """
-
+            
