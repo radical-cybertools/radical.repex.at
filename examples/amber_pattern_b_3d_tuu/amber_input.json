@@ -1,15 +1,15 @@
 {
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
-        "username" : "chen1990",
+        "username" : "tg458185",
         "project" : "TG-MCB110101",
-        "runtime" : "30",
-        "cleanup" : "False",
         "queue" : "development",
+        "runtime" : "120",
+        "cleanup" : "False",
         "cores" : "64"
     },
     "input.MD": {
-        "number_of_cycles": "3",
+        "number_of_cycles": "20",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -25,16 +25,22 @@
             "number_of_replicas": "4",
             "min_temperature": "300",
             "max_temperature": "600"
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False",
             },
         "umbrella_sampling_1": {
             "number_of_replicas": "4",
             "us_start_param": "120",
             "us_end_param": "180"
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False",
             },
         "umbrella_sampling_3": {
             "number_of_replicas": "4",
             "us_start_param": "120",
             "us_end_param": "180"
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False",
             }    
     }
 }
