@@ -30,15 +30,15 @@
             },
         "umbrella_sampling_1": {
             "number_of_replicas": "4",
-            "us_start_param": "120",
-            "us_end_param": "180",
+            "us_start_param": "0",
+            "us_end_param": "360",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },
         "umbrella_sampling_3": {
             "number_of_replicas": "4",
-            "us_start_param": "120",
-            "us_end_param": "180",
+            "us_start_param": "0",
+            "us_end_param": "360",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             }    
