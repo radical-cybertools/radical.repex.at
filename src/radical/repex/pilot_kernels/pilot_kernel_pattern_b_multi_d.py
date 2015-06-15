@@ -194,6 +194,9 @@ class PilotKernelPatternBmultiD(PilotKernel):
         start = datetime.datetime.utcnow()
         #------------------------
 
+        # bulk = 0: do sequential submission
+        # bulk = 1: do bulk submission
+        bulk = 0
         DIM = 0
         dimensions = md_kernel.dims
         for c in range(0,cycles*dimensions):
@@ -223,14 +226,64 @@ class PilotKernelPatternBmultiD(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)] = {}
 
             self.logger.info("Dim {0}: preparing {1} replicas for MD run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
-            submitted_replicas = []            
+            
+            submitted_replicas = []
+            ################################################################################
+            # sequential submission
+            #outfile = "md_prep_submission_details_{0}.csv".format(session.uid)
+            if bulk == 0:
+                t1 = datetime.datetime.utcnow()
+                for r in replicas:
 
-            t1 = datetime.datetime.utcnow()
-            for replica in replicas:
-                comp_repl = md_kernel.prepare_replica_for_md(replica, self.sd_shared_list)
-                sub_repl = unit_manager.submit_units(comp_repl)
-                submitted_replicas.append(sub_repl)
-            t2 = datetime.datetime.utcnow()
+                    #with open(outfile, 'w+') as f:
+                    #t_1 = datetime.datetime.utcnow()
+                    compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
+                    #t_2 = datetime.datetime.utcnow()
+                    #value =  (t_2-t_1).total_seconds()
+                    #f.write("repex_md_prep_time {0}\n".format(value))
+
+                    #t_1 = datetime.datetime.utcnow()
+                    sub_replica = unit_manager.submit_units(compute_replica)
+                    #t_2 = datetime.datetime.utcnow()
+                    #value = (t_2-t_1).total_seconds()
+                    #f.write("rp_submit_time {0}\n".format(value))
+
+                    submitted_replicas.append(sub_replica)
+                #f.close()
+                t2 = datetime.datetime.utcnow()
+            ################################################################################
+            # bulk submision
+            else:
+                c_replicas = []
+                t1 = datetime.datetime.utcnow()
+                print "bulk"
+                #t_1 = datetime.datetime.utcnow()
+                for r in replicas:
+                    compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
+                    c_replicas.append(compute_replica)
+                #t_2 = datetime.datetime.utcnow()
+
+                #with open(outfile, 'w+') as f:
+                #value =  (t_2-t_1).total_seconds()
+                #f.write("repex_md_prep_time {0}\n".format(value))
+
+                #t_1 = datetime.datetime.utcnow()
+                submitted_replicas = unit_manager.submit_units(c_replicas)
+                #t_2 = datetime.datetime.utcnow()
+                #value = (t_2-t_1).total_seconds()
+                #f.write("rp_submit_time {0}\n".format(value))
+ 
+                t2 = datetime.datetime.utcnow()
+            
+            ################################################################################
+
+            # old
+            #t1 = datetime.datetime.utcnow()
+            #for replica in replicas:
+            #    comp_repl = md_kernel.prepare_replica_for_md(replica, self.sd_shared_list)
+            #    sub_repl = unit_manager.submit_units(comp_repl)
+            #    submitted_replicas.append(sub_repl)
+            #t2 = datetime.datetime.utcnow()
 
             self.logger.info("Dim {0}: submitting {1} replicas for MD run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
 
@@ -341,7 +394,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
             #------------------------------------------------------------
             # these timings are measured from simulation start!
-            head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Dim; Run"
+            #head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Dim; Run"
+            head = "CU_ID; Scheduling; StagingInput; Allocating; Executing; StagingOutput; Done; exestart; exestop; Cycle; Dim; Run;"
             f.write("{row}\n".format(row=head))
             
             for cycle in cu_performance_data:
@@ -356,16 +410,32 @@ class PilotKernelPatternBmultiD(PilotKernel):
                                 st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
 
                             #print st_data
-                            row = "{uid}; {New}; {exestart}; {exestop}; {Done}; {Cycle}; {Dim}; {Run}".format(
+                            row = "{uid}; {Scheduling}; {StagingInput}; {Allocating}; {Executing}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
                                 uid=cu.uid,
-                                #New= (st_data['Unscheduled']-start).total_seconds(),
-                                New=(st_data['Scheduling']-start).total_seconds(),
-                                exestart=(cu.start_time-start).total_seconds(),
-                                exestop=(cu.stop_time-start).total_seconds(),
+                                Scheduling=(st_data['Scheduling']-start).total_seconds(),
+                                StagingInput=(st_data['StagingInput']-start).total_seconds(),
+                                Allocating=(st_data['Allocating']-start).total_seconds(),
+                                Executing=(st_data['Executing']-start).total_seconds(),
+                                StagingOutput=(st_data['StagingOutput']-start).total_seconds(),
                                 Done=(st_data['Done']-start).total_seconds(),
+                                #exestart=(cu.start_time-start).total_seconds(),
+                                #exestop=(cu.stop_time-start).total_seconds(),
                                 Cycle=cycle,
                                 Dim=dim,
                                 Run=run)
                         
                             f.write("{r}\n".format(r=row))
             
+
+"""
+st data is:
+{
+'Scheduling': datetime.datetime       (2015, 6, 11, 6, 26, 11, 789000),
+'StagingInput': datetime.datetime     (2015, 6, 11, 6, 26, 12, 307000), 
+'PendingExecution': datetime.datetime (2015, 6, 11, 6, 26, 17, 587000),
+'Allocating': datetime.datetime       (2015, 6, 11, 6, 26, 17, 913000),
+'Executing': datetime.datetime        (2015, 6, 11, 6, 26, 17, 924000), 
+'StagingOutput': datetime.datetime    (2015, 6, 11, 6, 26, 20, 511000)
+'Done': datetime.datetime             (2015, 6, 11, 6, 26, 20, 531000), 
+}
+"""

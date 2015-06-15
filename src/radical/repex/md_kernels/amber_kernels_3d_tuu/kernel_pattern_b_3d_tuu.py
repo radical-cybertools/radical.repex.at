@@ -23,6 +23,7 @@ from replicas.replica import Replica2d
 from md_kernels.md_kernel_3d_tuu import *
 import amber_kernels_3d_tuu.matrix_calculator_temp_ex
 import amber_kernels_3d_tuu.matrix_calculator_us_ex
+import amber_kernels_3d_tuu.input_file_builder
 
 #-----------------------------------------------------------------------------------------------------------
 
@@ -135,6 +136,9 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_us_ex.__file__)
         calc_us_ex_path = calc_us_ex + "/matrix_calculator_us_ex.py"
 
+        build_inp = os.path.dirname(amber_kernels_3d_tuu.input_file_builder.__file__)
+        build_inp_path = build_inp + "/input_file_builder.py"
+
         rstr_list = []
         for rstr in self.restraints_files:
             rstr_list.append(self.work_dir_local + "/" + rstr)
@@ -145,6 +149,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         self.shared_files.append(self.amber_input)
         self.shared_files.append("matrix_calculator_temp_ex.py")
         self.shared_files.append("matrix_calculator_us_ex.py")
+        self.shared_files.append("input_file_builder.py")
 
         for rstr in self.restraints_files:
             self.shared_files.append(rstr)
@@ -164,6 +169,9 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
         calc_us_ex_url = 'file://%s' % (calc_us_ex_path)
         self.shared_urls.append(calc_us_ex_url)
+
+        build_inp_url = 'file://%s' % (build_inp_path)
+        self.shared_urls.append(build_inp_url)
 
         for rstr_p in rstr_list:
             rstr_url = 'file://%s' % (rstr_p)
@@ -205,9 +213,12 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
         outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
         old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+
         replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
         replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
         replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
+
+        replica.old_coor = old_name + ".rst"
 
         if (replica.cycle == 0):
             first_step = 0
@@ -242,54 +253,77 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
     def prepare_replica_for_md(self, replica, sd_shared_list):
         """
         """
+        #--------------------------------------------------------------------------- 
+        # from build_input_file()
+        basename = self.inp_basename
+            
+        new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
+        outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
+        old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
 
-        self.build_input_file(replica)
+        replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
+        replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
+        replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
+
+        replica.old_coor = old_name + ".rst"
+
+        if (replica.cycle == 0):
+            first_step = 0
+        elif (replica.cycle == 1):
+            first_step = int(self.cycle_steps)
+        else:
+            first_step = (replica.cycle - 1) * int(self.cycle_steps)
+
+        replica.cycle += 1
+
+        #---------------------------------------------------------------------------
+
+        #self.build_input_file(replica)
       
         crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
 
+        stage_out = []
+        stage_in = []
+
         new_coor = replica.new_coor
         new_traj = replica.new_traj
         new_info = replica.new_info
         old_coor = replica.old_coor
-        old_traj = replica.old_traj
+        rid = replica.id
 
-        st_out = []
+        replica_path = "replica_%d/" % (rid)
         info_out = {
             'source': new_info,
-            'target': 'staging:///%s' % new_info,
+            'target': 'staging:///%s' % (replica_path + new_info),
             'action': radical.pilot.COPY
         }
-        st_out.append(info_out)
+        stage_out.append(info_out)
 
-        coor_out = {
+        new_coor_out = {
             'source': new_coor,
-            'target': 'staging:///%s' % new_coor,
+            'target': 'staging:///%s' % (replica_path + new_coor),
             'action': radical.pilot.COPY
         }
-        st_out.append(coor_out)
+        stage_out.append(new_coor_out)
 
         cu = radical.pilot.ComputeUnitDescription()
         if replica.cycle == 1:      
-            # files needed to be moved in replica dir
-            in_list = []
+
+            #-------------------------------------------------
+            # files needed to be staged in replica dir
             for i in range(3):
-                in_list.append(sd_shared_list[i])
+                stage_in.append(sd_shared_list[i])
 
-            rid = replica.id
-            in_list.append(sd_shared_list[rid+5])
+            # input_file_builder.py
+            stage_in.append(sd_shared_list[5])
 
-            replica_path = "replica_%d_%d/" % (replica.id, 0)
-            crds_out = {
-                'source': self.amber_coordinates,
-                'target': 'staging:///%s' % (replica_path + self.amber_coordinates),
-                'action': radical.pilot.COPY
-            }
-            st_out.append(crds_out)
-                
+            # restraint file: ala10_us.RST.X
+            stage_in.append(sd_shared_list[rid+6])
+
             cu.executable = self.amber_path
-            cu.pre_exec = self.pre_exec
+            cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + str(self.cycle_steps) + " " + str(replica.new_restraints) + " " + str(replica.new_temperature) + " " + str(self.amber_input) + " " + str(new_input_file) ]
             cu.mpi = self.md_replica_mpi
             cu.arguments = ["-O", "-i ", input_file, 
                                   "-o ", output_file, 
@@ -300,43 +334,35 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                                   "-inf ", new_info]
 
             cu.cores = self.md_replica_cores
-            cu.input_staging = [str(input_file)] + in_list
-            cu.output_staging = st_out
+            #cu.input_staging = [str(input_file)] + stage_in
+            cu.input_staging = stage_in
+            cu.output_staging = stage_out
         else:
-            
-            # files needed to be moved in replica dir
-            in_list = []
+            # parameters file
+            stage_in.append(sd_shared_list[0])
 
-            rid = replica.id
-            in_list.append(sd_shared_list[0])
+            # base input file ala10_us.mdin
+            stage_in.append(sd_shared_list[2])
+
+            # input_file_builder.py
+            stage_in.append(sd_shared_list[5])
             #-----------------------------------------
-            # calculating here correct restraint file:
-            # ala10_us.RST.1
-            """
-            rst = replica.new_restraints
-            dot = 0
-            rst_id = ''
-            for ch in rst:
-                if dot == 2:
-                    rst_id += ch
-                if ch == '.':
-                    dot += 1
-            #print "prep exchange rst_id: %s" % rst_id    
-            rst_id = int(rst_id)
-            """
-
+            # restraint file
             rstr_id = self.get_rstr_id(replica.new_restraints)
+            stage_in.append(sd_shared_list[rstr_id+6])
 
-            #-----------------------------------------
-            in_list.append(sd_shared_list[rstr_id+5])
+            #old_coor = "../staging_area/" + replica_path + self.amber_coordinates
 
-            replica_path = "/replica_%d_%d/" % (replica.id, 0)
-            old_coor = "../staging_area/" + replica_path + self.amber_coordinates
-            
-            cu.input_staging = [str(input_file)] + in_list
-            cu.output_staging = st_out
+            old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
+                           'target': (old_coor),
+                           'action': radical.pilot.LINK
+            }
+            stage_in.append(old_coor_st)
+            #cu.input_staging = [str(input_file)] + stage_in
+            cu.input_staging = stage_in
+            cu.output_staging = stage_out
             cu.executable = self.amber_path
-            cu.pre_exec = self.pre_exec
+            cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + str(self.cycle_steps) + " " + str(replica.new_restraints) + " " + str(replica.new_temperature) + " " + str(self.amber_input) + " " + str(new_input_file) ]
             cu.mpi = self.md_replica_mpi
             cu.arguments = ["-O", "-i ", input_file, 
                                   "-o ", output_file, 
@@ -347,8 +373,9 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                                   "-inf ", new_info]
 
             cu.cores = self.md_replica_cores
-            cu.input_staging = [str(input_file)] + in_list
-            cu.output_staging = st_out
+            #cu.input_staging = [str(input_file)] + stage_in
+            cu.input_staging = stage_in
+            cu.output_staging = stage_out
 
         return cu
 
@@ -391,8 +418,19 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
         current_group = self.get_current_group(dimension, replicas, replica)
 
+        stage_out = []
+        stage_in = []
+
+        replica_path = "replica_%d/" % (replica.id)
+
         cu = radical.pilot.ComputeUnitDescription()
         if dimension == 2:
+            # nothing to optimize here
+
+            # amber parameters
+            stage_in.append(sd_shared_list[0])
+            # matrix_calculator_temp_ex.py file
+            stage_in.append(sd_shared_list[3])
             
             data = {
                 "replica_id": str(replica.id),
@@ -400,15 +438,14 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 "base_name" : str(basename),
                 "current_group" : current_group,
                 "replicas" : str(len(replicas)),
-                "amber_parameters": "../staging_area/"+str(self.amber_parameters)
+                "amber_parameters": str(self.amber_parameters)
             }
 
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
 
             cu.executable = "python"
-            cu.input_staging  = sd_shared_list[3]
-            #cu.arguments = ["matrix_calculator_temp_ex.py" + "\'" + json_data + "\'"]
+            cu.input_staging  = stage_in
             cu.arguments = ["matrix_calculator_temp_ex.py", json_data]
             cu.cores = self.temp_ex_cores
             cu.mpi = self.temp_ex_mpi            
@@ -420,9 +457,8 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 if str(repl.id) in current_group:
                     current_group_rst[str(repl.id)] = str(repl.new_restraints)  
 
-            in_list = []
             # copying calculator from staging area to cu folder
-            in_list.append(sd_shared_list[4])
+            stage_in.append(sd_shared_list[4])
             rid = replica.id
             # copying .RST files from staging area to replica folder
             rst_group = []
@@ -430,15 +466,17 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 rstr_id = self.get_rstr_id(current_group_rst[k])
                 rst_group.append(rstr_id)
            
-            for i in range(5,self.replicas+5):
-                if (i-5) in rst_group:
-                    in_list.append(sd_shared_list[i])
+            # 
+            for i in range(6,self.replicas+6):
+                if (i-6) in rst_group:
+                    stage_in.append(sd_shared_list[i])
 
             # copy new coordinates from MD run to CU directory
-            coor_directive = {'source': 'staging:///%s' % replica.new_coor,
+            coor_directive = {'source': 'staging:///%s' % (replica_path + replica.new_coor),
                               'target': replica.new_coor,
-                              'action': radical.pilot.COPY
+                              'action': radical.pilot.LINK
             }
+            stage_in.append(coor_directive)
 
             input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
@@ -458,7 +496,8 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
-            cu.input_staging = [str(input_file)] + in_list + [coor_directive]
+            #cu.input_staging = [str(input_file)] + stage_in
+            cu.input_staging = stage_in
             cu.output_staging = matrix_col
             cu.arguments = ["matrix_calculator_us_ex.py", json_data]
             cu.mpi = self.us_ex_mpi

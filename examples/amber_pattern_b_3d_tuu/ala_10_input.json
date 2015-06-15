@@ -1,8 +1,8 @@
 {
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
-        "username" : "tg458185",
-        "project" : "TG-MCB110101",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
         "queue" : "development",
         "runtime" : "20",
         "cleanup" : "False",

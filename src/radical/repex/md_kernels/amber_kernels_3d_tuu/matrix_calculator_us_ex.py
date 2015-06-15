@@ -151,7 +151,7 @@ def reduced_energy(temperature, potential):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def get_historical_data(history_name):
+def get_historical_data(replica_path, history_name):
     """Retrieves temperature and potential energy from simulation output file .history file.
     This file is generated after each simulation run. The function searches for directory 
     where .history file recides by checking all computeUnit directories on target resource.
@@ -170,7 +170,8 @@ def get_historical_data(history_name):
     """
 
     home_dir = os.getcwd()
-    os.chdir("../staging_area")
+    path = "../staging_area" + replica_path
+    os.chdir(path)
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
@@ -192,7 +193,7 @@ def get_historical_data(history_name):
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """ TODO 
+    """ 
     """
 
     json_data = sys.argv[1]
@@ -218,7 +219,8 @@ if __name__ == '__main__':
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    replica_energy, path_to_replica_folder = get_historical_data( history_name )
+    replica_path = "/replica_%d/" % (replica_id)
+    replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
