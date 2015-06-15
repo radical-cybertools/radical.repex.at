@@ -47,6 +47,16 @@ class MdKernel3dTUU(object):
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
 
+        #------------------------------------------------------
+        if 'exchange_off' in inp_file['input.MD']:
+            if inp_file['input.MD']['exchange_off'] == "True":
+                self.exchange_off = True
+            else:
+                self.exchange_off = False
+        else:
+            self.exchange_off = False
+        #------------------------------------------------------
+
         if 'replica_mpi' in inp_file['input.MD']:
             if inp_file['input.MD']['replica_mpi'] == "True":
                 self.md_replica_mpi = True

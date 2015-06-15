@@ -543,11 +543,13 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 exchanged.append(r_j.id)
                 exchanged.append(r_i.id)
                 self.logger.debug("[do_exchange] EXCHANGE BETWEEN REPLICAS WITH ID'S: {0} AND {1} ".format(r_i.id, r_j.id) )
+
                 # swap parameters
-                self.exchange_params(dimension, r_i, r_j)
-                # record that swap was performed
-                r_i.swap = 1
-                r_j.swap = 1
+                if self.exchange_off == False:
+                    self.exchange_params(dimension, r_i, r_j)
+                    # record that swap was performed
+                    r_i.swap = 1
+                    r_j.swap = 1
 
     #-------------------------------------------------------------------------
     #

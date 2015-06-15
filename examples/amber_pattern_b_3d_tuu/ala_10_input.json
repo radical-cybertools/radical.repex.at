@@ -18,7 +18,8 @@
         "us_template": "ala10_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "1000"
+        "steps_per_cycle": "1000",
+        "exchange_off" : "True"
         },
     "input.DIM": {
         "temperature_2": {
