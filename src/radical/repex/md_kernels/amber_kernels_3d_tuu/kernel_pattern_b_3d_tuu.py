@@ -308,9 +308,10 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         }
         stage_out.append(new_coor_out)
 
+        out_string = "_%d.out" % (replica.cycle)
         rstr_out = {
-            'source': (replica.new_restraints + ".out"),
-            'target': 'staging:///%s' % (replica_path + replica.new_restraints + ".out"),
+            'source': (replica.new_restraints + out_string),
+            'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
             'action': radical.pilot.COPY
         }
         stage_out.append(rstr_out)
