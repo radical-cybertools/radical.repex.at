@@ -4,7 +4,7 @@
         "username" : "antontre",
         "project" : "TG-MCB090174",
         "queue" : "development",
-        "runtime" : "20",
+        "runtime" : "30",
         "cleanup" : "False",
         "cores" : "16"
     },
