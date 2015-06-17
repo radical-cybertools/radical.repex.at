@@ -196,7 +196,11 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         try:
             w_file = open(replica.new_restraints, "w")
             tbuffer = tbuffer.replace("@val1@", str(replica.rstr_val_1))
+            tbuffer = tbuffer.replace("@val1l@", str(replica.rstr_val_1-90))
+            tbuffer = tbuffer.replace("@val1h@", str(replica.rstr_val_1+90))
             tbuffer = tbuffer.replace("@val2@", str(replica.rstr_val_2))
+            tbuffer = tbuffer.replace("@val2l@", str(replica.rstr_val_2-90))
+            tbuffer = tbuffer.replace("@val2h@", str(replica.rstr_val_2+90))
             w_file.write(tbuffer)
             w_file.close()
         except IOError:
