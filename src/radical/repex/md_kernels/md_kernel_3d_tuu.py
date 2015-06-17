@@ -144,8 +144,10 @@ class MdKernel3dTUU(object):
         ######################################
         new_ps = []
         for item in ps:
-            new_item = math.exp(item)
-            new_ps.append(new_item)
+            if item > math.log(sys.float_info.max) : new_item=sys.float_info.max
+            elif item < math.log(sys.float_info.min)  : new_item=0.0
+            else :
+               new_item = math.exp(item)
         ps = new_ps
         # index of swap replica within replicas_waiting list
         j = len(replicas)
