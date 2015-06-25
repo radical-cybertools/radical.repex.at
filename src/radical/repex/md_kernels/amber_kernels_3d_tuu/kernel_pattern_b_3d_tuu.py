@@ -107,10 +107,10 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                     rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
                     r1 = self.restraints_files[rid]
 
-                    spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / (float(self.replicas_d1)-1
+                    spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / (float(self.replicas_d1)-1)
                     starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
 
-                    spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / (float(self.replicas_d3)-1
+                    spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / (float(self.replicas_d3)-1)
                     starting_value_d3 = self.us_start_param_d3 + k*spacing_d3
 
                     rstr_val_1 = str(starting_value_d1)
