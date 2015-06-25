@@ -154,6 +154,11 @@ class PilotKernelPatternBmultiD(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
+        #------------------------
+        # (NEW LOCATION)
+        stagein_start = datetime.datetime.utcnow()
+        #------------------------
+
         # creating restraint files  
         if md_kernel.name == 'ak-patternB-3d-TUU' or md_kernel.name == 'ak-patternB-3d-TSU':
             for r in replicas:
@@ -181,7 +186,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
             self.sd_shared_list.append(sd_shared)
 
         # make sure data is staged
-        time.sleep(10)
+        time.sleep(5)
 
         # for performance data collection
         hl_performance_data = {}
@@ -189,27 +194,19 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
         md_kernel.init_matrices(replicas)
 
+        stagein_end = datetime.datetime.utcnow()
         #------------------------
-        # Raw simulation time
+        # Raw simulation time (OLD LOCATION)
         start = datetime.datetime.utcnow()
         #------------------------
 
-        # bulk = 0: do sequential submission
-        # bulk = 1: do bulk submission
-        bulk = 0
+        # BULK = 0: do sequential submission
+        # BULK = 1: do BULK submission
+        BULK = 0
         DIM = 0
         dimensions = md_kernel.dims
         for c in range(0,cycles*dimensions):
 
-            """
-            for r in replicas:
-                if md_kernel.name == 'ak-patternB-3d-TUU':
-                    self.logger.info("rid: {0} temp: {1} us1: {2}  us3: {3}".format(r.id, r.new_temperature, r.rstr_val_1, r.rstr_val_2) )
-                if md_kernel.name == 'ak-patternB-3d-TSU':
-                    self.logger.info("rid: {0} temp: {1} salt: {2}  us1: {3}".format(r.id, r.new_temperature, r.new_salt_concentration, r.rstr_val_1) )
-            """
-            #-------------------------------------------------------------------------------
-            # 
             if DIM < dimensions:
                 DIM = DIM + 1
             else:
@@ -230,60 +227,30 @@ class PilotKernelPatternBmultiD(PilotKernel):
             submitted_replicas = []
             ################################################################################
             # sequential submission
-            #outfile = "md_prep_submission_details_{0}.csv".format(session.uid)
-            if bulk == 0:
+            if BULK == 0:
                 t1 = datetime.datetime.utcnow()
                 for r in replicas:
-
-                    #with open(outfile, 'w+') as f:
-                    #t_1 = datetime.datetime.utcnow()
                     compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
-                    #t_2 = datetime.datetime.utcnow()
-                    #value =  (t_2-t_1).total_seconds()
-                    #f.write("repex_md_prep_time {0}\n".format(value))
-
-                    #t_1 = datetime.datetime.utcnow()
                     sub_replica = unit_manager.submit_units(compute_replica)
-                    #t_2 = datetime.datetime.utcnow()
-                    #value = (t_2-t_1).total_seconds()
-                    #f.write("rp_submit_time {0}\n".format(value))
-
                     submitted_replicas.append(sub_replica)
-                #f.close()
+                
                 t2 = datetime.datetime.utcnow()
             ################################################################################
-            # bulk submision
+            # BULK submision
             else:
                 c_replicas = []
                 t1 = datetime.datetime.utcnow()
-                print "bulk"
+                
                 #t_1 = datetime.datetime.utcnow()
                 for r in replicas:
                     compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
                     c_replicas.append(compute_replica)
-                #t_2 = datetime.datetime.utcnow()
-
-                #with open(outfile, 'w+') as f:
-                #value =  (t_2-t_1).total_seconds()
-                #f.write("repex_md_prep_time {0}\n".format(value))
-
-                #t_1 = datetime.datetime.utcnow()
+                
                 submitted_replicas = unit_manager.submit_units(c_replicas)
-                #t_2 = datetime.datetime.utcnow()
-                #value = (t_2-t_1).total_seconds()
-                #f.write("rp_submit_time {0}\n".format(value))
- 
+                
                 t2 = datetime.datetime.utcnow()
             
             ################################################################################
-
-            # old
-            #t1 = datetime.datetime.utcnow()
-            #for replica in replicas:
-            #    comp_repl = md_kernel.prepare_replica_for_md(replica, self.sd_shared_list)
-            #    sub_repl = unit_manager.submit_units(comp_repl)
-            #    submitted_replicas.append(sub_repl)
-            #t2 = datetime.datetime.utcnow()
 
             self.logger.info("Dim {0}: submitting {1} replicas for MD run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
 
@@ -306,9 +273,16 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 exchange_replicas = []
                 self.logger.info("Dim {0}: preparing {1} replicas for Exchange run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
 
-                md_kernel.prepare_lists(replicas)
+                if md_kernel.name != 'ak-patternB-3d-TUU':
+                    md_kernel.prepare_lists(replicas)
 
                 t1 = datetime.datetime.utcnow()
+                #---------------------------------------------------------------------------------------------------
+                # submitting unit which determines exchanges between replicas
+                ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                global_ex_cu = unit_manager.submit_units(ex_calculator)
+                #---------------------------------------------------------------------------------------------------
+
                 for replica in replicas:
                     ex_repl = md_kernel.prepare_replica_for_exchange(DIM, replicas, replica, self.sd_shared_list)
                     sub_repl = unit_manager.submit_units(ex_repl)
@@ -331,34 +305,24 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 for cu in exchange_replicas:
                     cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
 
+                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")] = {}
+                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
+                #----------------------------------------------------------------------------------------------
                 # populating swap matrix                
                 t1 = datetime.datetime.utcnow()
-
                 for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
                         self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, r.uid))
 
-                matrix_columns = self.build_swap_matrix(replicas)
- 
-                # writing swap matrix out
-                sw_file = "swap_matrix_" + str(DIM) + "_" + str(current_cycle)
-                try:
-                    w_file = open( sw_file, "w")
-                    for i in matrix_columns:
-                        for j in i:
-                            w_file.write("%s " % j)
-                        w_file.write("\n")
-                    w_file.close()
-                except IOError:
-                    self.logger.info('Warning: unable to access file %s' % sw_file)
-            
-                self.logger.info("Dim {0}: performing exchange".format(DIM))
-                md_kernel.select_for_exchange(DIM, replicas, matrix_columns, current_cycle)
+                if global_ex_cu.state != radical.pilot.DONE:
+                        self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, global_ex_cu.uid))
 
+                # do exchange of parameters                     
+                md_kernel.do_exchange(current_cycle, DIM, replicas)
                 t2 = datetime.datetime.utcnow()
-
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["Post_proc"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["Post_proc"] = (t2-t1).total_seconds()
+                
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = (t2-t1).total_seconds()
             
         #--------------------------------------------------------------------------------------------------------------------------
         # end of loop
@@ -371,8 +335,10 @@ class PilotKernelPatternBmultiD(PilotKernel):
             # RAW SIMULATION TIME
             end = datetime.datetime.utcnow()
             #------------------------
+            STAGEIN_TIME = (stagein_end-stagein_start).total_seconds()
             RAW_SIMULATION_TIME = (end-start).total_seconds()
             f.write("RAW_SIMULATION_TIME: {row}\n".format(row=RAW_SIMULATION_TIME))
+            f.write("STAGEIN_TIME: {row}\n".format(row=STAGEIN_TIME))
 
             #------------------------------------------------------------
             #
@@ -393,9 +359,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                         f.write("{r}\n".format(r=row))
 
             #------------------------------------------------------------
-            # these timings are measured from simulation start!
-            #head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Dim; Run"
-            head = "CU_ID; Scheduling; StagingInput; Allocating; Executing; StagingOutput; Done; exestart; exestop; Cycle; Dim; Run;"
+            head = "CU_ID; Scheduling; StagingInput; Allocating; Executing; StagingOutput; Done; Cycle; Dim; Run;"
             f.write("{row}\n".format(row=head))
             
             for cycle in cu_performance_data:
@@ -426,16 +390,3 @@ class PilotKernelPatternBmultiD(PilotKernel):
                         
                             f.write("{r}\n".format(r=row))
             
-
-"""
-st data is:
-{
-'Scheduling': datetime.datetime       (2015, 6, 11, 6, 26, 11, 789000),
-'StagingInput': datetime.datetime     (2015, 6, 11, 6, 26, 12, 307000), 
-'PendingExecution': datetime.datetime (2015, 6, 11, 6, 26, 17, 587000),
-'Allocating': datetime.datetime       (2015, 6, 11, 6, 26, 17, 913000),
-'Executing': datetime.datetime        (2015, 6, 11, 6, 26, 17, 924000), 
-'StagingOutput': datetime.datetime    (2015, 6, 11, 6, 26, 20, 511000)
-'Done': datetime.datetime             (2015, 6, 11, 6, 26, 20, 531000), 
-}
-"""

@@ -89,6 +89,8 @@ if __name__ == '__main__':
     base_name = data["base_name"]
     replicas = int(data["replicas"])
     amber_parameters = data["amber_parameters"]
+    new_restraints = data["new_restraints"]
+    init_temp = data["init_temp"]
 
     temp_group = data["current_group"]
     current_group = []
@@ -140,7 +142,10 @@ if __name__ == '__main__':
                 else:
                     row_str = str(item)
             #row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
-
+            f.write(row_str)
+            f.write('\n')
+            # data for replica_dict
+            row_str = replica_id + " " + replica_cycle + " " + new_restraints + " " + init_temp
             f.write(row_str)
         f.close()
 

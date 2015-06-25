@@ -1,15 +1,15 @@
 {
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
-        "username" : "tg458185",
-        "project" : "TG-MCB110101",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
         "queue" : "development",
-        "runtime" : "120",
+        "runtime" : "30",
         "cleanup" : "False",
-        "cores" : "64"
+        "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "20",
+        "number_of_cycles": "3",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -18,26 +18,26 @@
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "6000",
+        "steps_per_cycle": "500",
         "exchange_off" : "True"
         },
     "input.DIM": {
         "temperature_2": {
-            "number_of_replicas": "4",
+            "number_of_replicas": "2",
             "min_temperature": "300",
             "max_temperature": "600",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },
         "umbrella_sampling_1": {
-            "number_of_replicas": "4",
+            "number_of_replicas": "2",
             "us_start_param": "0",
             "us_end_param": "360",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },
         "umbrella_sampling_3": {
-            "number_of_replicas": "4",
+            "number_of_replicas": "2",
             "us_start_param": "0",
             "us_end_param": "360",
             "exchange_replica_cores" : "1",

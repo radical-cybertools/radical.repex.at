@@ -76,5 +76,18 @@ KERNELS = {
                 "executable_mpi" : "/opt/amber/bin/sander.MPI"
             }
         }
+    },"local.localhost":
+    {
+        "params":
+        {
+            "cores": 1,
+        },
+        "kernels":
+        {
+            "amber": {
+                "pre_execution" : [],
+                "executable" : "/home/antons/amber/amber14/bin/sander",
+            }
+        }
     }
 }

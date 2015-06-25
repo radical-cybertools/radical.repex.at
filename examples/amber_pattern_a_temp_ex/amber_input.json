@@ -10,7 +10,11 @@
     },
     "input.MD": {
         "number_of_cycles": "3",
+<<<<<<< HEAD:examples/amber_pattern_a_temp_ex/amber_input.json
         "number_of_replicas": "8",
+=======
+        "number_of_replicas": "4",
+>>>>>>> 27e095ab0b0b0ba4ccc88d673f8f76a41e7d1b38:examples/amber/amber_scheme_1/amber_input.json
         "input_folder": "amber_inp",
         "amber_input": "ala10.mdin",
         "input_file_basename": "ala10_remd",

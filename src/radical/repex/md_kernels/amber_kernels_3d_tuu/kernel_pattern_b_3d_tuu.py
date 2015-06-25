@@ -24,6 +24,7 @@ from md_kernels.md_kernel_3d_tuu import *
 import amber_kernels_3d_tuu.matrix_calculator_temp_ex
 import amber_kernels_3d_tuu.matrix_calculator_us_ex
 import amber_kernels_3d_tuu.input_file_builder
+import amber_kernels_3d_tuu.global_ex_calculator
 
 #-----------------------------------------------------------------------------------------------------------
 
@@ -106,14 +107,14 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                     rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
                     r1 = self.restraints_files[rid]
 
-                    spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / (float(self.replicas_d1)-1)
+                    spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / float(self.replicas_d1)
                     starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
 
-                    spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / (float(self.replicas_d3)-1)
+                    spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / float(self.replicas_d3)
                     starting_value_d3 = self.us_start_param_d3 + k*spacing_d3
 
-                    rstr_val_1 = str(starting_value_d1)
-                    rstr_val_2 = str(starting_value_d3)
+                    rstr_val_1 = str(starting_value_d1+spacing_d1)
+                    rstr_val_2 = str(starting_value_d3+spacing_d3)
 
                     #print "rid: %d temp: %f us1: %f us2: %f " % (rid, t1, float(rstr_val_1), float(rstr_val_2))
 
@@ -139,6 +140,9 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         build_inp = os.path.dirname(amber_kernels_3d_tuu.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
+        global_calc = os.path.dirname(amber_kernels_3d_tuu.global_ex_calculator.__file__)
+        global_calc_path = global_calc + "/global_ex_calculator.py"
+
         rstr_list = []
         for rstr in self.restraints_files:
             rstr_list.append(self.work_dir_local + "/" + rstr)
@@ -150,6 +154,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         self.shared_files.append("matrix_calculator_temp_ex.py")
         self.shared_files.append("matrix_calculator_us_ex.py")
         self.shared_files.append("input_file_builder.py")
+        self.shared_files.append("global_ex_calculator.py")
 
         for rstr in self.restraints_files:
             self.shared_files.append(rstr)
@@ -172,6 +177,9 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
         build_inp_url = 'file://%s' % (build_inp_path)
         self.shared_urls.append(build_inp_url)
+
+        global_calc_url = 'file://%s' % (global_calc_path)
+        self.shared_urls.append(global_calc_url)
 
         for rstr_p in rstr_list:
             rstr_url = 'file://%s' % (rstr_p)
@@ -196,11 +204,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         try:
             w_file = open(replica.new_restraints, "w")
             tbuffer = tbuffer.replace("@val1@", str(replica.rstr_val_1))
-            tbuffer = tbuffer.replace("@val1l@", str(replica.rstr_val_1-90))
-            tbuffer = tbuffer.replace("@val1h@", str(replica.rstr_val_1+90))
             tbuffer = tbuffer.replace("@val2@", str(replica.rstr_val_2))
-            tbuffer = tbuffer.replace("@val2l@", str(replica.rstr_val_2-90))
-            tbuffer = tbuffer.replace("@val2h@", str(replica.rstr_val_2+90))
             w_file.write(tbuffer)
             w_file.close()
         except IOError:
@@ -312,14 +316,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         }
         stage_out.append(new_coor_out)
 
-        out_string = "_%d.out" % (replica.cycle-1)
-        rstr_out = {
-            'source': (replica.new_restraints + '.out'),
-            'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
-            'action': radical.pilot.COPY
-        }
-        stage_out.append(rstr_out)
-
         cu = radical.pilot.ComputeUnitDescription()
         if replica.cycle == 1:      
 
@@ -332,7 +328,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             stage_in.append(sd_shared_list[5])
 
             # restraint file: ala10_us.RST.X
-            stage_in.append(sd_shared_list[rid+6])
+            stage_in.append(sd_shared_list[rid+7])
 
             cu.executable = self.amber_path
             cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + str(self.cycle_steps) + " " + str(replica.new_restraints) + " " + str(replica.new_temperature) + " " + str(self.amber_input) + " " + str(new_input_file) ]
@@ -361,7 +357,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             #-----------------------------------------
             # restraint file
             rstr_id = self.get_rstr_id(replica.new_restraints)
-            stage_in.append(sd_shared_list[rstr_id+6])
+            stage_in.append(sd_shared_list[rstr_id+7])
 
             #old_coor = "../staging_area/" + replica_path + self.amber_coordinates
 
@@ -390,35 +386,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             cu.output_staging = stage_out
 
         return cu
-
-    #----------------------------------------------------------
-    #
-    
-    def prepare_lists(self, replicas):
-
-        # for tuu this funciton is redundant
-        """
-        all_rstr_d1 = ""
-        all_rstr_d3 = ""
-        all_temp = ""
-        for r in range(len(replicas)):
-            if r == 0:
-                all_rstr_d1 = str(replicas[r].rstr_val_1)
-                all_rstr_d3 = str(replicas[r].rstr_val_2)
-                all_temp   = str(replicas[r].new_temperature)
-            else:
-                all_rstr_d1 = all_rstr_d1 + " " + str(replicas[r].rstr_val_1)
-                all_rstr_d3 = all_rstr_d3 + " " + str(replicas[r].rstr_val_2)
-                all_temp   = all_temp + " " + str(replicas[r].new_temperature)
-
-        self.all_temp_list = all_temp.split(" ")
-        self.all_rstr_list_d1 = all_rstr_d1.split(" ")
-        self.all_rstr_list_d3 = all_rstr_d3.split(" ")
-        """
-
-        pass
-    
-     
+   
     #-------------------------------------------------------------------------------------------
     #
     def prepare_replica_for_exchange(self, dimension, replicas, replica, sd_shared_list):
@@ -427,6 +395,12 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
+
+        matrix_col_out = {
+            'source': matrix_col,
+            'target': 'staging:///%s' % (matrix_col),
+            'action': radical.pilot.COPY
+        }
 
         current_group = self.get_current_group(dimension, replicas, replica)
 
@@ -443,25 +417,29 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
             stage_in.append(sd_shared_list[0])
             # matrix_calculator_temp_ex.py file
             stage_in.append(sd_shared_list[3])
-            
+
             data = {
                 "replica_id": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
                 "base_name" : str(basename),
                 "current_group" : current_group,
                 "replicas" : str(len(replicas)),
-                "amber_parameters": str(self.amber_parameters)
+                "amber_parameters": str(self.amber_parameters),
+                "new_restraints" : str(replica.new_restraints),
+                "init_temp" : str(replica.new_temperature)
             }
 
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
+
+            stage_out.append(matrix_col_out)
 
             cu.executable = "python"
             cu.input_staging  = stage_in
             cu.arguments = ["matrix_calculator_temp_ex.py", json_data]
             cu.cores = self.temp_ex_cores
             cu.mpi = self.temp_ex_mpi            
-            cu.output_staging = matrix_col
+            cu.output_staging = stage_out
         else:
 
             current_group_rst = {}
@@ -479,8 +457,8 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 rst_group.append(rstr_id)
            
             # 
-            for i in range(6,self.replicas+6):
-                if (i-6) in rst_group:
+            for i in range(7,self.replicas+7):
+                if (i-7) in rst_group:
                     stage_in.append(sd_shared_list[i])
 
             # copy new coordinates from MD run to CU directory
@@ -500,17 +478,20 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 "init_temp" : str(replica.new_temperature),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": str(self.amber_parameters),
+                "new_restraints" : str(replica.new_restraints),
                 "current_group_rst" : current_group_rst
             }
 
             dump_data = json.dumps(data)
             json_data = dump_data.replace("\\", "")
+
+            stage_out.append(matrix_col_out)
             
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             #cu.input_staging = [str(input_file)] + stage_in
             cu.input_staging = stage_in
-            cu.output_staging = matrix_col
+            cu.output_staging = stage_out
             cu.arguments = ["matrix_calculator_us_ex.py", json_data]
             cu.mpi = self.us_ex_mpi
             cu.cores = self.us_ex_cores            
@@ -538,30 +519,53 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
     #---------------------------------------------------------------------------------------------------------------------
     #
-    def do_exchange(self, dimension, replicas, swap_matrix):
-        """
-        """
+    def do_exchange(self, current_cycle, dimension, replicas):
 
-        self.logger.debug("[do_exchange] current dim: {0} replicas in current group: ".format(dimension) )
-        for r_i in replicas:
-            self.logger.debug("[do_exchange] replica id: {0} restr: {1} temp: {2} ".format(r_i.id, r_i.new_restraints, r_i.new_temperature) )
-          
-        exchanged = []
-        for r_i in replicas:
-            # does this pick a correct one????
-            r_j = self.gibbs_exchange(r_i, replicas, swap_matrix)
-            self.logger.debug("[do_exchange] after gibbs_exchange: r_i.id: {0} r_j.id: {1}".format(r_i.id, r_j.id) )
-            if (r_j.id != r_i.id) and (r_j.id not in exchanged) and (r_i.id not in exchanged):
-                exchanged.append(r_j.id)
-                exchanged.append(r_i.id)
-                self.logger.debug("[do_exchange] EXCHANGE BETWEEN REPLICAS WITH ID'S: {0} AND {1} ".format(r_i.id, r_j.id) )
-
+        infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
+        try:
+            f = open(infile)
+            lines = f.readlines()
+            f.close()
+            for l in lines:
+                pair = l.split()
+                r1_id = int(pair[0])
+                r2_id = int(pair[1])
+                for r in replicas:
+                    if r.id == r1_id:
+                        r1 = r
+                    if r.id == r2_id:
+                        r2 = r
                 # swap parameters
                 if self.exchange_off == False:
-                    self.exchange_params(dimension, r_i, r_j)
-                    # record that swap was performed
-                    r_i.swap = 1
-                    r_j.swap = 1
+                    self.exchange_params(dimension, r1, r2)
+                    r1.swap = 1
+                    r2.swap = 1
+        except:
+            raise
+
+    #-------------------------------------------------------------------------------------------
+    #
+    def prepare_global_ex_calc(self, current_cycle, dimension, replicas, sd_shared_list):
+
+        stage_out = []
+        stage_in = []
+        
+        # global_ex_calculator.py file
+        stage_in.append(sd_shared_list[6])
+
+        outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
+        stage_out.append(outfile)
+
+        cu = radical.pilot.ComputeUnitDescription()
+        cu.pre_exec = self.pre_exec + ['module load python/2.7.9']
+        cu.executable = "python"
+        cu.input_staging  = stage_in
+        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(current_cycle), str(dimension)]
+        cu.cores = 1
+        cu.mpi = False            
+        cu.output_staging = stage_out
+
+        return cu
 
     #-------------------------------------------------------------------------
     #

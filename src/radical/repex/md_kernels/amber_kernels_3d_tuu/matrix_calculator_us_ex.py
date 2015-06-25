@@ -203,6 +203,7 @@ if __name__ == '__main__':
     replica_cycle = int(data["replica_cycle"])
     replicas = int(data["replicas"])
     base_name = data["base_name"]
+    new_restraints = data["new_restraints"]
 
     prmtop_name = data["amber_parameters"]
     mdin_name = data["amber_input"]
@@ -255,6 +256,7 @@ if __name__ == '__main__':
 
     #----------------------------------------------------------------
     # writing to file
+
     try:
         outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
         with open(outfile, 'w+') as f:
@@ -265,8 +267,12 @@ if __name__ == '__main__':
                 else:
                     row_str = str(item)
             #row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
- 
             f.write(row_str)
+            f.write('\n')
+            # data for replica_dict
+            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
+            f.write(row_str)
+
         f.close()
 
     except IOError:
