@@ -69,12 +69,7 @@ class PilotKernel(object):
         try:
             self.dburl = inp_file['input.PILOT']['mongo_url']
         except:
-<<<<<<< HEAD
             self.logger.info("Using default Mongo DB url" )
-=======
-            print "Using default Mongo DB url"
-            #self.dburl = "mongodb://ec2-184-72-89-141.compute-1.amazonaws.com:27017/"
->>>>>>> 27e095ab0b0b0ba4ccc88d673f8f76a41e7d1b38
             self.dburl = "mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/"
         cleanup = inp_file['input.PILOT']['cleanup']
         if (cleanup == "True"):
