@@ -166,6 +166,7 @@ if __name__ == '__main__':
                 lines = f.readlines()
                 f.close()
                 success = 1
+                print "Success processing replica: %s" % rid
                 #---------------------------------------------
                 # populating matrix column
                 data = lines[0].split()
@@ -205,46 +206,12 @@ if __name__ == '__main__':
                 replicas_obj.append(r)
 
             except:
-                #print "Waiting for: %s" % column_file
+                print "Waiting for replica: %s" % rid
                 time.sleep(1)
                 pass
 
     print "replica_dict: "
     print replica_dict
-
-    #print "swap_matrix: "
-    #print swap_matrix
-
-    """
-    #-----------------------------------------------------------------------------------------------
-    # updating rstr_val's
-    for rid in replica_dict:
-        
-        current_rstr = replica_dict[rid][1]
-        try:
-            r_file = open(("../staging_area/" + current_rstr), "r")
-        except IOError:
-            print "Warning: unable to access template file: {0}".format(current_rstr)
-
-        tbuffer = r_file.read()
-        r_file.close()
-        tbuffer = tbuffer.split()
-
-        line = 2
-        for word in tbuffer:
-            if word == '/':
-                line = 3
-            if word.startswith("r2=") and line == 2:
-                num_list = word.split('=')
-                rstr_val_1 = float(num_list[1])
-            if word.startswith("r2=") and line == 3:
-                num_list = word.split('=')
-                rstr_val_2 = float(num_list[1])
-
-        # creating replica
-        r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
-        replicas_obj.append(r)
-    """
 
     #-----------------------------------------------------------------------------------------------
 

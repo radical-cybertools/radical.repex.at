@@ -160,9 +160,9 @@ class PilotKernelPatternBmultiD(PilotKernel):
         #------------------------
 
         # creating restraint files  
-        if md_kernel.name == 'ak-patternB-3d-TUU' or md_kernel.name == 'ak-patternB-3d-TSU':
-            for r in replicas:
-                md_kernel.build_restraint_file(r)
+        #if md_kernel.name == 'ak-patternB-3d-TUU' or md_kernel.name == 'ak-patternB-3d-TSU':
+        #    for r in replicas:
+        #        md_kernel.build_restraint_file(r)
 
         # staging shared input data in
         md_kernel.prepare_shared_data()
@@ -185,8 +185,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
             }
             self.sd_shared_list.append(sd_shared)
 
-        # make sure data is staged
-        time.sleep(5)
+        # make sure data is staged :-D
+        time.sleep(3)
 
         # for performance data collection
         hl_performance_data = {}
