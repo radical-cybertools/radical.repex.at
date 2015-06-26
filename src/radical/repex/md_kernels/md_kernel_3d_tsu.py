@@ -126,11 +126,6 @@ class MdKernel3dTSU(object):
         #evaluate all i-j swap probabilities
         ps = [0.0]*(len(replicas))
 
-        for r in replicas:
-            self.logger.debug("[gibbs_exchange] (before) r.id: {0} r.temp: {1:0.3f} r.salt: {2:0.3f}".format(r.id, r.new_temperature, r.new_salt_concentration) )
-        
-        self.logger.debug("[gibbs_exchange] (before) swap matrix: {0:s}".format(swap_matrix) )    
-  
         j = 0
         for r_j in replicas:
             ps[j] = -(swap_matrix[r_i.sid][r_j.id] + swap_matrix[r_j.sid][r_i.id] - 
@@ -140,7 +135,10 @@ class MdKernel3dTSU(object):
         ######################################
         new_ps = []
         for item in ps:
-            new_item = math.exp(item)
+            if item > math.log(sys.float_info.max): new_item=sys.float_info.max
+            elif item < math.log(sys.float_info.min) : new_item=0.0
+            else :
+               new_item = math.exp(item)
             new_ps.append(new_item)
         ps = new_ps
         # index of swap replica within replicas_waiting list
@@ -148,6 +146,10 @@ class MdKernel3dTSU(object):
         while j > (len(replicas) - 1):
             j = self.weighted_choice_sub(ps)
         
+        # guard for errors
+        if j is None:
+            j = random.randint(0,len(replicas))
+            print "...gibbs exchnage warning - j was None..."
         # actual replica
         r_j = replicas[j]
         ######################################

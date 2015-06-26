@@ -228,9 +228,15 @@ class PilotKernelPatternBmultiD(PilotKernel):
             ################################################################################
             # sequential submission
             if BULK == 0:
+                #---------------------------------------------------------------------------------------------------
+                # submitting unit which determines exchanges between replicas
+                ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                global_ex_cu = unit_manager.submit_units(ex_calculator)
+                #---------------------------------------------------------------------------------------------------
+
                 t1 = datetime.datetime.utcnow()
-                for r in replicas:
-                    compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
+                for replica in replicas:
+                    compute_replica = md_kernel.prepare_replica_for_md(DIM, replicas, replica, self.sd_shared_list)
                     sub_replica = unit_manager.submit_units(compute_replica)
                     submitted_replicas.append(sub_replica)
                 
@@ -238,12 +244,18 @@ class PilotKernelPatternBmultiD(PilotKernel):
             ################################################################################
             # BULK submision
             else:
+                #---------------------------------------------------------------------------------------------------
+                # submitting unit which determines exchanges between replicas
+                ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                global_ex_cu = unit_manager.submit_units(ex_calculator)
+                #---------------------------------------------------------------------------------------------------
+
                 c_replicas = []
                 t1 = datetime.datetime.utcnow()
-                
                 #t_1 = datetime.datetime.utcnow()
-                for r in replicas:
-                    compute_replica = md_kernel.prepare_replica_for_md(r, self.sd_shared_list)
+                for replica in replicas:
+                    # DIM, replicas, replica, self.sd_shared_list
+                    compute_replica = md_kernel.prepare_replica_for_md(DIM, replicas, replica, self.sd_shared_list)
                     c_replicas.append(compute_replica)
                 
                 submitted_replicas = unit_manager.submit_units(c_replicas)
@@ -268,61 +280,25 @@ class PilotKernelPatternBmultiD(PilotKernel):
             for cu in submitted_replicas:
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
             
-            # this is not done for the last cycle
-            if (current_cycle < (cycles-1)):
-                exchange_replicas = []
-                self.logger.info("Dim {0}: preparing {1} replicas for Exchange run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")] = {}
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
 
-                if md_kernel.name != 'ak-patternB-3d-TUU':
-                    md_kernel.prepare_lists(replicas)
+            #----------------------------------------------------------------------------------------------
+            # populating swap matrix                
+            t1 = datetime.datetime.utcnow()
+            for r in submitted_replicas:
+                if r.state != radical.pilot.DONE:
+                    self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, r.uid))
 
-                t1 = datetime.datetime.utcnow()
-                #---------------------------------------------------------------------------------------------------
-                # submitting unit which determines exchanges between replicas
-                ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
-                global_ex_cu = unit_manager.submit_units(ex_calculator)
-                #---------------------------------------------------------------------------------------------------
+            if global_ex_cu.state != radical.pilot.DONE:
+                self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, global_ex_cu.uid))
 
-                for replica in replicas:
-                    ex_repl = md_kernel.prepare_replica_for_exchange(DIM, replicas, replica, self.sd_shared_list)
-                    sub_repl = unit_manager.submit_units(ex_repl)
-                    exchange_replicas.append(sub_repl)
-                t2 = datetime.datetime.utcnow()
-
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep"] = (t2-t1).total_seconds()
-
-                self.logger.info("Dim {0}: submitting {1} replicas for Exchange run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
-
-                t1 = datetime.datetime.utcnow()
-                unit_manager.wait_units()
-                t2 = datetime.datetime.utcnow()
-             
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run"] = (t2-t1).total_seconds()
-
-                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX")] = {}
-                for cu in exchange_replicas:
-                    cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = cu
-
-                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")] = {}
-                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
-                #----------------------------------------------------------------------------------------------
-                # populating swap matrix                
-                t1 = datetime.datetime.utcnow()
-                for r in exchange_replicas:
-                    if r.state != radical.pilot.DONE:
-                        self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, r.uid))
-
-                if global_ex_cu.state != radical.pilot.DONE:
-                        self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, global_ex_cu.uid))
-
-                # do exchange of parameters                     
-                md_kernel.do_exchange(current_cycle, DIM, replicas)
-                t2 = datetime.datetime.utcnow()
+            # do exchange of parameters                     
+            md_kernel.do_exchange(current_cycle, DIM, replicas)
+            t2 = datetime.datetime.utcnow()
                 
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = (t2-t1).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = (t2-t1).total_seconds()
             
         #--------------------------------------------------------------------------------------------------------------------------
         # end of loop

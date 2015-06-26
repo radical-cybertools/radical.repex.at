@@ -278,3 +278,18 @@ if __name__ == '__main__':
     except IOError:
         print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
 
+    #----------------------------------------------------------------
+    # copy to staging area:
+    src = pwd + "/" + outfile
+
+    size = len(pwd)-1
+    path = pwd
+    for i in range(0,size):
+        if pwd[size-i] != '/':
+            path = path[:-1]
+        else:
+            break
+
+    dst = path + "staging_area/" + outfile 
+    shutil.copyfile(src, dst)
+
