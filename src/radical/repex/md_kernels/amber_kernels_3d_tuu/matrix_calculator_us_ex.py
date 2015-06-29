@@ -12,6 +12,7 @@ import sys
 import json
 import math
 import time
+import shutil
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -151,7 +152,7 @@ def reduced_energy(temperature, potential):
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-def get_historical_data(replica_path, history_name):
+def get_historical_data(replica_path=None, history_name=None):
     """Retrieves temperature and potential energy from simulation output file .history file.
     This file is generated after each simulation run. The function searches for directory 
     where .history file recides by checking all computeUnit directories on target resource.
@@ -170,8 +171,9 @@ def get_historical_data(replica_path, history_name):
     """
 
     home_dir = os.getcwd()
-    path = "../staging_area" + replica_path
-    os.chdir(path)
+    if replica_path != None:
+        path = "../staging_area" + replica_path
+        os.chdir(path)
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
@@ -186,8 +188,10 @@ def get_historical_data(replica_path, history_name):
     except:
         raise
         
-    os.chdir("../")
-    os.chdir(home_dir)
+    if replica_path != None:
+        os.chdir("../")
+        os.chdir(home_dir)
+
     return eptot, path_to_replica_folder
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -221,7 +225,7 @@ if __name__ == '__main__':
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     replica_path = "/replica_%d/" % (replica_id)
-    replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
+    replica_energy, path_to_replica_folder = get_historical_data(replica_path=None, history_name=history_name)
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
@@ -229,23 +233,86 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    for j in current_group_rst.keys():        
+    print "got history data for self!"
+
+    #if replica_cycle != 0:
+    for j in current_group_rst.keys():
+        success = 0        
         current_rstr = current_group_rst[j]
-        try:
-            rstr_file = file(current_rstr,'r')
-            rstr_lines = rstr_file.readlines()
-            rstr_file.close()
-            rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
-            us_energy = 0.0
-            r = restraint()
-            r.set_crd(new_coor)
-            for rstr_entry in rstr_entries:
-                r.set_rstr(rstr_entry); r.calc_energy()
-                us_energy += r.energy
-            energies[int(j)] = replica_energy + us_energy
-            temperatures[int(j)] = float(init_temp)
-        except:
-            raise
+        while (success == 0):
+            try:
+                rstr_ppath = "../staging_area/" + current_rstr
+                rstr_file = file(rstr_ppath,'r')
+                rstr_lines = rstr_file.readlines()
+                rstr_file.close()
+                rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
+                us_energy = 0.0
+                r = restraint()
+                r.set_crd(new_coor)
+                for rstr_entry in rstr_entries:
+                    r.set_rstr(rstr_entry); r.calc_energy()
+                    us_energy += r.energy
+                energies[int(j)] = replica_energy + us_energy
+                temperatures[int(j)] = float(init_temp)
+
+                success = 1
+                print "Success processing replica: %s" % j
+            except:
+                print "Waiting for replica: %s" % j
+                time.sleep(1)
+                pass
+
+    """                
+    else:
+        for j in current_group_rst.keys():   
+            current_rstr = current_group_rst[j]
+
+            home_dir = os.getcwd()
+            os.chdir("../")
+
+            print "home dir: "
+            print home_dir
+
+            # getting all cu directories
+            replica_dirs = []
+            for name in os.listdir("."):
+                if os.path.isdir(name):
+                    replica_dirs.append(name) 
+
+            for directory in replica_dirs:
+                try:
+                    print "in directory: "
+                    print directory
+                    os.chdir(directory) 
+                    rstr_file = file(current_rstr,'r')
+                    rstr_lines = rstr_file.readlines()
+                    rstr_file.close()
+
+                    print "Success processing replica: %s" % j
+
+                    # back to home
+                    os.chdir(home_dir)
+
+                    rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
+                    us_energy = 0.0
+                    r = restraint()
+                    r.set_crd(new_coor)
+                    for rstr_entry in rstr_entries:
+                        r.set_rstr(rstr_entry); r.calc_energy()
+                        us_energy += r.energy
+                    energies[int(j)] = replica_energy + us_energy
+                    temperatures[int(j)] = float(init_temp)
+
+                    #success = 1
+                    print "Success processing replica: %s" % j
+                except:
+                    #print "Waiting for replica: %s" % j
+                    #time.sleep(1)
+                    pass
+                os.chdir("../")
+            # back to home
+            os.chdir(home_dir)
+    """
 
     # init swap column
     swap_column = [0.0]*replicas
@@ -278,18 +345,4 @@ if __name__ == '__main__':
     except IOError:
         print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
 
-    #----------------------------------------------------------------
-    # copy to staging area:
-    src = pwd + "/" + outfile
-
-    size = len(pwd)-1
-    path = pwd
-    for i in range(0,size):
-        if pwd[size-i] != '/':
-            path = path[:-1]
-        else:
-            break
-
-    dst = path + "staging_area/" + outfile 
-    shutil.copyfile(src, dst)
-
+ 

@@ -4,6 +4,10 @@ __license__ = "MIT"
 
 import os
 import sys
+import json
+import math
+import time
+import shutil
 
 #--------------------------------------------------------------------------------------------------------------------
 
@@ -71,4 +75,20 @@ if __name__ == '__main__':
             w_file.close()
         except IOError:
             print "Warning: unable to access file: {0}".format(new_restraints)
+ 
+        #----------------------------------------------------------------------
+        # copy to staging area
+        pwd = os.getcwd()
+        src = pwd + "/" + new_restraints
+
+        size = len(pwd)-1
+        path = pwd
+        for i in range(0,size):
+            if pwd[size-i] != '/':
+                path = path[:-1]
+            else:
+                break
+
+        dst = path + "staging_area/" + new_restraints 
+        shutil.copyfile(src, dst)
 

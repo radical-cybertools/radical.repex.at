@@ -10,6 +10,8 @@ __license__ = "MIT"
 import os
 import sys
 import json
+import math
+import time
 import shutil
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -49,12 +51,24 @@ def get_historical_data(replica_path, history_name):
        Get temperature and potential energy from mdinfo file.
     """
 
+    print "in get_historical_data(): replica path: "
+    print replica_path
+
+    print "in get_historical_data(): history_name: "
+    print history_name
+
     home_dir = os.getcwd()
-    path = "../staging_area" + replica_path
-    os.chdir(path)
+    if replica_path != None:
+        path = "../staging_area" + replica_path
+        try:
+            os.chdir(path)
+        except:
+            raise
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
+
+    print "could cd into replica directory!"
 
     try:
         f = open(history_name)
@@ -68,9 +82,10 @@ def get_historical_data(replica_path, history_name):
                 eptot = float(lines[i].split()[8])
         #print "history file %s found!" % ( history_name ) 
     except:
-        pass 
+        os.chdir(home_dir)
+        raise 
 
-    os.chdir("../")
+    #os.chdir("../")
     os.chdir(home_dir)
     
     return temp, eptot, path_to_replica_folder
@@ -98,30 +113,77 @@ if __name__ == '__main__':
 
     for i in temp_group:
         current_group.append(int(i))
-
-    pwd = os.getcwd()
      
     # getting history data for self
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
-    replica_path = "/replica_%s/" % (replica_id)
-    #print "history name: %s" % history_name
-    replica_temp, replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
 
+    #----------------------------------------------------------------------
+    # copy history_name to staging_area/replica_x 
+    pwd = os.getcwd()
+    replica_path = "/replica_%s/" % (replica_id)
+    src = pwd + "/" + history_name
+
+    size = len(pwd)-1
+    path = pwd
+    for i in range(0,size):
+        if pwd[size-i] != '/':
+            path = path[:-1]
+        else:
+            break
+
+    dst = path + "staging_area/" + replica_path + history_name 
+
+    try:
+        shutil.copyfile(src, dst)
+        print "Success copying history_name to staging_area!"
+    except:
+        print "Fail copying history_name to staging_area..."
+        raise
+
+    #----------------------------------------------------------------------
+
+    #replica_path = "/replica_%s/" % (replica_id)
+    #print "history name: %s" % history_name
+    replica_temp, replica_energy, path_to_replica_folder = get_historical_data(None, history_name)
+
+
+    print "got history data for self!"
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
     # but this is easily changeble for arbitrary cycle numbers
     temperatures = [0.0]*replicas
     energies = [0.0]*replicas
+
+    # for self
+    temperatures[int(replica_id)] = replica_temp
+    energies[int(replica_id)] = replica_energy
+
     #for j in range(replicas):
     for j in current_group:
-        history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
-        replica_path = "/replica_%s/" % (str(j))
-        try:
-            rj_temp, rj_energy, temp = get_historical_data(replica_path, history_name )
-            temperatures[j] = rj_temp
-            energies[j] = rj_energy
-        except:
-            raise
+        # for self already processed
+        if j != int(replica_id):
+            success = 0
+            history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
+            replica_path = "/replica_%s/" % (str(j))
+            while (success == 0):
+                try:
+                    rj_temp, rj_energy, temp = get_historical_data(replica_path, history_name)
+                    temperatures[j] = rj_temp
+                    energies[j] = rj_energy
+
+                    success = 1
+                    print "Success processing replica: %s" % j
+                except:
+                    print "Waiting for replica: %s" % j
+                    time.sleep(1)
+                    print "in loop: replica path: "
+                    print replica_path
+
+                    print "in loop: history_name: "
+                    print history_name
+                    pass
+
+    print "got history data for other replicas!"
 
     # init swap column
     swap_column = [0.0]*replicas
@@ -153,18 +215,4 @@ if __name__ == '__main__':
     except IOError:
         print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
 
-    #----------------------------------------------------------------
-    # copy to staging area:
-    src = pwd + "/" + outfile
-
-    size = len(pwd)-1
-    path = pwd
-    for i in range(0,size):
-        if pwd[size-i] != '/':
-            path = path[:-1]
-        else:
-            break
-
-    dst = path + "staging_area/" + outfile 
-    shutil.copyfile(src, dst)
-
+    

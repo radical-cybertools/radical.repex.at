@@ -312,12 +312,12 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         rid = replica.id
 
         replica_path = "replica_%d/" % (rid)
-        info_out = {
-            'source': new_info,
-            'target': 'staging:///%s' % (replica_path + new_info),
-            'action': radical.pilot.COPY
-        }
-        stage_out.append(info_out)
+        #info_out = {
+        #    'source': new_info,
+        #    'target': 'staging:///%s' % (replica_path + new_info),
+        #    'action': radical.pilot.COPY
+        #}
+        #stage_out.append(info_out)
 
         new_coor_out = {
             'source': new_coor,
@@ -339,12 +339,13 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
 
-        # can't really do that
-        #matrix_col_out = {
-        #    'source': matrix_col,
-        #    'target': 'staging:///%s' % (matrix_col),
-        #    'action': radical.pilot.COPY
-        #}
+        # for all cases!
+        matrix_col_out = {
+            'source': matrix_col,
+            'target': 'staging:///%s' % (matrix_col),
+            'action': radical.pilot.COPY
+        }
+        stage_out.append(matrix_col_out)
 
         current_group = self.get_current_group(dimension, replicas, replica)
         #--------------------------------------------------------------------------------
@@ -391,19 +392,19 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 dump_data = json.dumps(data)
                 json_data = dump_data.replace("\\", "")
 
-                # can't do this
-                #stage_out.append(matrix_col_out)
+                # 
+                
                 #------------------------------------------------------------------------
 
                 cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + str(self.cycle_steps) + " " + str(replica.new_restraints) + " " + str(replica.new_temperature) + " " + str(self.amber_input) + " " + str(new_input_file) + " " + str(self.us_template) + " " + str(replica.cycle) + " " + str(replica.rstr_val_1) + " " + str(replica.rstr_val_2) ]
-                cu.arguments = ["-O", "-i ", input_file, 
+                cu.arguments = ["-O", "-i ", new_input_file, 
                                   "-o ", output_file, 
                                   "-p ", self.amber_parameters, 
                                   "-c ", self.amber_coordinates, 
                                   "-r ", new_coor, 
                                   "-x ", new_traj, 
                                   "-inf ", new_info]
-                cu.post_exec = ["python matrix_calculator_temp_ex.py ", json_data]
+                cu.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + json_data + "\'"]
                 cu.executable = self.amber_path
                 cu.cores = self.md_replica_cores
                 cu.input_staging = stage_in
@@ -424,12 +425,22 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                     rst_group.append(rstr_id)
 
                 base_restraint = self.us_template + "."
-                for rr_id in rst_group:
-                    restraints_in_st = {'source': 'staging:///%s' % base_restraint + str(rr_id),
-                                        'target': ( base_restraint + str(rr_id) ),
-                                        'action': radical.pilot.COPY
-                    }
-                    stage_in.append(restraints_in_st)
+
+                info_out = {
+                    'source': new_info,
+                    'target': 'staging:///%s' % (replica_path + new_info),
+                    'action': radical.pilot.COPY
+                }
+                stage_out.append(info_out)
+
+                #------------------------------------------------------------
+                # can't do stage_out and stage_in for restraints at same step!
+                #for rr_id in rst_group:
+                #    restraints_in_st = {'source': 'staging:///%s' % base_restraint + str(rr_id),
+                #                        'target': ( base_restraint + str(rr_id) ),
+                #                        'action': radical.pilot.COPY
+                #    }
+                #    stage_in.append(restraints_in_st)
 
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[4])
@@ -442,7 +453,8 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 #}
                 #stage_in.append(coor_directive)
 
-                input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
+                # ???????????????????????????????????????
+                #input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
                 data = {
                     "replica_id": str(rid),
@@ -459,8 +471,7 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 dump_data = json.dumps(data)
                 json_data = dump_data.replace("\\", "")
 
-                # can't do that!
-                #stage_out.append(matrix_col_out)
+                
             
                 #cu.pre_exec = self.pre_exec
                 #cu.executable = "python"
@@ -469,18 +480,18 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 #cu.arguments = ["matrix_calculator_us_ex.py", json_data]
                 #cu.mpi = self.us_ex_mpi
                 #cu.cores = self.us_ex_cores 
-
+                
                 #----------------------------------------------------------
                 # was in md
                 cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + str(self.cycle_steps) + " " + str(replica.new_restraints) + " " + str(replica.new_temperature) + " " + str(self.amber_input) + " " + str(new_input_file) + " " + str(self.us_template) + " " + str(replica.cycle) + " " + str(replica.rstr_val_1) + " " + str(replica.rstr_val_2) ]
-                cu.arguments = ["-O", "-i ", input_file, 
+                cu.arguments = ["-O", "-i ", new_input_file, 
                                       "-o ", output_file, 
                                       "-p ", self.amber_parameters, 
                                       "-c ", self.amber_coordinates, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
-                cu_post_exec = ["python matrix_calculator_us_ex.py ", json_data] 
+                cu.post_exec = ["python matrix_calculator_us_ex.py " + "\'" + json_data + "\'"] 
                 cu.executable = self.amber_path
                 cu.cores = self.md_replica_cores
                 cu.input_staging = stage_in
@@ -531,8 +542,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 dump_data = json.dumps(data)
                 json_data = dump_data.replace("\\", "")
 
-                # can't do that!
-                #stage_out.append(matrix_col_out)
 
                 #cu.executable = "python"
                 #cu.input_staging  = stage_in
@@ -541,16 +550,17 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 #cu.mpi = self.temp_ex_mpi            
                 #cu.output_staging = stage_out
                 #------------------------------------------------------------
+
                 
                 cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + str(self.cycle_steps) + " " + str(replica.new_restraints) + " " + str(replica.new_temperature) + " " + str(self.amber_input) + " " + str(new_input_file) + " " + str(self.us_template) + " " + str(replica.cycle) + " " + str(replica.rstr_val_1) + " " + str(replica.rstr_val_2) ]
-                cu.arguments = ["-O", "-i ", input_file, 
+                cu.arguments = ["-O", "-i ", new_input_file, 
                                   "-o ", output_file, 
                                   "-p ", self.amber_parameters, 
                                   "-c ", old_coor, 
                                   "-r ", new_coor, 
                                   "-x ", new_traj, 
                                   "-inf ", new_info]
-                cu.post_exec = ["python matrix_calculator_temp_ex.py ", json_data]
+                cu.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + json_data + "\'"]
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.executable = self.amber_path
@@ -570,12 +580,20 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                     rst_group.append(rstr_id)
 
                 base_restraint = self.us_template + "."
-                for rr_id in rst_group:
-                    restraints_in_st = {'source': 'staging:///%s' % base_restraint + str(rr_id),
-                                        'target': ( base_restraint + str(rr_id) ),
-                                        'action': radical.pilot.COPY
-                    }
-                    stage_in.append(restraints_in_st)
+
+                #for rr_id in rst_group:
+                #    restraints_in_st = {'source': 'staging:///%s' % base_restraint + str(rr_id),
+                #                        'target': ( base_restraint + str(rr_id) ),
+                #                        'action': radical.pilot.COPY
+                #    }
+                #    stage_in.append(restraints_in_st)
+
+                new_coor_out = {
+                    'source': new_coor,
+                    'target': 'staging:///%s' % (replica_path + new_coor),
+                    'action': radical.pilot.COPY
+                }
+                stage_out.append(new_coor_out)
 
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[4])
@@ -588,7 +606,8 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 #}
                 #stage_in.append(coor_directive)
 
-                input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
+                # ?????????????????????????????????????????????
+                #input_file = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
                 data = {
                     "replica_id": str(rid),
@@ -617,14 +636,14 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                 #cu.cores = self.us_ex_cores  
 
                 cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + str(self.cycle_steps) + " " + str(replica.new_restraints) + " " + str(replica.new_temperature) + " " + str(self.amber_input) + " " + str(new_input_file) + " " + str(self.us_template) + " " + str(replica.cycle) + " " + str(replica.rstr_val_1) + " " + str(replica.rstr_val_2) ]
-                cu.arguments = ["-O", "-i ", input_file, 
+                cu.arguments = ["-O", "-i ", new_input_file, 
                                       "-o ", output_file, 
                                       "-p ", self.amber_parameters, 
                                       "-c ", old_coor, 
                                       "-r ", new_coor, 
                                       "-x ", new_traj, 
                                       "-inf ", new_info]
-                cu.post_exec = ["python matrix_calculator_us_ex.py ", json_data]
+                cu.post_exec = ["python matrix_calculator_us_ex.py " + "\'" + json_data + "\'"]
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.executable = self.amber_path
@@ -769,7 +788,10 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
     #
     def do_exchange(self, current_cycle, dimension, replicas):
 
-        infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
+
+        cycle = replicas[0].cycle-1
+
+        infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=cycle)
         try:
             f = open(infile)
             lines = f.readlines()
@@ -797,18 +819,20 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
         stage_out = []
         stage_in = []
+
+        cycle = replicas[0].cycle
         
         # global_ex_calculator.py file
         stage_in.append(sd_shared_list[6])
 
-        outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
+        outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=cycle)
         stage_out.append(outfile)
 
         cu = radical.pilot.ComputeUnitDescription()
         cu.pre_exec = self.pre_exec + ['module load python/2.7.9']
         cu.executable = "python"
         cu.input_staging  = stage_in
-        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(current_cycle), str(dimension)]
+        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dimension)]
         cu.cores = 1
         cu.mpi = False            
         cu.output_staging = stage_out
