@@ -186,7 +186,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
             self.sd_shared_list.append(sd_shared)
 
         # make sure data is staged :-D
-        time.sleep(3)
+        # time.sleep(1)
 
         # for performance data collection
         hl_performance_data = {}

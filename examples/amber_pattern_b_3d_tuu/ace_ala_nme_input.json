@@ -3,9 +3,10 @@
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "220",
+        "queue" : "development",
+        "runtime" : "120",
         "cleanup" : "False",
-        "cores" : "216"
+        "cores" : "224"
     },
     "input.MD": {
         "number_of_cycles": "3",

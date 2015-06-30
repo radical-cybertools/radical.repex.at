@@ -600,6 +600,9 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         """
         """
 
+        r1 = None
+        r2 = None
+
         cycle = replicas[0].cycle-1
 
         infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=cycle)

@@ -241,10 +241,13 @@ if __name__ == '__main__':
         current_rstr = current_group_rst[j]
         while (success == 0):
             try:
+                #----------------------------------------------------
+                # can avoid this step!
                 rstr_ppath = "../staging_area/" + current_rstr
                 rstr_file = file(rstr_ppath,'r')
                 rstr_lines = rstr_file.readlines()
                 rstr_file.close()
+                #----------------------------------------------------
                 rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
                 us_energy = 0.0
                 r = restraint()
@@ -261,58 +264,6 @@ if __name__ == '__main__':
                 print "Waiting for replica: %s" % j
                 time.sleep(1)
                 pass
-
-    """                
-    else:
-        for j in current_group_rst.keys():   
-            current_rstr = current_group_rst[j]
-
-            home_dir = os.getcwd()
-            os.chdir("../")
-
-            print "home dir: "
-            print home_dir
-
-            # getting all cu directories
-            replica_dirs = []
-            for name in os.listdir("."):
-                if os.path.isdir(name):
-                    replica_dirs.append(name) 
-
-            for directory in replica_dirs:
-                try:
-                    print "in directory: "
-                    print directory
-                    os.chdir(directory) 
-                    rstr_file = file(current_rstr,'r')
-                    rstr_lines = rstr_file.readlines()
-                    rstr_file.close()
-
-                    print "Success processing replica: %s" % j
-
-                    # back to home
-                    os.chdir(home_dir)
-
-                    rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
-                    us_energy = 0.0
-                    r = restraint()
-                    r.set_crd(new_coor)
-                    for rstr_entry in rstr_entries:
-                        r.set_rstr(rstr_entry); r.calc_energy()
-                        us_energy += r.energy
-                    energies[int(j)] = replica_energy + us_energy
-                    temperatures[int(j)] = float(init_temp)
-
-                    #success = 1
-                    print "Success processing replica: %s" % j
-                except:
-                    #print "Waiting for replica: %s" % j
-                    #time.sleep(1)
-                    pass
-                os.chdir("../")
-            # back to home
-            os.chdir(home_dir)
-    """
 
     # init swap column
     swap_column = [0.0]*replicas
