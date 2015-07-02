@@ -54,7 +54,7 @@ def dihedral(c1,c2,c3,c4):
     if det >= 0.0: return dih
     else: return 360.0-dih
 
-class restraint(object):
+class Restraint(object):
 
     def __init__(self):
 
@@ -250,7 +250,7 @@ if __name__ == '__main__':
                 #----------------------------------------------------
                 rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
                 us_energy = 0.0
-                r = restraint()
+                r = Restraint()
                 r.set_crd(new_coor)
                 for rstr_entry in rstr_entries:
                     r.set_rstr(rstr_entry); r.calc_energy()

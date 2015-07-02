@@ -79,7 +79,6 @@ def do_exchange(dimension, replicas, swap_matrix):
     """
     """
 
-    exchange_pair = []
     exchanged = []
     for r_i in replicas:
         # does this pick a correct one????
@@ -88,9 +87,8 @@ def do_exchange(dimension, replicas, swap_matrix):
         if (r_j.id != r_i.id) and (r_j.id not in exchanged) and (r_i.id not in exchanged):
             exchanged.append(r_j.id)
             exchanged.append(r_i.id)
-            exchange_pair.append([r_j.id, r_i.id])
             
-    return  exchange_pair    
+    return  exchanged
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -249,7 +247,8 @@ if __name__ == '__main__':
                 #######################################
                 # perform exchange among group members
                 #######################################
-                exchange_list = do_exchange(dimension, current_group, swap_matrix)
+                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                exchange_list.append(exchange_pair)
         ###############################################
         # us exchange d1
         elif dimension == 1:
@@ -266,8 +265,8 @@ if __name__ == '__main__':
                 #######################################
                 # perform exchange among group members
                 #######################################
-                exchange_list = do_exchange(dimension, current_group, swap_matrix)
-
+                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                exchange_list.append(exchange_pair)
         ###############################################
         # us exchange d3
         elif dimension == 3:
@@ -284,18 +283,22 @@ if __name__ == '__main__':
                 #######################################
                 # perform exchange among group members
                 #######################################
-                exchange_list = do_exchange(dimension, current_group, swap_matrix)
-
+                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                exchange_list.append(exchange_pair)
     #-----------------------------------------------------------------------------------------------------
     # writing to file: ok
-    
+    print "ex: "
+    print exchange_list
+
     try:
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
         with open(outfile, 'w+') as f:
 
             for pair in exchange_list:
-                row_str = str(pair[0]) + " " + str(pair[1]) 
-                f.write(row_str)
+                if pair:
+                    row_str = str(pair[0]) + " " + str(pair[1]) 
+                    f.write(row_str)
+                    f.write('\n')
         f.close()
 
     except IOError:
