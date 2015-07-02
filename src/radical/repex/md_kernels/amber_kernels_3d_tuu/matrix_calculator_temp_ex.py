@@ -51,12 +51,6 @@ def get_historical_data(replica_path, history_name):
        Get temperature and potential energy from mdinfo file.
     """
 
-    print "in get_historical_data(): replica path: "
-    print replica_path
-
-    print "in get_historical_data(): history_name: "
-    print history_name
-
     home_dir = os.getcwd()
     if replica_path != None:
         path = "../staging_area" + replica_path
@@ -68,8 +62,6 @@ def get_historical_data(replica_path, history_name):
     temp = 0.0    #temperature
     eptot = 0.0   #potential
 
-    print "could cd into replica directory!"
-
     try:
         f = open(history_name)
         lines = f.readlines()
@@ -80,12 +72,10 @@ def get_historical_data(replica_path, history_name):
                 temp = float(lines[i].split()[8])
             elif "EPtot" in lines[i]:
                 eptot = float(lines[i].split()[8])
-        #print "history file %s found!" % ( history_name ) 
     except:
         os.chdir(home_dir)
         raise 
 
-    #os.chdir("../")
     os.chdir(home_dir)
     
     return temp, eptot, path_to_replica_folder
@@ -141,13 +131,8 @@ if __name__ == '__main__':
         raise
 
     #----------------------------------------------------------------------
-
-    #replica_path = "/replica_%s/" % (replica_id)
-    #print "history name: %s" % history_name
     replica_temp, replica_energy, path_to_replica_folder = get_historical_data(None, history_name)
 
-
-    print "got history data for self!"
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
     # but this is easily changeble for arbitrary cycle numbers
@@ -176,14 +161,9 @@ if __name__ == '__main__':
                 except:
                     print "Waiting for replica: %s" % j
                     time.sleep(1)
-                    print "in loop: replica path: "
-                    print replica_path
-
-                    print "in loop: history_name: "
-                    print history_name
                     pass
 
-    print "got history data for other replicas!"
+    print "got history data for other replicas in current group!"
 
     # init swap column
     swap_column = [0.0]*replicas
@@ -204,10 +184,8 @@ if __name__ == '__main__':
                     row_str = row_str + " " + str(item)
                 else:
                     row_str = str(item)
-            #row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
             f.write(row_str)
             f.write('\n')
-            # data for replica_dict
             row_str = replica_id + " " + replica_cycle + " " + new_restraints + " " + init_temp
             f.write(row_str)
         f.close()

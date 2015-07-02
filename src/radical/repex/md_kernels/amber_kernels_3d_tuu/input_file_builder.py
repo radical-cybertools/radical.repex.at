@@ -15,7 +15,6 @@ if __name__ == '__main__':
     """
     """
 
-    
     argument_list   = str(sys.argv)
     cycle_steps     = str(sys.argv[1])
     new_restraints  = str(sys.argv[2])
@@ -27,10 +26,6 @@ if __name__ == '__main__':
     rstr_val_1      = float(sys.argv[8])
     rstr_val_2      = float(sys.argv[9])
 
-    print "replica cycle: %d" % replica_cycle
-    print "us template: %s" % us_template
-    print "new_input_file: %s" % new_input_file
-    print "amber_input: %s" % amber_input
     #-------------------------------------------------------------------------
     # this is for every cycle
     try:

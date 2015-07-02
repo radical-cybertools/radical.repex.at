@@ -46,81 +46,6 @@ class PilotKernelPatternBmultiD(PilotKernel):
         self.sd_shared_list = []
 
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def getkey(self, item):
-        return item[0]
-
-
-    #---------------------------------------------------------
-    #
-    def build_swap_matrix(self, replicas):
-        """Creates a swap matrix from matrix_column_x.dat files. 
-        matrix_column_x.dat - is populated on targer resource and then transferred back. This
-        file is created for each replica and has data for one column of swap matrix. In addition to that,
-        this file holds path to pilot compute unit of the previous run, where reside NAMD output files for 
-        a given replica. 
-
-        Arguments:
-        replicas - list of Replica objects
-
-        Returns:
-        swap_matrix - 2D list of lists of dimension-less energies, where each column is a replica 
-        and each row is a state
-        """
-
-        base_name = "matrix_column"
-
-        # init matrix
-        swap_matrix = [[ 0. for j in range(len(replicas))]
-             for i in range(len(replicas))]
-
-        for r in replicas:
-            column_file = base_name + "_" + str(r.id) + "_" + str(r.cycle-1)  +  ".dat"       
-            try:
-                f = open(column_file)
-                lines = f.readlines()
-                f.close()
-                data = lines[0].split()
-                # populating one column at a time
-                for i in range(len(replicas)):
-                    swap_matrix[i][r.id] = float(data[i])
-
-            except:
-                raise
-
-        return swap_matrix
-
-    #----------------------------------------------------------------------------
-    #
-    def compose_swap_matrix(self, replicas, matrix_columns):
-        """Creates a swap matrix from matrix_column_x.dat files. 
-        matrix_column_x.dat - is populated on targer resource and then transferred back. This
-        file is created for each replica and has data for one column of swap matrix. In addition to that,
-        this file holds path to pilot compute unit of the previous run, where reside NAMD output files for 
-        a given replica. 
-
-        Arguments:
-        replicas - list of Replica objects
-
-        Returns:
-        swap_matrix - 2D list of lists of dimension-less energies, where each column is a replica 
-        and each row is a state
-        """
- 
-        # init matrix
-        swap_matrix = [[ 0. for j in range(len(replicas))] 
-             for i in range(len(replicas))]
-
-        matrix_columns = sorted(matrix_columns)
-
-        for r in replicas:
-            # populating one column at a time
-            for i in range(len(replicas)):
-                # error here: ValueError: could not convert string to float: None
-                swap_matrix[i][r.id] = float(matrix_columns[r.id][i])
-
-        return swap_matrix
-
-#-----------------------------------------------------------------------------------------------------------------------------------
 
     def run_simulation(self, replicas, pilot_object, session,  md_kernel):
         """This function runs the main loop of RE simulation for RE pattern B.
@@ -159,11 +84,6 @@ class PilotKernelPatternBmultiD(PilotKernel):
         stagein_start = datetime.datetime.utcnow()
         #------------------------
 
-        # creating restraint files  
-        #if md_kernel.name == 'ak-patternB-3d-TUU' or md_kernel.name == 'ak-patternB-3d-TSU':
-        #    for r in replicas:
-        #        md_kernel.build_restraint_file(r)
-
         # staging shared input data in
         md_kernel.prepare_shared_data()
 
@@ -185,9 +105,6 @@ class PilotKernelPatternBmultiD(PilotKernel):
             }
             self.sd_shared_list.append(sd_shared)
 
-        # make sure data is staged :-D
-        # time.sleep(1)
-
         # for performance data collection
         hl_performance_data = {}
         cu_performance_data = {}
@@ -202,7 +119,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
         # BULK = 0: do sequential submission
         # BULK = 1: do BULK submission
-        BULK = 0
+        BULK = 1
         DIM = 0
         dimensions = md_kernel.dims
         for c in range(0,cycles*dimensions):

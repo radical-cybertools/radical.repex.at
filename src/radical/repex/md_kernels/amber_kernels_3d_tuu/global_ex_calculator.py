@@ -64,16 +64,15 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
     # guard for errors
     if j is None:
         j = random.randint(0,(len(replicas)-1))
-        print "...gibbs exchnage warning - j was None..."
+        print "...gibbs exchnage warning: j was None..."
     # actual replica
     r_j = replicas[j]
     ######################################
 
-    #r_j = replicas[0]
     return r_j
 
 
-#---------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------
 #
 def do_exchange(dimension, replicas, swap_matrix):
     """
@@ -90,7 +89,7 @@ def do_exchange(dimension, replicas, swap_matrix):
             
     return  exchanged
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
 
 class Replica3d(object):
     """Class representing replica and it's associated data.
@@ -143,17 +142,6 @@ if __name__ == '__main__':
     dimension = int(sys.argv[3])
 
     replica_dict = {}
-    #replica_data_file = "replica_data_in_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
-    #try:
-    #    f = open(replica_data_file)
-    #    lines = f.readlines()
-    #    f.close()
-    #    for l in lines:
-    #        data = l.split()
-    #        replica_dict[data[0]] = [data[1], data[2], data[3]]
-    #except:
-    #    raise
-    #print replica_dict 
 
     replicas_obj = []
 
@@ -172,16 +160,16 @@ if __name__ == '__main__':
                 lines = f.readlines()
                 f.close()
                 
-                #---------------------------------------------
+                #--------------------------------------------------
                 # populating matrix column
                 data = lines[0].split()
                 for i in range(replicas):
                     swap_matrix[i][int(rid)] = float(data[i])
-                #---------------------------------------------
+                #--------------------------------------------------
                 # populating replica dict
                 data = lines[1].split()
                 replica_dict[data[0]] = [data[1], data[2], data[3]]
-                #-----------------------------------------------------------------------------------------------
+                #---------------------------------------------------
                 # updating rstr_val's for a given replica
                 rid = data[0]
    
@@ -218,9 +206,6 @@ if __name__ == '__main__':
                 time.sleep(1)
                 pass
 
-    print "replica_dict: "
-    print replica_dict
-
     #-----------------------------------------------------------------------------------------------
 
     d1_list = []
@@ -232,7 +217,7 @@ if __name__ == '__main__':
     for r1 in replicas_obj:
         current_temp = r1.new_temperature
             
-        ###############################################
+        #-------------------------------------------------------------------------
         # temperature exchange
         if dimension == 2:
             r_pair = [r1.rstr_val_1, r1.rstr_val_2]
@@ -244,12 +229,11 @@ if __name__ == '__main__':
                     if (r1.rstr_val_1 == r2.rstr_val_1) and (r1.rstr_val_2 == r2.rstr_val_2):
                         current_group.append(r2)
 
-                #######################################
+                #-----------------------------------------------------------------
                 # perform exchange among group members
-                #######################################
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
-        ###############################################
+        #-------------------------------------------------------------------------
         # us exchange d1
         elif dimension == 1:
             r_pair = [r1.new_temperature, r1.rstr_val_2]
@@ -262,12 +246,11 @@ if __name__ == '__main__':
                     if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_2 == r2.rstr_val_2):
                         current_group.append(r2)
                     
-                #######################################
+                #-----------------------------------------------------------------
                 # perform exchange among group members
-                #######################################
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
-        ###############################################
+        #-------------------------------------------------------------------------
         # us exchange d3
         elif dimension == 3:
             r_pair = [r1.new_temperature, r1.rstr_val_1]
@@ -280,15 +263,13 @@ if __name__ == '__main__':
                     if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_1 == r2.rstr_val_1):
                         current_group.append(r2)
                     
-                #######################################
+                #-----------------------------------------------------------------
                 # perform exchange among group members
-                #######################################
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
+
     #-----------------------------------------------------------------------------------------------------
-    # writing to file: ok
-    print "ex: "
-    print exchange_list
+    # writing to file
 
     try:
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)

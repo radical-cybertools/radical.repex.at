@@ -26,9 +26,16 @@ import amber_kernels_3d_tuu.matrix_calculator_us_ex
 import amber_kernels_3d_tuu.input_file_builder
 import amber_kernels_3d_tuu.global_ex_calculator
 
+
+
+
+from replicas.replica import Replica3d
+from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
+from amber_kernels_us.amber_kernel_us_pattern_b import AmberKernelUSPatternB
+
 #-----------------------------------------------------------------------------------------------------------
 
-class AmberKernelPatternB3dTUU(MdKernel3dTUU):
+class AmberKernelPatternB3dTUU(object):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
     In this class is determined how replica input files are composed, how exchanges are performed, etc.
     """
@@ -40,7 +47,91 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        MdKernel3dTUU.__init__(self, inp_file, work_dir_local)
+        self.dims = 3
+    
+        self.resource = inp_file['input.PILOT']['resource']
+        if 'number_of_cycles' in inp_file['input.MD']:
+            self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
+        else:
+            self.nr_cycles = None
+
+        self.input_folder = inp_file['input.MD']['input_folder']
+        self.inp_basename = inp_file['input.MD']['input_file_basename']
+         
+        self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
+        self.amber_parameters = inp_file['input.MD']['amber_parameters']
+        self.amber_input = inp_file['input.MD']['amber_input']
+
+        #------------------------------------------------------
+        if 'exchange_off' in inp_file['input.MD']:
+            if inp_file['input.MD']['exchange_off'] == "True":
+                self.exchange_off = True
+            else:
+                self.exchange_off = False
+        else:
+            self.exchange_off = False
+        #------------------------------------------------------
+
+        if 'replica_mpi' in inp_file['input.MD']:
+            if inp_file['input.MD']['replica_mpi'] == "True":
+                self.md_replica_mpi = True
+            else:
+                self.md_replica_mpi = False
+        else:
+            self.md_replica_mpi= False
+
+        if 'replica_cores' in inp_file['input.MD']:
+            self.md_replica_cores = int(inp_file['input.MD']['replica_cores'])
+        else:
+            self.md_replica_cores = 1
+        
+        self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
+        self.work_dir_local = work_dir_local
+
+        self.us_template = inp_file['input.MD']['us_template']                       
+        self.current_cycle = -1
+
+        # hardcoded for now
+        self.replicas_d1 = int(inp_file['input.DIM']['umbrella_sampling_1']["number_of_replicas"])
+        self.replicas_d2 = int(inp_file['input.DIM']['temperature_2']["number_of_replicas"])
+        self.replicas_d3 = int(inp_file['input.DIM']['umbrella_sampling_3']["number_of_replicas"])
+        
+        self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3 
+        self.restraints_files = []
+        for k in range(self.replicas):
+            self.restraints_files.append(self.us_template + "." + str(k) )
+ 
+        self.us_start_param_d1 = float(inp_file['input.DIM']['umbrella_sampling_1']['us_start_param'])
+        self.us_end_param_d1 = float(inp_file['input.DIM']['umbrella_sampling_1']['us_end_param'])
+
+        self.us_ex_cores = int(inp_file['input.DIM']['umbrella_sampling_1']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['umbrella_sampling_1']:
+            if inp_file['input.DIM']['umbrella_sampling_1']['exchange_replica_mpi'] == 'True':
+                self.us_ex_mpi = True
+            else:
+                self.us_ex_mpi = False
+ 
+        self.us_start_param_d3 = float(inp_file['input.DIM']['umbrella_sampling_3']['us_start_param'])
+        self.us_end_param_d3 = float(inp_file['input.DIM']['umbrella_sampling_3']['us_end_param'])
+
+        self.us_ex_cores = int(inp_file['input.DIM']['umbrella_sampling_3']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['umbrella_sampling_3']:
+            if inp_file['input.DIM']['umbrella_sampling_3']['exchange_replica_mpi'] == 'True':
+                self.us_ex_mpi = True
+            else:
+                self.us_ex_mpi = False
+        
+        self.min_temp = float(inp_file['input.DIM']['temperature_2']['min_temperature'])
+        self.max_temp = float(inp_file['input.DIM']['temperature_2']['max_temperature'])
+
+        self.temp_ex_cores = int(inp_file['input.DIM']['temperature_2']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']['temperature_2']:
+            if inp_file['input.DIM']['temperature_2']['exchange_replica_mpi'] == 'True':
+                self.temp_ex_mpi = True
+            else:
+                self.temp_ex_mpi = False
+
+        #---------------------------------------------------------------------------------------------
 
         self.name = 'ak-patternB-3d-TUU'
         self.logger  = rul.getLogger ('radical.repex', self.name)
@@ -116,8 +207,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
                     rstr_val_1 = str(starting_value_d1)
                     rstr_val_2 = str(starting_value_d3)
 
-                    #print "rid: %d temp: %f us1: %f us2: %f " % (rid, t1, float(rstr_val_1), float(rstr_val_2))
-
                     r = Replica3d(rid, new_temperature=t1, new_restraints=r1, rstr_val_1=float(rstr_val_1), rstr_val_2=float(rstr_val_2),  cores=1)
                     replicas.append(r)
 
@@ -145,10 +234,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
-        #rstr_list = []
-        #for rstr in self.restraints_files:
-        #    rstr_list.append(self.work_dir_local + "/" + rstr)
-
         #------------------------------------------------
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_coordinates)
@@ -158,10 +243,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         self.shared_files.append("input_file_builder.py")
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
-
-        #for rstr in self.restraints_files:
-        #    self.shared_files.append(rstr)
-        #------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
@@ -186,88 +267,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
 
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
-
-        #for rstr_p in rstr_list:
-        #    rstr_url = 'file://%s' % (rstr_p)
-        #    self.shared_urls.append(rstr_url)
- 
-    #-----------------------------------------------------------------------------------------------
-    #  
-    def build_restraint_file(self, replica):
-        """Builds restraint file for replica, based on template file
-        """
-
-        """
-        template = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
-        try:
-            r_file = open(template, "r")
-            tbuffer = r_file.read()
-            r_file.close()
-        except IOError:
-            self.logger.info("Warning: unable to access file: {0}".format(self.us_template) )
-
-        i = replica.id
-
-        try:
-            w_file = open(replica.new_restraints, "w")
-            tbuffer = tbuffer.replace("@val1@", str(replica.rstr_val_1))
-            tbuffer = tbuffer.replace("@val1l@", str(replica.rstr_val_1-90))
-            tbuffer = tbuffer.replace("@val1h@", str(replica.rstr_val_1+90))
-            tbuffer = tbuffer.replace("@val2@", str(replica.rstr_val_2))
-            tbuffer = tbuffer.replace("@val2l@", str(replica.rstr_val_2-90))
-            tbuffer = tbuffer.replace("@val2h@", str(replica.rstr_val_2+90))
-            w_file.write(tbuffer)
-            w_file.close()
-        except IOError:
-            self.logger.info("Warning: unable to access file: {0}".format(replica.new_restraints) )
-        """
-        pass
-
-    #----------------------------------------------------------------------------------------------
-    #
-    def build_input_file(self, replica):
-        """Builds input file for replica, based on template input file ala10.mdin
-        """
-
-        basename = self.inp_basename
-            
-        new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
-        outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
-        old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-
-        replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
-        replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
-        replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
-
-        replica.old_coor = old_name + ".rst"
-
-        if (replica.cycle == 0):
-            first_step = 0
-        elif (replica.cycle == 1):
-            first_step = int(self.cycle_steps)
-        else:
-            first_step = (replica.cycle - 1) * int(self.cycle_steps)
-
-        try:
-            r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
-        except IOError:
-            self.logger.info("Warning: unable to access template file: {0}".format(self.amber_input) )
-
-        tbuffer = r_file.read()
-        r_file.close()
-
-        tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
-        tbuffer = tbuffer.replace("@disang@",replica.new_restraints)
-        tbuffer = tbuffer.replace("@temp@",str(replica.new_temperature))
-        
-        replica.cycle += 1
-
-        try:
-            w_file = open(new_input_file, "w")
-            w_file.write(tbuffer)
-            w_file.close()
-        except IOError:
-            self.logger.info("Warning: unable to access file: {0}".format(new_input_file) )
 
     #----------------------------------------------------------------------------------------
     #                     
@@ -663,94 +662,6 @@ class AmberKernelPatternB3dTUU(MdKernel3dTUU):
         cu.output_staging = stage_out
 
         return cu
-
-    #-------------------------------------------------------------------------
-    #
-    def select_for_exchange(self, dimension, replicas, swap_matrix, cycle):
-        """
-        """
-
-        # updating rstr_val's
-        for r in replicas:
-            current_rstr = r.new_restraints
-            try:
-                r_file = open(current_rstr, "r")
-            except IOError:
-                self.logger.info("Warning: unable to access template file: {0}".format(current_rstr) )
-
-            tbuffer = r_file.read()
-            r_file.close()
-            tbuffer = tbuffer.split()
-
-            line = 2
-            for word in tbuffer:
-                if word == '/':
-                    line = 3
-                if word.startswith("r2=") and line == 2:
-                    num_list = word.split('=')
-                    r.rstr_val_1 = float(num_list[1])
-                if word.startswith("r2=") and line == 3:
-                    num_list = word.split('=')
-                    r.rstr_val_2 = float(num_list[1])
-
-        d1_list = []
-        d2_list = []
-        d3_list = []
-
-        for r1 in replicas:
-            current_temp = r1.new_temperature
-            
-            ###############################################
-            # temperature exchange
-            if dimension == 2:
-                r_pair = [r1.rstr_val_1, r1.rstr_val_2]
-                if r_pair not in d2_list:
-                    d2_list.append(r_pair)
-                    current_group = []
-
-                    for r2 in replicas:
-                        if (r1.rstr_val_1 == r2.rstr_val_1) and (r1.rstr_val_2 == r2.rstr_val_2):
-                            current_group.append(r2)
-
-                    #######################################
-                    # perform exchange among group members
-                    #######################################
-                    self.do_exchange(dimension, current_group, swap_matrix)
-            ###############################################
-            # us exchange d1
-            elif dimension == 1:
-                r_pair = [r1.new_temperature, r1.rstr_val_2]
-
-                if r_pair not in d1_list:
-                    d1_list.append(r_pair)
-                    current_group = []
-                    
-                    for r2 in replicas:
-                        if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_2 == r2.rstr_val_2):
-                            current_group.append(r2)
-                    
-                    #######################################
-                    # perform exchange among group members
-                    #######################################
-                    self.do_exchange(dimension, current_group, swap_matrix)
-
-            ###############################################
-            # us exchange d3
-            elif dimension == 3:
-                r_pair = [r1.new_temperature, r1.rstr_val_1]
-
-                if r_pair not in d3_list:
-                    d3_list.append(r_pair)
-                    current_group = []
-                    
-                    for r2 in replicas:
-                        if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_1 == r2.rstr_val_1):
-                            current_group.append(r2)
-                    
-                    #######################################
-                    # perform exchange among group members
-                    #######################################
-                    self.do_exchange(dimension, current_group, swap_matrix)
 
     #---------------------------------------------------------------------------------------------------------------------
     #

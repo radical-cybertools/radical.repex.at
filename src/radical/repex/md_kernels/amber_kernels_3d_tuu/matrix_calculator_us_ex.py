@@ -284,10 +284,8 @@ if __name__ == '__main__':
                     row_str = row_str + " " + str(item)
                 else:
                     row_str = str(item)
-            #row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
             f.write(row_str)
             f.write('\n')
-            # data for replica_dict
             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
             f.write(row_str)
 
