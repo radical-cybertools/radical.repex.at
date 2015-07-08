@@ -1,6 +1,6 @@
 phos_trans_qmmm
  &cntrl
-  irest = 0, ntx = 1,
+  irest = @irest@, ntx = @ntx@,
   imin = 0, nstlim = @nstlim@, temp0 = @temp@,
   ntc = 2, ntf = 2, tol = 1e-8,
   ntt = 3, iwrap = 1, ioutfm = 1, gamma_ln = 5.0,
