@@ -225,7 +225,17 @@ if __name__ == '__main__':
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     replica_path = "/replica_%d/" % (replica_id)
-    replica_energy, path_to_replica_folder = get_historical_data(replica_path=None, history_name=history_name)
+
+    success = 0
+    while (success == 0):
+        try:
+            replica_energy, path_to_replica_folder = get_historical_data(replica_path=None, history_name=history_name)
+            print "Got history data for self!"
+            success = 1
+        except:
+            print "Waiting for self (history file)"
+            time.sleep(1)
+            pass
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
@@ -233,7 +243,7 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    print "got history data for self!"
+    
 
     #if replica_cycle != 0:
     for j in current_group_rst.keys():

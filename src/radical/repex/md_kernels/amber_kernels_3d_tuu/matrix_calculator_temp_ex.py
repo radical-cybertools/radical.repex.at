@@ -131,7 +131,17 @@ if __name__ == '__main__':
         raise
 
     #----------------------------------------------------------------------
-    replica_temp, replica_energy, path_to_replica_folder = get_historical_data(None, history_name)
+    success = 0
+    while (success == 0):
+        try:
+            replica_temp, replica_energy, path_to_replica_folder = get_historical_data(None, history_name)
+            print "Got history data for self!"
+            success = 1
+        except:
+            print "Waiting for self (history file)"
+            time.sleep(1)
+            pass
+
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle

@@ -116,10 +116,12 @@ class PilotKernelPatternBmultiD(PilotKernel):
         # Raw simulation time (OLD LOCATION)
         start = datetime.datetime.utcnow()
         #------------------------
-
+        # GL = 0: submit global calculator before
+        # GL = 1: submit global calculator after
+        GL = 0
         # BULK = 0: do sequential submission
         # BULK = 1: do BULK submission
-        BULK = 1
+        BULK = 0
         DIM = 0
         dimensions = md_kernel.dims
         for c in range(0,cycles*dimensions):
@@ -145,10 +147,12 @@ class PilotKernelPatternBmultiD(PilotKernel):
             ################################################################################
             # sequential submission
             if BULK == 0:
+
                 #---------------------------------------------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
-                ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
-                global_ex_cu = unit_manager.submit_units(ex_calculator)
+                if GL == 0:
+                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                    global_ex_cu = unit_manager.submit_units(ex_calculator)
                 #---------------------------------------------------------------------------------------------------
 
                 t1 = datetime.datetime.utcnow()
@@ -156,17 +160,26 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     compute_replica = md_kernel.prepare_replica_for_md(DIM, replicas, replica, self.sd_shared_list)
                     sub_replica = unit_manager.submit_units(compute_replica)
                     submitted_replicas.append(sub_replica)
+
+                #---------------------------------------------------------------------------------------------------
+                # submitting unit which determines exchanges between replicas
+                if GL == 1:
+                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                    global_ex_cu = unit_manager.submit_units(ex_calculator)
+                #---------------------------------------------------------------------------------------------------
                 
                 t2 = datetime.datetime.utcnow()
             ################################################################################
             # BULK submision
             else:
+
                 #---------------------------------------------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
-                ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
-                global_ex_cu = unit_manager.submit_units(ex_calculator)
+                if GL == 0:
+                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                    global_ex_cu = unit_manager.submit_units(ex_calculator)
                 #---------------------------------------------------------------------------------------------------
-
+                
                 c_replicas = []
                 t1 = datetime.datetime.utcnow()
                 #t_1 = datetime.datetime.utcnow()
@@ -176,6 +189,13 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     c_replicas.append(compute_replica)
                 
                 submitted_replicas = unit_manager.submit_units(c_replicas)
+
+                #---------------------------------------------------------------------------------------------------
+                # submitting unit which determines exchanges between replicas
+                if GL == 1:
+                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                    global_ex_cu = unit_manager.submit_units(ex_calculator)
+                #---------------------------------------------------------------------------------------------------
                 
                 t2 = datetime.datetime.utcnow()
             

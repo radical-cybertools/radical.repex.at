@@ -644,7 +644,8 @@ class AmberKernelPatternB3dTUU(object):
         stage_out = []
         stage_in = []
 
-        cycle = replicas[0].cycle
+        # mod
+        cycle = replicas[0].cycle-1
         
         # global_ex_calculator.py file
         stage_in.append(sd_shared_list[6])

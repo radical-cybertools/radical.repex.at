@@ -139,8 +139,41 @@ class PilotKernel(object):
             pilot_description.cores = self.cores
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
+            """
+            pilot_description._config = {'number_of_workers' : {'StageinWorker'   :  8,
+                                                                'ExecWorker'      :  8,
+                                                                'StageoutWorker'  :  8,
+                                                                'UpdateWorker'    :  8},
+                                         'blowup_factor'     : {'Agent'           :  1,
+                                                                'stagein_queue'   :  1,
+                                                                'StageinWorker'   :  1,
+                                                                'schedule_queue'  :  1,
+                                                                'Scheduler'       :  1,
+                                                                'execution_queue' :  1,
+                                                                'ExecWorker'      :  1,
+                                                                'watch_queue'     :  1,
+                                                                'Watcher'         :  1,
+                                                                'stageout_queue'  :  1,
+                                                                'StageoutWorker'  :  1,
+                                                                'update_queue'    :  1,
+                                                                'UpdateWorker'    :  1},
+                                         'drop_clones'       : {'Agent'           :  1,
+                                                                'stagein_queue'   :  1,
+                                                                'StageinWorker'   :  1,
+                                                                'schedule_queue'  :  1,
+                                                                'Scheduler'       :  1,
+                                                                'execution_queue' :  1,
+                                                                'ExecWorker'      :  1,
+                                                                'watch_queue'     :  1,
+                                                                'Watcher'         :  1,
+                                                                'stageout_queue'  :  1,
+                                                                'StageoutWorker'  :  1,
+                                                                'update_queue'    :  1,
+                                                                'UpdateWorker'    :  1}}
+            """
 
             pilot_object = pilot_manager.submit_pilots(pilot_description)
+
 
             # we wait for the pilot to start running on resource
             self.logger.info("Pilot ID: {0}".format(pilot_object.uid) )
