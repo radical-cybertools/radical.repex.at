@@ -20,7 +20,6 @@ import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 from replicas.replica import Replica2d
-from md_kernels.md_kernel_3d_tuu import *
 import amber_kernels_3d_tuu.matrix_calculator_temp_ex
 import amber_kernels_3d_tuu.matrix_calculator_us_ex
 import amber_kernels_3d_tuu.input_file_builder
