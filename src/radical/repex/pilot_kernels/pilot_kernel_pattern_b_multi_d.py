@@ -151,7 +151,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 #---------------------------------------------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 0:
-                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
                 #---------------------------------------------------------------------------------------------------
 
@@ -164,7 +164,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 #---------------------------------------------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 1:
-                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
                 #---------------------------------------------------------------------------------------------------
                 
@@ -176,7 +176,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 #---------------------------------------------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 0:
-                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
                 #---------------------------------------------------------------------------------------------------
                 
@@ -193,7 +193,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 #---------------------------------------------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 1:
-                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, DIM, replicas, self.sd_shared_list)
+                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
                 #---------------------------------------------------------------------------------------------------
                 

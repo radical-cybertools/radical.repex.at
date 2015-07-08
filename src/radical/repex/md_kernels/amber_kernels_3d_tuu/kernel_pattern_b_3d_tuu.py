@@ -639,13 +639,15 @@ class AmberKernelPatternB3dTUU(object):
 
     #-------------------------------------------------------------------------------------------
     #
-    def prepare_global_ex_calc(self, current_cycle, dimension, replicas, sd_shared_list):
+    def prepare_global_ex_calc(self, GL, current_cycle, dimension, replicas, sd_shared_list):
 
         stage_out = []
         stage_in = []
 
-        # mod
-        cycle = replicas[0].cycle-1
+        if GL == 1:
+            cycle = replicas[0].cycle-1
+        else:
+            cycle = replicas[0].cycle
         
         # global_ex_calculator.py file
         stage_in.append(sd_shared_list[6])
