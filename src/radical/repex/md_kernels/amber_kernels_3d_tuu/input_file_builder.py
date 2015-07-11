@@ -40,6 +40,13 @@ if __name__ == '__main__':
     tbuffer = tbuffer.replace("@disang@",new_restraints)
     tbuffer = tbuffer.replace("@temp@",new_temperature)
 
+    if replica_cycle == 1:
+        tbuffer = tbuffer.replace("@irest@","0")
+        tbuffer = tbuffer.replace("@ntx@","1")
+    else:
+        tbuffer = tbuffer.replace("@irest@","1")
+        tbuffer = tbuffer.replace("@ntx@","5")
+
     try:
         w_file = open(new_input_file, "w")
         w_file.write(tbuffer)

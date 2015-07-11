@@ -1,6 +1,6 @@
  alanine dipeptide
  &cntrl
-  irest = 0, ntx = 1, 
+  irest = @irest@, ntx = @ntx@, 
   nstlim = @nstlim@, dt = 0.001, temp0 = @temp@,
   ntpr = 1000, ntwx = 1000,
   ntc = 2, ntf = 2, tol = 1e-08, 
