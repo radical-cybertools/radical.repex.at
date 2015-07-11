@@ -226,7 +226,11 @@ if __name__ == '__main__':
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     replica_path = "/replica_%d/" % (replica_id)
 
+    # init swap column
+    swap_column = [0.0]*replicas
+
     success = 0
+    attempts = 0
     while (success == 0):
         try:
             replica_energy, path_to_replica_folder = get_historical_data(replica_path=None, history_name=history_name)
@@ -235,6 +239,32 @@ if __name__ == '__main__':
         except:
             print "Waiting for self (history file)"
             time.sleep(1)
+            attempts += 1
+            # most likely amber run failed
+            # so we write zeros to matrix column file
+            if attempts >= 12:
+                #---------------------------------------------------------------------------------------------------
+                # writing to file
+                try:
+                    outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
+                    with open(outfile, 'w+') as f:
+                        row_str = ""
+                        for item in swap_column:
+                            if len(row_str) != 0:
+                                row_str = row_str + " " + str(item)
+                            else:
+                                row_str = str(item)
+                            f.write(row_str)
+                            f.write('\n')
+                            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
+                            f.write(row_str)
+
+                        f.close()
+
+                except IOError:
+                    print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
+                #---------------------------------------------------------------------------------------------------
+                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
             pass
 
     # getting history data for all replicas
@@ -242,8 +272,6 @@ if __name__ == '__main__':
     # but this is easily changeble for arbitrary cycle numbers
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
-
-    
 
     #if replica_cycle != 0:
     for j in current_group_rst.keys():
@@ -274,9 +302,6 @@ if __name__ == '__main__':
                 print "Waiting for replica: %s" % j
                 time.sleep(1)
                 pass
-
-    # init swap column
-    swap_column = [0.0]*replicas
 
     #for j in range(replicas):
     for j in current_group_rst.keys():      

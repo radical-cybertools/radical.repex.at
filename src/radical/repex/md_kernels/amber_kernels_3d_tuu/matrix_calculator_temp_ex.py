@@ -107,6 +107,9 @@ if __name__ == '__main__':
     # getting history data for self
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
 
+    # init swap column
+    swap_column = [0.0]*replicas
+
     #----------------------------------------------------------------------
     # copy history_name to staging_area/replica_x 
     pwd = os.getcwd()
@@ -128,10 +131,11 @@ if __name__ == '__main__':
         print "Success copying history_name to staging_area!"
     except:
         print "Fail copying history_name to staging_area..."
-        raise
+        pass
 
     #----------------------------------------------------------------------
     success = 0
+    attempts = 0
     while (success == 0):
         try:
             replica_temp, replica_energy, path_to_replica_folder = get_historical_data(None, history_name)
@@ -140,8 +144,31 @@ if __name__ == '__main__':
         except:
             print "Waiting for self (history file)"
             time.sleep(1)
-            pass
+            attempts += 1
+            if attempts >= 12:
+                #---------------------------------------------------------------------------------------------------
+                # writing to file
+                try:
+                    outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
+                    with open(outfile, 'w+') as f:
+                        row_str = ""
+                        for item in swap_column:
+                            if len(row_str) != 0:
+                                row_str = row_str + " " + str(item)
+                            else:
+                                row_str = str(item)
+                            f.write(row_str)
+                            f.write('\n')
+                            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
+                            f.write(row_str)
 
+                        f.close()
+
+                except IOError:
+                    print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
+                #---------------------------------------------------------------------------------------------------
+                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+            pass
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
@@ -158,6 +185,7 @@ if __name__ == '__main__':
         # for self already processed
         if j != int(replica_id):
             success = 0
+            attempts = 0
             history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
             replica_path = "/replica_%s/" % (str(j))
             while (success == 0):
@@ -171,6 +199,14 @@ if __name__ == '__main__':
                 except:
                     print "Waiting for replica: %s" % j
                     time.sleep(1)
+                    attempts += 1
+                    # some of the replicas in current group failed
+                    # set temperature and energy for this replicas as -1.0
+                    if attempts >= 50:
+                        temperatures[j] = -1.0
+                        energies[j] = -1.0
+                        success = 1
+                        print "Replica %d failed, initialized temperatures[j] and energies[j] to -1.0" % j
                     pass
 
     print "got history data for other replicas in current group!"
