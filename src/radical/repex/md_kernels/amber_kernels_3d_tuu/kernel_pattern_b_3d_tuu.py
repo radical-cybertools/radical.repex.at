@@ -655,7 +655,8 @@ class AmberKernelPatternB3dTUU(object):
         stage_out.append(outfile)
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.pre_exec = self.pre_exec + ['module load python/2.7.9']
+        #cu.pre_exec = self.pre_exec + ['module load python/2.7.9']
+        cu.pre_exec = self.pre_exec
         cu.executable = "python"
         cu.input_staging  = stage_in
         cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dimension)]
