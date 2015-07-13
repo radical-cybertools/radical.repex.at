@@ -4,7 +4,7 @@
         "username" : "antons",
         "runtime" : "30",
         "cleanup" : "False",
-        "cores" : "2"
+        "cores" : "8"
     },
     "input.MD": {
         "number_of_cycles": "3",
@@ -16,14 +16,14 @@
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "500",
+        "steps_per_cycle": "100",
         "exchange_off" : "False"
         },
     "input.DIM": {
         "temperature_2": {
             "number_of_replicas": "2",
             "min_temperature": "300",
-            "max_temperature": "600",
+            "max_temperature": "302",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },

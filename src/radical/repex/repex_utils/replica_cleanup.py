@@ -32,11 +32,11 @@ def move_output_files(work_dir_local, inp_basename, replicas):
         except: 
             raise
 
-    swap_name = "swap_matrix"
+    pairs_name = "pairs_for_exchange_"
     files = os.listdir( work_dir_local )
 
     for item in files:
-        if (item.startswith(swap_name)):
+        if (item.startswith(pairs_name)):
             source =  work_dir_local + "/" + str(item)
             destination = dir_path + "/"
             shutil.move( source, destination)
@@ -77,3 +77,6 @@ def clean_up(work_dir_local, replicas):
     for r in range(len(replicas)):
         dir_path = "%s/replica_%d" % ( work_dir_local, replicas[r].id )
         shutil.rmtree(dir_path)
+
+    dir_path = "%s/shared_files" % ( work_dir_local )
+    shutil.rmtree(dir_path)
