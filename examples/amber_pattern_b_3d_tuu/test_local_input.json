@@ -4,7 +4,7 @@
         "username" : "antons",
         "runtime" : "30",
         "cleanup" : "False",
-        "cores" : "2"
+        "cores" : "8"
     },
     "input.MD": {
         "number_of_cycles": "3",

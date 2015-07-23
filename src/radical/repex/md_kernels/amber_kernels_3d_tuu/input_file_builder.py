@@ -15,16 +15,18 @@ if __name__ == '__main__':
     """
     """
 
-    argument_list   = str(sys.argv)
-    cycle_steps     = str(sys.argv[1])
-    new_restraints  = str(sys.argv[2])
-    new_temperature = str(sys.argv[3])
-    amber_input     = str(sys.argv[4])
-    new_input_file  = str(sys.argv[5])
-    us_template     = str(sys.argv[6])
-    replica_cycle   = int(sys.argv[7])
-    rstr_val_1      = float(sys.argv[8])
-    rstr_val_2      = float(sys.argv[9])
+    json_data = sys.argv[1]
+    data=json.loads(json_data)
+
+    cycle_steps     = data["cycle_steps"]
+    new_restraints  = data["new_restraints"]
+    new_temperature = data["new_temperature"]
+    amber_input     = data["amber_input"]
+    new_input_file  = data["new_input_file"]
+    us_template     = data["us_template"]
+    replica_cycle   = int(data["cycle"])
+    rstr_val_1      = float(data["rstr_val_1"])
+    rstr_val_2      = float(data["rstr_val_2"])
 
     #-------------------------------------------------------------------------
     # this is for every cycle

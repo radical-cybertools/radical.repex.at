@@ -121,7 +121,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
         GL = 0
         # BULK = 0: do sequential submission
         # BULK = 1: do BULK submission
-        BULK = 0
+        BULK = 1
         DIM = 0
         dimensions = md_kernel.dims
         for c in range(0,cycles*dimensions):

@@ -143,7 +143,7 @@ class PilotKernel(object):
             pilot_description._config = {'number_of_workers' : {'StageinWorker'   :  8,
                                                                 'ExecWorker'      :  8,
                                                                 'StageoutWorker'  :  8,
-                                                                'UpdateWorker'    :  8},
+                                                                'UpdateWorker'    :  1},
                                          'blowup_factor'     : {'Agent'           :  1,
                                                                 'stagein_queue'   :  1,
                                                                 'StageinWorker'   :  1,
@@ -170,11 +170,9 @@ class PilotKernel(object):
                                                                 'StageoutWorker'  :  1,
                                                                 'update_queue'    :  1,
                                                                 'UpdateWorker'    :  1}}
-            """
-
+            
             pilot_object = pilot_manager.submit_pilots(pilot_description)
-
-
+            """
             # we wait for the pilot to start running on resource
             self.logger.info("Pilot ID: {0}".format(pilot_object.uid) )
             pilot_manager.wait_pilots(pilot_object.uid,'Active') 
