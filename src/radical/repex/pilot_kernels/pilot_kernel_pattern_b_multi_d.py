@@ -182,11 +182,13 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 
                 c_replicas = []
                 t1 = datetime.datetime.utcnow()
-                #t_1 = datetime.datetime.utcnow()
+                ttt_1 = datetime.datetime.utcnow()
                 for replica in replicas:
                     # DIM, replicas, replica, self.sd_shared_list
                     compute_replica = md_kernel.prepare_replica_for_md(DIM, replicas, replica, self.sd_shared_list)
                     c_replicas.append(compute_replica)
+                ttt_2 = datetime.datetime.utcnow()
+                print "time to prepare replicas: %f" % (ttt_2-ttt_1).total_seconds()
                 
                 submitted_replicas = unit_manager.submit_units(c_replicas)
 

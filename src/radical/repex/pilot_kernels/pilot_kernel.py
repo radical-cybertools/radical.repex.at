@@ -109,7 +109,7 @@ class PilotKernel(object):
         pilot_manager = None
         pilot_object = None
    
-        session = radical.pilot.Session(database_url=self.dburl, database_name='repex-tests')
+        session = radical.pilot.Session(database_url=self.dburl, database_name='cdi-tests')
         self.logger.info("Session ID: {0}".format(session.uid) )
 
         try:
@@ -170,9 +170,10 @@ class PilotKernel(object):
                                                                 'StageoutWorker'  :  1,
                                                                 'update_queue'    :  1,
                                                                 'UpdateWorker'    :  1}}
+            """
             
             pilot_object = pilot_manager.submit_pilots(pilot_description)
-            """
+            
             # we wait for the pilot to start running on resource
             self.logger.info("Pilot ID: {0}".format(pilot_object.uid) )
             pilot_manager.wait_pilots(pilot_object.uid,'Active') 

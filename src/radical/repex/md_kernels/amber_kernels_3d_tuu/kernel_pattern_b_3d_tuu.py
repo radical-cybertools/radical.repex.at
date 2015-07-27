@@ -397,6 +397,10 @@ class AmberKernelPatternB3dTUU(object):
         dump_data = json.dumps(data)
         json_post_data_us = dump_data.replace("\\", "")
 
+        # sed magic
+        s1 = "sed -i \"s/{/'\{/\" run.sh;"
+        s2 = "sed -i \"s/@/'/\" run.sh;"
+        #s3 = "sed -i \"s/}',/},/\" run.sh;" 
         #------------------------------------------------------------------
 
         cu = radical.pilot.ComputeUnitDescription()
@@ -428,17 +432,39 @@ class AmberKernelPatternB3dTUU(object):
                 stage_in.append(sd_shared_list[3])
 
                 #------------------------------------------------------------------------
+                # #!/bin/bash -l
+                # cat exe.sh; echo "line 1" >> exe.sh; echo "line 2" >> exe.sh;
 
-                cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
-                cu.arguments = ["-O", "-i ", new_input_file, 
-                                  "-o ", output_file, 
-                                  "-p ", self.amber_parameters, 
-                                  "-c ", self.amber_coordinates, 
-                                  "-r ", new_coor, 
-                                  "-x ", new_traj, 
-                                  "-inf ", new_info]
-                cu.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'"]
-                cu.executable = self.amber_path
+                pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
+                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'" + "@"
+
+                amber_str = self.amber_path
+                argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                               " -p " +  self.amber_parameters + " -c " + self.amber_coordinates + \
+                               " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
+
+                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
+                                               "echo " + pre_exec_str + " >> run.sh; " + \
+                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
+                                               "echo " + post_exec_str + " >> run.sh; "]
+
+                #cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
+                #cu.arguments = ["-O", "-i ", new_input_file, 
+                #                  "-o ", output_file, 
+                #                  "-p ", self.amber_parameters, 
+                #                  "-c ", self.amber_coordinates, 
+                #                  "-r ", new_coor, 
+                #                  "-x ", new_traj, 
+                #                  "-inf ", new_info]
+                #cu.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'"]
+                #cu.executable = self.amber_path
+
+                #s1 = sed -i "s/{/'\{/" run.sh
+                #s2 = sed -i "s/}/}'/" run.sh
+
+                #s1 = "sed -i \"s/{/'\{/\" run.sh;"
+                #s2 = "sed -i \"s/}/}'/\" run.sh;"                
+                cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
                 cu.cores = self.md_replica_cores
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
@@ -459,16 +485,34 @@ class AmberKernelPatternB3dTUU(object):
 
                 #----------------------------------------------------------
                 # 
-                cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + "\'" + json_pre_data + "\'" ]
-                cu.arguments = ["-O", "-i ", new_input_file, 
-                                      "-o ", output_file, 
-                                      "-p ", self.amber_parameters, 
-                                      "-c ", self.amber_coordinates, 
-                                      "-r ", new_coor, 
-                                      "-x ", new_traj, 
-                                      "-inf ", new_info]
-                cu.post_exec = ["python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'"] 
-                cu.executable = self.amber_path
+                pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
+                post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'" + "@"
+
+                amber_str = self.amber_path
+                argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                               " -p " +  self.amber_parameters + " -c " + self.amber_coordinates + \
+                               " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
+
+                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
+                                               "echo " + pre_exec_str + " >> run.sh; " + \
+                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
+                                               "echo " + post_exec_str + " >> run.sh; "]
+
+
+                #cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + "\'" + json_pre_data + "\'" ]
+                #cu.arguments = ["-O", "-i ", new_input_file, 
+                #                      "-o ", output_file, 
+                #                      "-p ", self.amber_parameters, 
+                #                      "-c ", self.amber_coordinates, 
+                #                      "-r ", new_coor, 
+                #                      "-x ", new_traj, 
+                #                      "-inf ", new_info]
+                #cu.post_exec = ["python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'"] 
+                #cu.executable = self.amber_path
+
+                #s1 = "sed -i \"s/{/'\{/\" run.sh;"
+                #s2 = "sed -i \"s/}/}'/\" run.sh;"                
+                cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
                 cu.cores = self.md_replica_cores
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
@@ -504,18 +548,36 @@ class AmberKernelPatternB3dTUU(object):
                 # matrix_calculator_temp_ex.py file
                 stage_in.append(sd_shared_list[3])
 
-                cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
-                cu.arguments = ["-O", "-i ", new_input_file, 
-                                  "-o ", output_file, 
-                                  "-p ", self.amber_parameters, 
-                                  "-c ", old_coor, 
-                                  "-r ", new_coor, 
-                                  "-x ", new_traj, 
-                                  "-inf ", new_info]
-                cu.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'"]
+                pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
+                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'" + "@"
+
+                amber_str = self.amber_path
+                argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                               " -p " +  self.amber_parameters + " -c " + old_coor + \
+                               " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
+
+                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
+                                               "echo " + pre_exec_str + " >> run.sh; " + \
+                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
+                                               "echo " + post_exec_str + " >> run.sh; "]
+
+                #cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
+                #cu.arguments = ["-O", "-i ", new_input_file, 
+                #                  "-o ", output_file, 
+                #                  "-p ", self.amber_parameters, 
+                #                  "-c ", old_coor, 
+                #                  "-r ", new_coor, 
+                #                  "-x ", new_traj, 
+                #                  "-inf ", new_info]
+                #cu.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'"]
+                #cu.executable = self.amber_path
+
+                #s1 = "sed -i \"s/{/'\{/\" run.sh;"
+                #s2 = "sed -i \"s/}/}'/\" run.sh;"                
+                cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
+
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
-                cu.executable = self.amber_path
                 cu.cores = self.md_replica_cores
                 cu.mpi = self.md_replica_mpi
             else:
@@ -532,18 +594,35 @@ class AmberKernelPatternB3dTUU(object):
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[4])
 
-                cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
-                cu.arguments = ["-O", "-i ", new_input_file, 
-                                      "-o ", output_file, 
-                                      "-p ", self.amber_parameters, 
-                                      "-c ", old_coor, 
-                                      "-r ", new_coor, 
-                                      "-x ", new_traj, 
-                                      "-inf ", new_info]
-                cu.post_exec = ["python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'"]
+                pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
+                post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'" + "@"
+
+                amber_str = self.amber_path
+                argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                               " -p " +  self.amber_parameters + " -c " + old_coor + \
+                               " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
+
+                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
+                                               "echo " + pre_exec_str + " >> run.sh; " + \
+                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
+                                               "echo " + post_exec_str + " >> run.sh; "]
+
+                #cu.pre_exec = self.pre_exec + ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
+                #cu.arguments = ["-O", "-i ", new_input_file, 
+                #                      "-o ", output_file, 
+                #                      "-p ", self.amber_parameters, 
+                #                      "-c ", old_coor, 
+                #                      "-r ", new_coor, 
+                #                      "-x ", new_traj, 
+                #                      "-inf ", new_info]
+                #cu.post_exec = ["python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'"]
+                #cu.executable = self.amber_path
+                #s1 = "sed -i \"s/{/'\{/\" run.sh;"
+                #s2 = "sed -i \"s/}/}'/\" run.sh;"                
+                cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
+
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
-                cu.executable = self.amber_path
                 cu.cores = self.md_replica_cores
                 cu.mpi = self.md_replica_mpi
 
