@@ -45,28 +45,28 @@ if __name__ == '__main__':
     # initializing replicas
     replicas = md_kernel.initialize_replicas()
 
-    #try:
+    try:
 
-    pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
+        pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
 
-    # now we can run RE simulation
-    pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+        # now we can run RE simulation
+        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
 
-    base = md_kernel.inp_basename + ".mdin"
+        base = md_kernel.inp_basename + ".mdin"
 
-    # finally we are moving all files to individual replica directories
-    move_output_files(work_dir_local, base, replicas )
+        # finally we are moving all files to individual replica directories
+        move_output_files(work_dir_local, base, replicas )
 
-    logger.info("Simulation successfully finished!")
-    logger.info("Please check output files in replica_x directories.")
+        logger.info("Simulation successfully finished!")
+        logger.info("Please check output files in replica_x directories.")
 
-    #except:
-    #    logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
-    #    raise
+    except:
+        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        raise
 
-    #finally :
-    # always clean up the session, no matter if we caught an exception or
-    # not.
-    #logger.info("Closing session.")
-    #session.close (cleanup=False)
+    finally :
+        # always clean up the session, no matter if we caught an exception or
+        # not.
+       logger.info("Closing session.")
+       session.close (cleanup=False)
 
