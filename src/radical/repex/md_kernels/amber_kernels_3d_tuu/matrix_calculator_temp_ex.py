@@ -124,7 +124,7 @@ if __name__ == '__main__':
         else:
             break
 
-    dst = path + "staging_area/" + replica_path + history_name 
+    dst = path + "staging_area" + replica_path + history_name 
 
     try:
         shutil.copyfile(src, dst)

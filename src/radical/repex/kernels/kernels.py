@@ -38,25 +38,6 @@ KERNELS = {
                 "executable" : "/work/y07/y07/amber/12/bin/sander.MPI"
             }
         }
-    },"trestles.sdsc.xsede.org":
-    {
-        "params":
-        {
-            "cores": 32,
-        },
-        "kernels":
-        {
-            "namd": {
-                "environment" : {},
-                "pre_execution" : ["module load namd/2.9"],
-                "executable" : "/opt/namd/bin/namd2"
-            },
-            "amber": {
-                "environment" : {},
-                "pre_execution" : ["module load amber/14"],
-                "executable" : "/opt/amber/bin/sander.MPI"
-            }
-        }
     },"gordon.sdsc.xsede.org":
     {
         "params":
@@ -88,6 +69,7 @@ KERNELS = {
             "amber": {
                 "pre_execution" : [],
                 "executable" : "/home/antons/amber/amber14/bin/sander",
+                "executable_mpi" : "/home/antons/amber/amber14/bin/sander"
             }
         }
     }

@@ -2,14 +2,14 @@
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
-        "project" : "TG-MCB090174",
+        "project" : "TG-CCR140028",
         "queue" : "development",
-        "runtime" : "20",
+        "runtime" : "25",
         "cleanup" : "False",
         "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "3",
+        "number_of_cycles": "2",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",
         "amber_input": "ala10.mdin",
@@ -18,7 +18,7 @@
         "us_template": "ala10_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "10000"
+        "steps_per_cycle": "500"
     },
     "input.DIM": {
         "temperature_1": {

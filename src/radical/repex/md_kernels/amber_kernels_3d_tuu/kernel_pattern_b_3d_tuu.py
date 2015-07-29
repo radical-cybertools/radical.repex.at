@@ -19,7 +19,6 @@ from os import path
 import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
-from replicas.replica import Replica2d
 import amber_kernels_3d_tuu.matrix_calculator_temp_ex
 import amber_kernels_3d_tuu.matrix_calculator_us_ex
 import amber_kernels_3d_tuu.input_file_builder
@@ -336,6 +335,14 @@ class AmberKernelPatternB3dTUU(object):
         }
         stage_out.append(matrix_col_out)
 
+        # for all cases (OPTIONAL)    
+        info_out = {
+                'source': new_info,
+                'target': 'staging:///%s' % (replica_path + new_info),
+                'action': radical.pilot.COPY
+            }
+        stage_out.append(info_out)
+
         current_group = self.get_current_group(dimension, replicas, replica)
         #--------------------------------------------------------------------------------
         # for all
@@ -376,10 +383,11 @@ class AmberKernelPatternB3dTUU(object):
             if str(repl.id) in current_group:
                 current_group_rst[str(repl.id)] = str(repl.new_restraints)
 
-        rst_group = []
-        for k in current_group_rst.keys():
-            rstr_id = self.get_rstr_id(current_group_rst[k])
-            rst_group.append(rstr_id)
+        # not used anywhere!
+        #rst_group = []
+        #for k in current_group_rst.keys():
+        #    rstr_id = self.get_rstr_id(current_group_rst[k])
+        #    rst_group.append(rstr_id)
 
         base_restraint = self.us_template + "."
 
@@ -455,13 +463,6 @@ class AmberKernelPatternB3dTUU(object):
             else:
                 # us exchange
                 #-------------------------------------------------------------------------
-
-                info_out = {
-                    'source': new_info,
-                    'target': 'staging:///%s' % (replica_path + new_info),
-                    'action': radical.pilot.COPY
-                }
-                stage_out.append(info_out)
 
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[4])

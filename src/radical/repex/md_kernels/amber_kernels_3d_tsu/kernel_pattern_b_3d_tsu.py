@@ -20,11 +20,12 @@ import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 from replicas.replica import Replica3d
-#from md_kernels.md_kernel_3d_tsu import *
 import amber_kernels_3d_tsu.matrix_calculator_temp_ex
 import amber_kernels_3d_tsu.matrix_calculator_us_ex
+import amber_kernels_3d_tsu.input_file_builder
 import amber_kernels_3d_tsu.salt_conc_pre_exec
 import amber_kernels_3d_tsu.salt_conc_post_exec
+import amber_kernels_3d_tsu.global_ex_calculator
 
 
 #-------------------------------------------------------------------------------------------------------
@@ -219,8 +220,8 @@ class AmberKernelPatternB3dTSU(object):
         calc_temp = os.path.dirname(amber_kernels_3d_tsu.matrix_calculator_temp_ex.__file__)
         calc_temp_path = calc_temp + "/matrix_calculator_temp_ex.py"
 
-        calc_us = os.path.dirname(amber_kernels_3d_tsu.matrix_calculator_us_ex.__file__)
-        calc_us_path = calc_us + "/matrix_calculator_us_ex.py"
+        calc_us_ex = os.path.dirname(amber_kernels_3d_tsu.matrix_calculator_us_ex.__file__)
+        calc_us_ex_path = calc_us_ex + "/matrix_calculator_us_ex.py"
    
         salt_pre_exec  = os.path.dirname(amber_kernels_3d_tsu.salt_conc_pre_exec.__file__)
         salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
@@ -228,9 +229,13 @@ class AmberKernelPatternB3dTSU(object):
         salt_post_exec  = os.path.dirname(amber_kernels_3d_tsu.salt_conc_post_exec.__file__)
         salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
 
-        rstr_list = []
-        for rstr in self.restraints_files:
-            rstr_list.append(self.work_dir_local + "/" + rstr)
+        build_inp = os.path.dirname(amber_kernels_3d_tsu.input_file_builder.__file__)
+        build_inp_path = build_inp + "/input_file_builder.py"
+
+        global_calc = os.path.dirname(amber_kernels_3d_tsu.global_ex_calculator.__file__)
+        global_calc_path = global_calc + "/global_ex_calculator.py"
+
+        rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
         #------------------------------------------------
         self.shared_files.append(self.amber_parameters)
@@ -240,9 +245,10 @@ class AmberKernelPatternB3dTSU(object):
         self.shared_files.append("matrix_calculator_us_ex.py")
         self.shared_files.append("salt_conc_pre_exec.py")
         self.shared_files.append("salt_conc_post_exec.py")
+        self.shared_files.append("input_file_builder.py")
+        self.shared_files.append("global_ex_calculator.py")
+        self.shared_files.append(self.us_template)
 
-        for rstr in self.restraints_files:
-            self.shared_files.append(rstr)
         #------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
@@ -257,8 +263,8 @@ class AmberKernelPatternB3dTSU(object):
         calc_temp_url = 'file://%s' % (calc_temp_path)
         self.shared_urls.append(calc_temp_url)
 
-        calc_us_url = 'file://%s' % (calc_us_path)
-        self.shared_urls.append(calc_us_url)
+        calc_us_ex_url = 'file://%s' % (calc_us_ex_path)
+        self.shared_urls.append(calc_us_ex_url)
 
         salt_pre_exec_url = 'file://%s' % (salt_pre_exec_path)
         self.shared_urls.append(salt_pre_exec_url)
@@ -266,9 +272,14 @@ class AmberKernelPatternB3dTSU(object):
         salt_post_exec_url = 'file://%s' % (salt_post_exec_path)
         self.shared_urls.append(salt_post_exec_url)
 
-        for rstr_p in rstr_list:
-            rstr_url = 'file://%s' % (rstr_p)
-            self.shared_urls.append(rstr_url)
+        build_inp_url = 'file://%s' % (build_inp_path)
+        self.shared_urls.append(build_inp_url)
+
+        global_calc_url = 'file://%s' % (global_calc_path)
+        self.shared_urls.append(global_calc_url)
+
+        rstr_template_url = 'file://%s' % (rstr_template_path)
+        self.shared_urls.append(rstr_template_url)
  
     #---------------------------------------------------------------------------------------------
     #  
@@ -339,126 +350,330 @@ class AmberKernelPatternB3dTSU(object):
             self.logger.error("Warning: unable to access file: {0}".format(new_input_file) )
      
 #-----------------------------------------------------------------------------------------------------------------------------------
-    def prepare_replica_for_md(self, replica, sd_shared_list):
+    def prepare_replica_for_md(self, dimension, replicas, replica, sd_shared_list):
         """
         """
 
         # need to avoid this step!
-        self.build_input_file(replica)
+        #self.build_input_file(replica)
+
+        basename = self.inp_basename
+
+        new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
+        outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
+        old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+
+        # new files
+        replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
+        replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
+        replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
+
+        # old files
+        replica.old_coor = old_name + ".rst"
+        replica.old_traj = old_name + ".mdcrd"
+        replica.old_info = old_name + ".mdinfo"
+        
+        replica.cycle += 1
+
+        #---------------------------------------------------------------
       
         crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
-
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
-        # this is not transferred back
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
+
+        stage_out = []
+        stage_in = []
 
         new_coor = replica.new_coor
         new_traj = replica.new_traj
         new_info = replica.new_info
         old_coor = replica.old_coor
         old_traj = replica.old_traj
+        rid = replica.id
 
-        st_out = []
-        info_out = {
-            'source': new_info,
-            'target': 'staging:///%s' % new_info,
-            'action': radical.pilot.COPY
-        }
-        st_out.append(info_out)
+        replica_path = "replica_%d/" % (rid)
 
-        coor_out = {
+        # ??????????????????????????????????????
+        #info_out = {
+        #    'source': new_info,
+        #    'target': 'staging:///%s' % new_info,
+        #    'action': radical.pilot.COPY
+        #}
+        #stage_out.append(info_out)
+
+        #coor_out = {
+        #    'source': new_coor,
+        #    'target': 'staging:///%s' % new_coor,
+        #    'action': radical.pilot.COPY
+        #}
+        #stage_out.append(coor_out)
+
+        ##############################################
+
+        new_coor_out = {
             'source': new_coor,
-            'target': 'staging:///%s' % new_coor,
+            'target': 'staging:///%s' % (replica_path + new_coor),
             'action': radical.pilot.COPY
         }
-        st_out.append(coor_out)
+        stage_out.append(new_coor_out)
 
-        if replica.cycle == 1:
-            # files needed to be moved in replica dir
-            in_list = []
-            for i in range(3):
-                in_list.append(sd_shared_list[i])
+        out_string = "_%d.out" % (replica.cycle-1)
+        rstr_out = {
+            'source': (replica.new_restraints + '.out'),
+            'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
+            'action': radical.pilot.COPY
+        }
+        stage_out.append(rstr_out)
+        ###############################################
+        ###############################################
+        # from tuu : review!!!!!!!!!!!
 
-            rid = replica.id
-            in_list.append(sd_shared_list[rid+7])
+        #--------------------------------------------------------------------------------
+        # common code from prepare_for_exchange()
+        
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
 
-            replica_path = "replica_%d_%d/" % (replica.id, 0)
-            crds_out = {
-                'source': self.amber_coordinates,
-                'target': 'staging:///%s' % (replica_path + self.amber_coordinates),
+        # for all cases!
+        matrix_col_out = {
+            'source': matrix_col,
+            'target': 'staging:///%s' % (matrix_col),
+            'action': radical.pilot.COPY
+        }
+        stage_out.append(matrix_col_out)
+
+        # for all cases (OPTIONAL)    
+        info_out = {
+                'source': new_info,
+                'target': 'staging:///%s' % (replica_path + new_info),
                 'action': radical.pilot.COPY
             }
-            st_out.append(crds_out)
-                
-            cu = radical.pilot.ComputeUnitDescription()
-            cu.executable = self.amber_path
-            cu.pre_exec = self.pre_exec
-            cu.mpi = self.md_replica_mpi
-            cu.arguments = ["-O", "-i ", input_file, 
-                                  "-o ", output_file, 
-                                  "-p ", self.amber_parameters, 
-                                  "-c ", self.amber_coordinates, 
-                                  "-r ", new_coor, 
-                                  "-x ", new_traj, 
-                                  "-inf ", new_info]
+        stage_out.append(info_out)
 
-            cu.cores = self.md_replica_cores
-            cu.input_staging = [str(input_file), str(crds)] + in_list
-            cu.output_staging = st_out
+        current_group = self.get_current_group(dimension, replicas, replica)
+        #--------------------------------------------------------------------------------
+        # json for input_file_builder.py
+        data = {
+            "cycle_steps": str(self.cycle_steps),
+            "new_restraints" : str(replica.new_restraints),
+            "new_temperature" : str(replica.new_temperature),
+            "new_salt_concentration" : str(replica.new_salt_concentration),
+            "amber_input" : str(self.amber_input),
+            "new_input_file" : str(new_input_file),
+            "us_template": str(self.us_template),
+            "cycle" : str(replica.cycle),
+            "rstr_val_1" : str(replica.rstr_val_1),
+            "rid" : str(rid)
+                }
+        dump_data = json.dumps(data)
+        json_pre_data = dump_data.replace("\\", "")
+
+        #--------------------------------------------------------------------------------
+        # json for matrix_calculator_temp_ex.py
+        data = {
+            "replica_id": str(replica.id),
+            "replica_cycle" : str(replica.cycle-1),
+            "base_name" : str(basename),
+            "current_group" : current_group,
+            "replicas" : str(len(replicas)),
+            "amber_parameters": str(self.amber_parameters),
+            "new_restraints" : str(replica.new_restraints),
+            "init_temp" : str(replica.new_temperature),
+            "init_salt" : str(replica.new_salt_concentration)
+            }
+
+        dump_data = json.dumps(data)
+        json_post_data_temp = dump_data.replace("\\", "")
+
+        #-------------------------------------------------------------------
+        # json for matrix_calculator_us_ex.py
+
+        current_group_rst = {}
+        for repl in replicas:
+            if str(repl.id) in current_group:
+                current_group_rst[str(repl.id)] = str(repl.new_restraints)
+
+        # do we need this??????
+        #rst_group = []
+        #for k in current_group_rst.keys():
+        #    rstr_id = self.get_rstr_id(current_group_rst[k])
+        #    rst_group.append(rstr_id)
+
+        base_restraint = self.us_template + "."
+
+        data = {
+            "replica_id": str(rid),
+            "replica_cycle" : str(replica.cycle-1),
+            "replicas" : str(self.replicas),
+            "base_name" : str(basename),
+            "init_temp" : str(replica.new_temperature),
+            "amber_input" : str(self.amber_input),
+            "amber_parameters": str(self.amber_parameters),
+            "new_restraints" : str(replica.new_restraints),
+            "current_group_rst" : current_group_rst
+        }
+        dump_data = json.dumps(data)
+        json_post_data_us = dump_data.replace("\\", "")
+
+        #-------------------------------------------------------------------
+        # json for matrix_calculator_salt_ex.py
+
+        current_group_tsu = {}
+        for repl in replicas:
+            if str(repl.id) in current_group:
+                current_group_tsu[str(repl.id)] = [str(repl.new_temperature), str(repl.new_salt_concentration), str(repl.new_restraints)]
+
+        data = {
+            "replica_id": str(replica.id),
+            "replica_cycle" : str(replica.cycle-1),
+            "replicas" : str(self.replicas),
+            "base_name" : str(basename),
+            "init_temp" : str(replica.new_temperature),
+            "amber_path" : str(self.amber_path),
+            "amber_input" : str(self.amber_input),
+            "amber_parameters": "../staging_area/"+str(self.amber_parameters),    #temp fix
+            "current_group_tsu" : current_group_tsu, 
+            "r_old_path": str(replica.old_path),
+        }
+
+        dump_data = json.dumps(data)
+        json_data_salt = dump_data.replace("\\", "")
+
+        #-------------------------------------------------------------------
+
+        # sed magic
+        s1 = "sed -i \"s/{/'\{/\" run.sh;"
+        s2 = "sed -i \"s/@/'/\" run.sh;"
+        #------------------------------------------------------------------
+
+        cu = radical.pilot.ComputeUnitDescription()
+        cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
+
+        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
+        post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'" + "@"
+        post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'" + "@"
+        pre_exec_str_salt = "python salt_conc_pre_exec.py " + "\'" + json_data_salt + "\'" + "@"
+        post_exec_str_salt = "python salt_conc_post_exec.py " + "\'" + json_data_salt + "\'" + "@"
+
+        ###############################################
+        ###############################################
+
+        if replica.cycle == 1:
+
+            amber_str = self.amber_path
+            argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                           " -p " +  self.amber_parameters + " -c " + self.amber_coordinates + \
+                           " -r " + new_coor + " -x " + new_traj + " -inf " + new_info  
+
+            restraints_out = replica.new_restraints
+            restraints_out_st = {
+                'source': (replica.new_restraints),
+                'target': 'staging:///%s' % (replica.new_restraints),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(restraints_out_st)
+
+            #-------------------------------------------------
+            # files needed to be staged in replica dir (params, coors, amber_input)
+            for i in range(3):
+                stage_in.append(sd_shared_list[i])
+
+            # input_file_builder.py
+            stage_in.append(sd_shared_list[7])
+
+            # restraint template file: ace_ala_nme_us.RST
+            stage_in.append(sd_shared_list[9])
+
+            #self.shared_files.append(self.amber_parameters)
+            #self.shared_files.append(self.amber_coordinates)
+            #self.shared_files.append(self.amber_input)
+            #self.shared_files.append("matrix_calculator_temp_ex.py")
+            #self.shared_files.append("matrix_calculator_us_ex.py")
+            #self.shared_files.append("salt_conc_pre_exec.py")
+            #self.shared_files.append("salt_conc_post_exec.py")
+            #self.shared_files.append("input_file_builder.py")
+            #self.shared_files.append("global_ex_calculator.py")
+            #self.shared_files.append(self.us_template)
+
+            #--------------------------------------------------
+            # temperature exchange
+            if dimension == 1:
+                # copying matrix_calculator_temp_ex.py from staging area to cu folder
+                stage_in.append(sd_shared_list[3])
+
+                #------------------------------------------------------------------------
+                #
+                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
+                                               "echo " + pre_exec_str + " >> run.sh; " + \
+                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
+                                               "echo " + post_exec_str_temp + " >> run.sh; "]
+              
+                cu.cores = self.md_replica_cores
+                cu.input_staging = stage_in
+                cu.output_staging = stage_out
+                cu.mpi = self.md_replica_mpi
+
+            #--------------------------------------------------
+            # salt_con exchange
+            elif dimension == 2:
+
+                # copying amber_input from staging area to cu folder
+                stage_in.append(sd_shared_list[2])
+                # copying salt_conc_pre_exec.py from staging area to cu folder
+                stage_in.append(sd_shared_list[5])
+                # copying salt_conc_post_exec.py from staging area to cu folder
+                stage_in.append(sd_shared_list[6])
+
+                amber_str_mpi = self.amber_path_mpi
+
+                if self.salt_ex_cores > self.replicas:
+                    argument_str_mpi = "-ng " + str(self.replicas) + " -groupfile " + "groupfile"
+                    cu.cores = self.salt_ex_cores
+                else:
+                    argument_str_mpi = "-ng " + str(self.salt_ex_cores) + " -groupfile " + "groupfile"
+                    cu.cores = self.salt_ex_cores
+
+                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
+                                               "echo " + pre_exec_str + " >> run.sh; " + \
+                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
+                                               "echo " + pre_exec_str_salt + " >> run.sh; " + \
+                                               "echo " + amber_str_mpi + argument_str_mpi + " >> run.sh; " + \
+                                               "echo " + post_exec_str_salt + " >> run.sh; "]
+
+                cu.mpi = self.salt_ex_mpi
+                cu.output_staging = stage_out 
+                cu.input_staging = stage_in
+
+            #--------------------------------------------------
+            # US exchange
+            elif dimension == 3:
+
+                # copying matrix_calculator_us_ex.py from staging area to cu folder
+                stage_in.append(sd_shared_list[4])
+
+                #----------------------------------------------------------
+                # 
+                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
+                                               "echo " + pre_exec_str + " >> run.sh; " + \
+                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
+                                               "echo " + post_exec_str_us + " >> run.sh; "]
+              
+                cu.cores = self.md_replica_cores
+                cu.input_staging = stage_in
+                cu.output_staging = stage_out
+                cu.mpi = self.md_replica_mpi
+            
+        #------------------------
+        # from cycle 2 onwards   
         else:
+            print "UP TO CYCLE 2!"
 
-            # files needed to be moved in replica dir
-            in_list = []
-
-            rid = replica.id
-            in_list.append(sd_shared_list[0])
-
-            rstr_id = self.get_rstr_id(replica.new_restraints)
-            in_list.append(sd_shared_list[rstr_id+7])
-
-            #old_coor = replicas[r].first_path + "/" + self.amber_coordinates
-            replica_path = "/replica_%d_%d/" % (replica.id, 0)
-            old_coor = "../staging_area/" + replica_path + self.amber_coordinates
-            cu = radical.pilot.ComputeUnitDescription()
-            cu.executable = self.amber_path
-            cu.pre_exec = self.pre_exec
-            cu.mpi = self.md_replica_mpi
-            cu.arguments = ["-O", "-i ", input_file, 
-                                  "-o ", output_file, 
-                                  "-p ", self.amber_parameters, 
-                                  "-c ", old_coor, 
-                                  "-r ", new_coor, 
-                                  "-x ", new_traj, 
-                                  "-inf ", new_info]
-
-            cu.cores = self.md_replica_cores
-            cu.input_staging = [str(input_file)] + in_list
-            cu.output_staging = st_out
+           
 
         return cu
 
     #------------------------------------------------------------------------------------------------------------------
     #
     def prepare_lists(self, replicas):
-
-        """
-        all_salt = ""
-        all_temp = ""
-        all_rstr = ""
-        for r in range(len(replicas)):
-            if r == 0:
-                all_salt = str(replicas[r].new_salt_concentration)
-                all_temp = str(replicas[r].new_temperature)
-                all_rstr = str(replicas[r].new_restraints)
-            else:
-                all_salt = all_salt + " " + str(replicas[r].new_salt_concentration)
-                all_temp = all_temp + " " + str(replicas[r].new_temperature)
-                all_rstr = all_rstr + " " + str(replicas[r].new_restraints)
-
-        self.all_temp_list = all_temp.split(" ")
-        self.all_salt_list = all_salt.split(" ")
-        self.all_rstr_list = all_rstr.split(" ")
-        """
 
         pass
 
@@ -628,7 +843,7 @@ class AmberKernelPatternB3dTSU(object):
             self.logger.debug("[exchange_params] after: r1: {0:0.2f} r2: {1:0.2f}".format(replica_1.new_restraints, replica_2.new_restraints) )
 
     #-----------------------------------------------------------------------------------------------------------------------------------
-    #
+    # change!
     def do_exchange(self, dimension, replicas, swap_matrix):
 
         self.logger.debug("[do_exchange] current dim: {0} replicas in current group: ".format(dimension) )
@@ -1002,3 +1217,31 @@ class AmberKernelPatternB3dTSU(object):
             except:
                 raise
 
+    #-------------------------------------------------------------------------------------------
+    #
+    def prepare_global_ex_calc(self, GL, current_cycle, dimension, replicas, sd_shared_list):
+
+        stage_out = []
+        stage_in = []
+
+        if GL == 1:
+            cycle = replicas[0].cycle-1
+        else:
+            cycle = replicas[0].cycle
+        
+        # global_ex_calculator.py file
+        stage_in.append(sd_shared_list[8])
+
+        outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=cycle)
+        stage_out.append(outfile)
+
+        cu = radical.pilot.ComputeUnitDescription()
+        cu.pre_exec = self.pre_exec
+        cu.executable = "python"
+        cu.input_staging  = stage_in
+        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dimension)]
+        cu.cores = 1
+        cu.mpi = False            
+        cu.output_staging = stage_out
+
+        return cu
