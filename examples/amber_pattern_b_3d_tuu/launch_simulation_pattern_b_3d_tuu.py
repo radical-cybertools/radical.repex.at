@@ -12,7 +12,8 @@ import json
 from os import path
 import radical.pilot
 import radical.utils.logger as rul
-from repex_utils.replica_cleanup import *
+from repex_utils.replica_cleanup import clean_up
+from repex_utils.replica_cleanup import move_output_files
 from repex_utils.parser import parse_command_line
 from amber_kernels_3d_tuu.kernel_pattern_b_3d_tuu import AmberKernelPatternB3dTUU
 from pilot_kernels.pilot_kernel_pattern_b_multi_d import PilotKernelPatternBmultiD
