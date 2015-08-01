@@ -2,7 +2,7 @@
     "input.PILOT": {
         "resource": "xsede.stampede",
         "username" : "antontre",
-        "project" : "TG-MCB090174",
+        "project" : "TG-CCR140028",
         "runtime" : "20",
         "cleanup" : "False",
         "queue"   : "development",

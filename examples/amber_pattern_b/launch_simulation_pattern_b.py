@@ -17,24 +17,15 @@ from repex_utils.parser import parse_command_line
 from radical.ensemblemd import SingleClusterEnvironment
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """Runs RE simulation using Pattern-B. 
-
-    RE Pattern-B:
-    - Synchronous RE - none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
-    - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
     """
  
-    print "*********************************************************************"
-    print "*              RepEx simulation: AMBER + RE Pattern-B               *"
-    print "*********************************************************************"
+    print "********************************************************************"
+    print "*              RepEx simulation: AMBER + RE Pattern-B              *"
+    print "********************************************************************"
 
     try:
         work_dir_local = os.getcwd()
@@ -52,9 +43,13 @@ if __name__ == '__main__':
             cores=int(inp_file['input.PILOT']['cores']),
             walltime=int(inp_file['input.PILOT']['runtime']),
             username=inp_file['input.PILOT']['username'], 
-            allocation=inp_file['input.PILOT']['project'],
-            queue=inp_file['input.PILOT']['queue']
+            project=inp_file['input.PILOT']['project'],
+            queue=inp_file['input.PILOT']['queue'],
+            database_name='repex-tests'
         )
+
+        # Allocate the resources.
+        cluster.allocate()
 
         # creating pattern object
         re_pattern = AmberTex(inp_file, work_dir_local)
@@ -62,10 +57,11 @@ if __name__ == '__main__':
         # initializing replica objects
         replicas = re_pattern.initialize_replicas()
 
-        re_pattern.add_replicas( replicas )
+        re_pattern.add_replicas(replicas)
 
         # run RE simulation  
-        cluster.run(re_pattern, force_plugin="replica_exchange.static_pattern_2")
+        cluster.run(re_pattern, 
+                    force_plugin="replica_exchange.static_pattern_2")
 
         # this is a quick hack
         base = re_pattern.inp_basename + ".mdin"

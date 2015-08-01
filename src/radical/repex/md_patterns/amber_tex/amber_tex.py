@@ -308,11 +308,14 @@ class AmberTex(MdPattern, ReplicaExchange):
                                    "--nwtraj="   + new_traj, 
                                    "--nwinfo="   + new_info]
 
-            k.upload_input_data = [str(input_file), str(crds)]
-            k.cores             = int(self.replica_cores)
-            #k.uses_mpi          = bool(self.replica_mpi)
+            k.upload_input_data    = [str(input_file), str(crds)]
+            k.copy_output_data     = [str(new_info), 
+                                      str(new_coor), 
+                                      str(self.amber_coordinates)]
+            k.cores                = int(self.replica_cores)
         else:
-            old_coor = replica.old_path + "/" + self.amber_coordinates
+            #old_coor = replica.old_path + "/" + self.amber_coordinates
+            old_coor = "../staging_area/" + self.amber_coordinates
 
             k = Kernel(name="md.amber")
             k.arguments         = ["--mdinfile="      + input_file,
@@ -322,10 +325,10 @@ class AmberTex(MdPattern, ReplicaExchange):
                                    "--nwcoords=" + new_coor,
                                    "--nwtraj="   + new_traj,
                                    "--nwinfo="   + new_info]
-
-            k.upload_input_data = [str(input_file)]
-            k.cores             = int(self.replica_cores)
-            #k.uses_mpi          = bool(self.replica_mpi)
+            #k.copy_input_data     = [str(old_coor)]
+            k.copy_output_data    = [str(new_info), str(new_coor)]
+            k.upload_input_data   = [str(input_file)]
+            k.cores               = int(self.replica_cores)
 
         return k
 
@@ -349,6 +352,9 @@ class AmberTex(MdPattern, ReplicaExchange):
         calculator_path = os.path.dirname(exchange_calculators.amber_matrix_calculator_pattern_b.__file__)
         calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py"
 
+        matrix_col = "matrix_column_{cycle}_{replica}.dat"\
+                     .format(cycle=replica.cycle-1, replica=replica.id )
+
         k = Kernel(name="md.re_exchange")
         k.arguments = ["--calculator=amber_matrix_calculator_pattern_b.py", 
                        "--replica_id=" + str(replica.id), 
@@ -356,6 +362,7 @@ class AmberTex(MdPattern, ReplicaExchange):
                        "--replicas=" + str(self.replicas), 
                        "--replica_basename=" + str(basename)]
         k.upload_input_data = calculator
+        k.download_output_data = matrix_col
 
         return k
 

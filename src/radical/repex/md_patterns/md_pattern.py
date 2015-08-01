@@ -187,6 +187,8 @@ class MdPattern(object):
         return swap_matrix
     """
 
+
+    # not needed!!!
     def get_swap_matrix(self, replicas, matrix_columns):
         """Creates a swap matrix from matrix_column_x.dat files. 
         matrix_column_x.dat - is populated on targer resource and then transferred back. This
@@ -266,7 +268,7 @@ class MdPattern(object):
             except:
                 raise
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # MOVE UP!!!!!!!!! (SALT CONCENTRATION)
     """
     def exchange_params(self, replica_1, replica_2):
@@ -274,3 +276,49 @@ class MdPattern(object):
         replica_2.new_salt_concentration = replica_1.new_salt_concentration
         replica_1.new_salt_concentration = salt
     """
+
+    #---------------------------------------------------------------------------
+    #
+    def build_swap_matrix(self, replicas):
+        """Creates a swap matrix from matrix_column_x.dat files. 
+        matrix_column_x.dat - is populated on targer resource and then transferred back. This
+        file is created for each replica and has data for one column of swap matrix. In addition to that,
+        this file holds path to pilot compute unit of the previous run, where reside NAMD output files for 
+        a given replica. 
+
+        Arguments:
+        replicas - list of Replica objects
+
+        Returns:
+        swap_matrix - 2D list of lists of dimension-less energies, where each column is a replica 
+        and each row is a state
+        """
+
+        base_name = "matrix_column"
+        size = len(replicas)
+
+        # init matrix
+        swap_matrix = [[ 0. for j in range(size)]
+             for i in range(size)]
+
+        for r in replicas:
+            column_file = base_name + "_" + str(r.cycle-1) + "_" + str(r.id) +  ".dat"       
+            try:
+                f = open(column_file)
+                lines = f.readlines()
+                f.close()
+                data = lines[0].split()
+                # populating one column at a time
+                for i in range(size):
+                    swap_matrix[i][r.id] = float(data[i])
+
+                # setting old_path and first_path for each replica
+                if ( r.cycle == 1 ):
+                    r.first_path = str(data[size])
+                    r.old_path = str(data[size])
+                else:
+                    r.old_path = str(data[size])
+            except:
+                raise
+
+        return swap_matrix
