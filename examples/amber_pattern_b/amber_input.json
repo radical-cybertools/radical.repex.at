@@ -9,7 +9,7 @@
         "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "3",
+        "number_of_cycles": "2",
         "number_of_replicas": "4",
         "input_folder": "amber_inp",
         "input_file_basename": "ala10_remd",

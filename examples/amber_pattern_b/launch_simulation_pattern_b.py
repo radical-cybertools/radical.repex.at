@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
         # run RE simulation  
         cluster.run(re_pattern, 
-                    force_plugin="replica_exchange.static_pattern_2")
+                    force_plugin="replica_exchange.static_pattern_3")
 
         # this is a quick hack
         base = re_pattern.inp_basename + ".mdin"

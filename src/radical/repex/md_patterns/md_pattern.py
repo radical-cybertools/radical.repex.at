@@ -16,10 +16,7 @@ import random
 from os import path
 #from radical.ensemblemd.patterns.replica_exchange import ReplicaExchange
 
-############
-#    OK    #
-############
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class MdPattern(object):
     """
@@ -63,53 +60,8 @@ class MdPattern(object):
             self.replica_cores = 1
 
         #super(MdPattern, self).__init__()
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-    # MOVE UP!!!!!!!!! (SALT CONCENTRATION)
-    """
-    def initialize_replicas(self):
-
-        replicas = []
-
-        for k in range(self.replicas):
-            new_salt = (self.max_salt-self.min_salt)/(self.replicas-1)*k + self.min_salt
-            r = ReplicaSalt(k, new_salt)
-            replicas.append(r)
-            
-        return replicas
-    """
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-    # MOVE UP!!!!!!!!! 2d
-    """
-    def initialize_replicas(self):
-
-        replicas = []
-        r_temperatures = []
-        N = self.replicas
-        factor = (self.max_temp/self.min_temp)**(1./(N-1))
-        for k in range(N):
-            new_temp = self.min_temp * (factor**k)
-            r_temperatures.append(new_temp)
-
-        r_salts = []
-        for k in range(N):
-            new_salt = (self.max_salt-self.min_salt)/(N-1)*k + self.min_salt
-            r_salts.append(new_salt)
-
-        self.replicas = len(r_temperatures) * len(r_salts)
-
-        for i in range(N):
-            new_temp = r_temperatures[i]
-            for j in range(N):
-                new_salt = r_salts[j]
-                r = Replica2d((i*N + j), new_temp, new_salt)
-                replicas.append(r)
-            
-        return replicas
-    """
     
-#----------------------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # former gibbs_exchange
     def exchange(self, r_i, replicas, swap_matrix):
         """Adopted from asyncre-bigjob [1]
@@ -146,7 +98,7 @@ class MdPattern(object):
         r_j = replicas[j]
         return r_j
 
-#----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def weighted_choice_sub(self, weights):
         """Adopted from asyncre-bigjob [1]
@@ -157,36 +109,6 @@ class MdPattern(object):
             rnd -= w
             if rnd < 0:
                 return i
-
-#----------------------------------------------------------------------------------------------------------------------------------
-
-    """
-    # why this is different????? e.g. uses reduced energy ?????
-    def compute_swap_matrix(self, replicas):
-
-        # init matrix
-        swap_matrix = [[ 0. for j in range(self.replicas)] 
-             for i in range(self.replicas)]
-
-        # updating replica temperatures and energies after md run
-        for r in replicas:
-                # getting OLDTEMP and POTENTIAL from .history file of previous run
-                old_temp, old_energy = self.get_historical_data(r,(r.cycle-1))
-
-                # updating replica temperature
-                r.new_temperature = old_temp   
-                r.old_temperature = old_temp   
-                r.potential = old_energy
-
-        for i in range(len(replicas)):
-            repl_i = replicas[i]
-            for j in range(len(replicas)):
-                # here each column (representing replica) of U has all swappable results
-                repl_j = replicas[j]
-                swap_matrix[repl_j.sid][repl_i.id] = self.reduced_energy(repl_j.old_temperature,repl_i.potential)
-        return swap_matrix
-    """
-
 
     # not needed!!!
     def get_swap_matrix(self, replicas, matrix_columns):
@@ -224,8 +146,7 @@ class MdPattern(object):
 
         return swap_matrix
 
-#----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------
     # OK
     def reduced_energy(self, temperature, potential):
         """Adopted from asyncre-bigjob [1]
@@ -233,49 +154,6 @@ class MdPattern(object):
         kb = 0.0019872041
         beta = 1. / (kb*temperature)     
         return float(beta * potential)
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-    # CHECK !!!!!!!!!!! MOVE UP???
-    def update_replica_info(self, replicas):
-        """This function is primarely used by both NAMD and Amber kernels in scheme 4.
-        It opens matrix_column_x_x.dat file, which is transferred back to local system
-        after eachange step and reads the following data from it.
-
-        path_to_replica_folder - remote location of replica files from previous md run
-        stopped_i_run - timestep at which md run was cancelled; this is used to provide arguments
-        for the next MD run
-        """
-        base_name = "matrix_column"
- 
-        for r in replicas:
-            column_file = base_name + "_" + str(r.id) + "_" + str(r.cycle-1) + ".dat"       
-            try:
-                f = open(column_file)
-                lines = f.readlines()
-                f.close()
-                
-                # setting old_path and first_path for each replica
-                if ( r.cycle == 1 ):
-                    r.first_path = lines[1]
-                    r.old_path = lines[1]
-                else:
-                    r.old_path = lines[1]
-
-                # setting stopped_i_run
-                r.stopped_run = int(lines[2])
-
-                print "Setting stopped i run to: %d for replica %d" % (r.stopped_run, r.id)
-            except:
-                raise
-
-    #---------------------------------------------------------------------------
-    # MOVE UP!!!!!!!!! (SALT CONCENTRATION)
-    """
-    def exchange_params(self, replica_1, replica_2):
-        salt = replica_2.new_salt_concentration
-        replica_2.new_salt_concentration = replica_1.new_salt_concentration
-        replica_1.new_salt_concentration = salt
-    """
 
     #---------------------------------------------------------------------------
     #
