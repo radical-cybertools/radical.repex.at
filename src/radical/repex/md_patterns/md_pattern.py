@@ -61,22 +61,11 @@ class MdPattern(object):
 
         #super(MdPattern, self).__init__()
     
+    """
     #---------------------------------------------------------------------------
     # former gibbs_exchange
     def exchange(self, r_i, replicas, swap_matrix):
-        """Adopted from asyncre-bigjob [1]
-        Produces a replica "j" to exchange with the given replica "i"
-        based off independence sampling of the discrete distribution
-
-        Arguments:
-        r_i - given replica for which is found partner replica
-        replicas - list of Replica objects
-        swap_matrix - matrix of dimension-less energies, where each column is a replica 
-        and each row is a state
-
-        Returns:
-        r_j - replica to exchnage parameters with
-        """
+        
         #evaluate all i-j swap probabilities
         ps = [0.0]*(self.replicas)
   
@@ -98,11 +87,9 @@ class MdPattern(object):
         r_j = replicas[j]
         return r_j
 
-#-------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------
+    #
     def weighted_choice_sub(self, weights):
-        """Adopted from asyncre-bigjob [1]
-        """
 
         rnd = random.random() * sum(weights)
         for i, w in enumerate(weights):
@@ -112,19 +99,6 @@ class MdPattern(object):
 
     # not needed!!!
     def get_swap_matrix(self, replicas, matrix_columns):
-        """Creates a swap matrix from matrix_column_x.dat files. 
-        matrix_column_x.dat - is populated on targer resource and then transferred back. This
-        file is created for each replica and has data for one column of swap matrix. In addition to that,
-        this file holds path to pilot compute unit of the previous run, where reside NAMD output files for 
-        a given replica. 
-
-        Arguments:
-        replicas - list of Replica objects
-
-        Returns:
-        swap_matrix - 2D list of lists of dimension-less energies, where each column is a replica 
-        and each row is a state
-        """
  
         # init matrix
         swap_matrix = [[ 0. for j in range(len(replicas))] 
@@ -147,10 +121,8 @@ class MdPattern(object):
         return swap_matrix
 
     #---------------------------------------------------------------------------
-    # OK
+    # 
     def reduced_energy(self, temperature, potential):
-        """Adopted from asyncre-bigjob [1]
-        """
         kb = 0.0019872041
         beta = 1. / (kb*temperature)     
         return float(beta * potential)
@@ -158,19 +130,6 @@ class MdPattern(object):
     #---------------------------------------------------------------------------
     #
     def build_swap_matrix(self, replicas):
-        """Creates a swap matrix from matrix_column_x.dat files. 
-        matrix_column_x.dat - is populated on targer resource and then transferred back. This
-        file is created for each replica and has data for one column of swap matrix. In addition to that,
-        this file holds path to pilot compute unit of the previous run, where reside NAMD output files for 
-        a given replica. 
-
-        Arguments:
-        replicas - list of Replica objects
-
-        Returns:
-        swap_matrix - 2D list of lists of dimension-less energies, where each column is a replica 
-        and each row is a state
-        """
 
         base_name = "matrix_column"
         size = len(replicas)
@@ -200,3 +159,4 @@ class MdPattern(object):
                 raise
 
         return swap_matrix
+    """

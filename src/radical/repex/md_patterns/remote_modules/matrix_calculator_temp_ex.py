@@ -10,8 +10,8 @@ __license__ = "MIT"
 import os
 import sys
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 
@@ -29,8 +29,8 @@ def reduced_energy(temperature, potential):
         beta = 1. / kb     
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 def get_historical_data(history_name):
     """Retrieves temperature and potential energy from simulation output file .history file.
     This file is generated after each simulation run. The function searches for directory 
@@ -77,21 +77,27 @@ def get_historical_data(history_name):
     os.chdir(home_dir)
     return temp, eptot, path_to_replica_folder
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 if __name__ == '__main__':
-    """This module calculates one swap matrix column for replica and writes this column to 
-    matrix_column_x_x.dat file. 
+    """This module calculates one swap matrix column for replica and writes this
+    column to matrix_column_x_x.dat file. 
     """
 
-    argument_list = str(sys.argv)
-    replica_id = str(sys.argv[1])
-    replica_cycle = str(sys.argv[2])
-    replicas = int(str(sys.argv[3]))
-    base_name = str(sys.argv[4])
+    argument_list   = str(sys.argv)
+    replica_id      = str(sys.argv[1])
+    replica_cycle   = str(sys.argv[2])
+    replicas        = int(str(sys.argv[3]))
+    base_name       = str(sys.argv[4])
+    new_temperature = str(sys.argv[5])
 
-    pwd = os.getcwd()
-    #matrix_col = "matrix_column_%s_%s.dat" % ( replica_id, replica_cycle ) 
+    print "new_temperature: "
+    print new_temperature
+
+    print "cycle: "
+    print replica_cycle
+
+    pwd = os.getcwd() 
 
     # getting history data for self
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
@@ -118,11 +124,10 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
-
     #---------------------------------------------------------------------------
     # writing to file
-    outfile = "matrix_column_{cycle}_{replica}.dat"\
-    .format(cycle=replica_cycle, replica=replica_id )
+    outfile = "matrix_column_{rid}_{cycle}.dat"\
+    .format(cycle=replica_cycle, rid=replica_id )
     with open(outfile, 'w+') as f:
         row_str = ""
         for item in swap_column:        
@@ -130,8 +135,11 @@ if __name__ == '__main__':
                 row_str = row_str + " " + str(item)
             else:
                 row_str = str(item)   
-        row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
-
+        #row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
         f.write(row_str)    
+        f.write('\n')
+        row_str = replica_id + " " + replica_cycle + " " + new_temperature
+        f.write(row_str) 
+
     f.close()
 

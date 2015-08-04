@@ -45,7 +45,7 @@ class AmberTex(MdPattern, ReplicaExchange):
            
         self.min_temp = float(inp_file['input.MD']['min_temperature'])
         self.max_temp = float(inp_file['input.MD']['max_temperature'])
-        self.amber_restraints = inp_file['input.MD']['amber_restraints']
+        self.amber_restraints = str(inp_file['input.MD']['amber_restraints'])
         self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
 
@@ -160,14 +160,11 @@ class AmberTex(MdPattern, ReplicaExchange):
 
         restraints = self.amber_restraints
 
-        replica.cycle += 1
-
         #####################################
 
-        input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
+        input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle))
 
-        # this is not transferred back
-        output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
+        output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle))
 
         new_coor = replica.new_coor
         new_traj = replica.new_traj
@@ -191,13 +188,19 @@ class AmberTex(MdPattern, ReplicaExchange):
         dump_data = json.dumps(data)
         json_pre_data = dump_data.replace("\\", "")
 
+        replica.cycle += 1
 
         if replica.cycle == 1:
 
+            # sed magic
+            #s1 = "sed -i \"s/{/'\{/\" run.sh;"
+            #s2 = "sed -i \"s/@/'/\" run.sh;"
+
+            #cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
+            
             k = Kernel(name="md.amber")
-            inpo = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
-            #k._cu_def_pre_exec  = [inpo]
-            k._cu_def_pre_exec  = ["bin/date"]
+            k.pre_exec  = ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
+            k.uses_mpi = False
             k.arguments         = ["--mdinfile="      + input_file, 
                                    "--outfile="     + output_file, 
                                    "--params="     + self.amber_parameters, 
@@ -206,7 +209,11 @@ class AmberTex(MdPattern, ReplicaExchange):
                                    "--nwtraj="   + new_traj, 
                                    "--nwinfo="   + new_info]
 
-            k.upload_input_data    = [str(input_file), str(crds)]
+            k.copy_input_data = [ template,
+                                 'input_file_builder.py',
+                                 str(self.amber_parameters),
+                                 str(self.amber_coordinates),
+                                 str(restraints) ]
             k.copy_output_data     = [str(new_info), 
                                       str(new_coor), 
                                       str(self.amber_coordinates)]
@@ -216,6 +223,9 @@ class AmberTex(MdPattern, ReplicaExchange):
             old_coor = "../staging_area/" + self.amber_coordinates
 
             k = Kernel(name="md.amber")
+            k.pre_exec  = ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
+            k.uses_mpi = False
+
             k.arguments         = ["--mdinfile="      + input_file,
                                    "--outfile="     + output_file,
                                    "--params="     + self.amber_parameters,
@@ -223,19 +233,25 @@ class AmberTex(MdPattern, ReplicaExchange):
                                    "--nwcoords=" + new_coor,
                                    "--nwtraj="   + new_traj,
                                    "--nwinfo="   + new_info]
-            #k.copy_input_data     = [str(old_coor)]
-            k.copy_output_data    = [str(new_info), str(new_coor)]
-            k.upload_input_data   = [str(input_file)]
-            k.cores               = int(self.replica_cores)
+
+            k.copy_input_data = [ template,
+                                 'input_file_builder.py',
+                                 str(self.amber_parameters),
+                                 str(self.amber_coordinates),
+                                 str(restraints) ]
+            k.copy_output_data     = [str(new_info), 
+                                      str(new_coor), 
+                                      str(self.amber_coordinates)]
+            k.cores                = int(self.replica_cores)
 
         return k
 
     #---------------------------------------------------------------------------
     #
     def prepare_replica_for_exchange(self, replica):
-        """Creates a list of ComputeUnitDescription objects for exchange step on resource.
-        Number of matrix_calculator_s2.py instances invoked on resource is equal to the number 
-        of replicas. 
+        """Creates a list of ComputeUnitDescription objects for exchange step 
+        on resource. Number of matrix_calculator_s2.py instances invoked on 
+        resource is equal to the number of replicas. 
 
         Arguments:
         replicas - list of Replica objects
@@ -245,22 +261,48 @@ class AmberTex(MdPattern, ReplicaExchange):
         """
 
         basename = self.inp_basename
+        cycle = replica.cycle-1
         
         # path!
-        calculator_path = os.path.dirname(remote_modules.amber_matrix_calculator_pattern_b.__file__)
-        calculator = calculator_path + "/amber_matrix_calculator_pattern_b.py"
+        #calculator_path = os.path.dirname(remote_modules.matrix_calculator_temp_ex.__file__)
+        #calculator = calculator_path + "/matrix_calculator_temp_ex.py"
 
-        matrix_col = "matrix_column_{cycle}_{replica}.dat"\
-                     .format(cycle=replica.cycle-1, replica=replica.id )
+        matrix_col = "matrix_column_{rid}_{cycle}.dat"\
+                     .format(cycle=cycle, rid=replica.id )
 
         k = Kernel(name="md.re_exchange")
-        k.arguments = ["--calculator=amber_matrix_calculator_pattern_b.py", 
+        k.arguments = ["--calculator=matrix_calculator_temp_ex.py", 
                        "--replica_id=" + str(replica.id), 
-                       "--replica_cycle=" + str(replica.cycle-1), 
+                       "--replica_cycle=" + str(cycle), 
                        "--replicas=" + str(self.replicas), 
-                       "--replica_basename=" + str(basename)]
-        k.upload_input_data = calculator
-        k.download_output_data = matrix_col
+                       "--replica_basename=" + str(basename),
+                       "--new_temperature=" + str(replica.new_temperature)]
+        k.subname = 'matrix_calculator_temp_ex'
+        #k.upload_input_data = calculator
+        k.copy_input_data     = ["matrix_calculator_temp_ex.py"]
+        k.copy_output_data     = [matrix_col]
+        #k.download_output_data = matrix_col
+
+        return k
+
+    #---------------------------------------------------------------------------
+    #
+    def prepare_global_ex_calc(self, GL, current_cycle, replicas):
+        """
+        """
+
+        cycle = replicas[0].cycle-1
+        ex_pairs = "pairs_for_exchange_{cycle}.dat".format(cycle=cycle)
+
+        k = Kernel(name="md.re_exchange")
+        k.arguments = ["--calculator=global_ex_calculator.py",  
+                       "--replica_cycle=" + str(cycle), 
+                       "--replicas=" + str(self.replicas)]
+        k.subname = 'global_ex_calculator'
+        k.copy_input_data     = ["global_ex_calculator.py"]
+        k.download_output_data = [ex_pairs]
+        k.cores = 1
+        k.mpi = False
 
         return k
 
@@ -288,7 +330,6 @@ class AmberTex(MdPattern, ReplicaExchange):
 
         return temp, eptot
 
-
     #---------------------------------------------------------------------------
     #
     # this is for pattern-c/scheme-3
@@ -307,8 +348,6 @@ class AmberTex(MdPattern, ReplicaExchange):
 
         return finished_replicas
 
-
-
     #---------------------------------------------------------------------------
     #
     def perform_swap(self, replica_i, replica_j):
@@ -326,3 +365,47 @@ class AmberTex(MdPattern, ReplicaExchange):
         # record that swap was performed
         replica_i.swap = 1
         replica_j.swap = 1
+
+    #---------------------------------------------------------------------------
+    #
+    def do_exchange(self, current_cycle, replicas):
+        """
+        """
+
+        r1 = None
+        r2 = None
+
+        cycle = replicas[0].cycle-1
+
+        infile = "pairs_for_exchange_{cycle}.dat".format(cycle=cycle)
+        try:
+            f = open(infile)
+            lines = f.readlines()
+            f.close()
+            for l in lines:
+                pair = l.split()
+                r1_id = int(pair[0])
+                r2_id = int(pair[1])
+                for r in replicas:
+                    if r.id == r1_id:
+                        r1 = r
+                    if r.id == r2_id:
+                        r2 = r
+
+                #---------------------------------------------
+                # guard
+                if r1 == None:
+                    rid = random.randint(0,(len(replicas)-1))
+                    r1 = replicas[rid]
+                if r2 == None:
+                    rid = random.randint(0,(len(replicas)-1))
+                    r2 = replicas[rid]
+                #---------------------------------------------
+
+                # swap parameters
+                #if self.exchange_off == False:
+                self.perform_swap(r1, r2)
+                r1.swap = 1
+                r2.swap = 1
+        except:
+            raise

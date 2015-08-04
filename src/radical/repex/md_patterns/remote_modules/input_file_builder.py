@@ -25,7 +25,7 @@ if __name__ == '__main__':
     new_input_file  = data["new_input_file"]
     replica_cycle   = int(data["cycle"])
 
-    #-------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # this is for every cycle
     try:
         r_file = open(amber_input, "r")
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     r_file.close()
 
     tbuffer = tbuffer.replace("@nstlim@",cycle_steps)
-    tbuffer = tbuffer.replace("@disang@",new_restraints)
+    tbuffer = tbuffer.replace("@rstr@",new_restraints)
     tbuffer = tbuffer.replace("@temp@",new_temperature)
 
     try:
