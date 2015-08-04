@@ -22,7 +22,7 @@ from radical.ensemblemd.patterns.replica_exchange import ReplicaExchange
 
 #-------------------------------------------------------------------------------
 
-class AmberTex(MdPattern, ReplicaExchange):
+class AmberTex(ReplicaExchange):
     """
     TODO
     """
@@ -35,7 +35,21 @@ class AmberTex(MdPattern, ReplicaExchange):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        MdPattern.__init__(self, inp_file, work_dir_local)
+        self.inp_basename = inp_file['input.MD']['input_file_basename']
+        self.inp_folder = inp_file['input.MD']['input_folder']
+        self.replicas = int(inp_file['input.MD']['number_of_replicas'])
+        self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
+        self.work_dir_local = work_dir_local
+        self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
+       
+        try:
+            self.replica_mpi = inp_file['input.MD']['replica_mpi']
+        except:
+            self.replica_mpi = False
+        try:
+            self.replica_cores = inp_file['input.MD']['replica_cores']
+        except:
+            self.replica_cores = 1
 
         try:
             self.amber_path = inp_file['input.MD']['amber_path']
@@ -51,8 +65,6 @@ class AmberTex(MdPattern, ReplicaExchange):
 
         self.shared_urls = []
         self.shared_files = []
-
-        super(AmberTex, self).__init__(inp_file,  work_dir_local)
         
     #---------------------------------------------------------------------------
     #
@@ -121,8 +133,7 @@ class AmberTex(MdPattern, ReplicaExchange):
         return replicas
 
     #---------------------------------------------------------------------------
-    # note this is for a single replica
-    # OK
+    # 
     def prepare_replica_for_md(self, replica):
         """Prepares all replicas for execution. In this function are created CU 
         descriptions for replicas, are specified input/output files to be 
@@ -136,7 +147,6 @@ class AmberTex(MdPattern, ReplicaExchange):
         compute_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
 
-        # from build_input_file()
         basename = self.inp_basename
         template = self.inp_basename[:-5] + ".mdin"
             
@@ -195,7 +205,6 @@ class AmberTex(MdPattern, ReplicaExchange):
             # sed magic
             #s1 = "sed -i \"s/{/'\{/\" run.sh;"
             #s2 = "sed -i \"s/@/'/\" run.sh;"
-
             #cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
             
             k = Kernel(name="md.amber")
@@ -262,10 +271,6 @@ class AmberTex(MdPattern, ReplicaExchange):
 
         basename = self.inp_basename
         cycle = replica.cycle-1
-        
-        # path!
-        #calculator_path = os.path.dirname(remote_modules.matrix_calculator_temp_ex.__file__)
-        #calculator = calculator_path + "/matrix_calculator_temp_ex.py"
 
         matrix_col = "matrix_column_{rid}_{cycle}.dat"\
                      .format(cycle=cycle, rid=replica.id )
@@ -278,10 +283,8 @@ class AmberTex(MdPattern, ReplicaExchange):
                        "--replica_basename=" + str(basename),
                        "--new_temperature=" + str(replica.new_temperature)]
         k.subname = 'matrix_calculator_temp_ex'
-        #k.upload_input_data = calculator
         k.copy_input_data     = ["matrix_calculator_temp_ex.py"]
         k.copy_output_data     = [matrix_col]
-        #k.download_output_data = matrix_col
 
         return k
 
@@ -305,48 +308,6 @@ class AmberTex(MdPattern, ReplicaExchange):
         k.mpi = False
 
         return k
-
-    #---------------------------------------------------------------------------
-    #
-    def get_historical_data(self, replica, cycle):
-        """Retrieves temperature and potential energy from simulaion output
-        file <file_name>.history
-        """
-
-        temp = 0.0    #temperature
-        eptot = 0.0   #potential
-        if not os.path.exists(replica.new_history):
-            print "history file %s not found" % replica.new_history
-        else:
-            f = open(replica.new_history)
-            lines = f.readlines()
-            f.close()
-
-            for i in range(len(lines)):
-                if "TEMP(K)" in lines[i]:
-                    temp = float(lines[i].split()[8])
-                elif "EPtot" in lines[i]:
-                    eptot = float(lines[i].split()[8])
-
-        return temp, eptot
-
-    #---------------------------------------------------------------------------
-    #
-    # this is for pattern-c/scheme-3
-    def check_replicas(self, replicas):
-
-        finished_replicas = []
-        files = os.listdir( self.work_dir_local )
-
-        for r in replicas:
-
-            history_name =  r.new_history
-            for item in files:
-                if (item.startswith(history_name)):
-                    if r not in finished_replicas:
-                        finished_replicas.append( r )
-
-        return finished_replicas
 
     #---------------------------------------------------------------------------
     #
@@ -391,8 +352,7 @@ class AmberTex(MdPattern, ReplicaExchange):
                         r1 = r
                     if r.id == r2_id:
                         r2 = r
-
-                #---------------------------------------------
+                #---------------------------------------------------------------
                 # guard
                 if r1 == None:
                     rid = random.randint(0,(len(replicas)-1))
@@ -400,10 +360,9 @@ class AmberTex(MdPattern, ReplicaExchange):
                 if r2 == None:
                     rid = random.randint(0,(len(replicas)-1))
                     r2 = replicas[rid]
-                #---------------------------------------------
+                #---------------------------------------------------------------
 
                 # swap parameters
-                #if self.exchange_off == False:
                 self.perform_swap(r1, r2)
                 r1.swap = 1
                 r2.swap = 1
