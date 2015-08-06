@@ -1,10 +1,11 @@
 {
     "input.PILOT": {
-        "resource": "localhost",
-        "username" : "antons",
+        "resource": "xsede.gordon",
+        "username" : "antontre",
+        "project" : "unc101",
         "runtime" : "20",
         "cleanup" : "False",
-        "cores" : "4"
+        "cores" : "16"
     },
     "input.MD": {
         "number_of_cycles": "3",

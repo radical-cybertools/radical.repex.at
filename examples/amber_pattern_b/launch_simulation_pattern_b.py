@@ -38,12 +38,13 @@ if __name__ == '__main__':
 
         # Create a new static execution context with one resource and a fixed
         # number of cores and runtime.
+
         cluster = SingleClusterEnvironment(
             resource=inp_file['input.PILOT']['resource'],
             cores=int(inp_file['input.PILOT']['cores']),
             walltime=int(inp_file['input.PILOT']['runtime']),
             username=inp_file['input.PILOT']['username'], 
-            #project=inp_file['input.PILOT']['project'],
+            project=inp_file['input.PILOT']['project'],
             #queue=inp_file['input.PILOT']['queue'],
             database_name='repex-tests'
         )

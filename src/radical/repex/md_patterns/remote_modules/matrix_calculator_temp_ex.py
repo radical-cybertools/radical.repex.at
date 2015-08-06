@@ -9,6 +9,7 @@ __license__ = "MIT"
 
 import os
 import sys
+import json
 
 #-------------------------------------------------------------------------------
 #
@@ -84,18 +85,14 @@ if __name__ == '__main__':
     column to matrix_column_x_x.dat file. 
     """
 
-    argument_list   = str(sys.argv)
-    replica_id      = str(sys.argv[1])
-    replica_cycle   = str(sys.argv[2])
-    replicas        = int(str(sys.argv[3]))
-    base_name       = str(sys.argv[4])
-    new_temperature = str(sys.argv[5])
+    json_data = sys.argv[1]
+    data=json.loads(json_data)
 
-    print "new_temperature: "
-    print new_temperature
-
-    print "cycle: "
-    print replica_cycle
+    replica_id      = data["replica_id"]
+    replica_cycle   = data["replica_cycle"]
+    replicas        = int(data["replicas"])
+    base_name       = data["replica_basename"]
+    new_temperature = data["new_temperature"]
 
     pwd = os.getcwd() 
 

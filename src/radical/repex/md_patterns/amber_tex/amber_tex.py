@@ -170,11 +170,14 @@ class AmberTex(ReplicaExchange):
 
         restraints = self.amber_restraints
 
-        #####################################
+        #-----------------------------------------------------------------------
 
-        input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle))
-
-        output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle))
+        input_file = "%s_%d_%d.mdin" % (self.inp_basename, \
+                                        replica.id, \
+                                       (replica.cycle))
+        output_file = "%s_%d_%d.mdout" % (self.inp_basename, \
+                                          replica.id, \
+                                         (replica.cycle))
 
         new_coor = replica.new_coor
         new_traj = replica.new_traj
@@ -183,9 +186,12 @@ class AmberTex(ReplicaExchange):
         old_coor = replica.old_coor
         old_traj = replica.old_traj
 
-        crds = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_coordinates
-        parm = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_parameters
-        rstr = self.work_dir_local + "/" + self.inp_folder + "/" + self.amber_restraints
+        crds = self.work_dir_local + "/" + \
+               self.inp_folder + "/" + self.amber_coordinates
+        parm = self.work_dir_local + "/" + \
+               self.inp_folder + "/" + self.amber_parameters
+        rstr = self.work_dir_local + "/" + \
+               self.inp_folder + "/" + self.amber_restraints
 
         data = {
             "cycle_steps": str(self.cycle_steps),
@@ -200,6 +206,19 @@ class AmberTex(ReplicaExchange):
 
         replica.cycle += 1
 
+        data = {
+            "replica_id": str(replica.id),
+            "replica_cycle" : str(replica.cycle-1),
+            "replicas" : str(self.replicas),
+            "replica_basename" : str(basename),
+            "new_temperature" : str(replica.new_temperature)
+                }
+        dump_data = json.dumps(data)
+        json_post_data = dump_data.replace("\\", "")
+
+        matrix_col = "matrix_column_{rid}_{cycle}.dat"\
+                     .format(cycle=replica.cycle-1, rid=replica.id )
+
         if replica.cycle == 1:
 
             # sed magic
@@ -208,49 +227,59 @@ class AmberTex(ReplicaExchange):
             #cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
             
             k = Kernel(name="md.amber")
-            k.pre_exec  = ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
+            k.pre_exec  = ["python input_file_builder.py " + "\'" + \
+                            json_pre_data + "\'"]
             k.uses_mpi = False
-            k.arguments         = ["--mdinfile="      + input_file, 
-                                   "--outfile="     + output_file, 
-                                   "--params="     + self.amber_parameters, 
-                                   "--coords="     + self.amber_coordinates, 
+            k.arguments         = ["--mdinfile=" + input_file, 
+                                   "--outfile="  + output_file, 
+                                   "--params="   + self.amber_parameters, 
+                                   "--coords="   + self.amber_coordinates, 
                                    "--nwcoords=" + new_coor, 
                                    "--nwtraj="   + new_traj, 
                                    "--nwinfo="   + new_info]
 
+            k.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + \
+                            json_post_data + "\'"]
             k.copy_input_data = [ template,
                                  'input_file_builder.py',
                                  str(self.amber_parameters),
                                  str(self.amber_coordinates),
-                                 str(restraints) ]
+                                 str(restraints),
+                                 'matrix_calculator_temp_ex.py' ]
             k.copy_output_data     = [str(new_info), 
                                       str(new_coor), 
-                                      str(self.amber_coordinates)]
+                                      str(self.amber_coordinates),
+                                      matrix_col]
             k.cores                = int(self.replica_cores)
         else:
             #old_coor = replica.old_path + "/" + self.amber_coordinates
             old_coor = "../staging_area/" + self.amber_coordinates
 
             k = Kernel(name="md.amber")
-            k.pre_exec  = ["python input_file_builder.py " + "\'" + json_pre_data + "\'"]
+            k.pre_exec  = ["python input_file_builder.py " + "\'" + \
+                           json_pre_data + "\'"]
             k.uses_mpi = False
 
-            k.arguments         = ["--mdinfile="      + input_file,
-                                   "--outfile="     + output_file,
-                                   "--params="     + self.amber_parameters,
-                                   "--coords="     + old_coor,
+            k.arguments         = ["--mdinfile=" + input_file,
+                                   "--outfile="  + output_file,
+                                   "--params="   + self.amber_parameters,
+                                   "--coords="   + old_coor,
                                    "--nwcoords=" + new_coor,
                                    "--nwtraj="   + new_traj,
                                    "--nwinfo="   + new_info]
 
+            k.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + \
+                            json_post_data + "\'"]
             k.copy_input_data = [ template,
                                  'input_file_builder.py',
                                  str(self.amber_parameters),
                                  str(self.amber_coordinates),
-                                 str(restraints) ]
+                                 str(restraints),
+                                 'matrix_calculator_temp_ex.py']
             k.copy_output_data     = [str(new_info), 
                                       str(new_coor), 
-                                      str(self.amber_coordinates)]
+                                      str(self.amber_coordinates),
+                                      matrix_col]
             k.cores                = int(self.replica_cores)
 
         return k
@@ -258,35 +287,7 @@ class AmberTex(ReplicaExchange):
     #---------------------------------------------------------------------------
     #
     def prepare_replica_for_exchange(self, replica):
-        """Creates a list of ComputeUnitDescription objects for exchange step 
-        on resource. Number of matrix_calculator_s2.py instances invoked on 
-        resource is equal to the number of replicas. 
-
-        Arguments:
-        replicas - list of Replica objects
-
-        Returns:
-        exchange_replicas - list of radical.pilot.ComputeUnitDescription objects
-        """
-
-        basename = self.inp_basename
-        cycle = replica.cycle-1
-
-        matrix_col = "matrix_column_{rid}_{cycle}.dat"\
-                     .format(cycle=cycle, rid=replica.id )
-
-        k = Kernel(name="md.re_exchange")
-        k.arguments = ["--calculator=matrix_calculator_temp_ex.py", 
-                       "--replica_id=" + str(replica.id), 
-                       "--replica_cycle=" + str(cycle), 
-                       "--replicas=" + str(self.replicas), 
-                       "--replica_basename=" + str(basename),
-                       "--new_temperature=" + str(replica.new_temperature)]
-        k.subname = 'matrix_calculator_temp_ex'
-        k.copy_input_data     = ["matrix_calculator_temp_ex.py"]
-        k.copy_output_data     = [matrix_col]
-
-        return k
+        pass
 
     #---------------------------------------------------------------------------
     #
