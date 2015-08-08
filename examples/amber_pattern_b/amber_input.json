@@ -5,7 +5,7 @@
         "project" : "unc101",
         "runtime" : "20",
         "cleanup" : "False",
-        "cores" : "32"
+        "cores" : "16"
     },
     "input.MD": {
         "number_of_cycles": "3",
