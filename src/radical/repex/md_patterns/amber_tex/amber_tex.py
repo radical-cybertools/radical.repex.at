@@ -13,7 +13,6 @@ import json
 from os import path
 import radical.pilot
 from replicas.replica import Replica
-from md_patterns.md_pattern import *
 from radical.ensemblemd import Kernel
 import remote_modules.input_file_builder
 import remote_modules.global_ex_calculator
@@ -238,18 +237,14 @@ class AmberTex(ReplicaExchange):
                                    "--nwtraj="   + new_traj, 
                                    "--nwinfo="   + new_info]
 
-            k.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + \
-                            json_post_data + "\'"]
             k.copy_input_data = [ template,
                                  'input_file_builder.py',
                                  str(self.amber_parameters),
                                  str(self.amber_coordinates),
-                                 str(restraints),
-                                 'matrix_calculator_temp_ex.py' ]
+                                 str(restraints)]
             k.copy_output_data     = [str(new_info), 
                                       str(new_coor), 
-                                      str(self.amber_coordinates),
-                                      matrix_col]
+                                      str(self.amber_coordinates)]
             k.cores                = int(self.replica_cores)
         else:
             #old_coor = replica.old_path + "/" + self.amber_coordinates
@@ -268,18 +263,14 @@ class AmberTex(ReplicaExchange):
                                    "--nwtraj="   + new_traj,
                                    "--nwinfo="   + new_info]
 
-            k.post_exec = ["python matrix_calculator_temp_ex.py " + "\'" + \
-                            json_post_data + "\'"]
             k.copy_input_data = [ template,
                                  'input_file_builder.py',
                                  str(self.amber_parameters),
                                  str(self.amber_coordinates),
-                                 str(restraints),
-                                 'matrix_calculator_temp_ex.py']
+                                 str(restraints)]
             k.copy_output_data     = [str(new_info), 
                                       str(new_coor), 
-                                      str(self.amber_coordinates),
-                                      matrix_col]
+                                      str(self.amber_coordinates)]
             k.cores                = int(self.replica_cores)
 
         return k
@@ -295,18 +286,22 @@ class AmberTex(ReplicaExchange):
         """
         """
 
+        basename = self.inp_basename
+
         cycle = replicas[0].cycle-1
         ex_pairs = "pairs_for_exchange_{cycle}.dat".format(cycle=cycle)
 
         k = Kernel(name="md.re_exchange")
         k.arguments = ["--calculator=global_ex_calculator.py",  
                        "--replica_cycle=" + str(cycle), 
-                       "--replicas=" + str(self.replicas)]
+                       "--replicas=" + str(self.replicas),
+                       "--replica_basename=" + basename]
         k.subname = 'global_ex_calculator'
-        k.copy_input_data     = ["global_ex_calculator.py"]
+        k.pre_exec = ["module load python"]
+        k.copy_input_data  = ["global_ex_calculator.py"]
         k.download_output_data = [ex_pairs]
-        k.cores = 1
-        k.mpi = False
+        k.cores = self.replicas
+        k.mpi = True
 
         return k
 

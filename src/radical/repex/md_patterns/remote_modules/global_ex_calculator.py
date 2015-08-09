@@ -8,6 +8,77 @@ import math
 import json
 import time
 import random
+from mpi4py import MPI
+
+#-------------------------------------------------------------------------------
+#
+def reduced_energy(temperature, potential):
+    """Calculates reduced energy.
+
+    Arguments:
+    temperature - replica temperature
+    potential - replica potential energy
+
+    Returns:
+    reduced enery of replica
+    """
+    kb = 0.0019872041    #boltzmann const in kcal/mol
+    if temperature != 0:
+        beta = 1. / (kb*temperature)
+    else:
+        beta = 1. / kb     
+    return float(beta * potential)
+
+#-------------------------------------------------------------------------------
+#
+def get_historical_data(replica_path, history_name):
+    """Retrieves temperature and potential energy from simulation output file 
+    .history file.
+    This file is generated after each simulation run. The function searches for 
+    directory 
+    where .history file recides by checking all computeUnit directories on 
+    target resource.
+
+    Arguments:
+    history_name - name of .history file for a given replica. 
+
+    Returns:
+    data[0] - temperature obtained from .history file
+    data[1] - potential energy obtained from .history file
+    path_to_replica_folder - path to computeUnit directory on a target resource 
+    where all
+    input/output files for a given replica recide.
+       Get temperature and potential energy from mdinfo file.
+    """
+
+    home_dir = os.getcwd()
+    if replica_path != None:
+        path = "../staging_area" + replica_path
+        try:
+            os.chdir(path)
+        except:
+            raise
+
+    temp = 0.0    #temperature
+    eptot = 0.0   #potential
+
+    try:
+        f = open(history_name)
+        lines = f.readlines()
+        f.close()
+        path_to_replica_folder = os.getcwd()
+        for i in range(len(lines)):
+            if "TEMP(K)" in lines[i]:
+                temp = float(lines[i].split()[8])
+            elif "EPtot" in lines[i]:
+                eptot = float(lines[i].split()[8])
+    except:
+        os.chdir(home_dir)
+        raise 
+
+    os.chdir(home_dir)
+    
+    return temp, eptot, path_to_replica_folder
 
 #-------------------------------------------------------------------------------
 #
@@ -85,7 +156,6 @@ class Replica(object):
             self.new_temperature = 0
         else:
             self.new_temperature = new_temperature
-        self.old_temperature = new_temperature
 
 #-------------------------------------------------------------------------------
 #
@@ -93,81 +163,103 @@ if __name__ == '__main__':
     """
     """
 
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+
     argument_list = str(sys.argv)
     current_cycle = int(sys.argv[1])
     replicas = int(sys.argv[2])
+    base_name = str(sys.argv[3])
 
-    replica_dict = {}
-    replicas_obj = []
+    comm.Barrier()
 
-    base_name = "matrix_column"
+    # replica id equals to rank
+    replica_id = rank
 
-    # init matrix
-    swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
+    # getting history data for self
+    history_name = base_name + "_" + \
+                   str(replica_id) + "_" + \
+                   str(current_cycle) + ".mdinfo"
 
-    for rid in range(replicas):
-        success = 0
-        column_file = base_name + "_" + \
-                      str(rid) + "_" + \
-                      str(current_cycle) + ".dat" 
-        path = "../staging_area/" + column_file     
-        while (success == 0):
-            try:
-                f = open(path)
-                lines = f.readlines()
-                f.close()
-                
-                #---------------------------------------------------------------
-                # populating matrix column
-                data = lines[0].split()
-                for i in range(replicas):
-                    swap_matrix[i][int(rid)] = float(data[i])
-                #---------------------------------------------------------------
-                # populating replica dict
-                data = lines[1].split()
-                replica_dict[data[0]] = [data[1], data[2]]
-                #---------------------------------------------------------------
-                # 
-                rid = data[0]
-
-                # creating replica
-                r = Replica(int(rid), \
-                            new_temperature=float(replica_dict[rid][1]))
-                replicas_obj.append(r)
-
-                success = 1
-                print "Success processing replica: %s" % rid
-
-            except:
-                print "Waiting for replica: %s" % rid
-                time.sleep(1)
-                pass
+    # init swap column
+    swap_column = [0.0]*replicas
 
     #---------------------------------------------------------------------------
 
-    exchange_list = []
-    for r_i in replicas_obj:
-        r_j = gibbs_exchange(r_i, replicas_obj, swap_matrix)
-        if (r_j != r_i):
-            exchange_pair = []
-            exchange_pair.append(r_i.id)
-            exchange_pair.append(r_j.id)
-            exchange_list.append(exchange_pair)
+    success = 0
+    attempts = 0
+    while (success == 0):
+        try:
+            replica_path = "/"
+            replica_temp, replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
+            print "rank {0}: Got history data for self!".format(rank)
+            success = 1
+        except:
+            print "rank {0}: Waiting for self (history file)".format(rank)
+            time.sleep(1)
+            attempts += 1
+            if attempts >= 12:
+                print "rank {0}: Amber run failed, matrix_swap_column_x_x.dat populated with zeros".format(rank)
+            pass
+
+    #---------------------------------------------------------------------------
+    temperatures = [0.0]*replicas
+    energies = [0.0]*replicas
+
+    comm.Barrier()
+    
+    #all_temperatures = comm.gather(temperatures, all_temperatures, root=0)
+    temperatures = comm.allgather(replica_temp)
+    energies = comm.allgather(replica_energy)
+
+    #---------------------------------------------------------------------------
+    # init swap column
+    swap_column = [0.0]*replicas
+
+    for j in range(replicas):      
+        swap_column[j] = reduced_energy(temperatures[j], replica_energy)
+
+    #---------------------------------------------------------------------------
+    # part of global calc
+    
+    if rank == 0:
+        swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
+
+    swap_matrix = comm.gather(swap_column, root=0)
+
+    if rank == 0:
+        replicas_obj = []
+        for rid in range(replicas):
+            # creating replica with dummy temperature, since it is not needed
+            r = Replica(int(rid), new_temperature=0.0)
+            replicas_obj.append(r)
+
+        #-----------------------------------------------------------------------
+
+        exchange_list = []
+        for r_i in replicas_obj:
+            r_j = gibbs_exchange(r_i, replicas_obj, swap_matrix)
+            if (r_j != r_i):
+                exchange_pair = []
+                exchange_pair.append(r_i.id)
+                exchange_pair.append(r_j.id)
+                exchange_list.append(exchange_pair)
             
-    #---------------------------------------------------------------------------
-    # writing to file
+        #-----------------------------------------------------------------------
+        # writing to file
 
-    try:
-        outfile = "pairs_for_exchange_{cycle}.dat".format(cycle=current_cycle)
-        with open(outfile, 'w+') as f:
-            for pair in exchange_list:
-                if pair:
-                    row_str = str(pair[0]) + " " + str(pair[1]) 
-                    f.write(row_str)
-                    f.write('\n')
-        f.close()
+        try:
+            outfile = "pairs_for_exchange_{cycle}.dat".format(cycle=current_cycle)
+            with open(outfile, 'w+') as f:
+                for pair in exchange_list:
+                    if pair:
+                        row_str = str(pair[0]) + " " + str(pair[1]) 
+                        f.write(row_str)
+                        f.write('\n')
+            f.close()
 
-    except IOError:
-        print 'Error: unable to create column file %s for replica %s' % \
-        (outfile, replica_id)
-
+        except IOError:
+            print 'Error: unable to create column file %s for replica %s' % \
+            (outfile, replica_id)
+    

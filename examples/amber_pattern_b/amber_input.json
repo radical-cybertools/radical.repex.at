@@ -1,9 +1,10 @@
 {
     "input.PILOT": {
-        "resource": "xsede.gordon",
+        "resource": "xsede.stampede",
         "username" : "antontre",
-        "project" : "unc101",
+        "project" : "TG-MCB090174",
         "runtime" : "20",
+        "queue" : "development",
         "cleanup" : "False",
         "cores" : "16"
     },

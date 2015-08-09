@@ -44,8 +44,8 @@ if __name__ == '__main__':
             cores=int(inp_file['input.PILOT']['cores']),
             walltime=int(inp_file['input.PILOT']['runtime']),
             username=inp_file['input.PILOT']['username'], 
-            #project=inp_file['input.PILOT']['project'],
-            #queue=inp_file['input.PILOT']['queue'],
+            project=inp_file['input.PILOT']['project'],
+            queue=inp_file['input.PILOT']['queue'],
             database_name='repex-tests'
         )
 
