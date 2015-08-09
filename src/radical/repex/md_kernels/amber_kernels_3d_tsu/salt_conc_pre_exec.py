@@ -12,8 +12,8 @@ import sys
 import json
 import os,sys,socket,time
 
-#--------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 def get_historical_data(history_name, data_path=os.getcwd()):
     """Retrieves temperature and potential energy from simulation output file .history file.
     This file is generated after each simulation run. The function searches for directory 
@@ -53,8 +53,8 @@ def get_historical_data(history_name, data_path=os.getcwd()):
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
 
-#-------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 if __name__ == '__main__':
     """This module calculates one swap matrix column for replica and writes this column to 
     matrix_column_x_x.dat file. 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    replica_energy, path_to_replica_folder = get_historical_data( history_name, "../staging_area" )
+    replica_energy, path_to_replica_folder = get_historical_data( history_name )
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
     new_coor_file = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)

@@ -28,17 +28,17 @@ from replicas.replica import Replica3d
 from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
 from amber_kernels_us.amber_kernel_us_pattern_b import AmberKernelUSPatternB
 
-#-----------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 class AmberKernelPatternB3dTUU(object):
-    """This class is responsible for performing all operations related to Amber for RE scheme S2.
-    In this class is determined how replica input files are composed, how exchanges are performed, etc.
+    """TODO
     """
     def __init__(self, inp_file,  work_dir_local):
         """Constructor.
 
         Arguments:
-        inp_file - package input file with Pilot and NAMD related parameters as specified by user 
+        inp_file - package input file with Pilot and NAMD related parameters as 
+        specified by user 
         work_dir_local - directory from which main simulation script was invoked
         """
 
@@ -57,7 +57,7 @@ class AmberKernelPatternB3dTUU(object):
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
 
-        #------------------------------------------------------
+        #-----------------------------------------------------------------------
         if 'exchange_off' in inp_file['input.MD']:
             if inp_file['input.MD']['exchange_off'] == "True":
                 self.exchange_off = True
@@ -65,7 +65,7 @@ class AmberKernelPatternB3dTUU(object):
                 self.exchange_off = False
         else:
             self.exchange_off = False
-        #------------------------------------------------------
+        #-----------------------------------------------------------------------
 
         if 'replica_mpi' in inp_file['input.MD']:
             if inp_file['input.MD']['replica_mpi'] == "True":
@@ -87,57 +87,77 @@ class AmberKernelPatternB3dTUU(object):
         self.current_cycle = -1
 
         # hardcoded for now
-        self.replicas_d1 = int(inp_file['input.DIM']['umbrella_sampling_1']["number_of_replicas"])
-        self.replicas_d2 = int(inp_file['input.DIM']['temperature_2']["number_of_replicas"])
-        self.replicas_d3 = int(inp_file['input.DIM']['umbrella_sampling_3']["number_of_replicas"])
+        self.replicas_d1 = int(inp_file['input.DIM']\
+                           ['umbrella_sampling_1']["number_of_replicas"])
+        self.replicas_d2 = int(inp_file['input.DIM']\
+                           ['temperature_2']["number_of_replicas"])
+        self.replicas_d3 = int(inp_file['input.DIM']\
+                           ['umbrella_sampling_3']["number_of_replicas"])
         
         self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3 
         self.restraints_files = []
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
  
-        self.us_start_param_d1 = float(inp_file['input.DIM']['umbrella_sampling_1']['us_start_param'])
-        self.us_end_param_d1 = float(inp_file['input.DIM']['umbrella_sampling_1']['us_end_param'])
+        self.us_start_param_d1 = float(inp_file['input.DIM']\
+                                 ['umbrella_sampling_1']['us_start_param'])
+        self.us_end_param_d1 = float(inp_file['input.DIM']\
+                               ['umbrella_sampling_1']['us_end_param'])
 
-        self.us_ex_cores = int(inp_file['input.DIM']['umbrella_sampling_1']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['input.DIM']['umbrella_sampling_1']:
-            if inp_file['input.DIM']['umbrella_sampling_1']['exchange_replica_mpi'] == 'True':
+        self.us_ex_cores = int(inp_file['input.DIM']\
+                           ['umbrella_sampling_1']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']\
+                                             ['umbrella_sampling_1']:
+            if inp_file['input.DIM']\
+                    ['umbrella_sampling_1']['exchange_replica_mpi'] == 'True':
                 self.us_ex_mpi = True
             else:
                 self.us_ex_mpi = False
  
-        self.us_start_param_d3 = float(inp_file['input.DIM']['umbrella_sampling_3']['us_start_param'])
-        self.us_end_param_d3 = float(inp_file['input.DIM']['umbrella_sampling_3']['us_end_param'])
+        self.us_start_param_d3 = float(inp_file['input.DIM']\
+                                ['umbrella_sampling_3']['us_start_param'])
+        self.us_end_param_d3 = float(inp_file['input.DIM']\
+                               ['umbrella_sampling_3']['us_end_param'])
 
-        self.us_ex_cores = int(inp_file['input.DIM']['umbrella_sampling_3']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['input.DIM']['umbrella_sampling_3']:
-            if inp_file['input.DIM']['umbrella_sampling_3']['exchange_replica_mpi'] == 'True':
+        self.us_ex_cores = int(inp_file['input.DIM']\
+                           ['umbrella_sampling_3']['exchange_replica_cores'])
+        if 'exchange_replica_mpi' in inp_file['input.DIM']\
+                                             ['umbrella_sampling_3']:
+            if inp_file['input.DIM']\
+                    ['umbrella_sampling_3']['exchange_replica_mpi'] == 'True':
                 self.us_ex_mpi = True
             else:
                 self.us_ex_mpi = False
         
-        self.min_temp = float(inp_file['input.DIM']['temperature_2']['min_temperature'])
-        self.max_temp = float(inp_file['input.DIM']['temperature_2']['max_temperature'])
+        self.min_temp = float(inp_file['input.DIM']\
+                        ['temperature_2']['min_temperature'])
+        self.max_temp = float(inp_file['input.DIM']\
+                        ['temperature_2']['max_temperature'])
 
-        self.temp_ex_cores = int(inp_file['input.DIM']['temperature_2']['exchange_replica_cores'])
+        self.temp_ex_cores = int(inp_file['input.DIM']\
+                             ['temperature_2']['exchange_replica_cores'])
         if 'exchange_replica_mpi' in inp_file['input.DIM']['temperature_2']:
-            if inp_file['input.DIM']['temperature_2']['exchange_replica_mpi'] == 'True':
+            if inp_file['input.DIM']\
+                       ['temperature_2']['exchange_replica_mpi'] == 'True':
                 self.temp_ex_mpi = True
             else:
                 self.temp_ex_mpi = False
 
-        #---------------------------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
 
         self.name = 'ak-patternB-3d-TUU'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
-        self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
+        self.pre_exec = KERNELS[self.resource]["kernels"]\
+                        ["amber"]["pre_execution"]
         try:
             self.amber_path = inp_file['input.MD']['amber_path']
         except:
-            self.logger.info("Using default Amber path for: {0}".format(inp_file['input.PILOT']['resource']) )
+            self.logger.info("Using default Amber path for: {0}"\
+                .format(inp_file['input.PILOT']['resource']) )
             try:
-                self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
+                self.amber_path = KERNELS[self.resource]["kernels"]\
+                                  ["amber"]["executable"]
             except:
                 self.logger.info("Amber path for localhost is not defined!")
 
@@ -156,7 +176,7 @@ class AmberKernelPatternB3dTUU(object):
         self.us_d1_matrix = []
         self.us_d3_matrix = []
 
-    #---------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def get_rstr_id(self, restraint):
         dot = 0
@@ -169,7 +189,7 @@ class AmberKernelPatternB3dTUU(object):
 
         return int(rstr_id)
 
-    #---------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def initialize_replicas(self):
         """Initializes replicas and their attributes to default values
@@ -207,7 +227,7 @@ class AmberKernelPatternB3dTUU(object):
 
         return replicas
 
-    #--------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
 
@@ -229,7 +249,7 @@ class AmberKernelPatternB3dTUU(object):
 
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
-        #------------------------------------------------
+        #-----------------------------------------------------------------------
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(self.amber_input)
@@ -263,12 +283,12 @@ class AmberKernelPatternB3dTUU(object):
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
 
-    #----------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #                     
     def prepare_replica_for_md(self, dimension, replicas, replica, sd_shared_list):
         """
         """
-        #--------------------------------------------------------------------------- 
+        #----------------------------------------------------------------------- 
         # from build_input_file()
         basename = self.inp_basename
             
@@ -291,7 +311,8 @@ class AmberKernelPatternB3dTUU(object):
 
         replica.cycle += 1
 
-        #---------------------------------------------------------------------------  
+        #-----------------------------------------------------------------------  
+
         crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
@@ -322,7 +343,7 @@ class AmberKernelPatternB3dTUU(object):
         }
         stage_out.append(rstr_out)
 
-        #--------------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # common code from prepare_for_exchange()
         
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
@@ -344,7 +365,8 @@ class AmberKernelPatternB3dTUU(object):
         stage_out.append(info_out)
 
         current_group = self.get_current_group(dimension, replicas, replica)
-        #--------------------------------------------------------------------------------
+
+        #-----------------------------------------------------------------------
         # for all
         data = {
             "cycle_steps": str(self.cycle_steps),
@@ -375,7 +397,7 @@ class AmberKernelPatternB3dTUU(object):
         dump_data = json.dumps(data)
         json_post_data_temp = dump_data.replace("\\", "")
 
-        #-------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # umbrella sampling
 
         current_group_rst = {}
@@ -408,7 +430,7 @@ class AmberKernelPatternB3dTUU(object):
         # sed magic
         s1 = "sed -i \"s/{/'\{/\" run.sh;"
         s2 = "sed -i \"s/@/'/\" run.sh;"
-        #------------------------------------------------------------------
+        #-----------------------------------------------------------------------
 
         cu = radical.pilot.ComputeUnitDescription()
         cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
@@ -432,7 +454,7 @@ class AmberKernelPatternB3dTUU(object):
             }
             stage_out.append(restraints_out_st)
 
-            #-------------------------------------------------
+            #-------------------------------------------------------------------
             # files needed to be staged in replica dir
             for i in range(3):
                 stage_in.append(sd_shared_list[i])
@@ -443,13 +465,13 @@ class AmberKernelPatternB3dTUU(object):
             # restraint template file: ace_ala_nme_us.RST
             stage_in.append(sd_shared_list[7])
 
-            #--------------------------------------------------
+            #-------------------------------------------------------------------
             # temperature exchange
             if dimension == 2:
                 # matrix_calculator_temp_ex.py file
                 stage_in.append(sd_shared_list[3])
 
-                #------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 #
                 cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
                                                "echo " + pre_exec_str + " >> run.sh; " + \
@@ -462,12 +484,12 @@ class AmberKernelPatternB3dTUU(object):
                 cu.mpi = self.md_replica_mpi
             else:
                 # us exchange
-                #-------------------------------------------------------------------------
+                #---------------------------------------------------------------
 
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[4])
 
-                #----------------------------------------------------------
+                #---------------------------------------------------------------
                 # 
                 cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
                                                "echo " + pre_exec_str + " >> run.sh; " + \
@@ -494,7 +516,7 @@ class AmberKernelPatternB3dTUU(object):
 
             # input_file_builder.py
             stage_in.append(sd_shared_list[5])
-            #-----------------------------------------
+            #-------------------------------------------------------------------
             # restraint file
             restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
                                 'target': replica.new_restraints,
@@ -508,10 +530,10 @@ class AmberKernelPatternB3dTUU(object):
             }
             stage_in.append(old_coor_st)
 
-            #--------------------------------------------------
+            #-------------------------------------------------------------------
             # temperature exchange
             if dimension == 2:
-                #------------------------------------------------------------
+                #---------------------------------------------------------------
                 # matrix_calculator_temp_ex.py file
                 stage_in.append(sd_shared_list[3])
 
@@ -525,7 +547,7 @@ class AmberKernelPatternB3dTUU(object):
                 cu.cores = self.md_replica_cores
                 cu.mpi = self.md_replica_mpi
             else:
-                #---------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 # us exchange
 
                 new_coor_out = {
@@ -550,7 +572,7 @@ class AmberKernelPatternB3dTUU(object):
 
         return cu
    
-    #---------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def exchange_params(self, dimension, replica_1, replica_2):
         """
@@ -569,7 +591,7 @@ class AmberKernelPatternB3dTUU(object):
             replica_1.new_restraints = rstr
             self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_restraints, replica_2.new_restraints) )
 
-    #---------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def do_exchange(self, current_cycle, dimension, replicas):
         """
@@ -595,7 +617,7 @@ class AmberKernelPatternB3dTUU(object):
                     if r.id == r2_id:
                         r2 = r
 
-                #---------------------------------------------
+                #---------------------------------------------------------------
                 # guard
                 if r1 == None:
                     rid = random.randint(0,(len(replicas)-1))
@@ -603,7 +625,7 @@ class AmberKernelPatternB3dTUU(object):
                 if r2 == None:
                     rid = random.randint(0,(len(replicas)-1))
                     r2 = replicas[rid]
-                #---------------------------------------------
+                #---------------------------------------------------------------
 
                 # swap parameters
                 if self.exchange_off == False:
@@ -613,7 +635,7 @@ class AmberKernelPatternB3dTUU(object):
         except:
             raise
 
-    #-------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def prepare_global_ex_calc(self, GL, current_cycle, dimension, replicas, sd_shared_list):
 
@@ -643,7 +665,7 @@ class AmberKernelPatternB3dTUU(object):
 
         return cu
 
-    #---------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def init_matrices(self, replicas):
         """
@@ -695,7 +717,7 @@ class AmberKernelPatternB3dTUU(object):
         self.logger.debug("[init_matrices] us_d1_matrix: {0:s}".format(self.us_d1_matrix) )
 
     
-    #-------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def get_current_group(self, dimension, replicas, replica):
         """
