@@ -9,7 +9,7 @@ import json
 import time
 import random
 
-#----------------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 def weighted_choice_sub(weights):
     """Adopted from asyncre-bigjob [1]
@@ -21,7 +21,7 @@ def weighted_choice_sub(weights):
         if rnd < 0:
             return i
 
-#---------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 def gibbs_exchange(r_i, replicas, swap_matrix):
     """Adopted from asyncre-bigjob [1]
@@ -71,8 +71,7 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 
     return r_j
 
-
-#--------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 def do_exchange(dimension, replicas, swap_matrix):
     """
@@ -89,7 +88,7 @@ def do_exchange(dimension, replicas, swap_matrix):
             
     return  exchanged
 
-#---------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class Replica3d(object):
     """Class representing replica and it's associated data.
@@ -130,7 +129,7 @@ class Replica3d(object):
         else:
             self.rstr_val_2 = rstr_val_2
 
-#--------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """
@@ -160,16 +159,16 @@ if __name__ == '__main__':
                 lines = f.readlines()
                 f.close()
                 
-                #--------------------------------------------------
+                #---------------------------------------------------------------
                 # populating matrix column
                 data = lines[0].split()
                 for i in range(replicas):
                     swap_matrix[i][int(rid)] = float(data[i])
-                #--------------------------------------------------
+                #---------------------------------------------------------------
                 # populating replica dict
                 data = lines[1].split()
                 replica_dict[data[0]] = [data[1], data[2], data[3], data[4]]
-                #---------------------------------------------------
+                #---------------------------------------------------------------
                 # updating rstr_val's for a given replica
                 rid = data[0]
    
@@ -185,15 +184,10 @@ if __name__ == '__main__':
 
                 line = 2
                 for word in tbuffer:
-                    #if word == '/':
-                    #    line = 3
                     if word.startswith("r2=") and line == 2:
                         num_list = word.split('=')
                         rstr_val_1 = float(num_list[1])
-                    #if word.startswith("r2=") and line == 3:
-                    #    num_list = word.split('=')
-                    #    rstr_val_2 = float(num_list[1])
-
+                    
                 # creating replica
                 r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_salt=replica_dict[rid][3], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1)
                 replicas_obj.append(r)
@@ -206,7 +200,7 @@ if __name__ == '__main__':
                 time.sleep(1)
                 pass
 
-    #-----------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
 
     d1_list = []
     d2_list = []
@@ -217,10 +211,9 @@ if __name__ == '__main__':
     for r1 in replicas_obj:
         current_temp = r1.new_temperature
             
-        #-------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # temperature exchange
         if dimension == 1:
-            #r_pair = [r1.rstr_val_1, r1.rstr_val_2]
             r_pair = [r1.new_salt_concentration, r1.rstr_val_1]
             
             if r_pair not in d1_list:
@@ -231,11 +224,11 @@ if __name__ == '__main__':
                     if (r1.rstr_val_1 == r2.rstr_val_1) and (r1.new_salt_concentration == r2.new_salt_concentration):
                         current_group.append(r2)
 
-                #-----------------------------------------------------------------
+                #---------------------------------------------------------------
                 # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
-        #-------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # salt exchange
         elif dimension == 2:
             #r_pair = [r1.new_temperature, r1.rstr_val_2]
@@ -249,11 +242,11 @@ if __name__ == '__main__':
                     if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_1 == r2.rstr_val_1):
                         current_group.append(r2)
                     
-                #-----------------------------------------------------------------
+                #---------------------------------------------------------------
                 # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
-        #-------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # us exchange 
         elif dimension == 3:
             #r_pair = [r1.new_temperature, r1.rstr_val_1]
@@ -267,12 +260,12 @@ if __name__ == '__main__':
                     if (r1.new_temperature == r2.new_temperature) and (r1.new_salt_concentration == r2.new_salt_concentration):
                         current_group.append(r2)
                     
-                #-----------------------------------------------------------------
+                #---------------------------------------------------------------
                 # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
 
-    #-----------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # writing to file
 
     try:

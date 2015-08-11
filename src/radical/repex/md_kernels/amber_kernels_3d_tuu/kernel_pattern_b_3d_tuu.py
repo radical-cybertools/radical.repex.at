@@ -93,6 +93,12 @@ class AmberKernelPatternB3dTUU(object):
                            ['temperature_2']["number_of_replicas"])
         self.replicas_d3 = int(inp_file['input.DIM']\
                            ['umbrella_sampling_3']["number_of_replicas"])
+
+        #-----------------------------------------------------------------------
+        # hardcoding dimension names
+        self.d1 = 'umbrella_sampling'
+        self.d2 = 'temperature'
+        self.d3 = 'umbrella_sampling'
         
         self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3 
         self.restraints_files = []

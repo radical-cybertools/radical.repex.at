@@ -150,7 +150,7 @@ def reduced_energy(temperature, potential):
 
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path=None, history_name=None):
     """Retrieves temperature and potential energy from simulation output file .history file.
@@ -194,7 +194,7 @@ def get_historical_data(replica_path=None, history_name=None):
 
     return eptot, path_to_replica_folder
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """ 

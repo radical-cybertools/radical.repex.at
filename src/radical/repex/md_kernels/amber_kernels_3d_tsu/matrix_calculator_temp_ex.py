@@ -36,9 +36,10 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 #
 def get_historical_data(replica_path, history_name):
-    """Retrieves temperature and potential energy from simulation output file .history file.
-    This file is generated after each simulation run. The function searches for directory 
-    where .history file recides by checking all computeUnit directories on target resource.
+    """Retrieves temperature and potential energy from simulation output file 
+    .history file. This file is generated after each simulation run. The function 
+    searches for directory where .history file recides by checking all 
+    computeUnit directories on target resource.
 
     Arguments:
     history_name - name of .history file for a given replica. 
@@ -46,8 +47,8 @@ def get_historical_data(replica_path, history_name):
     Returns:
     data[0] - temperature obtained from .history file
     data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
-    input/output files for a given replica recide.
+    path_to_replica_folder - path to computeUnit directory on a target resource 
+    where all input/output files for a given replica recide.
        Get temperature and potential energy from mdinfo file.
     """
 

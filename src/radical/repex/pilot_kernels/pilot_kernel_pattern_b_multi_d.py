@@ -118,7 +118,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
         #------------------------
         # GL = 0: submit global calculator before
         # GL = 1: submit global calculator after
-        GL = 0
+        GL = 1
         # BULK = 0: do sequential submission
         # BULK = 1: do BULK submission
         BULK = 1
@@ -144,16 +144,18 @@ class PilotKernelPatternBmultiD(PilotKernel):
             self.logger.info("Dim {0}: preparing {1} replicas for MD run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
             
             submitted_replicas = []
-            ################################################################################
+            exchange_replicas = []
+            
+            #-------------------------------------------------------------------
             # sequential submission
             if BULK == 0:
 
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 0:
                     ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
 
                 t1 = datetime.datetime.utcnow()
                 for replica in replicas:
@@ -161,24 +163,30 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     sub_replica = unit_manager.submit_units(compute_replica)
                     submitted_replicas.append(sub_replica)
 
-                #---------------------------------------------------------------------------------------------------
+                if (DIM == 2) and (md_kernel.d2 == 'salt_concentration'):
+                    for replica in replicas:
+                        ex_replica = md_kernel.prepare_replica_for_exchange(DIM, replicas, replica, self.sd_shared_list)
+                        sub_replica = unit_manager.submit_units(ex_replica)
+                        exchange_replicas.append(sub_replica)
+
+                #---------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 1:
                     ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 
                 t2 = datetime.datetime.utcnow()
-            ################################################################################
+            #-------------------------------------------------------------------
             # BULK submision
             else:
 
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 0:
                     ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 
                 c_replicas = []
                 t1 = datetime.datetime.utcnow()
@@ -188,20 +196,31 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     compute_replica = md_kernel.prepare_replica_for_md(DIM, replicas, replica, self.sd_shared_list)
                     c_replicas.append(compute_replica)
                 ttt_2 = datetime.datetime.utcnow()
-                print "time to prepare replicas: %f" % (ttt_2-ttt_1).total_seconds()
-                
+                #print "time to prepare replicas: %f" % (ttt_2-ttt_1).total_seconds()
                 submitted_replicas = unit_manager.submit_units(c_replicas)
 
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
+                
+                e_replicas = []
+                if (DIM == 2) and (md_kernel.d2 == 'salt_concentration'):
+
+                    unit_manager.wait_units()
+
+                    for replica in replicas:
+                        ex_replica = md_kernel.prepare_replica_for_exchange(DIM, replicas, replica, self.sd_shared_list)
+                        e_replicas.append(ex_replica)
+                    exchange_replicas = unit_manager.submit_units(e_replicas)
+
+                #---------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 1:
                     ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 
                 t2 = datetime.datetime.utcnow()
             
-            ################################################################################
+            #-------------------------------------------------------------------
 
             self.logger.info("Dim {0}: submitting {1} replicas for MD run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
 
@@ -219,10 +238,14 @@ class PilotKernelPatternBmultiD(PilotKernel):
             for cu in submitted_replicas:
                 cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
             
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX_salt")] = {}
+            for cu in exchange_replicas:
+                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX_salt")]["cu.uid_{0}".format(cu.uid)] = cu
+
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")] = {}
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
 
-            #----------------------------------------------------------------------------------------------
+            #-------------------------------------------------------------------
             # populating swap matrix                
             t1 = datetime.datetime.utcnow()
             for r in submitted_replicas:
@@ -239,7 +262,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = (t2-t1).total_seconds()
             
-        #--------------------------------------------------------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # end of loop
 
         #------------------------------------------------

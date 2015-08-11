@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernels.amber_kernels_salt.amber_matrix_calculator_pattern_b
+.. module:: radical.repex.md_kernels.amber_kernels_3d_tsu.matrix_calculator_us_ex
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
@@ -13,7 +13,7 @@ import json
 import math
 import time
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def bond(c1,c2):
 
@@ -53,7 +53,7 @@ def dihedral(c1,c2,c3,c4):
     if det >= 0.0: return dih
     else: return 360.0-dih
 
-class restraint(object):
+class Restraint(object):
 
     def __init__(self):
 
@@ -129,8 +129,8 @@ class restraint(object):
         elif (self.r > r3) and (self.r <= r4): self.energy = rk3*(self.r-r3)**2
         elif self.r > r4: self.energy = rk3*(r4-r3)**2 - 2.0*rk3*(r4-r3)*(self.r-r4)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 
@@ -149,12 +149,13 @@ def reduced_energy(temperature, potential):
 
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-def get_historical_data(history_name):
-    """Retrieves temperature and potential energy from simulation output file .history file.
-    This file is generated after each simulation run. The function searches for directory 
-    where .history file recides by checking all computeUnit directories on target resource.
+def get_historical_data(replica_path=None, history_name=None):
+    """Retrieves temperature and potential energy from simulation output file 
+    .history file. This file is generated after each simulation run. The 
+    function searches for directory where .history file recides by checking all 
+    computeUnit directories on target resource.
 
     Arguments:
     history_name - name of .history file for a given replica. 
@@ -162,15 +163,18 @@ def get_historical_data(history_name):
     Returns:
     data[0] - temperature obtained from .history file
     data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
-    input/output files for a given replica recide.
+    path_to_replica_folder - path to computeUnit directory on a target resource 
+    where all input/output files for a given replica recide.
        Get temperature and potential energy from mdinfo file.
 
-    ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED FROM THE PROPERTY OF THE REPLICA OBJECT.
+    ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED 
+    FROM THE PROPERTY OF THE REPLICA OBJECT.
     """
 
     home_dir = os.getcwd()
-    os.chdir("../staging_area")
+    if replica_path != None:
+        path = "../staging_area" + replica_path
+        os.chdir(path)
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
@@ -185,12 +189,14 @@ def get_historical_data(history_name):
     except:
         raise
         
-    os.chdir("../")
-    os.chdir(home_dir)
+    if replica_path != None:
+        os.chdir("../")
+        os.chdir(home_dir)
+
     return eptot, path_to_replica_folder
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 if __name__ == '__main__':
     """ TODO 
     """
@@ -202,15 +208,15 @@ if __name__ == '__main__':
     replica_cycle = int(data["replica_cycle"])
     replicas = int(data["replicas"])
     base_name = data["base_name"]
+    new_restraints = data["new_restraints"]
 
     prmtop_name = data["amber_parameters"]
     mdin_name = data["amber_input"]
-    # INITIAL REPLICA TEMPERATURE:
     init_temp = float(data["init_temp"])
+    init_salt = float(data["init_salt"])
 
     current_group_rst = data["current_group_rst"]
    
-    # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
     new_coor = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
 
     pwd = os.getcwd()
@@ -218,7 +224,47 @@ if __name__ == '__main__':
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    replica_energy, path_to_replica_folder = get_historical_data( history_name )
+    replica_path = "/replica_%d/" % (replica_id)
+
+    swap_column = [0.0]*replicas
+
+    success = 0
+    attempts = 0
+    while (success == 0):
+        try:
+            replica_energy, path_to_replica_folder = get_historical_data(replica_path=None, history_name=history_name)
+            print "Got history data for self!"
+            success = 1
+        except:
+            print "Waiting for self (history file)"
+            time.sleep(1)
+            attempts += 1
+            # most likely amber run failed
+            # so we write zeros to matrix column file
+            if attempts >= 12:
+                #---------------------------------------------------------------
+                # writing to file
+                try:
+                    outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
+                    with open(outfile, 'w+') as f:
+                        row_str = ""
+                        for item in swap_column:
+                            if len(row_str) != 0:
+                                row_str = row_str + " " + str(item)
+                            else:
+                                row_str = str(item)
+                            f.write(row_str)
+                            f.write('\n')
+                            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp) + " " + str(init_salt)
+                            f.write(row_str)
+
+                        f.close()
+
+                except IOError:
+                    print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
+                #---------------------------------------------------------------
+                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+            pass
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
@@ -226,33 +272,43 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    for j in current_group_rst.keys():        
+    #if replica_cycle != 0:
+    for j in current_group_rst.keys():
+        success = 0        
         current_rstr = current_group_rst[j]
-        try:
-            rstr_file = file(current_rstr,'r')
-            rstr_lines = rstr_file.readlines()
-            rstr_file.close()
-            rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
-            us_energy = 0.0
-            r = restraint()
-            r.set_crd(new_coor)
-            for rstr_entry in rstr_entries:
-                r.set_rstr(rstr_entry); r.calc_energy()
-                us_energy += r.energy
-            energies[int(j)] = replica_energy + us_energy
-            temperatures[int(j)] = float(init_temp)
-        except:
-            raise
+        while (success == 0):
+            try:
+                #---------------------------------------------------------------
+                # can avoid this step!
+                rstr_ppath = "../staging_area/" + current_rstr
+                rstr_file = file(rstr_ppath,'r')
+                rstr_lines = rstr_file.readlines()
+                rstr_file.close()
+                #---------------------------------------------------------------
+                rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
+                us_energy = 0.0
+                r = Restraint()
+                r.set_crd(new_coor)
+                for rstr_entry in rstr_entries:
+                    r.set_rstr(rstr_entry); r.calc_energy()
+                    us_energy += r.energy
+                energies[int(j)] = replica_energy + us_energy
+                temperatures[int(j)] = float(init_temp)
 
-    # init swap column
-    swap_column = [0.0]*replicas
+                success = 1
+                print "Success processing replica: %s" % j
+            except:
+                print "Waiting for replica: %s" % j
+                time.sleep(1)
+                pass
 
     #for j in range(replicas):
     for j in current_group_rst.keys():      
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 
-    #----------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # writing to file
+
     try:
         outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
         with open(outfile, 'w+') as f:
@@ -262,9 +318,11 @@ if __name__ == '__main__':
                     row_str = row_str + " " + str(item)
                 else:
                     row_str = str(item)
-            #row_str = row_str + " " + (str(path_to_replica_folder).rstrip())
- 
             f.write(row_str)
+            f.write('\n')
+            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp) + " " + str(init_salt)
+            f.write(row_str)
+
         f.close()
 
     except IOError:

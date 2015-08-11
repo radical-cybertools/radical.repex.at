@@ -14,7 +14,7 @@ import os,sys,socket,time
 
 #-------------------------------------------------------------------------------
 #
-def get_historical_data(history_name, data_path=os.getcwd()):
+def get_historical_data(replica_path, history_name):
     """Retrieves temperature and potential energy from simulation output file .history file.
     This file is generated after each simulation run. The function searches for directory 
     where .history file recides by checking all computeUnit directories on target resource.
@@ -28,29 +28,33 @@ def get_historical_data(history_name, data_path=os.getcwd()):
     path_to_replica_folder - path to computeUnit directory on a target resource where all
     input/output files for a given replica recide.
        Get temperature and potential energy from mdinfo file.
-
-    ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED FROM THE PROPERTY OF THE REPLICA OBJECT.
     """
 
     home_dir = os.getcwd()
-    os.chdir(data_path)
+    if replica_path != None:
+        path = "../staging_area" + replica_path
+        try:
+            os.chdir(path)
+        except:
+            raise
 
     temp = 0.0    #temperature
     eptot = 0.0   #potential
+
     try:
         f = open(history_name)
         lines = f.readlines()
         f.close()
         path_to_replica_folder = os.getcwd()
         for i in range(len(lines)):
-            #if "TEMP(K)" in lines[i]:
-            #    temp = float(lines[i].split()[8])
             if "EPtot" in lines[i]:
                 eptot = float(lines[i].split()[8])
     except:
-        raise
+        os.chdir(home_dir)
+        raise 
 
     os.chdir(home_dir)
+    
     return eptot, path_to_replica_folder
 
 #-------------------------------------------------------------------------------
@@ -73,18 +77,9 @@ if __name__ == '__main__':
 
     init_temp = float(data["init_temp"])
 
-    # AMBER PATH ON THIS RESOURCE:
     amber_path = data["amber_path"]
 
-    # SALT CONCENTRATION FOR ALL REPLICAS
-    #all_salt_conc = (data["all_salt_ctr"])
-    #all_temperature = (data["all_temp"])
-    #all_rstr = (data["all_rstr"])
-
     current_group_tsu = data["current_group_tsu"]
-
-    #print "current_group_tsu: "
-    #print current_group_tsu
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
     r_old_path = data["r_old_path"]
@@ -93,7 +88,8 @@ if __name__ == '__main__':
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    replica_energy, path_to_replica_folder = get_historical_data( history_name )
+    replica_path = "/replica_%s/" % (str(replica_id))
+    replica_energy, path_to_replica_folder = get_historical_data( replica_path, history_name )
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
     new_coor_file = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)

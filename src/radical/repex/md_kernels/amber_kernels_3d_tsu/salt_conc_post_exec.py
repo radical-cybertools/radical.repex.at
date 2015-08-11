@@ -12,10 +12,8 @@ import sys
 import json
 import os,sys,socket,time
 
-
-
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 
@@ -33,8 +31,8 @@ def reduced_energy(temperature, potential):
         beta = 1. / kb     
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 def get_historical_data(history_name, data_path=os.getcwd()):
     """Retrieves temperature and potential energy from simulation output file .history file.
     This file is generated after each simulation run. The function searches for directory 
@@ -46,11 +44,13 @@ def get_historical_data(history_name, data_path=os.getcwd()):
     Returns:
     data[0] - temperature obtained from .history file
     data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
+    path_to_replica_folder - path to computeUnit directory on a target resource 
+    where all
     input/output files for a given replica recide.
        Get temperature and potential energy from mdinfo file.
 
-    ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED FROM THE PROPERTY OF THE REPLICA OBJECT.
+    ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED 
+    FROM THE PROPERTY OF THE REPLICA OBJECT.
     """
 
     home_dir = os.getcwd()
@@ -74,31 +74,11 @@ def get_historical_data(history_name, data_path=os.getcwd()):
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 if __name__ == '__main__':
     """This module calculates one swap matrix column for replica and writes this column to 
     matrix_column_x_x.dat file. 
-    """
-
-    """
-    argument_list = str(sys.argv)
-    replica_id = str(sys.argv[1])
-    replica_cycle = str(sys.argv[2])
-    replicas = int(str(sys.argv[3]))
-    base_name = str(sys.argv[4])
-
-    # INITIAL REPLICA TEMPERATURE:
-    init_temp = str(sys.argv[5])
-
-    # AMBER PATH ON THIS RESOURCE:
-    amber_path = str(sys.argv[6])
-
-    # SALT CONCENTRATION FOR THIS REPLICA
-    salt_conc = str(sys.argv[7])
-
-    # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
-    shared_path = str(sys.argv[8])    
     """
 
     json_data = sys.argv[1]
@@ -113,6 +93,8 @@ if __name__ == '__main__':
     mdin_name = data["amber_input"]
     # INITIAL REPLICA TEMPERATURE:
     init_temp = float(data["init_temp"])
+    init_salt = float(data["init_salt"])
+    new_restraints = data["new_restraints"]
 
     # AMBER PATH ON THIS RESOURCE:
     amber_path = data["amber_path"]
@@ -123,7 +105,7 @@ if __name__ == '__main__':
 
     pwd = os.getcwd()
 
-    #---------------------------------------
+    #---------------------------------------------------------------------------
 
     temperatures = [0.0]*replicas  
     energies = [0.0]*replicas
@@ -145,7 +127,7 @@ if __name__ == '__main__':
     for j in current_group_tsu.keys():       
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 
-    #----------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # writing to file
     outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
     with open(outfile, 'w+') as f:
@@ -156,8 +138,10 @@ if __name__ == '__main__':
             else:
                 row_str = str(item)   
         row_str + " " + (str(path_to_replica_folder).rstrip())
-
         f.write(row_str)    
+        f.write('\n')
+        row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp) + " " + str(init_salt)
+        f.write(row_str)
     f.close()
   
  
