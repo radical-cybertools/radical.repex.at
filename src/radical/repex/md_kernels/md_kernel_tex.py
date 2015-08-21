@@ -19,7 +19,7 @@ from kernels.kernels import KERNELS
 import radical.utils.logger as rul
 from replicas.replica import Replica1d
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class MdKernelTex(object):
     """
@@ -86,7 +86,7 @@ class MdKernelTex(object):
         self.all_temp_list = []
         self.all_salt_list = []
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def initialize_replicas(self):
         """Initializes replicas and their attributes to default values
@@ -103,7 +103,7 @@ class MdKernelTex(object):
             
         return replicas
 
-#----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def gibbs_exchange(self, r_i, replicas, swap_matrix):
         """Adopted from asyncre-bigjob [1]
@@ -155,7 +155,7 @@ class MdKernelTex(object):
         r_j = replicas[j]
         return r_j
 
-#----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def weighted_choice_sub(self, weights):
         """Adopted from asyncre-bigjob [1]
@@ -167,7 +167,7 @@ class MdKernelTex(object):
             if rnd < 0:
                 return i
 
-#----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def compute_swap_matrix(self, replicas):
         """Adopted from asyncre-bigjob [1]
@@ -200,7 +200,7 @@ class MdKernelTex(object):
                 swap_matrix[repl_j.sid][repl_i.id] = self.reduced_energy(repl_j.old_temperature,repl_i.potential)
         return swap_matrix
 
-#----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     # OK
     def reduced_energy(self, temperature, potential):
@@ -210,7 +210,7 @@ class MdKernelTex(object):
         beta = 1. / (kb*temperature)     
         return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def update_replica_info(self, replicas):
         """This function is primarely used by both NAMD and Amber kernels in scheme 4.
@@ -244,8 +244,7 @@ class MdKernelTex(object):
             except:
                 raise
 
-
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     # ok
     def get_historical_data(self, replica, cycle):

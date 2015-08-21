@@ -9,7 +9,7 @@ import json
 import time
 import random
 
-#----------------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 def weighted_choice_sub(weights):
     """Adopted from asyncre-bigjob [1]
@@ -21,7 +21,7 @@ def weighted_choice_sub(weights):
         if rnd < 0:
             return i
 
-#---------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 def gibbs_exchange(r_i, replicas, swap_matrix):
     """Adopted from asyncre-bigjob [1]
@@ -72,7 +72,7 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
     return r_j
 
 
-#--------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 def do_exchange(dimension, replicas, swap_matrix):
     """
@@ -89,7 +89,7 @@ def do_exchange(dimension, replicas, swap_matrix):
             
     return  exchanged
 
-#---------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class Replica3d(object):
     """Class representing replica and it's associated data.
@@ -130,7 +130,7 @@ class Replica3d(object):
         else:
             self.rstr_val_2 = rstr_val_2
 
-#--------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """
@@ -206,7 +206,7 @@ if __name__ == '__main__':
                 time.sleep(1)
                 pass
 
-    #-----------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
 
     d1_list = []
     d2_list = []
@@ -217,7 +217,7 @@ if __name__ == '__main__':
     for r1 in replicas_obj:
         current_temp = r1.new_temperature
             
-        #-------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # temperature exchange
         if dimension == 2:
             r_pair = [r1.rstr_val_1, r1.rstr_val_2]
@@ -229,11 +229,11 @@ if __name__ == '__main__':
                     if (r1.rstr_val_1 == r2.rstr_val_1) and (r1.rstr_val_2 == r2.rstr_val_2):
                         current_group.append(r2)
 
-                #-----------------------------------------------------------------
+                #---------------------------------------------------------------
                 # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
-        #-------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # us exchange d1
         elif dimension == 1:
             r_pair = [r1.new_temperature, r1.rstr_val_2]
@@ -246,11 +246,11 @@ if __name__ == '__main__':
                     if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_2 == r2.rstr_val_2):
                         current_group.append(r2)
                     
-                #-----------------------------------------------------------------
+                #---------------------------------------------------------------
                 # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
-        #-------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # us exchange d3
         elif dimension == 3:
             r_pair = [r1.new_temperature, r1.rstr_val_1]
@@ -263,12 +263,12 @@ if __name__ == '__main__':
                     if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_1 == r2.rstr_val_1):
                         current_group.append(r2)
                     
-                #-----------------------------------------------------------------
+                #---------------------------------------------------------------
                 # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
 
-    #-----------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # writing to file
 
     try:

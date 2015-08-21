@@ -13,10 +13,10 @@ from os import path
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
+from amber_kernels_tex.kernel_pattern_b_tex import KernelPatternBTex
 from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """Runs RE simulation using pattern B. 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernelTexPatternB( inp_file, work_dir_local )
+    md_kernel = KernelPatternBTex( inp_file, work_dir_local )
     pilot_kernel = PilotKernelPatternB( inp_file )
 
     # initializing replicas

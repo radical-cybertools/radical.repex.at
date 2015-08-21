@@ -17,7 +17,7 @@ import radical.pilot
 from pilot_kernels.pilot_kernel import *
 import radical.utils.logger as rul
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class PilotKernelPatternBmultiD(PilotKernel):
     """This class is responsible for performing all Radical Pilot related operations for RE pattern B.
@@ -45,7 +45,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
         self.sd_shared_list = []
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def run_simulation(self, replicas, pilot_object, session,  md_kernel):
         """This function runs the main loop of RE simulation for RE pattern B.
@@ -57,7 +57,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
         md_kernel - an instance of NamdKernelScheme2a class
         """
 
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         #
         def unit_state_change_cb(unit, state):
             """This is a callback function. It gets called very time a ComputeUnit changes its state.
@@ -72,7 +72,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
                     #unit_manager.submit_units( unit.description )
 
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         cycles = md_kernel.nr_cycles + 1
                 
         unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
@@ -296,7 +296,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
                         f.write("{r}\n".format(r=row))
 
-            #------------------------------------------------------------
+            #-------------------------------------------------------------------
             head = "CU_ID; Scheduling; StagingInput; Allocating; Executing; StagingOutput; Done; Cycle; Dim; Run;"
             f.write("{row}\n".format(row=head))
             
