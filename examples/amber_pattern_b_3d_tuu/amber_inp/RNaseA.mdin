@@ -1,24 +1,26 @@
-phos_trans_qmmm
- &cntrl
-  irest = @irest@, ntx = @ntx@,
-  imin = 0, nstlim = @nstlim@, temp0 = @temp@,
-  ntc = 2, ntf = 2, tol = 1e-8,
-  ntt = 3, iwrap = 1, ioutfm = 1, gamma_ln = 5.0,
-  ntpr = 100, ntwx = 100, ntwr = 100,
-  ifqnt = 1, nmropt = 1
+rnasea
+&cntrl
+ irest = @irest@, ntx = @ntx@,
+ nstlim = @nstlim@, dt = 0.001,
+ iwrap = 1, ioutfm = 1,
+ ntc = 2, ntf = 2, tol = 1e-8,
+ ntt = 3, temp0 = @temp@, gamma_ln = 5.0,
+ ntp = 0, ntb=1,
+ ifqnt = 1, nmropt = 1
  /
  &ewald
-   dsum_tol = 1.0e-6,
+   dsum_tol = 1.0e-6, 
  /
  &qmmm
-   qmmask='@186-197,615-630,1881-1893,1775-1786', qmcharge=1, qm_theory='AM1D',
-   qmshake = 0, qmmm_switch = 1, itrmax = 50
+   qmmask='@186-197, 1859-1920, 1775-1786',
+   qmcharge = 0, qm_theory = 'AM1D', qmshake = 0, qmmm_switch = 1,
+   kmaxqx = 7, kmaxqy = 7, kmaxqz = 7, ksqmaxq = 98, itrmax = 50
  /
  &wt
-  type='DUMPFREQ', istep1=10,
+   type='DUMPFREQ', istep1 = 10
  /
  &wt
    type='END'
  /
-DISANG=@disang@
-DUMPAVE=@disang@.out
+ DISANG=@disang@
+ DUMPAVE=@disang@.out

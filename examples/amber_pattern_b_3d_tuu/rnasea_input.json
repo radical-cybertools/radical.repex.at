@@ -3,7 +3,7 @@
         "resource": "stampede.tacc.utexas.edu",
         "username" : "chen1990",
         "project" : "TG-MCB110101",
-        "runtime" : "60",
+        "runtime" : "30",
         "queue": "development",
         "cleanup" : "False",
         "cores" : "64"
@@ -31,15 +31,15 @@
             },
         "umbrella_sampling_1": {
             "number_of_replicas": "4",
-            "us_start_param": "-2.0",
-            "us_end_param": "2.0",
+            "us_start_param": "-1.5",
+            "us_end_param": "1.5",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },
         "umbrella_sampling_3": {
             "number_of_replicas": "4",
-            "us_start_param": "-2.0",
-            "us_end_param": "2.0",
+            "us_start_param": "-1.5",
+            "us_end_param": "1.5",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             }    
