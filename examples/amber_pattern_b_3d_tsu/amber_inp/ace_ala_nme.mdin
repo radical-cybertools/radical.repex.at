@@ -1,7 +1,7 @@
  alanine dipeptide
  &cntrl
   saltcon = @salt@,
-  irest = 0, ntx = 1,
+  irest = @irest@, ntx = @ntx@,
   nstlim = @nstlim@, dt = 0.001,
   ntt = 3, gamma_ln = 5.0,
   temp0 = @temp@, ig = -1,
