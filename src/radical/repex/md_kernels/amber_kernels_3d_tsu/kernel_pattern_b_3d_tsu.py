@@ -314,30 +314,6 @@ class AmberKernelPatternB3dTSU(object):
         self.shared_urls.append(rstr_template_url)
  
     #---------------------------------------------------------------------------
-    #  
-    def build_restraint_file(self, replica):
-        """Builds restraint file for replica, based on template file
-        """
-
-        template = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
-        try:
-            r_file = open(template, "r")
-            tbuffer = r_file.read()
-            r_file.close()
-        except IOError:
-            self.logger.info("Warning: unable to access file: {0}".format(self.us_template) )
-
-        i = replica.id
-
-        try:
-            w_file = open(replica.new_restraints, "w")
-            tbuffer = tbuffer.replace("@val1@", str(replica.rstr_val_1))
-            w_file.write(tbuffer)
-            w_file.close()
-        except IOError:
-            self.logger.info("Warning: unable to access file: {0}".format(replica.new_restraints) )
-
-    #---------------------------------------------------------------------------
     #
     def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin
@@ -640,7 +616,7 @@ class AmberKernelPatternB3dTSU(object):
                                                # TEMP
                                                #"echo " + post_exec_str_salt + " >> run.sh; "]
 
-                print "salt mpi: {0}".format(self.salt_ex_mpi)
+                #print "salt mpi: {0}".format(self.salt_ex_mpi)
                 cu.mpi = True
                 cu.output_staging = stage_out 
                 cu.input_staging = stage_in
@@ -762,6 +738,9 @@ class AmberKernelPatternB3dTSU(object):
 
         current_group = self.get_current_group(dimension, replicas, replica)
 
+        #print "current group for replica: {0}".format(replica.id)
+        #print current_group
+
         cu = radical.pilot.ComputeUnitDescription()
         
         if dimension == 2:
@@ -828,7 +807,6 @@ class AmberKernelPatternB3dTSU(object):
             }
             out_list.append(matrix_col_out)
 
-
             cu.arguments = ['-ng', str(self.replicas_d2), '-groupfile', 'groupfile']
             cu.cores = self.replicas_d2
             cu.mpi = self.salt_ex_mpi
@@ -841,32 +819,38 @@ class AmberKernelPatternB3dTSU(object):
     def exchange_params(self, dimension, replica_1, replica_2):
         
         if dimension == 1:
-            self.logger.debug("[exchange_params] before: r1: {0} r2: {1}"\
+            self.logger.info("[exchange_params] before: r1: {0} r2: {1}"\
                 .format(replica_1.new_temperature, replica_2.new_temperature) )
             temp = replica_2.new_temperature
             replica_2.new_temperature = replica_1.new_temperature
             replica_1.new_temperature = temp
-            self.logger.debug("[exchange_params] after: r1: {0} r2: {1}"\
+            self.logger.info("[exchange_params] after: r1: {0} r2: {1}"\
                 .format(replica_1.new_temperature, replica_2.new_temperature) )
         elif dimension == 2:
-            self.logger.debug("[exchange_params] before: r1: {0:0.2f} \
+            self.logger.info("[exchange_params] before: r1: {0:0.2f} \
                 r2: {1:0.2f}".format(replica_1.new_salt_concentration, \
                                      replica_2.new_salt_concentration) )
             salt = replica_2.new_salt_concentration
             replica_2.new_salt_concentration = replica_1.new_salt_concentration
             replica_1.new_salt_concentration = salt
-            self.logger.debug("[exchange_params] after: r1: {0:0.2f} \
+            self.logger.info("[exchange_params] after: r1: {0:0.2f} \
                 r2: {1:0.2f}".format(replica_1.new_salt_concentration, \
                                      replica_2.new_salt_concentration) )
         else:
-            self.logger.debug("[exchange_params] before: r1: {0:0.2f} \
-                r2: {1:0.2f}".format(replica_1.new_restraints, \
+            self.logger.info("[exchange_params] before: r1: {0} \
+                r2: {1}".format(replica_1.new_restraints, \
                                      replica_2.new_restraints) )
+
             rstr = replica_2.new_restraints
             replica_2.new_restraints = replica_1.new_restraints
             replica_1.new_restraints = rstr
-            self.logger.debug("[exchange_params] after: r1: {0:0.2f} \
-                r2: {1:0.2f}".format(replica_1.new_restraints, \
+
+            val = replica_2.rstr_val_1
+            replica_2.rstr_val_1 = replica_1.rstr_val_1
+            replica_1.rstr_val_1 = val
+
+            self.logger.info("[exchange_params] after: r1: {0} \
+                r2: {1}".format(replica_1.new_restraints, \
                                      replica_2.new_restraints) )
 
     #---------------------------------------------------------------------------
@@ -899,11 +883,13 @@ class AmberKernelPatternB3dTSU(object):
                 #---------------------------------------------------------------
                 # guard
                 if r1 == None:
-                    rid = random.randint(0,(len(replicas)-1))
-                    r1 = replicas[rid]
-                if r2 == None:
-                    rid = random.randint(0,(len(replicas)-1))
-                    r2 = replicas[rid]
+                    print "r1 is None"
+                    if r2 == None:
+                        print "r2 is None"
+                        rid = random.randint(0,(len(replicas)-1))
+                        r1 = r2 = replicas[rid]
+                    else:
+                        r1 = r2
                 #---------------------------------------------------------------
 
                 # swap parameters
@@ -1024,6 +1010,10 @@ class AmberKernelPatternB3dTSU(object):
                 if r1_pair == my_pair:
                     current_group.append(str(r1.id))
 
+        # 
+        if len(current_group) != self.replicas_d2:
+            print "group has wrong size: {0}".format(len(current_group))
+            
         return current_group
 
     #---------------------------------------------------------------------------

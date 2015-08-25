@@ -297,7 +297,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                         f.write("{r}\n".format(r=row))
 
             #-------------------------------------------------------------------
-            head = "CU_ID; Scheduling; StagingInput; Allocating; Executing; StagingOutput; Done; Cycle; Dim; Run;"
+            head = "CU_ID; Scheduling; StagingInput; PendingAgentInputStaging; AgentStagingInput; Allocating; Executing; PendingAgentOutputStaging; PendingOutputStaging; StagingOutput; Done; Cycle; Dim; Run;"
             f.write("{row}\n".format(row=head))
             
             for cycle in cu_performance_data:
@@ -310,8 +310,11 @@ class PilotKernelPatternBmultiD(PilotKernel):
                                 st_dict = st.as_dict()
                                 st_data["{0}".format( st_dict["state"] )] = {}
                                 st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+                            #print "st_data: "
+                            #print st_data
 
                             #print st_data
+                            """
                             row = "{uid}; {Scheduling}; {StagingInput}; {Allocating}; {Executing}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
                                 uid=cu.uid,
                                 Scheduling=(st_data['Scheduling']-start).total_seconds(),
@@ -325,6 +328,26 @@ class PilotKernelPatternBmultiD(PilotKernel):
                                 Cycle=cycle,
                                 Dim=dim,
                                 Run=run)
-                        
+                            """
+                            row = "{uid}; {Scheduling}; {StagingInput}; {PendingAgentInputStaging}; {AgentStagingInput}; {Allocating}; {Executing}; {PendingAgentOutputStaging}; {PendingOutputStaging}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
+                                uid=cu.uid,
+                                #Unscheduled=st_data['Unscheduled'],
+                                Scheduling=st_data['Scheduling'],
+                                #PendingInputStaging = st_data['PendingInputStaging'],
+                                StagingInput=st_data['StagingInput'],
+                                PendingAgentInputStaging=st_data['PendingAgentInputStaging'],
+                                AgentStagingInput=st_data['AgentStagingInput'],
+                                #PendingExecution=st_data['PendingExecution'],
+                                Allocating=st_data['Allocating'],
+                                Executing=st_data['Executing'],
+                                PendingAgentOutputStaging=st_data['PendingAgentOutputStaging'],
+                                #AgentStagingOutput=st_data['AgentStagingOutput'],
+                                PendingOutputStaging=st_data['PendingOutputStaging'],
+                                StagingOutput=st_data['StagingOutput'],
+                                Done=st_data['Done'],
+                                Cycle=cycle,
+                                Dim=dim,
+                                Run=run)
+
                             f.write("{r}\n".format(r=row))
             

@@ -228,6 +228,8 @@ class AmberKernelPatternB3dTUU(object):
                     rstr_val_1 = str(starting_value_d1)
                     rstr_val_2 = str(starting_value_d3)
 
+                    #print "rid: %d temp: %f us1: %f us2: %f " % (rid, t1, float(rstr_val_1), float(rstr_val_2))
+
                     r = Replica3d(rid, new_temperature=t1, new_restraints=r1, rstr_val_1=float(rstr_val_1), rstr_val_2=float(rstr_val_2),  cores=1)
                     replicas.append(r)
 
@@ -590,12 +592,26 @@ class AmberKernelPatternB3dTUU(object):
             replica_2.new_temperature = replica_1.new_temperature
             replica_1.new_temperature = temp
             self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
-        else:
+        elif dimension == 1:
             self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_restraints, replica_2.new_restraints) )
+            
             rstr = replica_2.new_restraints
             replica_2.new_restraints = replica_1.new_restraints
             replica_1.new_restraints = rstr
+
+            val = replica_2.rstr_val_1
+            replica_2.rstr_val_1 = replica_1.rstr_val_1
+            replica_1.rstr_val_1 = val
+
             self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_restraints, replica_2.new_restraints) )
+        else:
+            rstr = replica_2.new_restraints
+            replica_2.new_restraints = replica_1.new_restraints
+            replica_1.new_restraints = rstr
+
+            val = replica_2.rstr_val_2
+            replica_2.rstr_val_2 = replica_1.rstr_val_2
+            replica_1.rstr_val_2 = val
 
     #---------------------------------------------------------------------------
     #

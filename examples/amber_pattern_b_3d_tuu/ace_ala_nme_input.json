@@ -2,14 +2,14 @@
     "input.PILOT": {
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
-        "project" : "TG-CCR140028",
+        "project" : "TG-MCB090174",
         "queue" : "development",
         "runtime" : "30",
         "cleanup" : "False",
         "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "2",
+        "number_of_cycles": "3",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
