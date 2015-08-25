@@ -601,23 +601,15 @@ class AmberKernelPatternB3dTSU(object):
                 stage_in.append(sd_shared_list[5])
                 # copying salt_conc_post_exec.py from staging area to cu folder
                 stage_in.append(sd_shared_list[6])
-
-                amber_str_mpi = self.amber_path_mpi
-
-                
-                argument_str_mpi = " -ng " + str(self.replicas_d2) + " -groupfile " + "groupfile"
-                cu.cores = self.replicas_d2
+             
+                cu.cores = self.md_replica_cores
                 
                 cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
                                                "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + pre_exec_str_salt + " >> run.sh; " + \
-                                               "echo " + amber_str_mpi + argument_str_mpi + " >> run.sh; "]
-                                               # TEMP
-                                               #"echo " + post_exec_str_salt + " >> run.sh; "]
-
+                                               "echo " + amber_str + argument_str + " >> run.sh; "]
+                                           
                 #print "salt mpi: {0}".format(self.salt_ex_mpi)
-                cu.mpi = True
+                cu.mpi = self.md_replica_mpi
                 cu.output_staging = stage_out 
                 cu.input_staging = stage_in
 

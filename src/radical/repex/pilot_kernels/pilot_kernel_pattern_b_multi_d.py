@@ -250,10 +250,15 @@ class PilotKernelPatternBmultiD(PilotKernel):
             t1 = datetime.datetime.utcnow()
             for r in submitted_replicas:
                 if r.state != radical.pilot.DONE:
-                    self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, r.uid))
+                    self.logger.error('ERROR: In D%d MD-step failed for unit:  %s' % (DIM, r.uid))
+
+            if len(exchange_replicas) > 0:
+                for r in exchange_replicas:
+                    if r.state != radical.pilot.DONE:
+                        self.logger.error('ERROR: In D%d Exchange-step failed for unit:  %s' % (DIM, r.uid))
 
             if global_ex_cu.state != radical.pilot.DONE:
-                self.logger.error('ERROR: In D%d exchange step failed for unit:  %s' % (DIM, global_ex_cu.uid))
+                self.logger.error('ERROR: In D%d Global-Exchange-step failed for unit:  %s' % (DIM, global_ex_cu.uid))
 
             # do exchange of parameters                     
             md_kernel.do_exchange(current_cycle, DIM, replicas)

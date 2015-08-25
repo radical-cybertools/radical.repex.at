@@ -1,13 +1,16 @@
  alanine dipeptide
  &cntrl
-  irest = 0, ntx = 1, 
-  nstlim = @nstlim@, dt = 0.001, temp0 = @temp@,
-  ntpr = 1000, ntwx = 1000,
-  ntc = 2, ntf = 2, tol = 1e-08, 
-  ntt = 3, gamma_ln = 5.0, ig = -1, 
-  nmropt=1
+  saltcon = @salt@,
+  irest = 0, ntx = 1,
+  nstlim = @nstlim@, dt = 0.001,
+  ntt = 3, gamma_ln = 5.0,
+  temp0 = @temp@, ig = -1,
+  ntc = 2, ntf = 2, tol = 1e-08,
+  ntb = 0,
+  cut = 999.0, rgbmax = 999.0, nmropt = 1,
+  ntpr = 1000, ntwx = 1000, ntwr = -1000,
  /
  &wt 
    type='END' 
  /
- DISANG=@disang@
+DISANG=@disang@
