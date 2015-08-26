@@ -72,5 +72,23 @@ KERNELS = {
                 "executable_mpi" : "/home/antons/amber/amber14/bin/sander"
             }
         }
+    },"xsede.comet":
+    {
+        "params":
+        {
+            "cores": 24,
+        },
+        "kernels":
+        {
+            "amber": {
+                "environment" : {},
+                "pre_execution" : ["module load python", "module load amber", "module load mpi4py"],
+                "executable" : "/opt/amber/bin/sander",
+                "executable_mpi" : "/opt/amber/bin/sander.MPI"
+            }
+        }
+
+
     }
+
 }
