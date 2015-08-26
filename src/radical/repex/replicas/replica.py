@@ -13,8 +13,8 @@ import json
 
 from radical.ensemblemd.patterns.replica_exchange import Replica
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 class Replica(Replica):
     """Class representing replica and it's associated data.
     """
@@ -26,8 +26,10 @@ class Replica(Replica):
         new_temperature - temperature at which replica is initialized (default: None)
         cores - number of cores to be used by replica's NAMD instance (default: 1)
         """
+
         self.id = int(my_id)
         self.sid = int(my_id)
+
         self.state = 'I'
         self.cycle = 0
         if new_temperature is None:
@@ -58,8 +60,8 @@ class Replica(Replica):
         self.stopped_run = -1
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 class ReplicaSalt(object):
     """Class representing replica and it's associated data.
     """
@@ -104,8 +106,8 @@ class ReplicaSalt(object):
 
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+#
 class Replica2d(object):
     """Class representing replica and it's associated data.
     """

@@ -9,6 +9,9 @@ __license__ = "MIT"
 import os
 import sys
 import json
+import math
+import pprint
+import datetime
 from os import path
 from amber_tex.amber_tex import *
 from repex_utils.replica_cleanup import *
@@ -22,7 +25,7 @@ from radical.ensemblemd import SingleClusterEnvironment
 if __name__ == '__main__':
     """Runs RE simulation using Pattern-B. 
     """
- 
+    t1 = datetime.datetime.utcnow()
     print "********************************************************************"
     print "*              RepEx simulation: AMBER + RE Pattern-B              *"
     print "********************************************************************"
@@ -45,7 +48,7 @@ if __name__ == '__main__':
             walltime=int(inp_file['input.PILOT']['runtime']),
             username=inp_file['input.PILOT']['username'], 
             project=inp_file['input.PILOT']['project'],
-            queue=inp_file['input.PILOT']['queue'],
+            #queue=inp_file['input.PILOT']['queue'],
             database_name='repex-tests'
         )
 
@@ -67,11 +70,26 @@ if __name__ == '__main__':
         # this is a quick hack
         base = re_pattern.inp_basename + ".mdin"
 
+        t2 = datetime.datetime.utcnow()
+
         # finally we are moving all files to individual replica directories
         move_output_files(work_dir_local, base, replicas ) 
 
         print "Simulation successfully finished!"
         print "Please check output files in replica_x directories."
+
+        # execution profile printing
+        #print "Profiling info: "
+        #pp = pprint.PrettyPrinter()
+        #pp.pprint(re_pattern.execution_profile_dict)
+
+        #print "Profiling dataframe: "
+        #print re_pattern.execution_profile_dataframe
+       
+        #tag = (t2 - t1).total_seconds()
+
+        #df = re_pattern.execution_profile_dataframe
+        #df.to_pickle('profile-{0}.pkl'.format(tag))
 
     except:
         print "Unexpected error:", sys.exc_info()[0]

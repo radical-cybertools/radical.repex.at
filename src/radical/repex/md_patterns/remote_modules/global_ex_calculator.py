@@ -177,56 +177,133 @@ if __name__ == '__main__':
     # replica id equals to rank
     replica_id = rank
 
-    # getting history data for self
-    history_name = base_name + "_" + \
-                   str(replica_id) + "_" + \
-                   str(current_cycle) + ".mdinfo"
+    #---------------------------------------------------------------------------    
+    # assigning replicas to procs
+    if rank == 0:
+        r_ids = []
+        num = replicas / size
+        if replicas % size == 0:
+            for p in range(size):
+                r_ids.append([])
+                for r in range(replicas):
+                    if p == r:
+                        for i in range(num):
+                            r_ids[p].append(r+size*i)
+
+    else:
+        r_ids = None
+
+    r_ids = comm.bcast(r_ids, root=0)
+    #---------------------------------------------------------------------------
+    if rank == 0:
+        print "r_ids: "
+        print r_ids
 
     # init swap column
     swap_column = [0.0]*replicas
-
-    #---------------------------------------------------------------------------
-
-    success = 0
-    attempts = 0
-    while (success == 0):
-        try:
-            replica_path = "/"
-            replica_temp, replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
-            print "rank {0}: Got history data for self!".format(rank)
-            success = 1
-        except:
-            print "rank {0}: Waiting for self (history file)".format(rank)
-            time.sleep(1)
-            attempts += 1
-            if attempts >= 12:
-                print "rank {0}: Amber run failed, matrix_swap_column_x_x.dat populated with zeros".format(rank)
-            pass
-
-    #---------------------------------------------------------------------------
     temperatures = [0.0]*replicas
     energies = [0.0]*replicas
 
+    all_temperatures = [0.0]*replicas
+    all_energies = [0.0]*replicas
+
     comm.Barrier()
-    
-    #all_temperatures = comm.gather(temperatures, all_temperatures, root=0)
-    temperatures = comm.allgather(replica_temp)
-    energies = comm.allgather(replica_energy)
+
+    #---------------------------------------------------------------------------
+    id_number = 0
+    for replica_id in r_ids[rank]:
+        temperatures = [0.0]*replicas
+        energies = [0.0]*replicas
+        # getting history data for self
+        history_name = base_name + "_" + \
+                       str(replica_id) + "_" + \
+                       str(current_cycle) + ".mdinfo"
+        success = 0
+        attempts = 0
+        while (success == 0):
+            try:
+                replica_path = "/"
+                replica_temp, replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
+                temperatures[replica_id] = replica_temp
+                energies[replica_id] = replica_energy
+
+                print "rank: {0} temp: {1} energy: {2}".format(rank, replica_temp, replica_energy)
+                temperatures = comm.gather(replica_temp, root=0)
+                energies     = comm.gather(replica_energy, root=0)
+
+
+                if rank == 0:  
+                    for r in range(size):
+                        index = r_ids[r][id_number]
+                        print "index: %d" % index
+                        all_temperatures[index] = temperatures[r]
+                        all_energies[index] = energies[r] 
+
+                print "rank {0}: Got history data for self!".format(rank)
+                success = 1
+                id_number += 1
+            except:
+                print "rank {0}: Waiting for self (history file)".format(rank)
+                time.sleep(1)
+                attempts += 1
+                if attempts >= 3:
+                    print "rank {0}: Amber run failed, matrix_swap_column_x_x.dat populated with zeros".format(rank)
+
+                    #-----------------------------------------------------------
+                    # temp fix
+                    replica_temp = 0.0
+                    replica_energy = 0.0
+                    temperatures = comm.gather(replica_temp, root=0)
+                    energies     = comm.gather(replica_energy, root=0)
+                    #-----------------------------------------------------------
+ 
+                    success = 1
+                pass
+
+    #---------------------------------------------------------------------------
+    #if rank == 0:
+    #    print "all temp: "
+    #    print all_temperatures
+
+    #    print "all_energies: "
+    #    print all_energies
+
+    all_temperatures = comm.bcast(all_temperatures, root=0)
+    all_energies = comm.bcast(all_energies, root=0)
+
+    #--------------------------------------------------------------------------
+    if rank ==0:
+        swap_matrix = []
+        temp_columns = [[0.0]*replicas]*replicas
+
+    for replica_id in r_ids[rank]:
+        swap_column = [0.0]*replicas
+        for j in range(replicas):
+            swap_column[j] = reduced_energy(all_temperatures[j], all_energies[replica_id])
+
+        temp_columns = comm.gather(swap_column, root=0)
+
+        if rank == 0:
+            for col in temp_columns:
+                swap_matrix.append(col)
+
+    #---------------------------------------------------------------------------
 
     #---------------------------------------------------------------------------
     # init swap column
-    swap_column = [0.0]*replicas
-
-    for j in range(replicas):      
-        swap_column[j] = reduced_energy(temperatures[j], replica_energy)
+    #swap_column = [0.0]*replicas
+    #for j in range(replicas):      
+    #    swap_column[j] = reduced_energy(all_temperatures[j], replica_energy)
 
     #---------------------------------------------------------------------------
     # part of global calc
     
-    if rank == 0:
-        swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
+    #if rank == 0:
+    #    swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
+    #swap_matrix = comm.gather(swap_column, root=0)
 
-    swap_matrix = comm.gather(swap_column, root=0)
+    #print "swap matrix: "
+    #print swap_matrix
 
     if rank == 0:
         replicas_obj = []
@@ -262,4 +339,5 @@ if __name__ == '__main__':
         except IOError:
             print 'Error: unable to create column file %s for replica %s' % \
             (outfile, replica_id)
-    
+
+        

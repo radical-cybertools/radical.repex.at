@@ -34,9 +34,12 @@ class AmberTex(ReplicaExchange):
         work_dir_local - directory from which main simulation script was invoked
         """
 
+        self.replica_objects = None
+
         self.inp_basename = inp_file['input.MD']['input_file_basename']
         self.inp_folder = inp_file['input.MD']['input_folder']
         self.replicas = int(inp_file['input.MD']['number_of_replicas'])
+        self.cores = int(inp_file['input.PILOT']['cores'])
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
         self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
@@ -130,6 +133,23 @@ class AmberTex(ReplicaExchange):
             replicas.append(r)
             
         return replicas
+
+    #---------------------------------------------------------------------------
+    #
+    def add_replicas(self, replicas):
+        """Adds initialised replicas to this pattern.
+
+        Arguments:
+        replicas - list of replica objects
+        """
+        self.replica_objects = replicas
+
+    #---------------------------------------------------------------------------
+    #
+    def get_replicas(self):
+        """Returns a list of replica objects associated with this pattern.
+        """
+        return self.replica_objects
 
     #---------------------------------------------------------------------------
     # 
@@ -297,10 +317,13 @@ class AmberTex(ReplicaExchange):
                        "--replicas=" + str(self.replicas),
                        "--replica_basename=" + basename]
         k.subname = 'global_ex_calculator'
-        k.pre_exec = ["module load python"]
+        k.pre_exec = ["module load python", "module load mpi4py"]
         k.copy_input_data  = ["global_ex_calculator.py"]
         k.download_output_data = [ex_pairs]
-        k.cores = self.replicas
+        if self.cores < self.replicas:
+            k.cores = self.cores
+        elif self.cores == self.replicas:
+            k.cores = self.replicas
         k.mpi = True
 
         return k
