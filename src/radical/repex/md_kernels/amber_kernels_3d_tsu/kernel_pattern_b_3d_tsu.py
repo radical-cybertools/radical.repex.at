@@ -754,7 +754,7 @@ class AmberKernelPatternB3dTSU(object):
                 "new_restraints" : str(replica.new_restraints),
                 "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
-                "amber_parameters": "../staging_area/"+str(self.amber_parameters),    #temp fix
+                "amber_parameters": str(self.amber_parameters), 
                 "current_group_tsu" : current_group_tsu, 
                 "r_old_path": str(replica.old_path),
             }
@@ -770,6 +770,7 @@ class AmberKernelPatternB3dTSU(object):
 
             rid = replica.id
             in_list = []
+            in_list.append(sd_shared_list[0])
             in_list.append(sd_shared_list[2])
             in_list.append(sd_shared_list[5])
             in_list.append(sd_shared_list[6])

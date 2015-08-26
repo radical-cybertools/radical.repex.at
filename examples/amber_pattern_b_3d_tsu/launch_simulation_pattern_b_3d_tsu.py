@@ -17,7 +17,7 @@ from repex_utils.parser import parse_command_line
 from amber_kernels_3d_tsu.kernel_pattern_b_3d_tsu import AmberKernelPatternB3dTSU
 from pilot_kernels.pilot_kernel_pattern_b_multi_d import PilotKernelPatternBmultiD
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """Runs RE simulation using pattern B. 
@@ -26,9 +26,9 @@ if __name__ == '__main__':
     name = 'launcher-3d-tsu'
     logger  = rul.getLogger ('radical.repex', name)
  
-    logger.info("*********************************************************************")
-    logger.info("*          RepEx simulation: AMBER + 3D-TSU + RE pattern B           *")
-    logger.info("*********************************************************************")
+    logger.info("*************************************************************")
+    logger.info("*     RepEx simulation: AMBER + 3D-TSU + RE pattern B       *")
+    logger.info("*************************************************************")
 
     work_dir_local = os.getcwd()
     params = parse_command_line()
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     try:
         pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
-    
+
         # now we can run RE simulation
         pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
 
@@ -60,6 +60,7 @@ if __name__ == '__main__':
         logger.info("Simulation successfully finished!")
         logger.info("Please check output files in replica_x directories.")
 
+
     except:
         logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
         raise
@@ -67,5 +68,6 @@ if __name__ == '__main__':
     finally :
         logger.info("Closing session.")
         session.close (cleanup=False)
+
 
     

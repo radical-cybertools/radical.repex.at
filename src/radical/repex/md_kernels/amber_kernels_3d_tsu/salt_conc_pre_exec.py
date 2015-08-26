@@ -45,7 +45,8 @@ def get_historical_data(replica_path, history_name):
         f = open(history_name)
         lines = f.readlines()
         f.close()
-        path_to_replica_folder = os.getcwd()
+        #path_to_replica_folder = os.getcwd()
+        path_to_replica_folder = path
         for i in range(len(lines)):
             if "EPtot" in lines[i]:
                 eptot = float(lines[i].split()[8])
@@ -125,6 +126,10 @@ if __name__ == '__main__':
                 f.write(line.replace("@temp@",current_group_tsu[j][0]))
             elif "@disang@" in line:
                 f.write(line.replace("@disang@",current_group_tsu[j][2]))
+            elif "@irest@" in line:
+                line = line.replace("@irest@","1")
+                line = line.replace("@ntx@","5")
+                f.write(line)
             else:
                 f.write(line)
         f.close()
@@ -133,4 +138,3 @@ if __name__ == '__main__':
         f_groupfile.write(line)
     f_groupfile.close()
 
-    

@@ -4,12 +4,12 @@
         "username" : "antontre",
         "project" : "TG-MCB090174",
         "queue" : "development",
-        "runtime" : "80",
+        "runtime" : "30",
         "cleanup" : "False",
-        "cores" : "80"
+        "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "4",
+        "number_of_cycles": "3",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -18,26 +18,26 @@
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "6000",
+        "steps_per_cycle": "20000",
         "exchange_off" : "False"
         },
     "input.DIM": {
         "temperature_1": {
-            "number_of_replicas": "4",
+            "number_of_replicas": "2",
             "min_temperature": "300",
             "max_temperature": "600",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },
         "salt_concentration_2": {
-            "number_of_replicas": "4",
-            "exchange_replica_cores" : "4",
+            "number_of_replicas": "2",
+            "exchange_replica_cores" : "2",
             "exchange_replica_mpi": "True",
             "min_salt": "0.0",
             "max_salt": "1.0"
             },
         "umbrella_sampling_3": {
-            "number_of_replicas": "4",
+            "number_of_replicas": "2",
             "us_start_param": "0",
             "us_end_param": "360",
             "exchange_replica_cores" : "1",

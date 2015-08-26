@@ -109,7 +109,7 @@ class PilotKernel(object):
         pilot_manager = None
         pilot_object = None
    
-        session = radical.pilot.Session(database_url=self.dburl, database_name='cdi-tests')
+        session = radical.pilot.Session(database_url=self.dburl, database_name='cdi-test')
         self.logger.info("Session ID: {0}".format(session.uid) )
 
         try:
@@ -139,7 +139,7 @@ class PilotKernel(object):
             pilot_description.cores = self.cores
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
-            """
+            
             pilot_description._config = {'number_of_workers' : {'StageinWorker'   :  8,
                                                                 'ExecWorker'      :  8,
                                                                 'StageoutWorker'  :  8,
@@ -170,7 +170,7 @@ class PilotKernel(object):
                                                                 'StageoutWorker'  :  1,
                                                                 'update_queue'    :  1,
                                                                 'UpdateWorker'    :  1}}
-            """
+        
             
             pilot_object = pilot_manager.submit_pilots(pilot_description)
             
