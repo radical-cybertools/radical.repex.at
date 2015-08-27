@@ -22,7 +22,7 @@ from kernels.kernels import KERNELS
 import radical.utils.logger as rul
 import amber_kernels_us.amber_matrix_calculator_pattern_b
 
-#--------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class AmberKernelUSPatternB(MdKernelUS):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
@@ -74,7 +74,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         self.shared_urls = []
         self.shared_files = []
 
-    #-----------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # 
     def prepare_shared_data(self):
 
@@ -113,7 +113,7 @@ class AmberKernelUSPatternB(MdKernelUS):
             rstr_url = 'file://%s' % (rstr_p)
             self.shared_urls.append(rstr_url)
 
-    #-------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # 
     def build_restraint_file(self, replica):
         """Builds restraint file for replica, based on template file
@@ -134,7 +134,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         w_file.write(tbuffer)
         w_file.close()
 
-    #-------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # 
     def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin
@@ -177,7 +177,7 @@ class AmberKernelUSPatternB(MdKernelUS):
         except IOError:
             print 'Warning: unable to access file %s' % new_input_file
 
-    #----------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # 
     def prepare_replica_for_md(self, replica, sd_shared_list):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
@@ -292,7 +292,7 @@ class AmberKernelUSPatternB(MdKernelUS):
 
         return cu
 
-    #------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # 
     def prepare_replica_for_exchange(self, replicas, replica, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.
@@ -354,5 +354,4 @@ class AmberKernelUSPatternB(MdKernelUS):
         cu.cores = 1            
 
         return cu
-
 

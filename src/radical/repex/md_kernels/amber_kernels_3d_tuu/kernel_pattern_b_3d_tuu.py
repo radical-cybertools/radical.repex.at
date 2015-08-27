@@ -17,6 +17,8 @@ import shutil
 import datetime
 from os import path
 import radical.pilot
+from os import listdir
+from os.path import isfile, join
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 import amber_kernels_3d_tuu.matrix_calculator_temp_ex
@@ -53,7 +55,7 @@ class AmberKernelPatternB3dTUU(object):
         self.input_folder = inp_file['input.MD']['input_folder']
         self.inp_basename = inp_file['input.MD']['input_file_basename']
          
-        self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
+        self.amber_coordinates_path = inp_file['input.MD']['amber_coordinates_folder']
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
 
@@ -201,6 +203,39 @@ class AmberKernelPatternB3dTUU(object):
         """Initializes replicas and their attributes to default values
         """
 
+        #-----------------------------------------------------------------------
+        # parse coor file
+        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
+        coor_list  = listdir(coor_path)
+
+        base = coor_list[0]
+
+        self.c_prefix = ''
+        self.c_infix = ''
+        self.c_postfix = ''
+
+        under = 0
+        dot = 0
+        for ch in base:
+            if ch == '_':
+                under += 1
+            if ch == '.':
+                dot += 1
+
+            if under == 0 and dot == 0:
+                self.c_prefix += ch
+            elif under == 1 and dot == 1 and ch != '.':
+                self.c_infix += ch
+            elif under == 2 and dot == 2 and ch != '.':
+                self.c_postfix += ch
+
+        print "fixes: "
+        print self.c_prefix
+        print self.c_infix
+        print self.c_postfix
+
+        #-----------------------------------------------------------------------
+
         replicas = []
 
         d2_params = []
@@ -209,7 +244,6 @@ class AmberKernelPatternB3dTUU(object):
         for k in range(N):
             new_temp = self.min_temp * (factor**k)
             d2_params.append(new_temp)
-
 
         for i in range(self.replicas_d1):
             for j in range(self.replicas_d2):
@@ -228,9 +262,21 @@ class AmberKernelPatternB3dTUU(object):
                     rstr_val_1 = str(starting_value_d1)
                     rstr_val_2 = str(starting_value_d3)
 
-                    #print "rid: %d temp: %f us1: %f us2: %f " % (rid, t1, float(rstr_val_1), float(rstr_val_2))
+                    #-----------------------------------------------------------
+                    # name is hardcoded for now
+                    # need to agree on format
+                    coor_file = self.c_prefix + "_" + str(i) + "." + self.c_infix + "_" + str(k) + "." + self.c_postfix
+                    #-----------------------------------------------------------
 
-                    r = Replica3d(rid, new_temperature=t1, new_restraints=r1, rstr_val_1=float(rstr_val_1), rstr_val_2=float(rstr_val_2),  cores=1)
+                    r = Replica3d(rid, \
+                                  new_temperature=t1, \
+                                  new_restraints=r1, \
+                                  rstr_val_1=float(rstr_val_1), \
+                                  rstr_val_2=float(rstr_val_2),  \
+                                  cores=1, \
+                                  coor=coor_file, \
+                                  indx1=i, \
+                                  indx2=k)
                     replicas.append(r)
 
         return replicas
@@ -240,7 +286,7 @@ class AmberKernelPatternB3dTUU(object):
     def prepare_shared_data(self):
 
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
-        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
+        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
         calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_temp_ex.__file__)
@@ -259,7 +305,6 @@ class AmberKernelPatternB3dTUU(object):
 
         #-----------------------------------------------------------------------
         self.shared_files.append(self.amber_parameters)
-        self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("matrix_calculator_temp_ex.py")
         self.shared_files.append("matrix_calculator_us_ex.py")
@@ -267,11 +312,13 @@ class AmberKernelPatternB3dTUU(object):
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
 
+        for f in listdir(coor_path):
+            self.shared_files.append(f)
+
+        #-----------------------------------------------------------------------
+
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
-
-        coor_url = 'file://%s' % (coor_path)
-        self.shared_urls.append(coor_url)
 
         inp_url = 'file://%s' % (inp_path)
         self.shared_urls.append(inp_url)
@@ -290,6 +337,11 @@ class AmberKernelPatternB3dTUU(object):
 
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
+
+        for f in listdir(coor_path):
+            cf_path = join(coor_path,f)
+            coor_url = 'file://%s' % (cf_path)
+            self.shared_urls.append(coor_url)
 
     #---------------------------------------------------------------------------
     #                     
@@ -321,7 +373,6 @@ class AmberKernelPatternB3dTUU(object):
 
         #-----------------------------------------------------------------------  
 
-        crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
 
@@ -451,7 +502,7 @@ class AmberKernelPatternB3dTUU(object):
 
             amber_str = self.amber_path
             argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
-                           " -p " +  self.amber_parameters + " -c " + self.amber_coordinates + \
+                           " -p " +  self.amber_parameters + " -c " + replica.coor_file + \
                            " -r " + new_coor + " -x " + new_traj + " -inf " + new_info  
 
             restraints_out = replica.new_restraints
@@ -464,20 +515,32 @@ class AmberKernelPatternB3dTUU(object):
 
             #-------------------------------------------------------------------
             # files needed to be staged in replica dir
-            for i in range(3):
+            for i in range(2):
                 stage_in.append(sd_shared_list[i])
 
+            #-------------------------------------------------------------------            
+            # replica coor
+            repl_coor = replica.coor_file
+
+            while (repl_coor not in self.shared_files):
+                repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.postfix
+
+            # index of replica_coor
+            c_index = self.shared_files.index(repl_coor) 
+            stage_in.append(sd_shared_list[c_index])
+
+            #-------------------------------------------------------------------
             # input_file_builder.py
-            stage_in.append(sd_shared_list[5])
+            stage_in.append(sd_shared_list[4])
 
             # restraint template file: ace_ala_nme_us.RST
-            stage_in.append(sd_shared_list[7])
+            stage_in.append(sd_shared_list[6])
 
             #-------------------------------------------------------------------
             # temperature exchange
             if dimension == 2:
                 # matrix_calculator_temp_ex.py file
-                stage_in.append(sd_shared_list[3])
+                stage_in.append(sd_shared_list[2])
 
                 #---------------------------------------------------------------
                 #
@@ -495,7 +558,7 @@ class AmberKernelPatternB3dTUU(object):
                 #---------------------------------------------------------------
 
                 # copying calculator from staging area to cu folder
-                stage_in.append(sd_shared_list[4])
+                stage_in.append(sd_shared_list[3])
 
                 #---------------------------------------------------------------
                 # 
@@ -520,10 +583,10 @@ class AmberKernelPatternB3dTUU(object):
             stage_in.append(sd_shared_list[0])
 
             # base input file ala10_us.mdin
-            stage_in.append(sd_shared_list[2])
+            stage_in.append(sd_shared_list[1])
 
             # input_file_builder.py
-            stage_in.append(sd_shared_list[5])
+            stage_in.append(sd_shared_list[4])
             #-------------------------------------------------------------------
             # restraint file
             restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
@@ -543,7 +606,7 @@ class AmberKernelPatternB3dTUU(object):
             if dimension == 2:
                 #---------------------------------------------------------------
                 # matrix_calculator_temp_ex.py file
-                stage_in.append(sd_shared_list[3])
+                stage_in.append(sd_shared_list[2])
 
                 cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
                                                "echo " + pre_exec_str + " >> run.sh; " + \
@@ -566,7 +629,7 @@ class AmberKernelPatternB3dTUU(object):
                 stage_out.append(new_coor_out)
 
                 # copying calculator from staging area to cu folder
-                stage_in.append(sd_shared_list[4])                
+                stage_in.append(sd_shared_list[3])                
 
                 cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
                                                "echo " + pre_exec_str + " >> run.sh; " + \

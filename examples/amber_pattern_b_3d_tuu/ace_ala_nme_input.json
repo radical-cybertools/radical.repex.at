@@ -4,7 +4,7 @@
         "username" : "antontre",
         "project" : "TG-MCB090174",
         "queue" : "development",
-        "runtime" : "30",
+        "runtime" : "40",
         "cleanup" : "False",
         "cores" : "16"
     },
@@ -14,7 +14,7 @@
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
         "amber_parameters": "ace_ala_nme.parm7",
-        "amber_coordinates": "ace_ala_nme.inpcrd",
+        "amber_coordinates_folder": "RNaseA_start_coords",
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",

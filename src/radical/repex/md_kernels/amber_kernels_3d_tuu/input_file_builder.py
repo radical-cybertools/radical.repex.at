@@ -9,7 +9,7 @@ import math
 import time
 import shutil
 
-#--------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     rstr_val_1      = float(data["rstr_val_1"])
     rstr_val_2      = float(data["rstr_val_2"])
 
-    #-------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # this is for every cycle
     try:
         r_file = open(amber_input, "r")
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     except IOError:
         print "Warning: unable to access file: {0}".format(new_input_file)
 
-    #-------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # this is for first cycle only
     if replica_cycle == 1:
         print "first cycle"
@@ -80,7 +80,7 @@ if __name__ == '__main__':
         except IOError:
             print "Warning: unable to access file: {0}".format(new_restraints)
  
-        #----------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # copy to staging area
         pwd = os.getcwd()
         src = pwd + "/" + new_restraints
