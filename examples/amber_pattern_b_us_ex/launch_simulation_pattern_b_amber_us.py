@@ -14,30 +14,21 @@ import radical.pilot
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_us.amber_kernel_us_pattern_b import AmberKernelUSPatternB
+from amber_kernels_us.kernel_pattern_b_us import KernelPatternBUS
 from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """Runs RE simulation using pattern B. 
-
-    RE pattern B:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
-    In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
-    - Exchange probabilities are determined using Gibbs sampling.
-    - Exchange step is performed in decentralized fashion on target resource.
+    """
     """
 
     name = 'launcher-us'
     logger  = rul.getLogger ('radical.repex', name)
  
-    logger.info("*********************************************************************")
-    logger.info("*    RepEx simulation: AMBER + Umbrella Sampling + RE pattern B     *")
-    logger.info("*********************************************************************")
+    logger.info("*************************************************************")
+    logger.info("* RepEx simulation: AMBER, Umbrella Sampling + RE pattern B *")
+    logger.info("*************************************************************")
 
     work_dir_local = os.getcwd()
     params = parse_command_line()
@@ -48,7 +39,7 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = AmberKernelUSPatternB( inp_file, work_dir_local )
+    md_kernel = KernelPatternBUS( inp_file, work_dir_local )
     pilot_kernel = PilotKernelPatternB( inp_file )
 
     # initializing replicas
@@ -59,7 +50,7 @@ if __name__ == '__main__':
         pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
     
         # now we can run RE simulation
-        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel)
 
         # this is a quick hack
         base = md_kernel.inp_basename + ".mdin"
@@ -71,18 +62,10 @@ if __name__ == '__main__':
         logger.info("Please check output files in replica_x directories.")
 
     except:
-        #logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
         raise
-    #except (KeyboardInterrupt, SystemExit) as e :
-        # the callback called sys.exit(), and we can here catch the
-        # corresponding KeyboardInterrupt exception for shutdown.  We also catch
-        # SystemExit (which gets raised if the main threads exits for some other
-        # reason).
-        #print "need to exit now: %s" % e
 
     finally :
-        # always clean up the session, no matter if we caught an exception or
-        # not.
         logger.info("Closing session.")
         session.close (cleanup=False)
 

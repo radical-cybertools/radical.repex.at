@@ -22,7 +22,7 @@ from md_kernels.md_kernel_salt import *
 from kernels.kernels import KERNELS
 import amber_kernels_salt.amber_matrix_calculator_pattern_b
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class AmberKernelSaltPatternB(MdKernelSalt):
     """This class is responsible for performing all operations related to Amber for RE scheme S2.
@@ -59,7 +59,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
         self.name = 'ak-patternB-sc'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
     # OK
     def build_input_file(self, replica):
         """Builds input file for replica, based on template input file ala10.mdin
@@ -101,7 +101,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
         except IOError:
             print 'Warning: unable to access file %s' % new_input_file
 
-    #-----------------------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
         """Creates a Compute Unit for shared data staging in
@@ -132,7 +132,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
         calc_b_url = 'file://%s' % (calc_b_path)
         self.shared_urls.append(calc_b_url)
 
-    #-----------------------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # 
     def prepare_replica_for_md(self, replica, sd_shared_list):
         """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
@@ -223,7 +223,7 @@ class AmberKernelSaltPatternB(MdKernelSalt):
 
         return cu
 
-    #-----------------------------------------------------------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # 
     def prepare_replica_for_exchange(self, replicas, replica, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.

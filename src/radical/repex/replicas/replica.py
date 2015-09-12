@@ -16,7 +16,7 @@ import json
 class Replica1d(object):
     """Class representing replica and it's associated data.
     """
-    def __init__(self, my_id, new_temperature=None, new_salt_concentration=None, new_restraints=None, cores=1):
+    def __init__(self, my_id, new_temperature=None, new_salt_concentration=None, new_restraints=None, rstr_val_1=None,  coor=None, indx1=None, indx2=None, cores=1):
         """Constructor.
 
         Arguments:
@@ -28,6 +28,20 @@ class Replica1d(object):
         self.sid = int(my_id)
         self.state = 'I'
         self.cycle = 0
+
+        if rstr_val_1 is None:
+            self.rstr_val_1 = 0
+        else:
+            self.rstr_val_1 = rstr_val_1
+
+        if coor is not None:
+            self.coor_file = coor
+
+        if indx1 is not None:
+            self.indx1 = indx1
+
+        if indx2 is not None:
+            self.indx2 = indx2
 
         #---------------------------------------------------------
         if new_temperature is None:

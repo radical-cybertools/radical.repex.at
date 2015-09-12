@@ -276,7 +276,56 @@ class PilotKernelPatternB(PilotKernel):
 
                     #print row
                     f.write("{r}\n".format(r=row))
-            #-------------------------------------------------------------------      
+            #-------------------------------------------------------------------     
+
+            #---------------------------------------------------------------
+            head = "CU_ID; Scheduling; StagingInput; Allocating; Executing; StagingOutput; Done; Cycle; Step;"
+            f.write("{row}\n".format(row=head))
+        
+            for cycle in cu_performance_data:
+                for step in cu_performance_data[cycle].keys():
+                    for cid in cu_performance_data[cycle][step].keys():
+                        cu = cu_performance_data[cycle][step][cid]
+                        st_data = {}
+                        for st in cu.state_history:
+                            st_dict = st.as_dict()
+                            st_data["{0}".format( st_dict["state"] )] = {}
+                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+
+                        #print st_data
+                        #start = step_performance_data[cycle][step]['step_start_time_abs']
+                        if 'StagingOutput' not in st_data:
+                            st_data['StagingOutput'] = st_data['Executing']
+
+                        if 'Done' not in st_data:
+                            st_data['Done'] = st_data['Executing']
+
+                        row = "{uid}; {Scheduling}; {StagingInput}; {Allocating}; {Executing}; {StagingOutput}; {Done}; {Cycle}; {Step}".format(
+                            uid=cu.uid,
+                            Scheduling=(st_data['Scheduling']),
+                            StagingInput=(st_data['StagingInput']),
+                            Allocating=(st_data['Allocating']),
+                            Executing=(st_data['Executing']),
+                            StagingOutput=(st_data['StagingOutput']),
+                            Done=(st_data['Done']),
+                            Cycle=cycle,
+                            Step=step)
+                    
+                        f.write("{r}\n".format(r=row))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             #-------------------------------------------------------------------
             # these timings are measured from simulation start!

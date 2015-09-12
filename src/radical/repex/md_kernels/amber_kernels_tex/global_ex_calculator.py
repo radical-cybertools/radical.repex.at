@@ -147,15 +147,10 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 class Replica(object):
     """Class representing replica and it's associated data.
     """
-    def __init__(self, my_id, new_temperature=None):
+    def __init__(self, my_id):
        
         self.id = int(my_id)
         self.sid = int(my_id)
-
-        if new_temperature is None:
-            self.new_temperature = 0
-        else:
-            self.new_temperature = new_temperature
 
 #-------------------------------------------------------------------------------
 #
@@ -309,7 +304,7 @@ if __name__ == '__main__':
         replicas_obj = []
         for rid in range(replicas):
             # creating replica with dummy temperature, since it is not needed
-            r = Replica(int(rid), new_temperature=0.0)
+            r = Replica(int(rid))
             replicas_obj.append(r)
 
         #-----------------------------------------------------------------------

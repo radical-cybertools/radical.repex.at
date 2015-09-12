@@ -229,11 +229,6 @@ class AmberKernelPatternB3dTUU(object):
             elif under == 2 and dot == 2 and ch != '.':
                 self.c_postfix += ch
 
-        print "fixes: "
-        print self.c_prefix
-        print self.c_infix
-        print self.c_postfix
-
         #-----------------------------------------------------------------------
 
         replicas = []
