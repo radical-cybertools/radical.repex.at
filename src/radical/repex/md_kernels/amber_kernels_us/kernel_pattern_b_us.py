@@ -1,7 +1,7 @@
 """
-.. module:: radical.repex.md_kernles.amber_kernels_salt.amber_kernel_salt_pattern_b
-.. moduleauthor::  <haoyuan.chen@rutgers.edu>
+.. module:: radical.repex.md_kernles.amber_kernels_us.kernel_pattern_b_us
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -268,19 +268,7 @@ class KernelPatternBUS(object):
         stage_out.append(new_coor_out)
 
         #-----------------------------------------------------------------------
-        # common code from prepare_for_exchange()
-        
-        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
-
-        # for all cases!
-        matrix_col_out = {
-            'source': matrix_col,
-            'target': 'staging:///%s' % (matrix_col),
-            'action': radical.pilot.COPY
-        }
-        stage_out.append(matrix_col_out)
-
-        # for all cases (OPTIONAL)    
+         
         info_out = {
                 'source': new_info,
                 'target': 'staging:///%s' % (replica_path + new_info),
@@ -288,8 +276,6 @@ class KernelPatternBUS(object):
             }
         stage_out.append(info_out)
 
-        #-----------------------------------------------------------------------
-        # for all
         data = {
             "cycle_steps": str(self.cycle_steps),
             "new_restraints" : str(replica.new_restraints),

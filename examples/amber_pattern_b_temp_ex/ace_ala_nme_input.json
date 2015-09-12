@@ -3,8 +3,7 @@
         "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "queue" : "development",
-        "runtime" : "30",
+        "runtime" : "40",
         "cleanup" : "False",
         "cores" : "16"
     },

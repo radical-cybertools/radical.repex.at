@@ -222,7 +222,7 @@ class PilotKernelPatternB(PilotKernel):
 
             T2 = datetime.datetime.utcnow()
 
-            #---------------------------------------------------------------
+            #-------------------------------------------------------------------
 
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = (T2-T1).total_seconds()
@@ -264,21 +264,19 @@ class PilotKernelPatternB(PilotKernel):
             f.write("Total simulaiton time: {row}\n".format(row=RAW_SIMULATION_TIME))
 
             #-------------------------------------------------------------------
-            head = "Cycle; Run; Duration"
+            head = "Cycle; Step; Duration"
             #print head
             f.write("{row}\n".format(row=head))
 
             for cycle in hl_performance_data:
-                for run in hl_performance_data[cycle].keys():
-                    duration = hl_performance_data[cycle][run]
+                for step in hl_performance_data[cycle].keys():
+                    duration = hl_performance_data[cycle][step]
 
-                    row = "{Cycle}; {Run}; {Duration}".format(Duration=duration, Cycle=cycle, Run=run)
+                    row = "{Cycle}; {Step}; {Duration}".format(Duration=duration, Cycle=cycle, Step=step)
 
                     #print row
                     f.write("{r}\n".format(r=row))
             #-------------------------------------------------------------------     
-
-            #---------------------------------------------------------------
             head = "CU_ID; Scheduling; StagingInput; Allocating; Executing; StagingOutput; Done; Cycle; Step;"
             f.write("{row}\n".format(row=head))
         
@@ -312,64 +310,4 @@ class PilotKernelPatternB(PilotKernel):
                             Step=step)
                     
                         f.write("{r}\n".format(r=row))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            #-------------------------------------------------------------------
-            # these timings are measured from simulation start!
-            head = "CU_ID; New; exestart; exeEnd; Done; Cycle; Run"
-            #print head
-            f.write("{row}\n".format(row=head))
-
-            for cycle in cu_performance_data:
-                for run in cu_performance_data[cycle].keys():
-                    for cid in cu_performance_data[cycle][run].keys():
-                        cu = cu_performance_data[cycle][run][cid]
-                        st_data = {}
-                        for st in cu.state_history:
-                            st_dict = st.as_dict()
-                            st_data["{0}".format( st_dict["state"] )] = {}
-                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-
-                        #print st_data
-                        row = "{uid}; {Scheduling}; {StagingInput}; {Allocating}; {Executing}; {StagingOutput}; {Done}; {Cycle}; {Run}".format(
-                            uid=cu.uid,
-                            Scheduling=(st_data['Scheduling']-start).total_seconds(),
-                            StagingInput=(st_data['StagingInput']-start).total_seconds(),
-                            Allocating=(st_data['Allocating']-start).total_seconds(),
-                            Executing=(st_data['Executing']-start).total_seconds(),
-                            StagingOutput=(st_data['StagingOutput']-start).total_seconds(),
-                            Done=(st_data['Done']-start).total_seconds(),
-                            #exestart=(cu.start_time-start).total_seconds(),
-                            #exestop=(cu.stop_time-start).total_seconds(),
-                            Cycle=cycle,
-                            Run=run)
-                    
-                        f.write("{r}\n".format(r=row))
-
-                        """
-                        row = "{uid}; {New}; {exestart}; {exestop}; {Done}; {Cycle}; {Run}".format(
-                            uid=cu.uid,
-                            New=(st_data['Scheduling']-start).total_seconds(),
-                            exestart=(cu.start_time-start).total_seconds(),
-                            exestop=(cu.stop_time-start).total_seconds(),
-                            Done=(st_data['Done']-start).total_seconds(),
-                            Cycle=cycle,
-                            Run=run)
-
-                        #print row
-                        f.write("{r}\n".format(r=row))
-                        """
 

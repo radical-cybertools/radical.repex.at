@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernles_tex.amber_kernels_tex.amber_kernel_tex_pattern_b
+.. module:: radical.repex.md_kernles_tex.amber_kernels_tex.kernel_pattern_b_tex
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
@@ -217,10 +217,6 @@ class KernelPatternBTex(object):
 
         replica.cycle += 1
 
-        matrix_col = "matrix_column_{rid}_{cycle}.dat"\
-                     .format(cycle=replica.cycle-1, rid=replica.id )
-
-        #-----------------------------------------------------------------------
         #-----------------------------------------------------------------------
         
         stage_out = []
@@ -238,13 +234,6 @@ class KernelPatternBTex(object):
             'action': radical.pilot.COPY
         }
         stage_out.append(coor_out)
-
-        matrix_col_out = {
-            'source': matrix_col,
-            'target': 'staging:///%s' % (matrix_col),
-            'action': radical.pilot.COPY
-        }
-        stage_out.append(matrix_col_out)
 
         # sed magic
         s1 = "sed -i \"s/{/'\{/\" run.sh;"

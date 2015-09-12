@@ -15,8 +15,7 @@ from subprocess import *
 import subprocess
 
 
-
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def call_amber(amber_path, mdin, prmtop, crd, mdinfo):
 
@@ -29,7 +28,7 @@ def call_amber(amber_path, mdin, prmtop, crd, mdinfo):
     for p in processes: p.wait()
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
@@ -48,7 +47,7 @@ def reduced_energy(temperature, potential):
         beta = 1. / kb     
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def get_historical_data(history_name, data_path=os.getcwd()):
     """Retrieves temperature and potential energy from simulation output file .history file.
@@ -89,7 +88,7 @@ def get_historical_data(history_name, data_path=os.getcwd()):
     os.chdir(home_dir)
     return eptot, path_to_replica_folder
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """This module calculates one swap matrix column for replica and writes this column to 
@@ -196,7 +195,7 @@ if __name__ == '__main__':
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], energies[j])
 
-    #----------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # writing to file
     outfile = "matrix_column_{cycle}_{replica}.dat".format(cycle=replica_cycle, replica=replica_id )
     with open(outfile, 'w+') as f:

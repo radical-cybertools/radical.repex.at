@@ -1,3 +1,8 @@
+"""
+.. module:: radical.repex.md_kernles.amber_kernels_us.global_ex_calculator
+.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
+"""
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
 __license__ = "MIT"
