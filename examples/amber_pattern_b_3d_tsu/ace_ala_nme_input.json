@@ -1,11 +1,12 @@
 {
     "input.PILOT": {
-        "resource": "xsede.comet",
+        "resource": "stampede.tacc.utexas.edu",
         "username" : "antontre",
         "project" : "TG-MCB090174",
+        "queue" : "development",
         "runtime" : "40",
         "cleanup" : "False",
-        "cores" : "24"
+        "cores" : "16"
     },
     "input.MD": {
         "number_of_cycles": "3",

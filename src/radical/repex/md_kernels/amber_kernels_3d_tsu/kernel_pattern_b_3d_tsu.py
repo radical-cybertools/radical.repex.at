@@ -27,7 +27,6 @@ import amber_kernels_3d_tsu.salt_conc_pre_exec
 import amber_kernels_3d_tsu.salt_conc_post_exec
 import amber_kernels_3d_tsu.global_ex_calculator
 
-
 #-------------------------------------------------------------------------------
 #
 class AmberKernelPatternB3dTSU(object):
@@ -315,55 +314,9 @@ class AmberKernelPatternB3dTSU(object):
  
     #---------------------------------------------------------------------------
     #
-    def build_input_file(self, replica):
-        """Builds input file for replica, based on template input file ala10.mdin
-        """
-        basename = self.inp_basename
-
-        new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
-        outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
-        old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
-
-        # new files
-        replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
-        replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
-        replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
-
-        # old files
-        replica.old_coor = old_name + ".rst"
-        replica.old_traj = old_name + ".mdcrd"
-        replica.old_info = old_name + ".mdinfo"
-
-        try:
-            r_file = open( (os.path.join((self.work_dir_local + "/" + self.input_folder + "/"), self.amber_input)), "r")
-        except IOError:
-            self.logger.error("Warning: unable to access template file: {0}".format(self.amber_input) )
-
-        tbuffer = r_file.read()
-        r_file.close()
-      
-        tbuffer = tbuffer.replace("@nstlim@",str(self.cycle_steps))
-        tbuffer = tbuffer.replace("@temp@",str(int(replica.new_temperature)))
-        tbuffer = tbuffer.replace("@salt@",str(float(replica.new_salt_concentration)))
-        tbuffer = tbuffer.replace("@disang@",replica.new_restraints)
-        
-        replica.cycle += 1
-
-        try:
-            w_file = open(new_input_file, "w")
-            w_file.write(tbuffer)
-            w_file.close()
-        except IOError:
-            self.logger.error("Warning: unable to access file: {0}".format(new_input_file) )
-     
-    #---------------------------------------------------------------------------
-    #
     def prepare_replica_for_md(self, dimension, replicas, replica, sd_shared_list):
         """
         """
-
-        # need to avoid this step!
-        #self.build_input_file(replica)
 
         basename = self.inp_basename
 
@@ -527,19 +480,14 @@ class AmberKernelPatternB3dTSU(object):
 
         #-----------------------------------------------------------------------
 
-        # sed magic
-        s1 = "sed -i \"s/{/'\{/\" run.sh;"
-        s2 = "sed -i \"s/@/'/\" run.sh;"
-        #-----------------------------------------------------------------------
-
         cu = radical.pilot.ComputeUnitDescription()
-        cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
+        cu.executable = '/bin/bash'
 
-        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
-        post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'" + "@"
-        post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'" + "@"
-        pre_exec_str_salt = "python salt_conc_pre_exec.py " + "\'" + json_data_salt + "\'" + "@"
-        post_exec_str_salt = "python salt_conc_post_exec.py " + "\'" + json_data_salt + "\'" + "@"
+        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" 
+        post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'"
+        post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'"
+        pre_exec_str_salt = "python salt_conc_pre_exec.py " + "\'" + json_data_salt + "\'"
+        post_exec_str_salt = "python salt_conc_post_exec.py " + "\'" + json_data_salt + "\'"
 
         #-----------------------------------------------------------------------
 
@@ -578,55 +526,9 @@ class AmberKernelPatternB3dTSU(object):
             if dimension == 1:
                 # copying matrix_calculator_temp_ex.py from staging area to cu folder
                 stage_in.append(sd_shared_list[3])
-
-                #---------------------------------------------------------------
-                #
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + post_exec_str_temp + " >> run.sh; "]
-              
-                cu.cores = self.md_replica_cores
-                cu.input_staging = stage_in
-                cu.output_staging = stage_out
-                cu.mpi = self.md_replica_mpi
-
-            #-------------------------------------------------------------------
-            # salt_con exchange
-            elif dimension == 2:
-
-                # copying amber_input from staging area to cu folder
-                stage_in.append(sd_shared_list[2])
-                # copying salt_conc_pre_exec.py from staging area to cu folder
-                stage_in.append(sd_shared_list[5])
-                # copying salt_conc_post_exec.py from staging area to cu folder
-                stage_in.append(sd_shared_list[6])
-             
-                cu.cores = self.md_replica_cores
                 
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; "]
-                                           
-                #print "salt mpi: {0}".format(self.salt_ex_mpi)
-                cu.mpi = self.md_replica_mpi
-                cu.output_staging = stage_out 
-                cu.input_staging = stage_in
-
-            #-------------------------------------------------------------------
-            # US exchange
-            elif dimension == 3:
-
-                # copying matrix_calculator_us_ex.py from staging area to cu folder
-                stage_in.append(sd_shared_list[4])
-
-                #---------------------------------------------------------------
-                # 
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + post_exec_str_us + " >> run.sh; "]
-              
+                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
+                cu.pre_exec = self.pre_exec
                 cu.cores = self.md_replica_cores
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
@@ -671,12 +573,9 @@ class AmberKernelPatternB3dTSU(object):
                 #---------------------------------------------------------------
                 # matrix_calculator_temp_ex.py file
                 stage_in.append(sd_shared_list[3])
-
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + post_exec_str_temp + " >> run.sh; "]
                
+                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
+                cu.pre_exec = self.pre_exec
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.cores = self.md_replica_cores
@@ -686,12 +585,10 @@ class AmberKernelPatternB3dTSU(object):
 
                 # copying amber_input from staging area to cu folder
                 stage_in.append(sd_shared_list[2])
+                      
+                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
                 cu.cores = self.md_replica_cores
-
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; "]
-                                               
+                cu.pre_exec = self.pre_exec     
                 cu.mpi = self.md_replica_mpi
                 cu.output_staging = stage_out 
                 cu.input_staging = stage_in
@@ -700,12 +597,9 @@ class AmberKernelPatternB3dTSU(object):
 
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[4])                
-
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + post_exec_str_us + " >> run.sh; "]
-             
+                
+                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us] 
+                cu.pre_exec = self.pre_exec
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.cores = self.md_replica_cores
