@@ -278,10 +278,12 @@ class AmberKernelPatternB3dTUU(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_shared_data(self):
+    def prepare_shared_data(self, replicas):
 
-        parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
+
+        #-----------------------------------------------------------------------
+        parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
         calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_temp_ex.__file__)
@@ -307,8 +309,8 @@ class AmberKernelPatternB3dTUU(object):
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
 
-        for f in listdir(coor_path):
-            self.shared_files.append(f)
+        for repl in replicas:
+            self.shared_files.append(repl.coor_file)
 
         #-----------------------------------------------------------------------
 
@@ -333,8 +335,9 @@ class AmberKernelPatternB3dTUU(object):
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
 
-        for f in listdir(coor_path):
-            cf_path = join(coor_path,f)
+        #for f in listdir(coor_path):
+        for repl in replicas:
+            cf_path = join(coor_path,repl.coor_file)
             coor_url = 'file://%s' % (cf_path)
             self.shared_urls.append(coor_url)
 
@@ -459,12 +462,6 @@ class AmberKernelPatternB3dTUU(object):
             if str(repl.id) in current_group:
                 current_group_rst[str(repl.id)] = str(repl.new_restraints)
 
-        # not used anywhere!
-        #rst_group = []
-        #for k in current_group_rst.keys():
-        #    rstr_id = self.get_rstr_id(current_group_rst[k])
-        #    rst_group.append(rstr_id)
-
         base_restraint = self.us_template + "."
 
         data = {
@@ -481,17 +478,14 @@ class AmberKernelPatternB3dTUU(object):
         dump_data = json.dumps(data)
         json_post_data_us = dump_data.replace("\\", "")
 
-        # sed magic
-        s1 = "sed -i \"s/{/'\{/\" run.sh;"
-        s2 = "sed -i \"s/@/'/\" run.sh;"
         #-----------------------------------------------------------------------
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
+        cu.executable = '/bin/bash'
 
-        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
-        post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'" + "@"
-        post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'" + "@"
+        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
+        post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'"
+        post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'"
 
         if replica.cycle == 1:    
 
@@ -518,8 +512,9 @@ class AmberKernelPatternB3dTUU(object):
             repl_coor = replica.coor_file
 
             while (repl_coor not in self.shared_files):
-                repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.postfix
-
+                #repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.postfix
+                repl_coor = replica.coor_file
+ 
             # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 
             stage_in.append(sd_shared_list[c_index])
@@ -531,37 +526,15 @@ class AmberKernelPatternB3dTUU(object):
             # restraint template file: ace_ala_nme_us.RST
             stage_in.append(sd_shared_list[6])
 
-            #-------------------------------------------------------------------
-            # temperature exchange
-            if dimension == 2:
-                # matrix_calculator_temp_ex.py file
-                stage_in.append(sd_shared_list[2])
-
-                #---------------------------------------------------------------
-                #
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + post_exec_str_temp + " >> run.sh; "]
-              
-                cu.cores = self.md_replica_cores
-                cu.input_staging = stage_in
-                cu.output_staging = stage_out
-                cu.mpi = self.md_replica_mpi
-            else:
+            if dimension == 1:
                 # us exchange
                 #---------------------------------------------------------------
 
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[3])
-
-                #---------------------------------------------------------------
-                # 
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + post_exec_str_us + " >> run.sh; "]
-              
+  
+                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us] 
+                cu.pre_exec = self.pre_exec
                 cu.cores = self.md_replica_cores
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
@@ -602,12 +575,9 @@ class AmberKernelPatternB3dTUU(object):
                 #---------------------------------------------------------------
                 # matrix_calculator_temp_ex.py file
                 stage_in.append(sd_shared_list[2])
-
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + post_exec_str_temp + " >> run.sh; "]
                
+                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp]
+                cu.pre_exec = self.pre_exec
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.cores = self.md_replica_cores
@@ -625,12 +595,9 @@ class AmberKernelPatternB3dTUU(object):
 
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[3])                
-
-                cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; " + \
-                                               "echo " + post_exec_str_us + " >> run.sh; "]
              
+                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us]
+                cu.pre_exec = self.pre_exec
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.cores = self.md_replica_cores
@@ -728,7 +695,7 @@ class AmberKernelPatternB3dTUU(object):
             cycle = replicas[0].cycle
         
         # global_ex_calculator.py file
-        stage_in.append(sd_shared_list[6])
+        stage_in.append(sd_shared_list[5])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=cycle)
         stage_out.append(outfile)

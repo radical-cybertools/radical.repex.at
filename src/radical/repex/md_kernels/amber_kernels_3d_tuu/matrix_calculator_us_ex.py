@@ -243,7 +243,7 @@ if __name__ == '__main__':
             # most likely amber run failed
             # so we write zeros to matrix column file
             if attempts >= 12:
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 # writing to file
                 try:
                     outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
@@ -263,7 +263,7 @@ if __name__ == '__main__':
 
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-                #---------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------
                 sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
             pass
 
@@ -279,13 +279,13 @@ if __name__ == '__main__':
         current_rstr = current_group_rst[j]
         while (success == 0):
             try:
-                #----------------------------------------------------
+                #---------------------------------------------------------------
                 # can avoid this step!
                 rstr_ppath = "../staging_area/" + current_rstr
                 rstr_file = file(rstr_ppath,'r')
                 rstr_lines = rstr_file.readlines()
                 rstr_file.close()
-                #----------------------------------------------------
+                #---------------------------------------------------------------
                 rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
                 us_energy = 0.0
                 r = Restraint()
@@ -307,7 +307,7 @@ if __name__ == '__main__':
     for j in current_group_rst.keys():      
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 
-    #----------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # writing to file
 
     try:

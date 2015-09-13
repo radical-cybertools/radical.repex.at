@@ -85,7 +85,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
         #------------------------
 
         # staging shared input data in
-        md_kernel.prepare_shared_data()
+        md_kernel.prepare_shared_data(replicas)
 
         shared_input_file_urls = md_kernel.shared_urls
         shared_input_files = md_kernel.shared_files

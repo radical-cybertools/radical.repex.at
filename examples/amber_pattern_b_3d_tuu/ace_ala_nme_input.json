@@ -18,7 +18,7 @@
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "500",
+        "steps_per_cycle": "2000",
         "exchange_off" : "False"
         },
     "input.DIM": {
