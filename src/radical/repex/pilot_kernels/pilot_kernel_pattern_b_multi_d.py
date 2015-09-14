@@ -288,7 +288,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
 
             #-------------------------------------------------------------------
-            # populating swap matrix                
+            #               
             t1 = datetime.datetime.utcnow()
             for r in submitted_replicas:
                 if r.state != radical.pilot.DONE:
@@ -309,74 +309,75 @@ class PilotKernelPatternBmultiD(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = (t2-t1).total_seconds()
             
+            #-------------------------------------------------------------------
+            # performance data
+            outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
+            with open(outfile, 'a') as f:
+                
+                #---------------------------------------------------------------
+                #
+                head = "Cycle; Dim; Run; Duration"
+                f.write("{row}\n".format(row=head))
+
+                hl_cycle = "cycle_{0}".format(current_cycle)
+                hl_dim   = "dim_{0}".format(DIM)
+                
+                for run in hl_performance_data[hl_cycle][hl_dim].keys():
+                    dur = hl_performance_data[hl_cycle][hl_dim][run]
+
+                    row = "{Cycle}; {Dim}; {Run}; {Duration}".format(
+                        Duration=dur,
+                        Cycle=hl_cycle,
+                        Dim=hl_dim,
+                        Run=run)
+
+                    f.write("{r}\n".format(r=row))
+
+                #---------------------------------------------------------------
+                head = "CU_ID; Scheduling; StagingInput; PendingAgentInputStaging; AgentStagingInput; Allocating; Executing; PendingAgentOutputStaging; PendingOutputStaging; StagingOutput; Done; Cycle; Dim; Run;"
+                f.write("{row}\n".format(row=head))
+               
+                for run in cu_performance_data[hl_cycle][hl_dim].keys():
+                    for cid in cu_performance_data[hl_cycle][hl_dim][run].keys():
+                        cu = cu_performance_data[hl_cycle][hl_dim][run][cid]
+                        st_data = {}
+                        for st in cu.state_history:
+                            st_dict = st.as_dict()
+                            st_data["{0}".format( st_dict["state"] )] = {}
+                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+                       
+                        row = "{uid}; {Scheduling}; {StagingInput}; {PendingAgentInputStaging}; {AgentStagingInput}; {Allocating}; {Executing}; {PendingAgentOutputStaging}; {PendingOutputStaging}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
+                            uid=cu.uid,
+                            #Unscheduled=st_data['Unscheduled'],
+                            Scheduling=st_data['Scheduling'],
+                            #PendingInputStaging = st_data['PendingInputStaging'],
+                            StagingInput=st_data['StagingInput'],
+                            PendingAgentInputStaging=st_data['PendingAgentInputStaging'],
+                            AgentStagingInput=st_data['AgentStagingInput'],
+                            #PendingExecution=st_data['PendingExecution'],
+                            Allocating=st_data['Allocating'],
+                            Executing=st_data['Executing'],
+                            PendingAgentOutputStaging=st_data['PendingAgentOutputStaging'],
+                            #AgentStagingOutput=st_data['AgentStagingOutput'],
+                            PendingOutputStaging=st_data['PendingOutputStaging'],
+                            StagingOutput=st_data['StagingOutput'],
+                            Done=st_data['Done'],
+                            Cycle=hl_cycle,
+                            Dim=hl_dim,
+                            Run=run)
+
+                        f.write("{r}\n".format(r=row))
+            
         #-----------------------------------------------------------------------
         # end of loop
 
-        #------------------------------------------------
-        # performance data
         outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
-        with open(outfile, 'w+') as f:
-            #------------------------
+        with open(outfile, 'a') as f:
             # RAW SIMULATION TIME
             end = datetime.datetime.utcnow()
-            #------------------------
             STAGEIN_TIME = (stagein_end-stagein_start).total_seconds()
             RAW_SIMULATION_TIME = (end-start).total_seconds()
             f.write("RAW_SIMULATION_TIME: {row}\n".format(row=RAW_SIMULATION_TIME))
             f.write("STAGEIN_TIME: {row}\n".format(row=STAGEIN_TIME))
 
-            #------------------------------------------------------------
-            #
-            head = "Cycle; Dim; Run; Duration"
-            f.write("{row}\n".format(row=head))
-
-            for cycle in hl_performance_data:
-                for dim in hl_performance_data[cycle].keys():
-                    for run in hl_performance_data[cycle][dim].keys():
-                        dur = hl_performance_data[cycle][dim][run]
-
-                        row = "{Cycle}; {Dim}; {Run}; {Duration}".format(
-                            Duration=dur,
-                            Cycle=cycle,
-                            Dim=dim,
-                            Run=run)
-
-                        f.write("{r}\n".format(r=row))
-
-            #-------------------------------------------------------------------
-            head = "CU_ID; Scheduling; StagingInput; PendingAgentInputStaging; AgentStagingInput; Allocating; Executing; PendingAgentOutputStaging; PendingOutputStaging; StagingOutput; Done; Cycle; Dim; Run;"
-            f.write("{row}\n".format(row=head))
-            
-            for cycle in cu_performance_data:
-                for dim in cu_performance_data[cycle].keys():
-                    for run in cu_performance_data[cycle][dim].keys():
-                        for cid in cu_performance_data[cycle][dim][run].keys():
-                            cu = cu_performance_data[cycle][dim][run][cid]
-                            st_data = {}
-                            for st in cu.state_history:
-                                st_dict = st.as_dict()
-                                st_data["{0}".format( st_dict["state"] )] = {}
-                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-                           
-                            row = "{uid}; {Scheduling}; {StagingInput}; {PendingAgentInputStaging}; {AgentStagingInput}; {Allocating}; {Executing}; {PendingAgentOutputStaging}; {PendingOutputStaging}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
-                                uid=cu.uid,
-                                #Unscheduled=st_data['Unscheduled'],
-                                Scheduling=st_data['Scheduling'],
-                                #PendingInputStaging = st_data['PendingInputStaging'],
-                                StagingInput=st_data['StagingInput'],
-                                PendingAgentInputStaging=st_data['PendingAgentInputStaging'],
-                                AgentStagingInput=st_data['AgentStagingInput'],
-                                #PendingExecution=st_data['PendingExecution'],
-                                Allocating=st_data['Allocating'],
-                                Executing=st_data['Executing'],
-                                PendingAgentOutputStaging=st_data['PendingAgentOutputStaging'],
-                                #AgentStagingOutput=st_data['AgentStagingOutput'],
-                                PendingOutputStaging=st_data['PendingOutputStaging'],
-                                StagingOutput=st_data['StagingOutput'],
-                                Done=st_data['Done'],
-                                Cycle=cycle,
-                                Dim=dim,
-                                Run=run)
-
-                            f.write("{r}\n".format(r=row))
             
