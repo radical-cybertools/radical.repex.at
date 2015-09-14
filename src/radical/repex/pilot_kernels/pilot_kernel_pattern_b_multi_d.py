@@ -136,7 +136,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
             if DIM == 1:
                 cu_performance_data["cycle_{0}".format(current_cycle)] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)] = {}
-                self.logger.info("Performing cycle: {0}".format(current_cycle) )
+
+            self.logger.info("Performing cycle: {0}".format(current_cycle) )
             
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)] = {}
@@ -162,21 +163,51 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     compute_replica = md_kernel.prepare_replica_for_md(DIM, replicas, replica, self.sd_shared_list)
                     sub_replica = unit_manager.submit_units(compute_replica)
                     submitted_replicas.append(sub_replica)
+                t2 = datetime.datetime.utcnow()
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = (t2-t1).total_seconds()
 
                 if (DIM == 2) and (md_kernel.d2 == 'salt_concentration'):
+                    t1 = datetime.datetime.utcnow()
+                    unit_manager.wait_units()
+                    t2 = datetime.datetime.utcnow()
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
+
+                    t1 = datetime.datetime.utcnow()
                     for replica in replicas:
                         ex_replica = md_kernel.prepare_replica_for_exchange(DIM, replicas, replica, self.sd_shared_list)
                         sub_replica = unit_manager.submit_units(ex_replica)
                         exchange_replicas.append(sub_replica)
+                    t2 = datetime.datetime.utcnow()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = (t2-t1).total_seconds()
+                    
+                    t1 = datetime.datetime.utcnow()
+                    unit_manager.wait_units()
+                    t2 = datetime.datetime.utcnow()
 
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = (t2-t1).total_seconds()
+                
                 #---------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 1:
                     ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
                 #---------------------------------------------------------------
-                
-                t2 = datetime.datetime.utcnow()
+
+                if (DIM != 2) or (md_kernel.d2 != 'salt_concentration'):
+                    t1 = datetime.datetime.utcnow()
+                    unit_manager.wait_units()
+                    t2 = datetime.datetime.utcnow()
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
+                else:
+                    unit_manager.wait_units()
             #-------------------------------------------------------------------
             # BULK submision
             else:
@@ -190,27 +221,43 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 
                 c_replicas = []
                 t1 = datetime.datetime.utcnow()
-                ttt_1 = datetime.datetime.utcnow()
                 for replica in replicas:
                     # DIM, replicas, replica, self.sd_shared_list
                     compute_replica = md_kernel.prepare_replica_for_md(DIM, replicas, replica, self.sd_shared_list)
                     c_replicas.append(compute_replica)
-                ttt_2 = datetime.datetime.utcnow()
-                #print "time to prepare replicas: %f" % (ttt_2-ttt_1).total_seconds()
+                t2 = datetime.datetime.utcnow()
                 submitted_replicas = unit_manager.submit_units(c_replicas)
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = (t2-t1).total_seconds()
 
                 #---------------------------------------------------------------
                 
                 e_replicas = []
                 if (DIM == 2) and (md_kernel.d2 == 'salt_concentration'):
-
+                    t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
+                    t2 = datetime.datetime.utcnow()
 
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
+
+                    t1 = datetime.datetime.utcnow()
                     for replica in replicas:
                         ex_replica = md_kernel.prepare_replica_for_exchange(DIM, replicas, replica, self.sd_shared_list)
                         e_replicas.append(ex_replica)
-                    exchange_replicas = unit_manager.submit_units(e_replicas)
+                    exchange_replicas = unit_manager.submit_units(e_replicas) 
+                    t2 = datetime.datetime.utcnow()
 
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = (t2-t1).total_seconds()
+                    
+                    t1 = datetime.datetime.utcnow()
+                    unit_manager.wait_units()
+                    t2 = datetime.datetime.utcnow()
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = (t2-t1).total_seconds()
                 #---------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 1:
@@ -218,21 +265,16 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
                 #---------------------------------------------------------------
                 
-                t2 = datetime.datetime.utcnow()
-            
+                if (DIM != 2) or (md_kernel.d2 != 'salt_concentration'):
+                    t1 = datetime.datetime.utcnow()
+                    unit_manager.wait_units()
+                    t2 = datetime.datetime.utcnow()
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
+                else:
+                    unit_manager.wait_units()
             #-------------------------------------------------------------------
-
-            self.logger.info("Dim {0}: submitting {1} replicas for MD run; cycle {2}".format(DIM, md_kernel.replicas, current_cycle) )
-
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = (t2-t1).total_seconds()
-
-            t1 = datetime.datetime.utcnow()
-            unit_manager.wait_units()
-            t2 = datetime.datetime.utcnow()
-            
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
 
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("MD")] = {}
             for cu in submitted_replicas:
@@ -315,25 +357,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
                                 st_dict = st.as_dict()
                                 st_data["{0}".format( st_dict["state"] )] = {}
                                 st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-                            #print "st_data: "
-                            #print st_data
-
-                            #print st_data
-                            """
-                            row = "{uid}; {Scheduling}; {StagingInput}; {Allocating}; {Executing}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
-                                uid=cu.uid,
-                                Scheduling=(st_data['Scheduling']-start).total_seconds(),
-                                StagingInput=(st_data['StagingInput']-start).total_seconds(),
-                                Allocating=(st_data['Allocating']-start).total_seconds(),
-                                Executing=(st_data['Executing']-start).total_seconds(),
-                                StagingOutput=(st_data['StagingOutput']-start).total_seconds(),
-                                Done=(st_data['Done']-start).total_seconds(),
-                                #exestart=(cu.start_time-start).total_seconds(),
-                                #exestop=(cu.stop_time-start).total_seconds(),
-                                Cycle=cycle,
-                                Dim=dim,
-                                Run=run)
-                            """
+                           
                             row = "{uid}; {Scheduling}; {StagingInput}; {PendingAgentInputStaging}; {AgentStagingInput}; {Allocating}; {Executing}; {PendingAgentOutputStaging}; {PendingOutputStaging}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
                                 uid=cu.uid,
                                 #Unscheduled=st_data['Unscheduled'],
