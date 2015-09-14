@@ -185,6 +185,13 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = (t2-t1).total_seconds()
                     
+                    #-----------------------------------------------------------
+                    # submitting unit which determines exchanges between replicas
+                    if GL == 1:
+                        ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
+                        global_ex_cu = unit_manager.submit_units(ex_calculator)
+                    #-----------------------------------------------------------
+
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
@@ -192,14 +199,15 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = (t2-t1).total_seconds()
                 
-                #---------------------------------------------------------------
-                # submitting unit which determines exchanges between replicas
-                if GL == 1:
-                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
-                    global_ex_cu = unit_manager.submit_units(ex_calculator)
-                #---------------------------------------------------------------
-
                 if (DIM != 2) or (md_kernel.d2 != 'salt_concentration'):
+
+                    #-----------------------------------------------------------
+                    # submitting unit which determines exchanges between replicas
+                    if GL == 1:
+                        ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
+                        global_ex_cu = unit_manager.submit_units(ex_calculator)
+                    #-----------------------------------------------------------
+
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
@@ -251,6 +259,13 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = (t2-t1).total_seconds()
+
+                    #-----------------------------------------------------------
+                    # submitting unit which determines exchanges between replicas
+                    if GL == 1:
+                        ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
+                        global_ex_cu = unit_manager.submit_units(ex_calculator)
+                    #-----------------------------------------------------------
                     
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
@@ -258,14 +273,16 @@ class PilotKernelPatternBmultiD(PilotKernel):
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = (t2-t1).total_seconds()
-                #---------------------------------------------------------------
-                # submitting unit which determines exchanges between replicas
-                if GL == 1:
-                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
-                    global_ex_cu = unit_manager.submit_units(ex_calculator)
-                #---------------------------------------------------------------
+                
                 
                 if (DIM != 2) or (md_kernel.d2 != 'salt_concentration'):
+                    #-----------------------------------------------------------
+                    # submitting unit which determines exchanges between replicas
+                    if GL == 1:
+                        ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, DIM, replicas, self.sd_shared_list)
+                        global_ex_cu = unit_manager.submit_units(ex_calculator)
+                    #-----------------------------------------------------------
+
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
@@ -380,4 +397,3 @@ class PilotKernelPatternBmultiD(PilotKernel):
             f.write("RAW_SIMULATION_TIME: {row}\n".format(row=RAW_SIMULATION_TIME))
             f.write("STAGEIN_TIME: {row}\n".format(row=STAGEIN_TIME))
 
-            
