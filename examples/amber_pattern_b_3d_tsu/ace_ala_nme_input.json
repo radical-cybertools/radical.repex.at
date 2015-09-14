@@ -13,7 +13,7 @@
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
-        "amber_parameters": "ace_ala_nme.parm7",
+        "amber_parameters": "ace_ala_nme_h2o.parm7",
         "amber_coordinates": "ace_ala_nme.inpcrd",
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
