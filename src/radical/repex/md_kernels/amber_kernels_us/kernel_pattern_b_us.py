@@ -21,11 +21,11 @@ from os import listdir
 from os.path import isfile, join
 import radical.utils.logger as rul
 from replicas.replica import Replica1d
-from md_kernels.md_kernel_us import *
+#from md_kernels.md_kernel_us import *
 from kernels.kernels import KERNELS
 import amber_kernels_us.input_file_builder
 import amber_kernels_us.global_ex_calculator
-import amber_kernels_us.matrix_calculator_us_ex
+#import amber_kernels_us.matrix_calculator_us_ex
 
 #-------------------------------------------------------------------------------
 
