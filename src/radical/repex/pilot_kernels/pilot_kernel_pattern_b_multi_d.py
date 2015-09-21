@@ -79,10 +79,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(pilot_object)
 
-        #------------------------
-        # (NEW LOCATION)
         stagein_start = datetime.datetime.utcnow()
-        #------------------------
 
         # staging shared input data in
         md_kernel.prepare_shared_data(replicas)
@@ -112,8 +109,7 @@ class PilotKernelPatternBmultiD(PilotKernel):
         md_kernel.init_matrices(replicas)
 
         stagein_end = datetime.datetime.utcnow()
-        #------------------------
-        # Raw simulation time (OLD LOCATION)
+
         start = datetime.datetime.utcnow()
         #------------------------
         # GL = 0: submit global calculator before
@@ -392,8 +388,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
         with open(outfile, 'a') as f:
             # RAW SIMULATION TIME
             end = datetime.datetime.utcnow()
-            STAGEIN_TIME = (stagein_end-stagein_start).total_seconds()
-            RAW_SIMULATION_TIME = (end-start).total_seconds()
-            f.write("RAW_SIMULATION_TIME: {row}\n".format(row=RAW_SIMULATION_TIME))
-            f.write("STAGEIN_TIME: {row}\n".format(row=STAGEIN_TIME))
+            stagein_time = (stagein_end-stagein_start).total_seconds()
+            raw_simulation_time = (end-start).total_seconds()
+            f.write("Total simulaiton time: {row}\n".format(row=raw_simulation_time))
+            f.write("Stage-in time: {row}\n".format(row=stagein_time))
 

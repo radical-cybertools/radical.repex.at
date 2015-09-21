@@ -21,7 +21,7 @@ import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 import amber_kernels_tex.input_file_builder
 import amber_kernels_tex.global_ex_calculator
-#from md_kernels.md_kernel_tex import *
+from replicas.replica import *
 
 #-------------------------------------------------------------------------------
 
