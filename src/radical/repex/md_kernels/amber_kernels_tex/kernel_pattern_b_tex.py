@@ -151,8 +151,10 @@ class KernelPatternBTex(object):
     #---------------------------------------------------------------------------
     #
     def prepare_replica_for_md(self, replica, sd_shared_list):
-        """Prepares all replicas for execution. In this function are created CU descriptions for replicas, are
-        specified input/output files to be transferred to/from target system. Note: input files for first and 
+        """Prepares all replicas for execution. In this function are created CU 
+        descriptions for replicas, are
+        specified input/output files to be transferred to/from target system. 
+        Note: input files for first and 
         subsequent simulation cycles are different.
 
         Arguments:
@@ -235,11 +237,7 @@ class KernelPatternBTex(object):
         }
         stage_out.append(coor_out)
 
-        # sed magic
-        s1 = "sed -i \"s/{/'\{/\" run.sh;"
-        s2 = "sed -i \"s/@/'/\" run.sh;"
-
-        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
+        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
 
         if replica.cycle == 1:       
             
@@ -264,12 +262,9 @@ class KernelPatternBTex(object):
                 stage_in.append(sd_shared_list[i])
                 
             cu = radical.pilot.ComputeUnitDescription()
-            #cu.executable = self.amber_path
-            cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
-            cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                           "echo " + pre_exec_str + " >> run.sh; " + \
-                                           "echo " + amber_str + argument_str + " >> run.sh; "]
-                                               
+            cu.pre_exec = self.pre_exec
+            cu.executable = '/bin/bash'
+            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]                                   
             cu.mpi = self.replica_mpi
             cu.cores          = self.replica_cores
             cu.input_staging  = stage_in
@@ -293,11 +288,9 @@ class KernelPatternBTex(object):
                 stage_in.append(sd_shared_list[i])
 
             cu = radical.pilot.ComputeUnitDescription()
-            cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
-            cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; "]
-
+            cu.pre_exec = self.pre_exec
+            cu.executable = '/bin/bash'
+            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
             cu.mpi = self.replica_mpi
             cu.cores = self.replica_cores
             cu.input_staging = stage_in

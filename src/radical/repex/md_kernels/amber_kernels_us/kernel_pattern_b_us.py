@@ -48,7 +48,7 @@ class KernelPatternBUS(object):
         self.replicas = int(inp_file['input.MD']['number_of_replicas'])
         self.cores = int(inp_file['input.PILOT']['cores'])
         self.us_template = inp_file['input.MD']['us_template']                           
-        self.init_temperature = float(inp_file['input.MD']['init_temperature'])
+        #self.init_temperature = float(inp_file['input.MD']['init_temperature'])
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
         
@@ -86,13 +86,21 @@ class KernelPatternBUS(object):
                 print "Amber path for localhost is not defined..."
 
         self.amber_coordinates_path = inp_file['input.MD']['amber_coordinates_folder']
+        if 'same_coordinates' in inp_file['input.MD']:
+            coors = inp_file['input.MD']['same_coordinates']
+            if coors == "True":
+                self.same_coordinates = True
+            else:
+                self.same_coordinates = False
+        else:
+            self.same_coordinates = True
+
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
         self.input_folder = inp_file['input.MD']['input_folder']
         self.us_start_param = float(inp_file['input.MD']['us_start_param'])
         self.us_end_param = float(inp_file['input.MD']['us_end_param'])
 
-        self.init_temperature = float(inp_file['input.MD']['init_temperature'])
         self.current_cycle = -1
 
         self.name = 'ak-us-patternB'
@@ -141,8 +149,6 @@ class KernelPatternBUS(object):
 
         #-----------------------------------------------------------------------
         # 
-        i = 0
-
         for k in range(self.replicas):
 
             spacing = (self.us_end_param - self.us_start_param) / (float(self.replicas)-1)
@@ -150,13 +156,19 @@ class KernelPatternBUS(object):
 
             rstr_val_1 = str(starting_value)
 
-            coor_file = self.c_prefix + "_" + str(i) + "." + self.c_infix + "_" + str(k) + "." + self.c_postfix
-
-            r = Replica1d(k, new_restraints=self.restraints_files[k], \
+            if self.same_coordinates == False:
+                coor_file = self.c_prefix + "_0." + self.c_infix + "_" + str(k) + "." + self.c_postfix
+                r = Replica1d(k, new_restraints=self.restraints_files[k], \
                              rstr_val_1=float(rstr_val_1), \
                              coor=coor_file, \
-                             indx1=i, \
+                             indx1=0, \
                              indx2=k)
+            else:
+                coor_file = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
+                r = Replica1d(k, new_restraints=self.restraints_files[k], \
+                                 rstr_val_1=float(rstr_val_1), \
+                                 coor=coor_file)
+
             replicas.append(r)
             
         return replicas
@@ -210,19 +222,12 @@ class KernelPatternBUS(object):
             coor_url = 'file://%s' % (cf_path)
             self.shared_urls.append(coor_url)
 
-        print "len shared files: "
-        print len(self.shared_files)
-
-        print "len shared urls: "
-        print len(self.shared_urls)
-
     #---------------------------------------------------------------------------
     # 
     def prepare_replica_for_md(self, replica, sd_shared_list):
         """
         """
  
-        # from build_input_file()
         basename = self.inp_basename
             
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
@@ -305,29 +310,22 @@ class KernelPatternBUS(object):
         dump_data = json.dumps(data)
         json_post_data_us = dump_data.replace("\\", "")
 
-        # sed magic
-        s1 = "sed -i \"s/{/'\{/\" run.sh;"
-        s2 = "sed -i \"s/@/'/\" run.sh;"
         #-----------------------------------------------------------------------
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
-
-        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" + "@"
+        cu.executable = '/bin/bash'
+        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
 
         if replica.cycle == 1:
-            ###
-            #self.shared_files.append(self.amber_parameters)
-            #self.shared_files.append(self.amber_input)
-            #self.shared_files.append("input_file_builder.py")
-            #self.shared_files.append("global_ex_calculator.py")
-            #self.shared_files.append(self.us_template)
-            ###
 
             amber_str = self.amber_path
-            argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
-                           " -p " +  self.amber_parameters + " -c " + replica.coor_file + \
-                           " -r " + new_coor + " -x " + new_traj + " -inf " + new_info  
+            argument_str = " -O " + " -i " + new_input_file + \
+                           " -o " + output_file + \
+                           " -p " +  self.amber_parameters + \
+                           " -c " + replica.coor_file + \
+                           " -r " + new_coor + \
+                           " -x " + new_traj + \
+                           " -inf " + new_info  
 
             restraints_out = replica.new_restraints
             restraints_out_st = {
@@ -349,19 +347,19 @@ class KernelPatternBUS(object):
             # replica coor
             repl_coor = replica.coor_file
 
-            while (repl_coor not in self.shared_files):
-                repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.postfix
+            if self.same_coordinates == False:
+                while (repl_coor not in self.shared_files):
+                    repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.c_postfix
+            else:
+                repl_coor = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
 
             # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 
             stage_in.append(sd_shared_list[c_index])
 
             #-------------------------------------------------------------------
-
-            cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                               "echo " + pre_exec_str + " >> run.sh; " + \
-                                               "echo " + amber_str + argument_str + " >> run.sh; "]
-              
+            cu.pre_exec = self.pre_exec
+            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]  
             cu.cores = self.replica_cores
             cu.input_staging = stage_in
             cu.output_staging = stage_out
@@ -372,14 +370,7 @@ class KernelPatternBUS(object):
             argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
                            " -p " +  self.amber_parameters + " -c " + old_coor + \
                            " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
-            ###
-            #self.shared_files.append(self.amber_parameters)
-            #self.shared_files.append(self.amber_input)
-            #self.shared_files.append("input_file_builder.py")
-            #self.shared_files.append("global_ex_calculator.py")
-            #self.shared_files.append(self.us_template)
-            ###
-
+            
             # parameters file
             stage_in.append(sd_shared_list[0])
 
@@ -409,10 +400,8 @@ class KernelPatternBUS(object):
                 }
             stage_out.append(new_coor_out)
 
-            cu.pre_exec = self.pre_exec + ["cat run.sh; " + "echo '#!/bin/bash -l' >> run.sh; " + \
-                                           "echo " + pre_exec_str + " >> run.sh; " + \
-                                           "echo " + amber_str + argument_str + " >> run.sh; "]
-         
+            cu.pre_exec = self.pre_exec
+            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str] 
             cu.input_staging = stage_in
             cu.output_staging = stage_out
             cu.cores = self.replica_cores
