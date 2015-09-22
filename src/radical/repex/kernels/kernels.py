@@ -23,7 +23,8 @@ KERNELS = {
                 "pre_execution" : ["module load TACC", "module load namd/2.9"],
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2"
             }
-        }
+        },
+        "shell": "bash"
     },"archer.ac.uk":
     {
         "params":
@@ -57,7 +58,8 @@ KERNELS = {
                 "executable" : "/opt/amber/bin/sander",
                 "executable_mpi" : "/opt/amber/bin/sander.MPI"
             }
-        }
+        },
+        "shell": "bash"
     },"local.localhost":
     {
         "params":
@@ -82,13 +84,27 @@ KERNELS = {
         {
             "amber": {
                 "environment" : {},
-                "pre_execution" : ["module load python", "module load amber", "module load mpi4py"],
+                "pre_execution" : ["module load python", "module load mpi4py/1.3.1", "module load amber"],
                 "executable" : "/opt/amber/bin/sander",
                 "executable_mpi" : "/opt/amber/bin/sander.MPI"
             }
+        },
+        "shell": "bourne"
+    },"ncsa.bw":
+    {
+        "params":
+        {
+            "cores": 32,
+        },
+        "kernels":
+        {
+            "amber": {
+                "environment" : {},
+                "pre_execution" : [],
+                "executable" : "/u/sciteam/treikali/amber14/bin/sander",
+                "executable_mpi" : "/u/sciteam/treikali/amber14/bin/sander.MPI"
+            }
         }
-
-
     }
 
 }

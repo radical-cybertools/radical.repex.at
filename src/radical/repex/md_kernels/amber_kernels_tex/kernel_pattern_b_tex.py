@@ -26,14 +26,17 @@ from replicas.replica import *
 #-------------------------------------------------------------------------------
 
 class KernelPatternBTex(object):
-    """This class is responsible for performing all operations related to Amber for RE scheme S2.
-    In this class is determined how replica input files are composed, how exchanges are performed, etc.
+    """This class is responsible for performing all operations related to Amber 
+    for RE scheme S2.
+    In this class is determined how replica input files are composed, how 
+    exchanges are performed, etc.
     """
     def __init__(self, inp_file,  work_dir_local):
         """Constructor.
 
         Arguments:
-        inp_file - package input file with Pilot and NAMD related parameters as specified by user 
+        inp_file - package input file with Pilot and NAMD related parameters as 
+        specified by user 
         work_dir_local - directory from which main simulation script was invoked
         """
 
@@ -214,8 +217,9 @@ class KernelPatternBTex(object):
             "new_input_file" : str(new_input_file),
             "cycle" : str(replica.cycle)
                 }
-        dump_data = json.dumps(data)
-        json_pre_data = dump_data.replace("\\", "")
+        dump_pre_data = json.dumps(data)
+        json_pre_data_bash = dump_pre_data.replace("\\", "")
+        json_pre_data_sh = dump_pre_data.replace("\"", "\\\\\"")
 
         replica.cycle += 1
 
@@ -237,7 +241,14 @@ class KernelPatternBTex(object):
         }
         stage_out.append(coor_out)
 
-        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
+        cu = radical.pilot.ComputeUnitDescription()
+
+        if KERNELS[self.resource]["shell"] == "bourne":
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'"
+            cu.executable = '/bin/sh'
+        elif KERNELS[self.resource]["shell"] == "bash":
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
+            cu.executable = '/bin/bash'          
 
         if replica.cycle == 1:       
             
@@ -261,9 +272,7 @@ class KernelPatternBTex(object):
             for i in range(4):
                 stage_in.append(sd_shared_list[i])
                 
-            cu = radical.pilot.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
-            cu.executable = '/bin/bash'
             cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]                                   
             cu.mpi = self.replica_mpi
             cu.cores          = self.replica_cores
@@ -287,9 +296,7 @@ class KernelPatternBTex(object):
             for i in range(4):
                 stage_in.append(sd_shared_list[i])
 
-            cu = radical.pilot.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
-            cu.executable = '/bin/bash'
             cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
             cu.mpi = self.replica_mpi
             cu.cores = self.replica_cores

@@ -408,7 +408,8 @@ class AmberKernelPatternB3dTSU(object):
             "rid" : str(rid)
                 }
         dump_data = json.dumps(data)
-        json_pre_data = dump_data.replace("\\", "")
+        json_pre_data_bash = dump_data.replace("\\", "")
+        json_pre_data_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
         # json for matrix_calculator_temp_ex.py
@@ -425,7 +426,8 @@ class AmberKernelPatternB3dTSU(object):
             }
 
         dump_data = json.dumps(data)
-        json_post_data_temp = dump_data.replace("\\", "")
+        json_post_data_temp_bash = dump_data.replace("\\", "")
+        json_post_data_temp_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
         # json for matrix_calculator_us_ex.py
@@ -450,7 +452,8 @@ class AmberKernelPatternB3dTSU(object):
             "current_group_rst" : current_group_rst
         }
         dump_data = json.dumps(data)
-        json_post_data_us = dump_data.replace("\\", "")
+        json_post_data_us_bash = dump_data.replace("\\", "")
+        json_post_data_us_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
         # json for matrix_calculator_salt_ex.py
@@ -476,19 +479,26 @@ class AmberKernelPatternB3dTSU(object):
         }
 
         dump_data = json.dumps(data)
-        json_data_salt = dump_data.replace("\\", "")
+        json_data_salt_bash = dump_data.replace("\\", "")
+        json_data_salt_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.executable = '/bin/bash'
-
-        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'" 
-        post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'"
-        post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'"
-        pre_exec_str_salt = "python salt_conc_pre_exec.py " + "\'" + json_data_salt + "\'"
-        post_exec_str_salt = "python salt_conc_post_exec.py " + "\'" + json_data_salt + "\'"
-
+        if KERNELS[self.resource]["shell"] == "bash":
+            cu.executable = '/bin/bash'
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'" 
+            post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_bash + "\'"
+            post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_bash + "\'"
+            pre_exec_str_salt = "python salt_conc_pre_exec.py " + "\'" + json_data_salt_bash + "\'"
+            post_exec_str_salt = "python salt_conc_post_exec.py " + "\'" + json_data_salt_bash + "\'"
+        elif KERNELS[self.resource]["shell"] == "bourne":
+            cu.executable = '/bin/sh'
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'" 
+            post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_sh + "\'"
+            post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_sh + "\'"
+            pre_exec_str_salt = "python salt_conc_pre_exec.py " + "\'" + json_data_salt_sh + "\'"
+            post_exec_str_salt = "python salt_conc_post_exec.py " + "\'" + json_data_salt_sh + "\'"
         #-----------------------------------------------------------------------
 
         if replica.cycle == 1:

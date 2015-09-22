@@ -19,7 +19,7 @@ from random import randint
 from kernels.kernels import KERNELS
 import radical.utils.logger as rul
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class PilotKernel(object):
     """
@@ -89,7 +89,7 @@ class PilotKernel(object):
         pilot_manager - radical.pilot.PilotManager object
         """
  
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         #
         def pilot_state_cb(pilot, state):
             """This is a callback function. It gets called very time a ComputePilot changes its state.
@@ -102,7 +102,7 @@ class PilotKernel(object):
                     self.logger.error("Pilot error: {0}".format(pilot.log) )
                     self.logger.error("RepEx execution FAILED.")
                     # sys.exit(1)
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         
         session = None

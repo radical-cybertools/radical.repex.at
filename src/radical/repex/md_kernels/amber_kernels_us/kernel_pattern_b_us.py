@@ -292,7 +292,9 @@ class KernelPatternBUS(object):
             "rstr_val_1" : str(replica.rstr_val_1)
                 }
         dump_data = json.dumps(data)
-        json_pre_data = dump_data.replace("\\", "")
+
+        json_pre_data_bash = dump_pre_data.replace("\\", "")
+        json_pre_data_sh = dump_pre_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
         # umbrella sampling
@@ -313,9 +315,14 @@ class KernelPatternBUS(object):
         #-----------------------------------------------------------------------
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.executable = '/bin/bash'
-        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
 
+        if KERNELS[self.resource]["shell"] == "bourne":
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'"
+            cu.executable = '/bin/sh'
+        elif KERNELS[self.resource]["shell"] == "bash":
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
+            cu.executable = '/bin/bash'
+       
         if replica.cycle == 1:
 
             amber_str = self.amber_path

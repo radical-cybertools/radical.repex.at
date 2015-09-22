@@ -437,7 +437,8 @@ class AmberKernelPatternB3dTUU(object):
             "rstr_val_2" : str(replica.rstr_val_2)
                 }
         dump_data = json.dumps(data)
-        json_pre_data = dump_data.replace("\\", "")
+        json_pre_data_bash = dump_data.replace("\\", "")
+        json_pre_data_sh   = dump_data.replace("\"", "\\\\\"")
 
         # temperature
         data = {
@@ -452,7 +453,8 @@ class AmberKernelPatternB3dTUU(object):
             }
 
         dump_data = json.dumps(data)
-        json_post_data_temp = dump_data.replace("\\", "")
+        json_post_data_temp_bash = dump_data.replace("\\", "")
+        json_post_data_temp_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
         # umbrella sampling
@@ -476,16 +478,23 @@ class AmberKernelPatternB3dTUU(object):
             "current_group_rst" : current_group_rst
         }
         dump_data = json.dumps(data)
-        json_post_data_us = dump_data.replace("\\", "")
+        json_post_data_us_bash = dump_data.replace("\\", "")
+        json_post_data_us_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.executable = '/bin/bash'
 
-        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
-        post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp + "\'"
-        post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us + "\'"
+        if KERNELS[self.resource]["shell"] == "bash":
+            cu.executable = '/bin/bash'
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
+            post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_bash + "\'"
+            post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_bash + "\'"
+        elif KERNELS[self.resource]["shell"] == "bourne":
+            cu.executable = '/bin/sh'
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'"
+            post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_sh + "\'"
+            post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_sh + "\'"
 
         if replica.cycle == 1:    
 
