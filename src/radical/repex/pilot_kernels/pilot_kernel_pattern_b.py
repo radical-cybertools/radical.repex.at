@@ -196,7 +196,8 @@ class PilotKernelPatternB(PilotKernel):
 
             self.logger.info("Submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
             t1 = datetime.datetime.utcnow()
-            unit_manager.wait_units()
+            #unit_manager.wait_units()
+            time.sleep(150)
             t2 = datetime.datetime.utcnow()
 
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}

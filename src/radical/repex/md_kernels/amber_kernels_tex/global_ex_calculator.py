@@ -256,12 +256,6 @@ if __name__ == '__main__':
                 pass
 
     #---------------------------------------------------------------------------
-    #if rank == 0:
-    #    print "all temp: "
-    #    print all_temperatures
-
-    #    print "all_energies: "
-    #    print all_energies
 
     all_temperatures = comm.bcast(all_temperatures, root=0)
     all_energies = comm.bcast(all_energies, root=0)
@@ -283,22 +277,6 @@ if __name__ == '__main__':
                 swap_matrix.append(col)
 
     #---------------------------------------------------------------------------
-
-    #---------------------------------------------------------------------------
-    # init swap column
-    #swap_column = [0.0]*replicas
-    #for j in range(replicas):      
-    #    swap_column[j] = reduced_energy(all_temperatures[j], replica_energy)
-
-    #---------------------------------------------------------------------------
-    # part of global calc
-    
-    #if rank == 0:
-    #    swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
-    #swap_matrix = comm.gather(swap_column, root=0)
-
-    #print "swap matrix: "
-    #print swap_matrix
 
     if rank == 0:
         replicas_obj = []

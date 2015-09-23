@@ -90,7 +90,7 @@ KERNELS = {
             }
         },
         "shell": "bourne"
-    },"ncsa.bw":
+    },"ncsa.bw_orte":
     {
         "params":
         {

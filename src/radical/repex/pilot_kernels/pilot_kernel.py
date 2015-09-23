@@ -170,6 +170,7 @@ class PilotKernel(object):
                                                                 'StageoutWorker'  :  1,
                                                                 'update_queue'    :  1,
                                                                 'UpdateWorker'    :  1}}
+            
         
             
             pilot_object = pilot_manager.submit_pilots(pilot_description)
