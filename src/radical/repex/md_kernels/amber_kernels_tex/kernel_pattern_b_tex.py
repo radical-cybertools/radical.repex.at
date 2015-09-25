@@ -41,6 +41,7 @@ class KernelPatternBTex(object):
         """
 
         self.name = 'ak-tex-patternB'
+        self.ex_name = 'temperature'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
         if 'number_of_cycles' in inp_file['input.MD']:
@@ -307,7 +308,7 @@ class KernelPatternBTex(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_global_ex_calc(self, current_cycle, replicas, sd_shared_list):
+    def prepare_global_ex_calc(self, GL, current_cycle, replicas, sd_shared_list):
 
         stage_out = []
         stage_in = []
@@ -325,19 +326,23 @@ class KernelPatternBTex(object):
         cu.executable = "python"
         cu.input_staging  = stage_in
         cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
-        if self.cores < self.replicas:
+
+        if self.replicas > 999:
+            self.cores = self.replicas / 2
+        elif self.cores < self.replicas:
             if (self.replicas % self.cores) != 0:
                 self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                 self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                 sys.exit()
             else:
                 cu.cores = self.cores
-        elif self.cores == self.replicas:
+        elif self.cores >= self.replicas:
             cu.cores = self.replicas
         else:
             self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
             self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
             sys.exit()
+        
         cu.mpi = True         
         cu.output_staging = stage_out
 

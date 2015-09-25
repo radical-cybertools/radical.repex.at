@@ -124,6 +124,10 @@ class PilotKernelPatternB(PilotKernel):
         hl_performance_data = {}
         cu_performance_data = {}
 
+        #------------------------
+        # GL = 0: submit global calculator before
+        # GL = 1: submit global calculator after
+        GL = 1
         # bulk = 0: do sequential submission
         # bulk = 1: do bulk submission
         BULK = 0
@@ -138,12 +142,20 @@ class PilotKernelPatternB(PilotKernel):
             self.logger.info("Preparing {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
 
             submitted_replicas = []
+            exchange_replicas = []
 
             #-------------------------------------------------------------------
             # sequential submission
 
             outfile = "md_prep_submission_details_{0}.csv".format(session.uid)
             if BULK == 0:
+                #---------------------------------------------------------------
+                # submitting unit which determines exchanges between replicas
+                if GL == 0:
+                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, replicas, self.sd_shared_list)
+                    global_ex_cu = unit_manager.submit_units(ex_calculator)
+                #---------------------------------------------------------------
+
                 t1 = datetime.datetime.utcnow()
                 for r in replicas:
 
@@ -191,73 +203,92 @@ class PilotKernelPatternB(PilotKernel):
             
             #-------------------------------------------------------------------
 
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD_prep")] = (t2-t1).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = (t2-t1).total_seconds()
 
-            self.logger.info("Submitting {0} replicas for MD run; cycle {1}".format(md_kernel.replicas, current_cycle) )
-            t1 = datetime.datetime.utcnow()
-            #unit_manager.wait_units()
-            time.sleep(150)
-            t2 = datetime.datetime.utcnow()
+            if (md_kernel.ex_name == 'salt_concentration'):
+                t1 = datetime.datetime.utcnow()
+                unit_manager.wait_units()
+                t2 = datetime.datetime.utcnow()
 
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = (t2-t1).total_seconds()
 
-            cu_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")] = {}
-            for cu in submitted_replicas:
-                cu_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
+                cu_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = {}
+                for cu in submitted_replicas:
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["md_run"]["cu.uid_{0}".format(cu.uid)] = cu
 
-            self.logger.info("Preparing {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+                t1 = datetime.datetime.utcnow()
+                for replica in replicas:
+                    ex_replica = md_kernel.prepare_replica_for_exchange(replicas, replica, self.sd_shared_list)
+                    sub_replica = unit_manager.submit_units(ex_replica)
+                    exchange_replicas.append(sub_replica)
+                t2 = datetime.datetime.utcnow()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep"] = (t2-t1).total_seconds()
 
-            exchange_replicas = []
+                t1 = datetime.datetime.utcnow()
+                unit_manager.wait_units()
+                t2 = datetime.datetime.utcnow()
 
-            #-------------------------------------------------------------------
-            # 
+                hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run"] = (t2-t1).total_seconds()
 
-            t1 = datetime.datetime.utcnow()
+                cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run"] = {}
+                for cu in exchange_replicas:
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run"]["cu.uid_{0}".format(cu.uid)] = cu
+                
+                #---------------------------------------------------------------
+                # submitting unit which determines exchanges between replicas
+                if GL == 1:
+                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, replicas, self.sd_shared_list)
+                    global_ex_cu = unit_manager.submit_units(ex_calculator)
 
-            t_1 = datetime.datetime.utcnow()
-            ex_replica = md_kernel.prepare_global_ex_calc(current_cycle, replicas, self.sd_shared_list)
-            t_2 = datetime.datetime.utcnow()
+                    t1 = datetime.datetime.utcnow()
+                    unit_manager.wait_units()
+                    t2 = datetime.datetime.utcnow()
 
-            with open(outfile, 'a') as f:
-                value =  (t_2-t_1).total_seconds()
-                f.write("repex_ex_prep_time {0}\n".format(value))
-           
-                t_1 = datetime.datetime.utcnow()
-                exchange_replica = unit_manager.submit_units(ex_replica)
-                t_2 = datetime.datetime.utcnow()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = (t2-t1).total_seconds()
 
-                value =  (t_2-t_1).total_seconds()
-                f.write("rp_submit_time {0}\n".format(value))
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = {}
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
 
-            t2 = datetime.datetime.utcnow()
+            else:
+                t1 = datetime.datetime.utcnow()
+                unit_manager.wait_units()
+                t2 = datetime.datetime.utcnow()
 
-            #-------------------------------------------------------------------
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = (t2-t1).total_seconds()
 
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX_prep")] = (t2-t1).total_seconds()
+                cu_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = {}
+                for cu in submitted_replicas:
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["md_run"]["cu.uid_{0}".format(cu.uid)] = cu
 
-            self.logger.info("Submitting {0} replicas for Exchange run; cycle {1}".format(md_kernel.replicas, current_cycle) )
+                #-----------------------------------------------------------
+                # submitting unit which determines exchanges between replicas
+                if GL == 1:
+                    ex_calculator = md_kernel.prepare_global_ex_calc(GL, current_cycle, replicas, self.sd_shared_list)
+                    global_ex_cu = unit_manager.submit_units(ex_calculator)
 
-            t1 = datetime.datetime.utcnow()
-            unit_manager.wait_units()
-            t2 = datetime.datetime.utcnow()
+                    t1 = datetime.datetime.utcnow()
+                    unit_manager.wait_units()
+                    t2 = datetime.datetime.utcnow()
 
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = (t2-t1).total_seconds()
 
-            cu_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")] = {}
-            
-            cu_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("EX")]["cu.uid_{0}".format(cu.uid)] = exchange_replica
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = {}
+                    cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
 
             #-------------------------------------------------------------------
             # post processing
 
             t1 = datetime.datetime.utcnow()
       
-            if exchange_replica.state != radical.pilot.DONE:
-                self.logger.error('Exchange step failed for unit:  %s' % exchange_replica.uid)
+            if global_ex_cu.state != radical.pilot.DONE:
+                self.logger.error('Exchange step failed for unit:  %s' % global_ex_cu.uid)
                 
             md_kernel.do_exchange(current_cycle, replicas)
 
@@ -265,7 +296,6 @@ class PilotKernelPatternB(PilotKernel):
 
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("Post_processing")] = (t2-t1).total_seconds()
-
 
             #-------------------------------------------------------------------
 

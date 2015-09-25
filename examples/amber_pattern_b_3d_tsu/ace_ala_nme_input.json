@@ -9,7 +9,7 @@
         "cores" : "16"
     },
     "input.MD": {
-        "number_of_cycles": "4",
+        "number_of_cycles": "3",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",

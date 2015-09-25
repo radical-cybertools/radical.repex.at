@@ -20,15 +20,21 @@ import radical.utils.logger as rul
 #-------------------------------------------------------------------------------
 
 class PilotKernelPatternBmultiD(PilotKernel):
-    """This class is responsible for performing all Radical Pilot related operations for RE pattern B.
-    This includes pilot launching, running main loop of RE simulation and using RP API for data staging in and out. 
+    """This class is responsible for performing all Radical Pilot related 
+    operations for RE pattern B.
+    This includes pilot launching, running main loop of RE simulation and using 
+    RP API for data staging in and out. 
 
     RE pattern B:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
+    - Synchronous RE scheme: none of the replicas can start exchange before all 
+    replicas has finished MD run.
+    Conversely, none of the replicas can start MD run before all replicas has 
+    finished exchange step. 
     In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
+    - Number of replicas is greater than number of allocated resources for both 
+    MD and exchange step.
+    - Simulation cycle is defined by the fixed number of simulation time-steps 
+    for each replica.
     - Exchange probabilities are determined using Gibbs sampling.
     - Exchange step is performed in decentralized fashion on target resource.
     """
@@ -36,7 +42,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
         """Constructor.
 
         Arguments:
-        inp_file - json input file with Pilot and NAMD related parameters as specified by user 
+        inp_file - json input file with Pilot and NAMD related parameters as 
+        specified by user 
         """
         PilotKernel.__init__(self, inp_file)
 
@@ -53,14 +60,16 @@ class PilotKernelPatternBmultiD(PilotKernel):
         Arguments:
         replicas - list of Replica objects
         pilot_object - radical.pilot.ComputePilot object
-        session - radical.pilot.session object, the *root* object for all other RADICAL-Pilot objects 
+        session - radical.pilot.session object, the *root* object for all other 
+        RADICAL-Pilot objects 
         md_kernel - an instance of NamdKernelScheme2a class
         """
 
         # ----------------------------------------------------------------------
         #
         def unit_state_change_cb(unit, state):
-            """This is a callback function. It gets called very time a ComputeUnit changes its state.
+            """This is a callback function. It gets called very time a 
+            ComputeUnit changes its state.
             """
 
             if unit:            
@@ -161,16 +170,16 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     submitted_replicas.append(sub_replica)
                 t2 = datetime.datetime.utcnow()
 
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_prep"] = (t2-t1).total_seconds()
 
                 if (DIM == 2) and (md_kernel.d2 == 'salt_concentration'):
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = (t2-t1).total_seconds()
 
                     t1 = datetime.datetime.utcnow()
                     for replica in replicas:
@@ -178,8 +187,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
                         sub_replica = unit_manager.submit_units(ex_replica)
                         exchange_replicas.append(sub_replica)
                     t2 = datetime.datetime.utcnow()
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_prep_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_prep_salt"] = (t2-t1).total_seconds()
                     
                     #-----------------------------------------------------------
                     # submitting unit which determines exchanges between replicas
@@ -192,8 +201,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt"] = (t2-t1).total_seconds()
                 
                 if (DIM != 2) or (md_kernel.d2 != 'salt_concentration'):
 
@@ -208,8 +217,10 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
+                    # md run includes timings for global calc since there isn't
+                    # a separate set of CU's for exchange!
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = (t2-t1).total_seconds()
                 else:
                     unit_manager.wait_units()
             #-------------------------------------------------------------------
@@ -232,8 +243,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
                 t2 = datetime.datetime.utcnow()
                 submitted_replicas = unit_manager.submit_units(c_replicas)
 
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_prep"] = (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_prep"] = (t2-t1).total_seconds()
 
                 #---------------------------------------------------------------
                 
@@ -243,8 +254,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = (t2-t1).total_seconds()
 
                     t1 = datetime.datetime.utcnow()
                     for replica in replicas:
@@ -253,8 +264,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     exchange_replicas = unit_manager.submit_units(e_replicas) 
                     t2 = datetime.datetime.utcnow()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_prep_salt"] = (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_prep_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_prep_salt"] = (t2-t1).total_seconds()
 
                     #-----------------------------------------------------------
                     # submitting unit which determines exchanges between replicas
@@ -267,8 +278,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["EX_run_salt"] = (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt"] = (t2-t1).total_seconds()
                 
                 
                 if (DIM != 2) or (md_kernel.d2 != 'salt_concentration'):
@@ -283,8 +294,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["MD_run"] = (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = (t2-t1).total_seconds()
                 else:
                     unit_manager.wait_units()
             #-------------------------------------------------------------------

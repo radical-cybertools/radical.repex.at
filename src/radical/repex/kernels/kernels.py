@@ -35,8 +35,8 @@ KERNELS = {
         {
             "amber": {
                 "environment" : {},
-                "pre_execution" : ["module load amber/12"],
-                "executable" : "/work/y07/y07/amber/12/bin/sander.MPI"
+                "pre_execution" : ["python-compute/2.7.6", "module load amber", "module use --append /work/e290/e290/marksant/privatemodules", "module load openmpi/HEAD", "module switch PrgEnv-cray PrgEnv-gnu"],
+                "executable" : "/work/y07/y07/amber/12/bin/sander"
             }
         }
     },"gordon.sdsc.xsede.org":
@@ -105,6 +105,22 @@ KERNELS = {
                 "executable_mpi" : "/u/sciteam/treikali/amber14/bin/sander.MPI"
             }
         }
+    },"xsede.supermic":
+    {
+        "params":
+        {
+            "cores": 20,
+        },
+        "kernels":
+        {
+            "amber": {
+                "environment" : {},
+                "pre_execution" : ["module unload python/2.7.7-anaconda", "module load python/2.7.7/GCC-4.9.0", "module load amber/14/INTEL-140-MVAPICH2-2.0"],
+                "executable" : "/home/antontre/amber14/bin/sander",
+                "executable_mpi" : "/usr/local/packages/amber/14/INTEL-140-MVAPICH2-2.0/bin/sander.MPI"
+            }
+        },
+        "shell": "bash"
     }
 
 }

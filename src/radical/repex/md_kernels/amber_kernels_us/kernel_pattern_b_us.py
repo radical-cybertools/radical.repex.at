@@ -104,6 +104,7 @@ class KernelPatternBUS(object):
         self.current_cycle = -1
 
         self.name = 'ak-us-patternB'
+        self.ex_name = 'umbrella_sampling'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
         self.shared_urls = []
@@ -291,7 +292,7 @@ class KernelPatternBUS(object):
             "cycle" : str(replica.cycle),
             "rstr_val_1" : str(replica.rstr_val_1)
                 }
-        dump_data = json.dumps(data)
+        dump_pre_data = json.dumps(data)
 
         json_pre_data_bash = dump_pre_data.replace("\\", "")
         json_pre_data_sh = dump_pre_data.replace("\"", "\\\\\"")
@@ -418,7 +419,7 @@ class KernelPatternBUS(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_global_ex_calc(self, current_cycle, replicas, sd_shared_list):
+    def prepare_global_ex_calc(self, GL, current_cycle, replicas, sd_shared_list):
 
         stage_out = []
         stage_in = []
@@ -454,14 +455,16 @@ class KernelPatternBUS(object):
         cu.input_staging  = stage_in
         #cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
         cu.arguments = ["global_ex_calculator.py", json_data_us]
-        if self.cores < self.replicas:
+        if self.replicas > 999:
+            self.cores = self.replicas / 2
+        elif self.cores < self.replicas:
             if (self.replicas % self.cores) != 0:
                 self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                 self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                 sys.exit()
             else:
                 cu.cores = self.cores
-        elif self.cores == self.replicas:
+        elif self.cores >= self.replicas:
             cu.cores = self.replicas
         else:
             self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
