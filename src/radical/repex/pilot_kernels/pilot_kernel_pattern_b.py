@@ -206,7 +206,7 @@ class PilotKernelPatternB(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = (t2-t1).total_seconds()
 
-            if (md_kernel.ex_name == 'salt_concentration'):
+            if (md_kernel.ex_name == 'salt-concentration'):
                 t1 = datetime.datetime.utcnow()
                 unit_manager.wait_units()
                 t2 = datetime.datetime.utcnow()

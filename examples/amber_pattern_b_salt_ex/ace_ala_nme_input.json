@@ -12,14 +12,17 @@
         "number_of_cycles": "4",
         "number_of_replicas": "16",
         "input_folder": "amber_inp",
-        "input_file_basename": "ala10_remd",
-        "amber_input": "ala10.mdin",
-        "amber_parameters": "ala10.prmtop",
-        "amber_coordinates": "ala10_minimized.inpcrd",
+        "input_file_basename": "ace_ala_nme_remd",
+        "amber_input": "ace_ala_nme.mdin",
+        "amber_parameters": "ace_ala_nme.parm7",
+        "amber_coordinates": "ace_ala_nme.inpcrd",
         "replica_mpi": "False",
+        "exchange_replica_mpi" : "True",
+        "exchange_replica_cores" : "16",
         "replica_cores": "1",
-        "min_temperature": "300",
-        "max_temperature": "600",
-        "steps_per_cycle": "1000"
+        "min_salt": "0.0",
+        "max_salt": "1.0",
+        "init_temperature": "300",
+        "steps_per_cycle": "500"
     }
 }

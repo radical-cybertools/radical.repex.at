@@ -13,7 +13,7 @@ from os import path
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_tex.kernel_pattern_b_tex import KernelPatternBTex
+from amber_kernels_salt.kernel_pattern_b_salt import KernelPatternBSalt
 from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
 
 #-------------------------------------------------------------------------------
@@ -22,11 +22,15 @@ if __name__ == '__main__':
     """Runs RE simulation using pattern B. 
 
     RE pattern B:
-    - Synchronous RE scheme: none of the replicas can start exchange before all replicas has finished MD run.
-    Conversely, none of the replicas can start MD run before all replicas has finished exchange step. 
+    - Synchronous RE scheme: none of the replicas can start exchange before all 
+    replicas has finished MD run.
+    Conversely, none of the replicas can start MD run before all replicas has 
+    finished exchange step. 
     In other words global barrier is present.   
-    - Number of replicas is greater than number of allocated resources for both MD and exchange step.
-    - Simulation cycle is defined by the fixed number of simulation time-steps for each replica.
+    - Number of replicas is greater than number of allocated resources for both 
+    MD and exchange step.
+    - Simulation cycle is defined by the fixed number of simulation time-steps 
+    for each replica.
     - Exchange probabilities are determined using Gibbs sampling.
     - Exchange step is performed in decentralized fashion on target resource.
     """
@@ -46,7 +50,7 @@ if __name__ == '__main__':
     json_data.close()
 
     # initializing kernels
-    md_kernel = KernelPatternBTex( inp_file, work_dir_local )
+    md_kernel = KernelPatternBSalt( inp_file, work_dir_local )
     pilot_kernel = PilotKernelPatternB( inp_file )
 
     # initializing replicas
@@ -60,9 +64,7 @@ if __name__ == '__main__':
 
         # this is a quick hack
         base = md_kernel.inp_basename + ".mdin"
-    except:
-        raise
-    try:
+
         # finally we are moving all files to individual replica directories
         move_output_files(work_dir_local, base, replicas ) 
         session.close(cleanup=False)
