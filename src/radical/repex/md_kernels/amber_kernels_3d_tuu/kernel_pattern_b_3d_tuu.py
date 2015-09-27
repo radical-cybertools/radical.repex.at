@@ -56,6 +56,16 @@ class AmberKernelPatternB3dTUU(object):
         self.inp_basename = inp_file['input.MD']['input_file_basename']
          
         self.amber_coordinates_path = inp_file['input.MD']['amber_coordinates_folder']
+        if 'same_coordinates' in inp_file['input.MD']:
+            coors = inp_file['input.MD']['same_coordinates']
+            if coors == "True":
+                self.same_coordinates = True
+            else:
+                self.same_coordinates = False
+        else:
+            self.same_coordinates = True
+
+
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
         self.amber_input = inp_file['input.MD']['amber_input']
 
@@ -256,23 +266,33 @@ class AmberKernelPatternB3dTUU(object):
 
                     rstr_val_1 = str(starting_value_d1)
                     rstr_val_2 = str(starting_value_d3)
-
+        
                     #-----------------------------------------------------------
-                    # name is hardcoded for now
-                    # need to agree on format
-                    coor_file = self.c_prefix + "_" + str(i) + "." + self.c_infix + "_" + str(k) + "." + self.c_postfix
-                    #-----------------------------------------------------------
-
-                    r = Replica3d(rid, \
-                                  new_temperature=t1, \
-                                  new_restraints=r1, \
-                                  rstr_val_1=float(rstr_val_1), \
-                                  rstr_val_2=float(rstr_val_2),  \
-                                  cores=1, \
-                                  coor=coor_file, \
-                                  indx1=i, \
-                                  indx2=k)
-                    replicas.append(r)
+                    if self.same_coordinates == False:
+                        
+                        coor_file = self.c_prefix + "_" + str(i) + "." + self.c_infix + "_" + str(k) + "." + self.c_postfix
+                        r = Replica3d(rid, \
+                                      new_temperature=t1, \
+                                      new_restraints=r1, \
+                                      rstr_val_1=float(rstr_val_1), \
+                                      rstr_val_2=float(rstr_val_2),  \
+                                      cores=1, \
+                                      coor=coor_file, \
+                                      indx1=i, \
+                                      indx2=k)
+                        replicas.append(r)                        
+                    else:
+                        coor_file = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
+                        r = Replica3d(rid, \
+                                      new_temperature=t1, \
+                                      new_restraints=r1, \
+                                      rstr_val_1=float(rstr_val_1), \
+                                      rstr_val_2=float(rstr_val_2),  \
+                                      cores=1, \
+                                      coor=coor_file, \
+                                      indx1=i, \
+                                      indx2=k)
+                        replicas.append(r)
 
         return replicas
 
