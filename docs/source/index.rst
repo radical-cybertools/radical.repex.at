@@ -14,6 +14,8 @@ Contents:
 
    pages/introduction.rst
    pages/installation.rst
+   pages/getting-started.rst
+   pages/faq.rst
 
 
 
