@@ -69,5 +69,5 @@ setup(
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Module',
     long_description=open('README.md').read(),
-    install_requires=['radical.pilot']
+    install_requires=['radical.pilot', 'sphinx_rtd_theme', 'mpi4py']
 )
