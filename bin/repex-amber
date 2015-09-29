@@ -7,14 +7,21 @@ from os import path
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from amber_kernels_tex.kernel_pattern_b_tex import KernelPatternBTex
-from pilot_kernels.pilot_kernel_pattern_b import PilotKernelPatternB
+from pilot_kernels.pilot_kernel_pattern_a         import PilotKernelPatternA
+from pilot_kernels.pilot_kernel_pattern_a_multi_d import PilotKernelPatternAmultiD
+
+from amber_kernels_tex.kernel_pattern_a_tex       import KernelPatternAtex
+from amber_kernels_us.kernel_pattern_a_us         import KernelPatternAus
+from amber_kernels_salt.kernel_pattern_a_salt     import KernelPatternAsalt
+from amber_kernels_3d_tsu.kernel_pattern_a_3d_tsu import KernelPatternA3dTSU
+from amber_kernels_3d_tuu.kernel_pattern_a_3d_tuu import KernelPatternA3dTUU
+
 
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     
-    name = 'repex-amber'
+    name = 'amber'
     logger  = rul.getLogger ('radical.repex', name)
 
     logger.info("************************************************")
@@ -24,17 +31,22 @@ if __name__ == '__main__':
     work_dir_local = os.getcwd()
     params = parse_command_line()
     
-    # get input file
-    json_data=open(params.input_file)
+    # get remd_input file
+    json_data=open(params.remd_input)
     inp_file = json.load(json_data)
     json_data.close()
 
-    """
-    if (inp_file['input.MD']['execution_pattern'] == 'B') and (inp_file['input.MD']['exchange'] == 'T-REMD'):
+    # get resource config
+    json_data=open(params.resource_config)
+    rconfig = json.load(json_data)
+    json_data.close()
+
+
+    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'T-REMD'):
 
 	    # initializing kernels
-	    md_kernel = KernelPatternBTex( inp_file, work_dir_local )
-	    pilot_kernel = PilotKernelPatternB( inp_file )
+	    md_kernel = KernelPatternATex( inp_file, rconfig, work_dir_local )
+	    pilot_kernel = PilotKernelPatternA( inp_file, rconfig )
 
 	    # initializing replicas
 	    replicas = md_kernel.initialize_replicas()
@@ -64,4 +76,136 @@ if __name__ == '__main__':
 	    finally :
 	        logger.info("Closing session.")
 	        session.close (cleanup=False)  
-    """
+
+    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'US-REMD'):
+
+	    # initializing kernels
+	    md_kernel = KernelPatternAus( inp_file, rconfig, work_dir_local )
+	    pilot_kernel = PilotKernelPatternA( inp_file, rconfig )
+
+	    # initializing replicas
+	    replicas = md_kernel.initialize_replicas()
+
+	    try:
+	        pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
+	    
+	        # now we can run RE simulation
+	        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel)
+
+	        # this is a quick hack
+	        base = md_kernel.inp_basename + ".mdin"
+
+	        # finally we are moving all files to individual replica directories
+	        move_output_files(work_dir_local, base, replicas ) 
+
+	        logger.info("Simulation successfully finished!")
+	        logger.info("Please check output files in replica_x directories.")
+
+	    except:
+	        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+	        raise
+
+	    finally :
+	        logger.info("Closing session.")
+	        session.close (cleanup=False) 
+
+    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'S-REMD'):
+
+    	# initializing kernels
+	    md_kernel = KernelPatternAsalt( inp_file, rconfig, work_dir_local )
+	    pilot_kernel = PilotKernelPatternA( inp_file, rconfig )
+
+	    # initializing replicas
+	    replicas = md_kernel.initialize_replicas()
+
+	    try:
+	        pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
+	    
+	        # now we can run RE simulation
+	        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+
+	        # this is a quick hack
+	        base = md_kernel.inp_basename + ".mdin"
+
+	        # finally we are moving all files to individual replica directories
+	        move_output_files(work_dir_local, base, replicas ) 
+	        session.close(cleanup=False)
+
+	        logger.info("Simulation successfully finished!")
+	        logger.info("Please check output files in replica_x directories.")
+
+	    except:
+	        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+	        raise 
+
+	    finally :
+	        logger.info("Closing session.")
+	        session.close (cleanup=False)    
+
+    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'TSU-REMD'):
+
+    	# initializing kernels
+	    md_kernel = KernelPatternA3dTSU( inp_file, rconfig, work_dir_local )
+	    pilot_kernel = PilotKernelPatternAmultiD( inp_file, rconfig )
+
+	    # initializing replicas
+	    replicas = md_kernel.initialize_replicas()
+
+	    try:
+	        pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
+
+	        # now we can run RE simulation
+	        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+
+	        # this is a quick hack
+	        base = md_kernel.inp_basename + ".mdin"
+
+	        # finally we are moving all files to individual replica directories
+	        move_output_files(work_dir_local, base, replicas ) 
+
+	        logger.info("Simulation successfully finished!")
+	        logger.info("Please check output files in replica_x directories.")
+
+	    except:
+	        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+	        raise
+
+	    finally :
+	        logger.info("Closing session.")
+	        session.close (cleanup=False)
+
+    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'TUU-REMD'):
+
+    	# initializing kernels
+	    md_kernel    = KernelPatternA3dTUU( inp_file, rconfig, work_dir_local )
+	    pilot_kernel = PilotKernelPatternBmultiD( inp_file, rconfig )
+
+	    # initializing replicas
+	    replicas = md_kernel.initialize_replicas()
+
+	    try:
+
+	        pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
+
+	        # now we can run RE simulation
+	        pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+
+	        base = md_kernel.inp_basename + ".mdin"
+
+	        # finally we are moving all files to individual replica directories
+	        move_output_files(work_dir_local, base, replicas )
+
+	        logger.info("Simulation successfully finished!")
+	        logger.info("Please check output files in replica_x directories.")
+
+	    except:
+	        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+	        raise
+
+	    finally :
+	        # always clean up the session, no matter if we caught an exception or
+	        # not.
+	       logger.info("Closing session.")
+	       session.close (cleanup=False)
+
+

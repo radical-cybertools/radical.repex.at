@@ -1,0 +1,16 @@
+umbrella sampling
+ &cntrl
+  saltcon = @salt@,
+  irest = 0, ntx = 1,
+  nstlim = @nstlim@, dt = 0.001,
+  ntt = 3, gamma_ln = 1.0,
+  temp0 = @temp@, ig = -1,
+  ntc = 2, ntf = 2, nscm = 1000,
+  ntb = 0, igb = 5,
+  cut = 999.0, rgbmax = 999.0, nmropt = 1,
+  ntpr = 1000, ntwx = 1000, ntwr = -1000,
+ /
+ &wt 
+   type='END' 
+ /
+DISANG=@disang@

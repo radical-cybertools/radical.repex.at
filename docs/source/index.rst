@@ -3,18 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+*********************************
 Welcome to repex's documentation!
-=================================
+*********************************
 
 Contents:
 
 .. toctree::
    :numbered:
-   :maxdepth: 3
+   :maxdepth: 4
 
    pages/introduction.rst
    pages/installation.rst
-   pages/getting-started.rst
+   pages/gettingstarted.rst
+   pages/singledimexamples.rst
+   pages/multidimexamples.rst
    pages/faq.rst
 
 

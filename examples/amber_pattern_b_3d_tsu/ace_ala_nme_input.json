@@ -1,14 +1,5 @@
 {
-    "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
-        "username" : "antontre",
-        "project" : "TG-MCB090174",
-        "queue" : "development",
-        "runtime" : "30",
-        "cleanup" : "False",
-        "cores" : "16"
-    },
-    "input.MD": {
+    "remd.input": {
         "number_of_cycles": "3",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
@@ -21,7 +12,7 @@
         "steps_per_cycle": "1000",
         "exchange_off" : "False"
         },
-    "input.DIM": {
+    "dim.input": {
         "temperature_1": {
             "number_of_replicas": "2",
             "min_temperature": "300",

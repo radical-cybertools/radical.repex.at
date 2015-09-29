@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernles.amber_kernels_3d_tuu.kernel_pattern_b_3d_tuu
+.. module:: radical.repex.md_kernles.amber_kernels_3d_tuu.kernel_pattern_a_3d_tuu
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
@@ -27,15 +27,15 @@ import amber_kernels_3d_tuu.input_file_builder
 import amber_kernels_3d_tuu.global_ex_calculator
 
 from replicas.replica import Replica3d
-from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
-from amber_kernels_us.kernel_pattern_b_us import KernelPatternBUS
+#from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
+from amber_kernels_us.kernel_pattern_b_us import KernelPatternAus
 
 #-------------------------------------------------------------------------------
 #
-class AmberKernelPatternB3dTUU(object):
+class KernelPatternA3dTUU(object):
     """TODO
     """
-    def __init__(self, inp_file,  work_dir_local):
+    def __init__(self, inp_file, rconfig, work_dir_local):
         """Constructor.
 
         Arguments:
@@ -46,18 +46,18 @@ class AmberKernelPatternB3dTUU(object):
 
         self.dims = 3
     
-        self.resource = inp_file['input.PILOT']['resource']
-        if 'number_of_cycles' in inp_file['input.MD']:
-            self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
+        self.resource = rconfig['target']['resource']
+        if 'number_of_cycles' in inp_file['remd.input']:
+            self.nr_cycles = int(inp_file['remd.input']['number_of_cycles'])
         else:
             self.nr_cycles = None
 
-        self.input_folder = inp_file['input.MD']['input_folder']
-        self.inp_basename = inp_file['input.MD']['input_file_basename']
+        self.input_folder = inp_file['remd.input']['input_folder']
+        self.inp_basename = inp_file['remd.input']['input_file_basename']
          
-        self.amber_coordinates_path = inp_file['input.MD']['amber_coordinates_folder']
-        if 'same_coordinates' in inp_file['input.MD']:
-            coors = inp_file['input.MD']['same_coordinates']
+        self.amber_coordinates_path = inp_file['remd.input']['amber_coordinates_folder']
+        if 'same_coordinates' in inp_file['remd.input']:
+            coors = inp_file['remd.input']['same_coordinates']
             if coors == "True":
                 self.same_coordinates = True
             else:
@@ -66,12 +66,12 @@ class AmberKernelPatternB3dTUU(object):
             self.same_coordinates = True
 
 
-        self.amber_parameters = inp_file['input.MD']['amber_parameters']
-        self.amber_input = inp_file['input.MD']['amber_input']
+        self.amber_parameters = inp_file['remd.input']['amber_parameters']
+        self.amber_input = inp_file['remd.input']['amber_input']
 
         #-----------------------------------------------------------------------
-        if 'exchange_off' in inp_file['input.MD']:
-            if inp_file['input.MD']['exchange_off'] == "True":
+        if 'exchange_off' in inp_file['remd.input']:
+            if inp_file['remd.input']['exchange_off'] == "True":
                 self.exchange_off = True
             else:
                 self.exchange_off = False
@@ -79,31 +79,31 @@ class AmberKernelPatternB3dTUU(object):
             self.exchange_off = False
         #-----------------------------------------------------------------------
 
-        if 'replica_mpi' in inp_file['input.MD']:
-            if inp_file['input.MD']['replica_mpi'] == "True":
+        if 'replica_mpi' in inp_file['remd.input']:
+            if inp_file['remd.input']['replica_mpi'] == "True":
                 self.md_replica_mpi = True
             else:
                 self.md_replica_mpi = False
         else:
             self.md_replica_mpi= False
 
-        if 'replica_cores' in inp_file['input.MD']:
-            self.md_replica_cores = int(inp_file['input.MD']['replica_cores'])
+        if 'replica_cores' in inp_file['remd.input']:
+            self.md_replica_cores = int(inp_file['remd.input']['replica_cores'])
         else:
             self.md_replica_cores = 1
         
-        self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
+        self.cycle_steps = int(inp_file['remd.input']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
 
-        self.us_template = inp_file['input.MD']['us_template']                       
+        self.us_template = inp_file['remd.input']['us_template']                       
         self.current_cycle = -1
 
         # hardcoded for now
-        self.replicas_d1 = int(inp_file['input.DIM']\
+        self.replicas_d1 = int(inp_file['dim.input']\
                            ['umbrella_sampling_1']["number_of_replicas"])
-        self.replicas_d2 = int(inp_file['input.DIM']\
+        self.replicas_d2 = int(inp_file['dim.input']\
                            ['temperature_2']["number_of_replicas"])
-        self.replicas_d3 = int(inp_file['input.DIM']\
+        self.replicas_d3 = int(inp_file['dim.input']\
                            ['umbrella_sampling_3']["number_of_replicas"])
 
         #-----------------------------------------------------------------------
@@ -117,45 +117,45 @@ class AmberKernelPatternB3dTUU(object):
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
  
-        self.us_start_param_d1 = float(inp_file['input.DIM']\
+        self.us_start_param_d1 = float(inp_file['dim.input']\
                                  ['umbrella_sampling_1']['us_start_param'])
-        self.us_end_param_d1 = float(inp_file['input.DIM']\
+        self.us_end_param_d1 = float(inp_file['dim.input']\
                                ['umbrella_sampling_1']['us_end_param'])
 
-        self.us_ex_cores = int(inp_file['input.DIM']\
+        self.us_ex_cores = int(inp_file['dim.input']\
                            ['umbrella_sampling_1']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['input.DIM']\
+        if 'exchange_replica_mpi' in inp_file['dim.input']\
                                              ['umbrella_sampling_1']:
-            if inp_file['input.DIM']\
+            if inp_file['dim.input']\
                     ['umbrella_sampling_1']['exchange_replica_mpi'] == 'True':
                 self.us_ex_mpi = True
             else:
                 self.us_ex_mpi = False
  
-        self.us_start_param_d3 = float(inp_file['input.DIM']\
+        self.us_start_param_d3 = float(inp_file['dim.input']\
                                 ['umbrella_sampling_3']['us_start_param'])
-        self.us_end_param_d3 = float(inp_file['input.DIM']\
+        self.us_end_param_d3 = float(inp_file['dim.input']\
                                ['umbrella_sampling_3']['us_end_param'])
 
-        self.us_ex_cores = int(inp_file['input.DIM']\
+        self.us_ex_cores = int(inp_file['dim.input']\
                            ['umbrella_sampling_3']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['input.DIM']\
+        if 'exchange_replica_mpi' in inp_file['dim.input']\
                                              ['umbrella_sampling_3']:
-            if inp_file['input.DIM']\
+            if inp_file['dim.input']\
                     ['umbrella_sampling_3']['exchange_replica_mpi'] == 'True':
                 self.us_ex_mpi = True
             else:
                 self.us_ex_mpi = False
         
-        self.min_temp = float(inp_file['input.DIM']\
+        self.min_temp = float(inp_file['dim.input']\
                         ['temperature_2']['min_temperature'])
-        self.max_temp = float(inp_file['input.DIM']\
+        self.max_temp = float(inp_file['dim.input']\
                         ['temperature_2']['max_temperature'])
 
-        self.temp_ex_cores = int(inp_file['input.DIM']\
+        self.temp_ex_cores = int(inp_file['dim.input']\
                              ['temperature_2']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['input.DIM']['temperature_2']:
-            if inp_file['input.DIM']\
+        if 'exchange_replica_mpi' in inp_file['dim.input']['temperature_2']:
+            if inp_file['dim.input']\
                        ['temperature_2']['exchange_replica_mpi'] == 'True':
                 self.temp_ex_mpi = True
             else:
@@ -169,10 +169,10 @@ class AmberKernelPatternB3dTUU(object):
         self.pre_exec = KERNELS[self.resource]["kernels"]\
                         ["amber"]["pre_execution"]
         try:
-            self.amber_path = inp_file['input.MD']['amber_path']
+            self.amber_path = inp_file['remd.input']['amber_path']
         except:
             self.logger.info("Using default Amber path for: {0}"\
-                .format(inp_file['input.PILOT']['resource']) )
+                .format(rconfig['target']['resource']) )
             try:
                 self.amber_path = KERNELS[self.resource]["kernels"]\
                                   ["amber"]["executable"]
