@@ -28,7 +28,7 @@ import amber_kernels_3d_tuu.global_ex_calculator
 
 from replicas.replica import Replica3d
 #from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
-from amber_kernels_us.kernel_pattern_b_us import KernelPatternAus
+from amber_kernels_us.kernel_pattern_a_us import KernelPatternAus
 
 #-------------------------------------------------------------------------------
 #
