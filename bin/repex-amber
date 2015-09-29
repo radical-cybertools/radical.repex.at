@@ -42,7 +42,7 @@ if __name__ == '__main__':
     json_data.close()
 
 
-    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'T-REMD'):
+    if (inp_file['remd.input']['re_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'T-REMD'):
 
 	    # initializing kernels
 	    md_kernel = KernelPatternATex( inp_file, rconfig, work_dir_local )
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	        logger.info("Closing session.")
 	        session.close (cleanup=False)  
 
-    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'US-REMD'):
+    if (inp_file['remd.input']['re_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'US-REMD'):
 
 	    # initializing kernels
 	    md_kernel = KernelPatternAus( inp_file, rconfig, work_dir_local )
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 	        logger.info("Closing session.")
 	        session.close (cleanup=False) 
 
-    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'S-REMD'):
+    if (inp_file['remd.input']['re_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'S-REMD'):
 
     	# initializing kernels
 	    md_kernel = KernelPatternAsalt( inp_file, rconfig, work_dir_local )
@@ -142,7 +142,7 @@ if __name__ == '__main__':
 	        logger.info("Closing session.")
 	        session.close (cleanup=False)    
 
-    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'TSU-REMD'):
+    if (inp_file['remd.input']['re_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'TSU-REMD'):
 
     	# initializing kernels
 	    md_kernel = KernelPatternA3dTSU( inp_file, rconfig, work_dir_local )
@@ -174,7 +174,7 @@ if __name__ == '__main__':
 	        logger.info("Closing session.")
 	        session.close (cleanup=False)
 
-    if (inp_file['remd.input']['execution_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'TUU-REMD'):
+    if (inp_file['remd.input']['re_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'TUU-REMD'):
 
     	# initializing kernels
 	    md_kernel    = KernelPatternA3dTUU( inp_file, rconfig, work_dir_local )

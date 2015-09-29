@@ -1,6 +1,6 @@
 {
     "input.MD": {
-        "execution_pattern": "A",
+        "re_pattern": "A",
         "exchange": "TUU-REMD",
         "number_of_cycles": "4",
         "input_folder": "tuu_remd_inputs",

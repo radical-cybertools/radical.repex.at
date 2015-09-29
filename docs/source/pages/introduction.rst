@@ -21,7 +21,8 @@ of a task-level-parallelism concept to efficiently run REMD simulations. RepEx
 is modular, object-oriented code, which is designed to facilitate development of 
 extension modules by it's users.
 
-[1] - http://ambermd.org/ <br>
+[1] - http://ambermd.org/
+
 [2] - http://www.ks.uiuc.edu/Research/namd/
 
 
@@ -37,9 +38,11 @@ Why should I use it?
 While many MD software packages provide implementations of REMD algorithms, a number of implementation challenges exist. Despite the fact that REMD algorithms are very well suited for parallelization, implementing dynamic pairwise communication between replicas is non-trivial. This results in REMD implementations being limited in terms of number of parameters being exchanged and being rigid in terms of synchronization mechanisms. 
 The above challenges together with the limitations arising from design specifics contribute to scalability barriers in some MD software packages. For many scientific problems, simulations with number of replicas at the order of thousands would substantially improve sampling quality. 
 
-Main distinguishing features of RepEx are: <br>
+Main distinguishing features of RepEx are:
+
  - low barrier for implementation of new REMD algorithms facilitated by separation of 
-   simulaiton execuiton details from implementation specific to current MD package <br>
+   simulaiton execuiton details from implementation specific to current MD package
+   
  - functionality to run multi-dimentional REMD simulations with arbitrary ordering of dimensions 
 
 

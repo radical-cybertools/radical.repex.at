@@ -1,6 +1,6 @@
 {
     "remd.input": {
-        "execution_pattern": "A",
+        "re_pattern": "A",
         "exchange": "US-REMD",
         "number_of_cycles": "4",
         "number_of_replicas": "16",
