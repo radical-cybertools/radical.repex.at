@@ -63,7 +63,7 @@ class AmberKernelPatternB3dTUU(object):
             else:
                 self.same_coordinates = False
         else:
-            self.same_coordinates = True
+            self.same_coordinates = False
 
 
         self.amber_parameters = inp_file['input.MD']['amber_parameters']
@@ -220,24 +220,34 @@ class AmberKernelPatternB3dTUU(object):
 
         base = coor_list[0]
 
-        self.c_prefix = ''
-        self.c_infix = ''
-        self.c_postfix = ''
+        #self.c_prefix = ''
+        #self.c_infix = ''
+        #self.c_postfix = ''
 
-        under = 0
-        dot = 0
-        for ch in base:
-            if ch == '_':
-                under += 1
-            if ch == '.':
-                dot += 1
+        #under = 0
+        #dot = 0
+        #for ch in base:
+        #    if ch == '_':
+        #        under += 1
+        #    if ch == '.':
+        #        dot += 1
 
-            if under == 0 and dot == 0:
-                self.c_prefix += ch
-            elif under == 1 and dot == 1 and ch != '.':
-                self.c_infix += ch
-            elif under == 2 and dot == 2 and ch != '.':
-                self.c_postfix += ch
+        #    if under == 0 and dot == 0:
+        #        self.c_prefix += ch
+        #    elif under == 1 and dot == 1 and ch != '.':
+        #        self.c_infix += ch
+        #    elif under == 2 and dot == 2 and ch != '.':
+        #        self.c_postfix += ch
+
+        """
+        Let's use a simpler format: xxx.inpcrd.i.j
+        xxx can be anything, can has any numbers of underscores or dots
+        i and j are indexs for two u dimensions
+        """
+
+        self.c_prefix = base.split('inpcrd')[0]+'inpcrd'
+        self.c_index1 = base.split('inpcrd')[1].split('.')[1]
+        self.c_index2 = base.split('inpcrd')[1].split('.')[2]
 
         #-----------------------------------------------------------------------
 
@@ -270,7 +280,7 @@ class AmberKernelPatternB3dTUU(object):
                     #-----------------------------------------------------------
                     if self.same_coordinates == False:
                         
-                        coor_file = self.c_prefix + "_" + str(i) + "." + self.c_infix + "_" + str(k) + "." + self.c_postfix
+                        coor_file = self.c_prefix + "." + str(i) + "." + str(k)
                         r = Replica3d(rid, \
                                       new_temperature=t1, \
                                       new_restraints=r1, \
@@ -282,7 +292,7 @@ class AmberKernelPatternB3dTUU(object):
                                       indx2=k)
                         replicas.append(r)                        
                     else:
-                        coor_file = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
+                        coor_file = self.c_prefix + ".0.0"
                         r = Replica3d(rid, \
                                       new_temperature=t1, \
                                       new_restraints=r1, \
