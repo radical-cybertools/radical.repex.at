@@ -129,24 +129,34 @@ class KernelPatternBUS(object):
 
         base = coor_list[0]
 
-        self.c_prefix = ''
-        self.c_infix = ''
-        self.c_postfix = ''
+        #self.c_prefix = ''
+        #self.c_infix = ''
+        #self.c_postfix = ''
 
-        under = 0
-        dot = 0
-        for ch in base:
-            if ch == '_':
-                under += 1
-            if ch == '.':
-                dot += 1
+        #under = 0
+        #dot = 0
+        #for ch in base:
+        #    if ch == '_':
+        #        under += 1
+        #    if ch == '.':
+        #        dot += 1
 
-            if under == 0 and dot == 0:
-                self.c_prefix += ch
-            elif under == 1 and dot == 1 and ch != '.':
-                self.c_infix += ch
-            elif under == 2 and dot == 2 and ch != '.':
-                self.c_postfix += ch
+        #    if under == 0 and dot == 0:
+        #        self.c_prefix += ch
+        #    elif under == 1 and dot == 1 and ch != '.':
+        #        self.c_infix += ch
+        #    elif under == 2 and dot == 2 and ch != '.':
+        #        self.c_postfix += ch
+
+        """
+        Let's use a simpler format: xxx.inpcrd.i.j
+        xxx can be anything, can has any numbers of underscores or dots
+        i and j are indexs for two u dimensions
+        """
+
+        self.c_prefix = base.split('inpcrd')[0]+'inpcrd'
+        #self.c_index1 = base.split('inpcrd')[1].split('.')[1]
+        #self.c_index2 = base.split('inpcrd')[1].split('.')[2]
 
         #-----------------------------------------------------------------------
         # 
@@ -158,14 +168,14 @@ class KernelPatternBUS(object):
             rstr_val_1 = str(starting_value)
 
             if self.same_coordinates == False:
-                coor_file = self.c_prefix + "_0." + self.c_infix + "_" + str(k) + "." + self.c_postfix
+                coor_file = coor_file = self.c_prefix + "." + str(i) + "." + str(k)
                 r = Replica1d(k, new_restraints=self.restraints_files[k], \
                              rstr_val_1=float(rstr_val_1), \
                              coor=coor_file, \
                              indx1=0, \
                              indx2=k)
             else:
-                coor_file = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
+                coor_file = coor_file = self.c_prefix + ".0.0"
                 r = Replica1d(k, new_restraints=self.restraints_files[k], \
                                  rstr_val_1=float(rstr_val_1), \
                                  coor=coor_file)

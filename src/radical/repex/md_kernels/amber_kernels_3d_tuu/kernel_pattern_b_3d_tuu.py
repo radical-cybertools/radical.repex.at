@@ -246,8 +246,8 @@ class AmberKernelPatternB3dTUU(object):
         """
 
         self.c_prefix = base.split('inpcrd')[0]+'inpcrd'
-        self.c_index1 = base.split('inpcrd')[1].split('.')[1]
-        self.c_index2 = base.split('inpcrd')[1].split('.')[2]
+        #self.c_index1 = base.split('inpcrd')[1].split('.')[1]
+        #self.c_index2 = base.split('inpcrd')[1].split('.')[2]
 
         #-----------------------------------------------------------------------
 
