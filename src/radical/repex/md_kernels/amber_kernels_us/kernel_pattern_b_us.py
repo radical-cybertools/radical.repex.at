@@ -42,6 +42,10 @@ class KernelPatternBUS(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
+        self.name = 'ak-us-patternB'
+        self.ex_name = 'umbrella_sampling'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
+
         self.resource = inp_file['input.PILOT']['resource']
         self.inp_basename = inp_file['input.MD']['input_file_basename']
         self.input_folder = inp_file['input.MD']['input_folder']
@@ -79,11 +83,11 @@ class KernelPatternBUS(object):
         try:
             self.amber_path = inp_file['input.MD']['amber_path']
         except:
-            print "Using default Amber path for %s" % inp_file['input.PILOT']['resource']
+            self.logger.info("Using default Amber path for {0}".format(inp_file['input.PILOT']['resource']) )
             try:
                 self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
             except:
-                print "Amber path for localhost is not defined..."
+                self.logger.info("Amber path is not defined...")
 
         self.amber_coordinates_path = inp_file['input.MD']['amber_coordinates_folder']
         if 'same_coordinates' in inp_file['input.MD']:
@@ -102,10 +106,6 @@ class KernelPatternBUS(object):
         self.us_end_param = float(inp_file['input.MD']['us_end_param'])
 
         self.current_cycle = -1
-
-        self.name = 'ak-us-patternB'
-        self.ex_name = 'umbrella_sampling'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
 
         self.shared_urls = []
         self.shared_files = []
@@ -129,34 +129,7 @@ class KernelPatternBUS(object):
 
         base = coor_list[0]
 
-        #self.c_prefix = ''
-        #self.c_infix = ''
-        #self.c_postfix = ''
-
-        #under = 0
-        #dot = 0
-        #for ch in base:
-        #    if ch == '_':
-        #        under += 1
-        #    if ch == '.':
-        #        dot += 1
-
-        #    if under == 0 and dot == 0:
-        #        self.c_prefix += ch
-        #    elif under == 1 and dot == 1 and ch != '.':
-        #        self.c_infix += ch
-        #    elif under == 2 and dot == 2 and ch != '.':
-        #        self.c_postfix += ch
-
-        """
-        Let's use a simpler format: xxx.inpcrd.i.j
-        xxx can be anything, can has any numbers of underscores or dots
-        i and j are indexs for two u dimensions
-        """
-
-        self.c_prefix = base.split('inpcrd')[0]+'inpcrd'
-        #self.c_index1 = base.split('inpcrd')[1].split('.')[1]
-        #self.c_index2 = base.split('inpcrd')[1].split('.')[2]
+        self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
 
         #-----------------------------------------------------------------------
         # 
@@ -168,14 +141,14 @@ class KernelPatternBUS(object):
             rstr_val_1 = str(starting_value)
 
             if self.same_coordinates == False:
-                coor_file = coor_file = self.c_prefix + "." + str(i) + "." + str(k)
+                coor_file = self.coor_basename + "." + str(i) + "." + str(k)
                 r = Replica1d(k, new_restraints=self.restraints_files[k], \
                              rstr_val_1=float(rstr_val_1), \
                              coor=coor_file, \
                              indx1=0, \
                              indx2=k)
             else:
-                coor_file = coor_file = self.c_prefix + ".0.0"
+                coor_file = self.coor_basename + ".0.0"
                 r = Replica1d(k, new_restraints=self.restraints_files[k], \
                                  rstr_val_1=float(rstr_val_1), \
                                  coor=coor_file)
@@ -186,7 +159,7 @@ class KernelPatternBUS(object):
 
     #---------------------------------------------------------------------------
     # 
-    def prepare_shared_data(self):
+    def prepare_shared_data(self, replicas):
 
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
@@ -208,8 +181,12 @@ class KernelPatternBUS(object):
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
 
-        for f in listdir(coor_path):
-            self.shared_files.append(f)
+
+        if self.same_coordinates == False:
+            for repl in replicas:
+                self.shared_files.append(repl.coor_file)
+        else:
+            self.shared_files.append(replicas[0].coor_file)
 
         #-----------------------------------------------------------------------
 
@@ -228,8 +205,13 @@ class KernelPatternBUS(object):
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
 
-        for f in listdir(coor_path):
-            cf_path = join(coor_path,f)
+        if self.same_coordinates == False:
+            for repl in replicas:
+                cf_path = join(coor_path,repl.coor_file)
+                coor_url = 'file://%s' % (cf_path)
+                self.shared_urls.append(coor_url)
+        else:
+            cf_path = join(coor_path,replicas[0].coor_file)
             coor_url = 'file://%s' % (cf_path)
             self.shared_urls.append(coor_url)
 
@@ -309,7 +291,7 @@ class KernelPatternBUS(object):
 
         #-----------------------------------------------------------------------
         # umbrella sampling
-        # ????????????????????
+        # 
         data = {
             "replica_id": str(rid),
             "replica_cycle" : str(replica.cycle-1),
@@ -364,14 +346,6 @@ class KernelPatternBUS(object):
             #-------------------------------------------------------------------            
             # replica coor
             repl_coor = replica.coor_file
-
-            if self.same_coordinates == False:
-                while (repl_coor not in self.shared_files):
-                    repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.c_postfix
-            else:
-                repl_coor = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
-
-            # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 
             stage_in.append(sd_shared_list[c_index])
 
@@ -463,7 +437,6 @@ class KernelPatternBUS(object):
         cu.pre_exec = self.pre_exec
         cu.executable = "python"
         cu.input_staging  = stage_in
-        #cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
         cu.arguments = ["global_ex_calculator.py", json_data_us]
         if self.replicas > 999:
             self.cores = self.replicas / 2

@@ -1,17 +1,17 @@
 {
     "input.PILOT": {
-        "resource": "archer.ac.uk",
-        "username" : "antonst",
-        "project" : "e290",
-        "runtime" : "40",
+        "resource": "stampede.tacc.utexas.edu",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
+        "runtime" : "320",
         "cleanup" : "False",
-        "cores" : "24"
+        "cores" : "1648"
     },
     "input.MD": {
         "execution_pattern": "B",
         "exchange": "T-REMD",
         "number_of_cycles": "4",
-        "number_of_replicas": "24",
+        "number_of_replicas": "1632",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -21,6 +21,6 @@
         "replica_cores": "1",
         "min_temperature": "300",
         "max_temperature": "600",
-        "steps_per_cycle": "1000"
+        "steps_per_cycle": "6000"
     }
 }

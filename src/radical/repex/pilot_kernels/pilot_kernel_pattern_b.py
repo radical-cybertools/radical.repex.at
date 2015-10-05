@@ -93,7 +93,7 @@ class PilotKernelPatternB(PilotKernel):
                 md_kernel.build_restraint_file(r)
 
         # staging shared input data in
-        md_kernel.prepare_shared_data()
+        md_kernel.prepare_shared_data(replicas)
 
         shared_input_file_urls = md_kernel.shared_urls
         shared_input_files = md_kernel.shared_files
@@ -130,7 +130,7 @@ class PilotKernelPatternB(PilotKernel):
         GL = 1
         # bulk = 0: do sequential submission
         # bulk = 1: do bulk submission
-        BULK = 0
+        BULK = 1
 
         for current_cycle in range(1,CYCLES):
 

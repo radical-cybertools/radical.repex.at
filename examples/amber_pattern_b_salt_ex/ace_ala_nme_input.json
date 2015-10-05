@@ -1,16 +1,15 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
+        "resource": "xsede.supermic",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "queue" : "development",
-        "runtime" : "30",
+        "runtime" : "280",
         "cleanup" : "False",
-        "cores" : "16"
+        "cores" : "540"
     },
     "input.MD": {
         "number_of_cycles": "4",
-        "number_of_replicas": "16",
+        "number_of_replicas": "512",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -18,11 +17,11 @@
         "amber_coordinates": "ace_ala_nme.inpcrd",
         "replica_mpi": "False",
         "exchange_replica_mpi" : "True",
-        "exchange_replica_cores" : "16",
+        "exchange_replica_cores" : "512",
         "replica_cores": "1",
         "min_salt": "0.0",
         "max_salt": "1.0",
         "init_temperature": "300",
-        "steps_per_cycle": "500"
+        "steps_per_cycle": "6000"
     }
 }

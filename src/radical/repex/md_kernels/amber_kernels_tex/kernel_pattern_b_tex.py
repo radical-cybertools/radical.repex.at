@@ -97,7 +97,7 @@ class KernelPatternBTex(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_shared_data(self):
+    def prepare_shared_data(self, replicas):
  
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + \
                     self.amber_parameters
@@ -322,14 +322,14 @@ class KernelPatternBTex(object):
         stage_out.append(outfile)
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.pre_exec = self.pre_exec
+        cu.pre_exec = ["module load intel/14.0.1.106", "module load python/2.7.6"]
         cu.executable = "python"
         cu.input_staging  = stage_in
         cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
 
-        if self.replicas > 999:
-            self.cores = self.replicas / 2
-        elif self.cores < self.replicas:
+        #if self.replicas > 999:
+        #    self.cores = self.replicas / 2
+        if self.cores < self.replicas:
             if (self.replicas % self.cores) != 0:
                 self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                 self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
