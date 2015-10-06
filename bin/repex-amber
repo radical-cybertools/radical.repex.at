@@ -45,7 +45,7 @@ if __name__ == '__main__':
     if (inp_file['remd.input']['re_pattern'] == 'A') and (inp_file['remd.input']['exchange'] == 'T-REMD'):
 
 	    # initializing kernels
-	    md_kernel = KernelPatternATex( inp_file, rconfig, work_dir_local )
+	    md_kernel = KernelPatternAtex( inp_file, rconfig, work_dir_local )
 	    pilot_kernel = PilotKernelPatternA( inp_file, rconfig )
 
 	    # initializing replicas

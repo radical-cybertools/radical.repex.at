@@ -11,13 +11,13 @@ RepEx is a new `Replica-Exchange <https://en.wikipedia.org/wiki/Parallel_temperi
 written in Python programming language. RepEx supports Amber [1] and NAMD [2] as 
 Molecular Dynamics application kernels and can be easily modified to support 
 any conventional MD package. The main motivation behind RepEx is to enable 
-efficient and scalable REMD simulations on HPC systems, while separating 
+efficient and scalable multidimensional REMD simulations on HPC systems, while separating 
 execution details from simulation setup, specific to a given MD package. 
 RepEx provides several Execution Patterns designed to meet the needs of it's 
 users. RepEx relies on a concept of Pilot-Job to run RE simulations on HPC 
 clusters. Namely, RepEx is using `Radical Pilot <http://radicalpilot.readthedocs.org/en/latest/>`_
 Pilot System for execution of it's workloads. RepEx effectively takes advantage 
-of a task-level-parallelism concept to efficiently run REMD simulations. RepEx 
+of a task-level-parallelism concept to run REMD simulations. RepEx 
 is modular, object-oriented code, which is designed to facilitate development of 
 extension modules by it's users.
 
@@ -43,14 +43,6 @@ Main distinguishing features of RepEx are:
  - low barrier for implementation of new REMD algorithms facilitated by separation of 
    simulaiton execuiton details from implementation specific to current MD package
    
- - functionality to run multi-dimentional REMD simulations with arbitrary ordering of dimensions 
-
-
-
-
-
-
-
-
+ - functionality to run multi-dimentional REMD simulations with arbitrary ordering of dimensions
 
         

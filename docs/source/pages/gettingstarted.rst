@@ -4,7 +4,9 @@
 Getting Started
 ***************
 
-todo
+In this section we will briefly describe how RepEx can be invoked, how input and 
+resource configuration files should be used. We will also introduce two concepts, 
+central to RepEx - Replica Exchange Patterns and Execution Strategies.  
 
 Invoking RepEx
 ==============
@@ -33,13 +35,20 @@ In resource configuration file **must** be provided the following parameters:
 
  - ``resource`` - this is the name of the target machine. Currently supported machines are:
 
+     ``local.localhost`` - your local system
+
      ``stampede.tacc.utexas.edu`` - Stampede supercomputer at TACC
 
-     ``archer.ac.uk`` - Archer supercomputer at EPCC
+     ``xsede.supermic`` - SuperMIC supercomputer at LSU
 
      ``xsede.comet`` - Comet supercomputer at SDSC
 
-     ``xsede.supermic`` - SuperMIC supercomputer at LSU
+     ``gordon.sdsc.xsede.org`` - Gordon supercomputer at SDSC
+
+     ``archer.ac.uk`` - Archer supercomputer at EPCC
+
+     ``ncsa.bw_orte`` - Blue Waters supercomputer at NCSA
+
 
  - ``username`` - your username on the target machine
 
@@ -53,7 +62,7 @@ In addition are provided the following **optional** parameters:
 
  - ``queue`` - specifies which queue to use for job submission. Values are machine specific.
 
- - ``clenup`` - specifies if files on remote machine must be deleted. Possible values are: ``True`` or ``False``
+ - ``cleanup`` - specifies if files on remote machine must be deleted. Possible values are: ``True`` or ``False``
 
 Example resource configuration file for Stampede supercomputer might look like this:
 
@@ -62,7 +71,7 @@ Example resource configuration file for Stampede supercomputer might look like t
 	{
     	    "target": {
         	    "resource" : "stampede.tacc.utexas.edu",
-        	    "username" : "antons",
+        	    "username" : "octocat",
         	    "project"  : "TG-XYZ123456",
         	    "queue"    : "development",
         	    "runtime"  : "30",
@@ -134,29 +143,17 @@ Execution Patterns formalize the set of decisions taken to execute REMD
 simulation, exposing certain variables and constraining some decisions.
 
 Execution Patterns are fully specified by two sub-categories: Replica Exchange
-Patterns and Execution Strategies. Replica Exchange Patterns are distinguished 
-by synchronization modes between MD and Exchange steps. We define two types of
-Replica Exchange Patterns:
+Patterns and Execution Strategies. 
+
+Replica Exchange Patterns
+=========================
+
+Replica Exchange Patterns are distinguished by synchronization modes between MD 
+and Exchange steps. We define two types of Replica Exchange Patterns:
 
  **1.** Synchronous Pattern (Replica Exchange Pattern A)
 
  **2.** Asynchronous Pattern (Replica Exchange Pattern B)
-
-Execution Strategies specify workload execution details and in particular
-the resource management details. These patterns differ in: 
-
- **1.** MD simulation time definition: fixed period of simulation time (e.g. 2 ps) 
- for all replicas or fixed period of wall clock time (e.g. 2 minutes) for all 
- replicas, meaning that after this time interval elapses all running replicas 
- will be stopped, regardless of how much simulation time was obtained.
-
- **2.** task submission modes (bulk submission vs sequential submission)
-
- **3.** task execution modes on remote HPC system (order and level of concurrency)
-
- **4.** number of Pilots used for a given simulation
-
- **5.** number of target resources used concurrently for a given simulation
 
 Replica Exchange Pattern A
 --------------------------
@@ -169,8 +166,8 @@ When all replicas have finished MD-step, the Exchange-step is performed.
 
 .. image:: ../figures/macro-pattern-a.png
 	:alt: pattern-a
-	:height: 4 in
-	:width: 5.5 in
+	:height: 4.5 in
+	:width: 7.0 in
 	:align: center
 
 Replica Exchange Pattern B
@@ -193,6 +190,45 @@ MD and Exchange-step, thus this pattern can be referred to as asynchronous.
 Execution Strategies
 ====================
 
-todo
+Execution Strategies specify workload execution details and in particular
+the resource management details. These strategies differ in: 
 
+ **1.** MD simulation time definition: fixed period of simulation time (e.g. 2 ps) 
+ for all replicas or fixed period of wall clock time (e.g. 2 minutes) for all 
+ replicas, meaning that after this time interval elapses all running replicas 
+ will be stopped, regardless of how much simulation time was obtained.
 
+ **2.** task submission modes (bulk submission vs sequential submission)
+
+ **3.** task execution modes on remote HPC system (order and level of concurrency)
+
+ **4.** number of Pilots used for a given simulation
+
+ **5.** number of target resources used concurrently for a given simulation
+
+Execution Strategy A1
+---------------------
+
+.. image:: ../figures/exec-strategy-a1.png
+    :alt: pattern-a
+    :height: 5.0 in
+    :width: 7.5 in
+    :align: center
+
+Execution Strategy A2
+---------------------
+
+.. image:: ../figures/exec-strategy-a2.png
+    :alt: pattern-a
+    :height: 4.5 in
+    :width: 6.5 in
+    :align: center
+
+Execution Strategy A3
+---------------------
+
+.. image:: ../figures/exec-strategy-a3.png
+    :alt: pattern-a
+    :height: 4.5 in
+    :width: 6.0 in
+    :align: center

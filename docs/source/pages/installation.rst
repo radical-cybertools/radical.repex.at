@@ -23,7 +23,7 @@ potentially incompatible system-wide packages.
 
     .. parsed-literal:: wget --no-check-certificate https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.11.tar.gz
                         tar xzf virtualenv-1.11.tar.gz
-                        python virtualenv-1.11/virtualenv.py --system-site-packages $HOME/ExTASY-tools/
+                        python virtualenv-1.11/virtualenv.py --system-site-packages $HOME/repex-env/
                         source $HOME/repex-env/bin/activate
 
 **Step 1** : Create the virtualenv,

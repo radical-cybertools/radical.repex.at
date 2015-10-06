@@ -36,7 +36,8 @@ KERNELS = {
             "amber": {
                 "environment" : {},
                 "pre_execution" : ["python-compute/2.7.6", "module load amber", "module use --append /work/e290/e290/marksant/privatemodules", "module load openmpi/HEAD", "module switch PrgEnv-cray PrgEnv-gnu"],
-                "executable" : "/work/y07/y07/amber/12/bin/sander"
+                "executable" : "/work/y07/y07/amber/12/bin/sander",
+                "executable_mpi" : "/work/y07/y07/amber/12/bin/sander.MPI"
             }
         }
     },"gordon.sdsc.xsede.org":
