@@ -70,7 +70,7 @@ class PilotKernel(object):
             self.dburl = inp_file['input.PILOT']['mongo_url']
         except:
             self.logger.info("Using default Mongo DB url" )
-            self.dburl = "mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/"
+            self.dburl = "mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/cdi-tests"
         cleanup = inp_file['input.PILOT']['cleanup']
         if (cleanup == "True"):
             self.cleanup = True
@@ -109,7 +109,7 @@ class PilotKernel(object):
         pilot_manager = None
         pilot_object = None
    
-        session = radical.pilot.Session(database_url=self.dburl, database_name='cdi-test')
+        session = radical.pilot.Session(database_url=self.dburl)
         self.logger.info("Session ID: {0}".format(session.uid) )
 
         try:

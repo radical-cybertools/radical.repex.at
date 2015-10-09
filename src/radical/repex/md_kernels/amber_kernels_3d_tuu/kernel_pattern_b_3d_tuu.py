@@ -220,35 +220,8 @@ class AmberKernelPatternB3dTUU(object):
 
         base = coor_list[0]
 
-        #self.c_prefix = ''
-        #self.c_infix = ''
-        #self.c_postfix = ''
-
-        #under = 0
-        #dot = 0
-        #for ch in base:
-        #    if ch == '_':
-        #        under += 1
-        #    if ch == '.':
-        #        dot += 1
-
-        #    if under == 0 and dot == 0:
-        #        self.c_prefix += ch
-        #    elif under == 1 and dot == 1 and ch != '.':
-        #        self.c_infix += ch
-        #    elif under == 2 and dot == 2 and ch != '.':
-        #        self.c_postfix += ch
-
-        """
-        Let's use a simpler format: xxx.inpcrd.i.j
-        xxx can be anything, can has any numbers of underscores or dots
-        i and j are indexs for two u dimensions
-        """
-
-        self.c_prefix = base.split('inpcrd')[0]+'inpcrd'
-        #self.c_index1 = base.split('inpcrd')[1].split('.')[1]
-        #self.c_index2 = base.split('inpcrd')[1].split('.')[2]
-
+        self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
+        
         #-----------------------------------------------------------------------
 
         replicas = []
@@ -280,7 +253,7 @@ class AmberKernelPatternB3dTUU(object):
                     #-----------------------------------------------------------
                     if self.same_coordinates == False:
                         
-                        coor_file = self.c_prefix + "." + str(i) + "." + str(k)
+                        coor_file = self.coor_basename + "." + str(i) + "." + str(k)
                         r = Replica3d(rid, \
                                       new_temperature=t1, \
                                       new_restraints=r1, \
@@ -292,7 +265,7 @@ class AmberKernelPatternB3dTUU(object):
                                       indx2=k)
                         replicas.append(r)                        
                     else:
-                        coor_file = self.c_prefix + ".0.0"
+                        coor_file = self.coor_basename + ".0.0"
                         r = Replica3d(rid, \
                                       new_temperature=t1, \
                                       new_restraints=r1, \
@@ -339,8 +312,12 @@ class AmberKernelPatternB3dTUU(object):
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
 
-        for repl in replicas:
-            self.shared_files.append(repl.coor_file)
+        if self.same_coordinates == False:
+            for repl in replicas:
+                self.shared_files.append(repl.coor_file)
+        else:
+            self.shared_files.append(replicas[0].coor_file)
+
 
         #-----------------------------------------------------------------------
 
@@ -365,9 +342,13 @@ class AmberKernelPatternB3dTUU(object):
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
 
-        #for f in listdir(coor_path):
-        for repl in replicas:
-            cf_path = join(coor_path,repl.coor_file)
+        if self.same_coordinates == False:
+            for repl in replicas:
+                cf_path = join(coor_path,repl.coor_file)
+                coor_url = 'file://%s' % (cf_path)
+                self.shared_urls.append(coor_url)
+        else:
+            cf_path = join(coor_path,replicas[0].coor_file)
             coor_url = 'file://%s' % (cf_path)
             self.shared_urls.append(coor_url)
 
@@ -549,12 +530,6 @@ class AmberKernelPatternB3dTUU(object):
             #-------------------------------------------------------------------            
             # replica coor
             repl_coor = replica.coor_file
-
-            while (repl_coor not in self.shared_files):
-                #repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.postfix
-                repl_coor = replica.coor_file
- 
-            # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 
             stage_in.append(sd_shared_list[c_index])
 
