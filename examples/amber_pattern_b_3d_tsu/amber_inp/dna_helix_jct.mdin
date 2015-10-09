@@ -17,6 +17,15 @@ NVT equilibration
   saltcon=@salt@,
   temp0 = @temp@,
   ntt = 3,
-  gamma_ln=5.0.
-  ig=-1
-  /
+  gamma_ln=5.0,
+  ig=-1,
+  nmropt=1
+ /
+ &wt
+  type='DUMPFREQ', istep1=10,
+ /
+ &wt
+   type='END'
+ /
+DISANG=@disang@
+DUMPAVE=@disang@.out
