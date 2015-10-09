@@ -14,7 +14,7 @@ NVT equilibration
   nstlim = @nstlim@,
   dt = 0.001,
   extdiel=81.946,
-  saltcon=@saltcon@,
+  saltcon=@salt@,
   temp0 = @temp@,
   ntt = 3,
   gamma_ln=5.0.
