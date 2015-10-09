@@ -1,0 +1,22 @@
+NVT equilibration
+ &cntrl
+  imin = 0,
+  ntx = @ntx@,
+  irest = @irest@,
+  ntpr = 1000,
+  ntwr = 1000,
+  ntwx = 1000,
+  ntf = 2, 
+  ntc = 2,
+  ntb = 0,
+  igb=1,
+  cut = 999.0,
+  nstlim = @nstlim@,
+  dt = 0.001,
+  extdiel=81.946,
+  saltcon=@saltcon@,
+  temp0 = @temp@,
+  ntt = 3,
+  gamma_ln=5.0.
+  ig=-1
+  /
