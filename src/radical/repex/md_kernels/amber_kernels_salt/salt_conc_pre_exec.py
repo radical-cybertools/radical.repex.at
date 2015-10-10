@@ -122,6 +122,8 @@ if __name__ == '__main__':
                 f.write(line.replace("@salt@",current_group_tsu[j][0]))
             elif "@irest@" in line:
                 line = line.replace("@irest@","1")
+                f.write(line)
+            elif "@ntx@" in line:
                 line = line.replace("@ntx@","5")
                 f.write(line)
             else:
