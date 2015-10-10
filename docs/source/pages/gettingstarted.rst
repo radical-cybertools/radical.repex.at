@@ -13,9 +13,9 @@ Invoking RepEx
 
 To run RepEx users need to use a command line tool corresponding to MD package 
 kernel they intend to use. For example, if user wants to use Amber as MD kernel, 
-she would use ``repex-amber`` command line tool. In addiiton to specifying an 
+she would use ``repex-amber`` command line tool. In addition to specifying an 
 appropriate command line tool, user need to specify a resource configuration file 
-and REMD simulation input file. the result invocation of RepEx should be:
+and REMD simulation input file. The resulting invocation of RepEx should be:
 
 ``repex-amber --input='tsu_remd_ace_ala_nme.json' --rconfig='stampede.json'``
 
@@ -133,131 +133,88 @@ Optional parameters are specific to each simulation type. Example REMD simulatio
     	    }
 	}
 
-Execution Patterns
-==================
+T-REMD example (peptide ala10) with Amber kernel
+================================================
 
-One of the distinctive features that RepEx provides to its users, is ability to
-select an Execution Pattern. An Execution Pattern is the set of configurations,
-sequence and specific details of synchronization for a given REMD simulation.  
-Execution Patterns formalize the set of decisions taken to execute REMD 
-simulation, exposing certain variables and constraining some decisions.
+First we will take a look at Temperature-Exchnage REMD example using peptide ala10 system
+with Amber simulations kernel. 
 
-Execution Patterns are fully specified by two sub-categories: Replica Exchange
-Patterns and Execution Strategies. 
+We need to cd into examples directory where input files recide: 
 
-Replica Exchange Patterns
-=========================
+**Step 1** : ``cd examples/amber_inputs/t_remd_inputs``
 
-Replica Exchange Patterns are distinguished by synchronization modes between MD 
-and Exchange steps. We define two types of Replica Exchange Patterns:
+Amongst other things in this directory are present:
 
- **1.** Synchronous Pattern (Replica Exchange Pattern A)
+ - ``t_remd_inputs`` - input files for T-REMD simulations
 
- **2.** Asynchronous Pattern (Replica Exchange Pattern B)
+ - ``t_remd_ala10.json`` - REMD input file for Temperature-Exchnage example using peptide ala10 system   
 
-Replica Exchange Pattern A
---------------------------
+ - ``local.json`` - resource configuration file to ron on local system (your laptop)
 
-Pattern A, corresponds to conventional, synchronous way of
-running REMD simulation, where all replicas propagate MD for a
-fixed period of simulation time (e.g. 2 ps) and execution time for replicas is
-not fixed - all replicas must finish MD-step before Exchange-step takes place.
-When all replicas have finished MD-step, the Exchange-step is performed. 
+ - ``stampede.json`` - resource configuration file for Stampede supercomputer
 
-.. image:: ../figures/macro-pattern-a.png
-	:alt: pattern-a
-	:height: 4.5 in
-	:width: 7.0 in
-	:align: center
+Run locally
+-----------
 
-Replica Exchange Pattern B
---------------------------
+To run our example locally we need to make appropriate changes to ``local.json`` resouce configuration file. To do so we open this file in our favorite text editor (vim in this case):
 
-Contrary to Pattern A, Pattern B has execution related invariant: the number of
-replicas must exceed allocated CPU cores so that only a fraction of replicas can
-run. In Pattern B, MD-step is defined as a fixed period of simulation time
-(e.g. 2 ps), but execution time for MD-step is fixed (e.g. 30 secs). Then
-predefined execution time elapses, Exchange-step is performed amongst replicas
-which have finished MD-step. In this pattern there is no synchronization between
-MD and Exchange-step, thus this pattern can be referred to as asynchronous.
+**Step 2** : ``vim local.json``
 
-.. image:: ../figures/macro-pattern-b.png
-	:alt: pattern-a
-	:height: 4 in
-	:width: 5.5 in
-	:align: center
+By default this file looks like this:
 
-Execution Strategies
-====================
+.. parsed-literal::
 
-Execution Strategies specify workload execution details and in particular
-the resource management details. These strategies differ in: 
+    {
+        "target": {
+            "resource": "local.localhost",
+            "username" : "octocat",
+            "runtime" : "30",
+            "cleanup" : "False",
+            "cores" : "4"
+        }
+    }
 
- **1.** MD simulation time definition: fixed period of simulation time (e.g. 2 ps) 
- for all replicas or fixed period of wall clock time (e.g. 2 minutes) for all 
- replicas, meaning that after this time interval elapses all running replicas 
- will be stopped, regardless of how much simulation time was obtained.
+You need to modify only two parameters in this file:
 
- **2.** task submission modes (bulk submission vs sequential submission)
+ - ``username`` - this should be your username on your laptop
 
- **3.** task execution modes on remote HPC system (order and level of concurrency)
+ - ``cores`` - if you have less than 4 cores on your laptop please change this parameter to 1, 
+               if you have more cores, feel free to leave this parameter unchanged 
 
- **4.** number of Pilots used for a given simulation
+Next we need to verify if parameters specified in ``t_remd_ala10.json`` REMD input file satisfy 
+our requirements. By default ``t_remd_ala10.json`` file looks like this:
 
- **5.** number of target resources used concurrently for a given simulation
+.. parsed-literal::
 
-Next we will introduce three Execution Strategies which can be used with Replica 
-Exchange Pattern A.
+    {
+        "remd.input": {
+            "re_pattern": "A",
+            "exchange": "T-REMD",
+            "number_of_cycles": "4",
+            "number_of_replicas": "8",
+            "input_folder": "t_remd_inputs",
+            "input_file_basename": "ala10_remd",
+            "amber_input": "ala10.mdin",
+            "amber_parameters": "ala10.prmtop",
+            "amber_coordinates": "ala10_minimized.inpcrd",
+            "replica_mpi": "False",
+            "replica_cores": "1",
+            "exchange_mpi": "False",
+            "min_temperature": "300",
+            "max_temperature": "600",
+            "steps_per_cycle": "4000"
+        }
+    }
 
-Execution Strategy A1
---------------------- 
+First you need to specify the path to ``sander`` executable on your laptop
 
-Simulation corresponding to Replica Exchange Pattern A, may be executed using 
-Execution strategy A1. This strategy differs from a conventional one in number of 
-allocated cores on a target resource (bullet point **3.**). In this case number of 
-cores is 1/2 of the number of replicas. As a result of this, 
-only a half of replicas can propogate MD or Exchange-step concurrently. In this 
-execution strategy MD simulation time is defined as a fixed period of simulation 
-time (e.g. 2 ps) for all replicas, meaning that replicas which will finish simulation 
-earlier will have to wait for other replicas before exchange-step may take place.
-This strategy demonstrates advantage of using a task-level parallelism based 
-approach. Many MD packages are lacking the capability to use less cores than replicas.     
+Run remotely
+------------
 
-.. image:: ../figures/exec-strategy-a1.png
-    :alt: pattern-a
-    :height: 5.0 in
-    :width: 7.5 in
-    :align: center
+todo
 
-Execution Strategy A2
----------------------
+Verify output
+-------------
 
-Execution Strategy A2 differs from Strategy A1 in MD simulation time definition. 
-Here MD is specified as a fixed period of wall clock time (e.g. 2 minutes) for 
-all replicas. Replicas which will not finish MD-step within this time interval, 
-will be stopped. In addition, Strategy A2 differs from Strategy A1 in the number 
-of allocated cores. Here number of cores equals to the number of replicas.
+todo
 
-.. image:: ../figures/exec-strategy-a2.png
-    :alt: pattern-a
-    :height: 4.5 in
-    :width: 6.5 in
-    :align: center
-
-Execution Strategy A3
----------------------
-
-Last Execution strategy we will discuss in this section is Execution Strategy A3. 
-In this strategy all replicas are run concurrently for a presumably indefinite 
-period. At predefined intervals exchanges are performed amongst all (or a subset) 
-of replicas on resource using data from checkpoint files. Any replicas that accept
-the exchange are reset and then restarted. Since only a small fraction of replicas 
-will actually accept this exchange (∼10-30%) the amount of time discarded by the 
-exchange is assumed to be minimal. Differences of this strategy from a conventional 
-one can be attributed to bullet point **3.**
-
-.. image:: ../figures/exec-strategy-a3.png
-    :alt: pattern-a
-    :height: 4.5 in
-    :width: 6.0 in
-    :align: center

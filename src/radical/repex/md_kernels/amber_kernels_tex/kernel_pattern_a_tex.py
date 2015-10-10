@@ -63,14 +63,21 @@ class KernelPatternAtex(object):
         self.cores    = int(rconfig['target']['cores'])
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
 
-        if 'amber_path' in inp_file['remd.input']:
-            self.amber_path = inp_file['remd.input']['amber_path']
-        else:
-            self.logger.info("Using default Amber path for: {0}".format( rconfig['target']['resource'] ) )
-            try:
-                self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
-            except:
+        if self.resource == 'local.localhost':
+            if 'amber_path' in inp_file['remd.input']:
+                self.amber_path = inp_file['remd.input']['amber_path']
+            else:
                 self.logger.info("Amber path for {0} is not defined".format( rconfig['target']['resource'] ) )
+                sys.exit(1)
+        else:
+            if 'amber_path' in inp_file['remd.input']:
+                self.amber_path = inp_file['remd.input']['amber_path']
+            else:
+                self.logger.info("Using default Amber path for: {0}".format( rconfig['target']['resource'] ) )
+                try:
+                    self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
+                except:
+                    self.logger.info("Amber path for {0} is not defined".format( rconfig['target']['resource'] ) )
 
         self.input_folder = inp_file['remd.input']['input_folder']   
         self.amber_coordinates = inp_file['remd.input']['amber_coordinates']

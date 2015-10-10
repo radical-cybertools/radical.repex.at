@@ -4,28 +4,11 @@
 One-dimensional REMD simulations
 ********************************
 
-todo
+In addition T-REMD simulations RepEx also supports Umbrella Sampling (biasing potentials) 
+and Salt Concentration (ionic strength) one dimensional REMD. 
 
 
-T-REMD example (peptide ala10) with Amber kernel
-================================================
 
-todo
-
-Run locally
------------
-
-todo
-
-Run remotely
-------------
-
-todo
-
-Verify output
--------------
-
-todo
 
 
 US-REMD example (alanine dipeptide) with Amber kernel

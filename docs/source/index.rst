@@ -18,6 +18,8 @@ Contents:
    pages/gettingstarted.rst
    pages/singledimexamples.rst
    pages/multidimexamples.rst
+   pages/replicaexchangepatterns.rst
+   pages/flexibleexecutionmodes.rst
    pages/faq.rst
 
 
@@ -30,5 +32,5 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. |VERSION| replace:: 0.1
+.. |VERSION| replace:: 0.2
 
