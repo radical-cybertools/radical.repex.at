@@ -40,8 +40,8 @@ potentially incompatible system-wide packages.
 
 .. parsed-literal:: python setup.py install
 
-Now you should be able to print the installed version of RepEx use:
+Now you should be able to print the installed version of RepEx:
 
 .. parsed-literal:: repex-version
 
-**Installation is complete !**
+**Installation is complete!**

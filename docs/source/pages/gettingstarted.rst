@@ -37,15 +37,15 @@ In resource configuration file **must** be provided the following parameters:
 
      ``local.localhost`` - your local system
 
-     ``stampede.tacc.utexas.edu`` - Stampede supercomputer at TACC
+     ``xsede.stampede`` - Stampede supercomputer at TACC
 
      ``xsede.supermic`` - SuperMIC supercomputer at LSU
 
      ``xsede.comet`` - Comet supercomputer at SDSC
 
-     ``gordon.sdsc.xsede.org`` - Gordon supercomputer at SDSC
+     ``xsede.gordon`` - Gordon supercomputer at SDSC
 
-     ``archer.ac.uk`` - Archer supercomputer at EPCC
+     ``epsrc.archer`` - Archer supercomputer at EPCC
 
      ``ncsa.bw_orte`` - Blue Waters supercomputer at NCSA
 
@@ -81,8 +81,8 @@ Example resource configuration file for Stampede supercomputer might look like t
 	}
 
 
-REMD input file
----------------
+REMD input file for Amber kernel
+--------------------------------
 
 For use with Amber kernel, in REMD simulation input file **must** be provided the following parameters:
 
@@ -110,6 +110,10 @@ For use with Amber kernel, in REMD simulation input file **must** be provided th
 
  - ``steps_per_cycle`` - number of simulation time-steps
 
+ - ``download_mdinfo`` - specifies if Amber .mdinfo files must be downloaded. Options are: ``True`` or ``False``. If this parameter is ommited, value defaults to "True"
+
+ - ``download_mdout`` - specifies if Amber .mdout files must be downloaded. Options are: ``True`` or ``False``. If this parameter is ommited, value defaults to "True"
+
 Optional parameters are specific to each simulation type. Example REMD simulation input file for T-REMD simulation might look like this:
 
 .. parsed-literal::
@@ -129,19 +133,26 @@ Optional parameters are specific to each simulation type. Example REMD simulatio
         	    "replica_cores": "1",
         	    "min_temperature": "300",
         	    "max_temperature": "600",
-        	    "steps_per_cycle": "1000"
+        	    "steps_per_cycle": "1000",
+                "download_mdinfo": "True",
+                "download_mdout" : "True",
     	    }
 	}
 
 T-REMD example (peptide ala10) with Amber kernel
 ================================================
 
-First we will take a look at Temperature-Exchnage REMD example using peptide ala10 system
-with Amber simulations kernel. 
+We will take a look at Temperature-Exchnage REMD example using peptide ala10 system
+with Amber simulations kernel. To run this example locally you must have Amber installed on your system.
+If you don't have Amber installed please download it from: ``http://ambermd.org/antechamber/download.html`` and install it using instructions at: ``http://ambermd.org/``
 
-We need to cd into examples directory where input files recide: 
+This guide assumes that you have already cloned RepEx repository during the installation. If you haven't, please do:
 
-**Step 1** : ``cd examples/amber_inputs/t_remd_inputs``
+.. parsed-literal:: git clone https://github.com/radical-cybertools/radical.repex.git
+
+and cd into repex examples directory where input files recide:
+
+.. parsed-literal:: cd radical.repex/examples/amber_inputs/t_remd_inputs
 
 Amongst other things in this directory are present:
 
@@ -151,14 +162,12 @@ Amongst other things in this directory are present:
 
  - ``local.json`` - resource configuration file to ron on local system (your laptop)
 
- - ``stampede.json`` - resource configuration file for Stampede supercomputer
-
 Run locally
 -----------
 
-To run our example locally we need to make appropriate changes to ``local.json`` resouce configuration file. To do so we open this file in our favorite text editor (vim in this case):
+To run this example locally you need to make appropriate changes to ``local.json`` resouce configuration file. You need to open this file in your favorite text editor (``vim`` in this case):
 
-**Step 2** : ``vim local.json``
+.. parsed-literal:: vim local.json
 
 By default this file looks like this:
 
@@ -178,11 +187,10 @@ You need to modify only two parameters in this file:
 
  - ``username`` - this should be your username on your laptop
 
- - ``cores`` - if you have less than 4 cores on your laptop please change this parameter to 1, 
-               if you have more cores, feel free to leave this parameter unchanged 
+ - ``cores`` - change this parameter to number of cores supported by your laptop
 
-Next we need to verify if parameters specified in ``t_remd_ala10.json`` REMD input file satisfy 
-our requirements. By default ``t_remd_ala10.json`` file looks like this:
+Next you need to verify if parameters specified in ``t_remd_ala10.json`` REMD input file satisfy 
+your requirements. By default ``t_remd_ala10.json`` file looks like this:
 
 .. parsed-literal::
 
@@ -202,19 +210,49 @@ our requirements. By default ``t_remd_ala10.json`` file looks like this:
             "exchange_mpi": "False",
             "min_temperature": "300",
             "max_temperature": "600",
-            "steps_per_cycle": "4000"
+            "steps_per_cycle": "4000",
+            "exchange_mpi": "False",
+            "download_mdinfo": "True",
+            "download_mdout" : "True"
         }
     }
 
-First you need to specify the path to ``sander`` executable on your laptop
+All you need to do is to specify path to ``sander`` executable on your laptop. To do that please add 
+``amber_path`` parameter under ``remd.input``. For example:
 
-Run remotely
-------------
+.. parsed-literal:: "amber_path": "/home/octocat/amber/amber14/bin/sander"
 
-todo
+To get notified about important events during the simulation please specify in terminal:
+
+.. parsed-literal:: export RADICAL_REPEX_VERBOSE=info
+
+Now you can run this simulation by:
+
+``repex-amber --input='t_remd_ala10.json' --rconfig='local.json'``
 
 Verify output
 -------------
 
-todo
+If simulation has successfully finished, last three lines of terminal log should be similar to:
 
+.. parsed-literal::
+
+    2015:10:11 18:49:59 6600   MainThread   radical.repex.amber   : [INFO    ] Simulation successfully finished!
+    2015:10:11 18:49:59 6600   MainThread   radical.repex.amber   : [INFO    ] Please check output files in replica_x directories.
+    2015:10:11 18:49:59 6600   MainThread   radical.repex.amber   : [INFO    ] Closing session.
+
+You should see nine new directories in your current path:
+
+ - eight ``replica_x`` directories
+
+ - one ``shared_files`` directory
+
+If you want to check which replicas exchanged configurations during each cycle you can cd into 
+``shared_files`` directory and check each of four ``pairs_for_exchange_x.dat`` files. In these files are recorded indexes of replicas exchanging configurations during each cycle.
+
+If you want to check .mdinfo or .mdout files for some replica, you can find those files in 
+corresponding ``replica_x`` directory. File format is ``ala10_remd_i_c.mdinfo`` where:
+
+ - **i** is index of replica
+
+ - **c** is current cycle   

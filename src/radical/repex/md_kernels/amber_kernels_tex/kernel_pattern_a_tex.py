@@ -63,6 +63,22 @@ class KernelPatternAtex(object):
         self.cores    = int(rconfig['target']['cores'])
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
 
+        if 'download_mdinfo' in inp_file['remd.input']:
+            if inp_file['remd.input']['download_mdinfo'] == 'True':
+                self.down_mdinfo = True
+            else:
+                self.down_mdinfo = False
+        else:
+            self.down_mdinfo = True
+
+        if 'download_mdout' in inp_file['remd.input']:
+            if inp_file['remd.input']['download_mdout'] == 'True':
+                self.down_mdout = True
+            else:
+                self.down_mdout = False
+        else:
+            self.down_mdout = True
+
         if self.resource == 'local.localhost':
             if 'amber_path' in inp_file['remd.input']:
                 self.amber_path = inp_file['remd.input']['amber_path']
@@ -219,6 +235,24 @@ class KernelPatternAtex(object):
         
         stage_out = []
         stage_in = []
+        #print "self.down_mdinfo: {0}".format(self.down_mdinfo)
+        if self.down_mdinfo == True:
+            info_local = {
+                'source':   new_info,
+                'target':   new_info,
+                'action':   radical.pilot.TRANSFER
+            }
+            stage_out.append(info_local)
+
+        #print "self.down_mdout: {0}".format(self.down_mdout)
+        if self.down_mdout == True:
+            output_local = {
+                'source':   output_file,
+                'target':   output_file,
+                'action':   radical.pilot.TRANSFER
+            }
+            stage_out.append(output_local)
+
         info_out = {
             'source': new_info,
             'target': 'staging:///%s' % new_info,
@@ -242,6 +276,8 @@ class KernelPatternAtex(object):
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
             cu.executable = '/bin/bash'          
 
+        #print "stage_out: "
+        #print stage_out
         if replica.cycle == 1:       
             
             amber_str = self.amber_path

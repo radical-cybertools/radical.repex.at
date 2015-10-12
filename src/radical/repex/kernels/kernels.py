@@ -3,7 +3,7 @@
 
 KERNELS = {
 
-    "stampede.tacc.utexas.edu":
+    "xsede.stampede":
     {
         "params":
         {
@@ -25,7 +25,7 @@ KERNELS = {
             }
         },
         "shell": "bash"
-    },"archer.ac.uk":
+    },"epsrc.archer":
     {
         "params":
         {
@@ -40,7 +40,7 @@ KERNELS = {
                 "executable_mpi" : "/work/y07/y07/amber/12/bin/sander.MPI"
             }
         }
-    },"gordon.sdsc.xsede.org":
+    },"xsede.gordon":
     {
         "params":
         {

@@ -4,14 +4,6 @@
 Flexible execution modes
 ************************
 
-
-
-In this section we will briefly describe how RepEx can be invoked, how input and 
-resource configuration files should be used. We will also introduce two concepts, 
-central to RepEx - Replica Exchange Patterns and Execution Strategies.  
-
-
-
 Execution Strategies specify workload execution details and in particular
 the resource management details. These strategies differ in: 
 
