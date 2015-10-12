@@ -64,6 +64,22 @@ class KernelPatternAus(object):
         else:
             self.replica_mpi = False
 
+        if 'download_mdinfo' in inp_file['remd.input']:
+            if inp_file['remd.input']['download_mdinfo'] == 'True':
+                self.down_mdinfo = True
+            else:
+                self.down_mdinfo = False
+        else:
+            self.down_mdinfo = True
+
+        if 'download_mdout' in inp_file['remd.input']:
+            if inp_file['remd.input']['download_mdout'] == 'True':
+                self.down_mdout = True
+            else:
+                self.down_mdout = False
+        else:
+            self.down_mdout = True
+
         try:
             self.replica_cores = inp_file['remd.input']['replica_cores']
         except:
@@ -263,6 +279,22 @@ class KernelPatternAus(object):
         rid = replica.id
 
         replica_path = "replica_%d/" % (rid)
+
+        if self.down_mdinfo == True:
+            info_local = {
+                'source':   new_info,
+                'target':   new_info,
+                'action':   radical.pilot.TRANSFER
+            }
+            stage_out.append(info_local)
+
+        if self.down_mdout == True:
+            output_local = {
+                'source':   output_file,
+                'target':   output_file,
+                'action':   radical.pilot.TRANSFER
+            }
+            stage_out.append(output_local)
 
         new_coor_out = {
             'source': new_coor,

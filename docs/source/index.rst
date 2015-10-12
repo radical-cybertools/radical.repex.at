@@ -20,6 +20,7 @@ Contents:
    pages/multidimexamples.rst
    pages/replicaexchangepatterns.rst
    pages/flexibleexecutionmodes.rst
+   pages/tutorial.rst
    pages/faq.rst
 
 

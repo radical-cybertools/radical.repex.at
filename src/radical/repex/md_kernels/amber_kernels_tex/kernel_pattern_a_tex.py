@@ -235,7 +235,7 @@ class KernelPatternAtex(object):
         
         stage_out = []
         stage_in = []
-        #print "self.down_mdinfo: {0}".format(self.down_mdinfo)
+
         if self.down_mdinfo == True:
             info_local = {
                 'source':   new_info,
@@ -244,7 +244,6 @@ class KernelPatternAtex(object):
             }
             stage_out.append(info_local)
 
-        #print "self.down_mdout: {0}".format(self.down_mdout)
         if self.down_mdout == True:
             output_local = {
                 'source':   output_file,
@@ -276,8 +275,6 @@ class KernelPatternAtex(object):
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
             cu.executable = '/bin/bash'          
 
-        #print "stage_out: "
-        #print stage_out
         if replica.cycle == 1:       
             
             amber_str = self.amber_path

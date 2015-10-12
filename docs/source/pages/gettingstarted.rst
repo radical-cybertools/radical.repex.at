@@ -152,7 +152,7 @@ This guide assumes that you have already cloned RepEx repository during the inst
 
 and cd into repex examples directory where input files recide:
 
-.. parsed-literal:: cd radical.repex/examples/amber_inputs/t_remd_inputs
+.. parsed-literal:: cd radical.repex/examples/amber_inputs
 
 Amongst other things in this directory are present:
 
@@ -160,7 +160,7 @@ Amongst other things in this directory are present:
 
  - ``t_remd_ala10.json`` - REMD input file for Temperature-Exchnage example using peptide ala10 system   
 
- - ``local.json`` - resource configuration file to ron on local system (your laptop)
+ - ``local.json`` - resource configuration file to run on local system (your laptop)
 
 Run locally
 -----------
@@ -217,8 +217,16 @@ your requirements. By default ``t_remd_ala10.json`` file looks like this:
         }
     }
 
-All you need to do is to specify path to ``sander`` executable on your laptop. To do that please add 
-``amber_path`` parameter under ``remd.input``. For example:
+In comparison with general REMD input file format discussed above this input file 
+contains some additional parameters:
+
+ - ``min_temperature`` - minimal temperature value to be assigned to replicas
+
+ - ``max_temperature`` - maximal temperature value to be assigned to replicas (we use geometrical progression for temperature assignment)
+
+ - ``exchange_mpi`` - specifies if exchange step should use MPI interface. Options are: ``True`` or ``False``
+
+To run this example, all you need to do is to specify path to ``sander`` executable on your laptop. To do that please add ``amber_path`` parameter under ``remd.input``. For example:
 
 .. parsed-literal:: "amber_path": "/home/octocat/amber/amber14/bin/sander"
 
