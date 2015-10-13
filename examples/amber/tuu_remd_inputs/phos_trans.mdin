@@ -1,0 +1,24 @@
+phos_trans_qmmm
+ &cntrl
+  irest = @irest@, ntx = @ntx@,
+  imin = 0, nstlim = @nstlim@, temp0 = @temp@,
+  ntc = 2, ntf = 2, tol = 1e-8,
+  ntt = 3, iwrap = 1, ioutfm = 1, gamma_ln = 5.0,
+  ntpr = 100, ntwx = 100, ntwr = 100,
+  ifqnt = 1, nmropt = 1
+ /
+ &ewald
+   dsum_tol = 1.0e-6,
+ /
+ &qmmm
+   qmmask=':1', qmcharge=-2, qm_theory='AM1D',
+   qmshake = 0, qmmm_switch = 1
+ /
+ &wt
+  type='DUMPFREQ', istep1=10,
+ /
+ &wt
+   type='END'
+ /
+DISANG=@disang@
+DUMPAVE=@disang@.out

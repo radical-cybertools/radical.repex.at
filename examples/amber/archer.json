@@ -1,0 +1,10 @@
+{
+    "target": {
+        "resource": "epsrc.archer",
+        "username" : "antonst",
+        "project" : "e290",
+        "runtime" : "40",
+        "cleanup" : "False",
+        "cores" : "24"
+    }
+}

@@ -1,0 +1,15 @@
+ alanine dipeptide
+ &cntrl
+  irest = 0, ntx = 1, 
+  nstlim = @nstlim@, dt = 0.001, temp0 = 300.0,
+  ntpr = 1000, ntwx = 1000,
+  ntc = 2, ntf = 2, 
+  ntt = 3, gamma_ln = 5.0, ig = -1, 
+  nmropt=1,
+ /
+ &wt
+  type='DUMPFREQ', istep1=100,
+ &end
+ &wt
+  type='END',
+ &end
