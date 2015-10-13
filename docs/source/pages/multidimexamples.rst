@@ -16,9 +16,9 @@ TUU-REMD example (alanine dipeptide) with Amber kernel
 For the example we will use Alanine Dipeptide (Ace-Ala-Nme) system. To run this example locally you must have Amber installed on your system. If you don't have Amber installed please download it from: ``http://ambermd.org/antechamber/download.html`` and install it using instructions at: ``http://ambermd.org/``
 
 This guide assumes that you have already run example in getting-started section and 
-are currently in ``amber_inputs`` directory, if not please cd into this directory from repex root directory:
+are currently in ``amber`` directory, if not please cd into this directory from repex root directory:
 
-.. parsed-literal:: cd examples/amber_inputs
+.. parsed-literal:: cd examples/amber
 
 Amongst other things in this directory are present:
 

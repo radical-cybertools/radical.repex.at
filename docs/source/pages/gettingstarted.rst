@@ -152,7 +152,7 @@ This guide assumes that you have already cloned RepEx repository during the inst
 
 and cd into repex examples directory where input files recide:
 
-.. parsed-literal:: cd radical.repex/examples/amber_inputs
+.. parsed-literal:: cd radical.repex/examples/amber
 
 Amongst other things in this directory are present:
 
