@@ -55,8 +55,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'repex'
-copyright = u'2015, Antons Treikalis'
-author = u'Antons Treikalis'
+copyright = u'2015, The Radical Group at Rutgers University'
+author = u'The RADICAL Group at Rutgers University'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -268,7 +268,7 @@ latex_show_pagerefs = True
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'repex', u'repex Documentation',
+    (master_doc, 'repex', u'RepEx Documentation',
      [author], 1)
 ]
 

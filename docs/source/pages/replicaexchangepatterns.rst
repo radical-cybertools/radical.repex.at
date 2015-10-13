@@ -24,7 +24,6 @@ When all replicas have finished MD-step, the Exchange-step is performed.
 
 .. image:: ../figures/macro-pattern-a.png
 	:alt: pattern-a
-	:height: 4.5 in
 	:width: 7.0 in
 	:align: center
 
@@ -39,7 +38,6 @@ MD and Exchange-step, thus this pattern can be referred to as asynchronous.
 
 .. image:: ../figures/macro-pattern-b.png
 	:alt: pattern-a
-	:height: 4 in
 	:width: 5.5 in
 	:align: center
 

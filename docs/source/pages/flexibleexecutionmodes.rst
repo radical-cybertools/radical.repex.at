@@ -40,7 +40,6 @@ approach. Many MD packages are lacking the capability to use less cores than rep
 
 .. image:: ../figures/exec-strategy-a1.png
     :alt: pattern-a
-    :height: 5.0 in
     :width: 7.5 in
     :align: center
 
@@ -55,7 +54,6 @@ of allocated cores. Here number of cores equals to the number of replicas.
 
 .. image:: ../figures/exec-strategy-a2.png
     :alt: pattern-a
-    :height: 4.5 in
     :width: 6.5 in
     :align: center
 
@@ -73,6 +71,5 @@ one can be attributed to bullet point **3.**
 
 .. image:: ../figures/exec-strategy-a3.png
     :alt: pattern-a
-    :height: 4.5 in
     :width: 6.0 in
     :align: center

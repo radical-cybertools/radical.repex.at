@@ -37,7 +37,7 @@ Next you need to verify if parameters specified in ``tuu_remd_ace_ala_nme.json``
 .. parsed-literal::
 
 	{
-    	"input.MD": {
+    	"remd.input": {
         	"re_pattern": "S",
         	"exchange": "TUU-REMD",
         	"number_of_cycles": "4",
@@ -51,7 +51,7 @@ Next you need to verify if parameters specified in ``tuu_remd_ace_ala_nme.json``
         	"replica_cores": "1",
         	"steps_per_cycle": "6000"
         	},
-    	"input.dim": {
+    	"dim.input": {
         	"umbrella_sampling_1": {
             	"number_of_replicas": "2",
             	"us_start_param": "0",
@@ -72,7 +72,7 @@ Next you need to verify if parameters specified in ``tuu_remd_ace_ala_nme.json``
 
 In comparison to REMD simulaiton input files used previously, this file has the following additional parameters:
 
- - ``input.dim`` - under this key must be specified parameters and names of individual dimensions for all multi-dimensional REMD simulations.
+ - ``dim.input`` - under this key must be specified parameters and names of individual dimensions for all multi-dimensional REMD simulations.
 
  - ``umbrella_sampling_1`` - indicates that first dimension is Umbrella potential
 
@@ -81,6 +81,18 @@ In comparison to REMD simulaiton input files used previously, this file has the 
  - ``umbrella_sampling_1`` - indicates that third dimension is Umbrella potential
 
  - ``number_of_replicas`` - indicates number of replicas in this dimension
+
+To run this example, all you need to do is to specify path to ``sander`` executable on your laptop. To do that please add ``amber_path`` parameter under ``remd.input``. For example:
+
+.. parsed-literal:: "amber_path": "/home/octocat/amber/amber14/bin/sander"
+
+To get notified about important events during the simulation please specify in terminal:
+
+.. parsed-literal:: export RADICAL_REPEX_VERBOSE=info
+
+Now you can run this simulation by:
+
+``repex-amber --input='tuu_remd_ace_ala_nme.json' --rconfig='local.json'``
 
 Verify output
 -------------
