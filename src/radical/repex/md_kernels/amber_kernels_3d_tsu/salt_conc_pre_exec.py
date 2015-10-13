@@ -127,8 +127,10 @@ if __name__ == '__main__':
             elif "@disang@" in line:
                 f.write(line.replace("@disang@",current_group_tsu[j][2]))
             elif "@irest@" in line:
-                line = line.replace("@irest@","1")
-                line = line.replace("@ntx@","5")
+                line = line.replace("@irest@","0")
+                f.write(line)
+            elif "@ntx@" in line:
+                line = line.replace("@ntx@","1")
                 f.write(line)
             else:
                 f.write(line)
