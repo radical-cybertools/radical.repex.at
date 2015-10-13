@@ -25,7 +25,7 @@ KERNELS = {
             }
         },
         "shell": "bash"
-    },"archer.ac.uk":
+    },"epsrc.archer":
     {
         "params":
         {
@@ -40,7 +40,7 @@ KERNELS = {
                 "executable_mpi" : "sander.MPI"
             }
         }
-    },"gordon.sdsc.xsede.org":
+    },"xsede.gordon":
     {
         "params":
         {

@@ -323,7 +323,7 @@ class KernelPatternBTex(object):
 
         cu = radical.pilot.ComputeUnitDescription()
 
-        if self.resource == "stampede.tacc.utexas.edu":
+        if self.resource == "xsede.stampede":
             cu.pre_exec = ["module load intel/14.0.1.106", "module load python/2.7.6"]
         else:
             cu.pre_exec = self.pre_exec

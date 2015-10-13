@@ -1,6 +1,6 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
+        "resource": "xsede.stampede",
         "username" : "chen1990",
         "project" : "TG-MCB110101",
         "queue" : "development",
