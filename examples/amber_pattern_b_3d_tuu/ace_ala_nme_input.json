@@ -3,9 +3,9 @@
         "resource": "xsede.supermic",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "40",
+        "runtime" : "280",
         "cleanup" : "False",
-        "cores" : "20"
+        "cores" : "1020"
     },
     "input.MD": {
         "number_of_cycles": "4",
@@ -18,26 +18,26 @@
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "500",
+        "steps_per_cycle": "6000",
         "exchange_off" : "False"
         },
     "input.DIM": {
         "temperature_2": {
-            "number_of_replicas": "2",
+            "number_of_replicas": "10",
             "min_temperature": "300",
             "max_temperature": "600",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },
         "umbrella_sampling_1": {
-            "number_of_replicas": "2",
+            "number_of_replicas": "10",
             "us_start_param": "0",
             "us_end_param": "360",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },
         "umbrella_sampling_3": {
-            "number_of_replicas": "2",
+            "number_of_replicas": "10",
             "us_start_param": "0",
             "us_end_param": "360",
             "exchange_replica_cores" : "1",

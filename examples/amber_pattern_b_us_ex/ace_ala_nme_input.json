@@ -3,13 +3,13 @@
         "resource": "xsede.supermic",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "80",
+        "runtime" : "340",
         "cleanup" : "False",
-        "cores" : "40"
+        "cores" : "1020"
     },
     "input.MD": {
         "number_of_cycles": "4",
-        "number_of_replicas": "20",
+        "number_of_replicas": "1000",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -22,6 +22,6 @@
         "us_start_param": "120",
         "us_end_param": "160",
         "init_temperature": "300.0",
-        "steps_per_cycle": "500"
+        "steps_per_cycle": "6000"
     }
 }

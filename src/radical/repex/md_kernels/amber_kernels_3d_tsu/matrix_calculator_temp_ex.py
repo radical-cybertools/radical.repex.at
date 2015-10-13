@@ -147,7 +147,7 @@ if __name__ == '__main__':
             print "Waiting for self (history file)"
             time.sleep(1)
             attempts += 1
-            if attempts >= 12:
+            if attempts >= 10:
                 #---------------------------------------------------------------
                 # writing to file
                 try:

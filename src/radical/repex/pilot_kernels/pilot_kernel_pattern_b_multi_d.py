@@ -300,16 +300,16 @@ class PilotKernelPatternBmultiD(PilotKernel):
                     unit_manager.wait_units()
             #-------------------------------------------------------------------
 
-            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("MD")] = {}
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("md")] = {}
             for cu in submitted_replicas:
-                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("MD")]["cu.uid_{0}".format(cu.uid)] = cu
+                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("md")]["cu.uid_{0}".format(cu.uid)] = cu
             
-            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX_salt")] = {}
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("ex_salt")] = {}
             for cu in exchange_replicas:
-                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("EX_salt")]["cu.uid_{0}".format(cu.uid)] = cu
+                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("ex_salt")]["cu.uid_{0}".format(cu.uid)] = cu
 
-            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")] = {}
-            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("GLOBAL_EX")]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("global_ex")] = {}
+            cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["run_{0}".format("global_ex")]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
 
             #-------------------------------------------------------------------
             #               
@@ -330,8 +330,8 @@ class PilotKernelPatternBmultiD(PilotKernel):
             md_kernel.do_exchange(current_cycle, DIM, replicas)
             t2 = datetime.datetime.utcnow()
                 
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["POST_PROC"] = (t2-t1).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["post_proc"] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["post_proc"] = (t2-t1).total_seconds()
             
             #-------------------------------------------------------------------
             # performance data

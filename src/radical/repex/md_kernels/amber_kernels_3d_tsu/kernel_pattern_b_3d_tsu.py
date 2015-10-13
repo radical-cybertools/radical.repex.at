@@ -363,6 +363,7 @@ class AmberKernelPatternB3dTSU(object):
         }
         stage_out.append(new_coor_out)
 
+        
         out_string = "_%d.out" % (replica.cycle-1)
         rstr_out = {
             'source': (replica.new_restraints + '.out'),
@@ -371,18 +372,21 @@ class AmberKernelPatternB3dTSU(object):
         }
         stage_out.append(rstr_out)
         
+
         #-----------------------------------------------------------------------
         # common code from prepare_for_exchange()
         
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
 
-        # for all cases!
-        matrix_col_out = {
-            'source': matrix_col,
-            'target': 'staging:///%s' % (matrix_col),
-            'action': radical.pilot.COPY
-        }
-        stage_out.append(matrix_col_out)
+        # for all cases! NOT
+
+        if dimension != 2:
+            matrix_col_out = {
+                'source': matrix_col,
+                'target': 'staging:///%s' % (matrix_col),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(matrix_col_out)
 
         # for all cases (OPTIONAL)    
         info_out = {
@@ -392,7 +396,7 @@ class AmberKernelPatternB3dTSU(object):
             }
         stage_out.append(info_out)
 
-        current_group = self.get_current_group(dimension, replicas, replica)
+        current_group = self.get_current_group_ids(dimension, replicas, replica)
         #-----------------------------------------------------------------------
         # json for input_file_builder.py
         data = {
@@ -632,7 +636,7 @@ class AmberKernelPatternB3dTSU(object):
         basename = self.inp_basename
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
 
-        current_group = self.get_current_group(dimension, replicas, replica)
+        current_group = self.get_current_group_ids(dimension, replicas, replica)
 
         #print "current group for replica: {0}".format(replica.id)
         #print current_group
@@ -868,7 +872,7 @@ class AmberKernelPatternB3dTSU(object):
 
     #---------------------------------------------------------------------------
     #
-    def get_current_group(self, dimension, replicas, replica):
+    def get_current_group_ids(self, dimension, replicas, replica):
         """
         """
 
@@ -906,6 +910,53 @@ class AmberKernelPatternB3dTSU(object):
 
                 if r1_pair == my_pair:
                     current_group.append(str(r1.id))
+
+        # 
+        if len(current_group) != self.replicas_d2:
+            print "group has wrong size: {0}".format(len(current_group))
+            
+        return current_group
+
+    #---------------------------------------------------------------------------
+    #
+    def get_current_group(self, dimension, replicas, replica):
+        """
+        """
+
+        current_group = []
+
+        for r1 in replicas:
+            
+            #-------------------------------------------------------------------
+            # temperature exchange
+            if dimension == 1:
+                
+                r1_pair = [r1.new_salt_concentration, r1.rstr_val_1]
+                my_pair = [replica.new_salt_concentration, replica.rstr_val_1]
+                  
+                if r1_pair == my_pair:
+                    current_group.append(r1)
+
+            #-------------------------------------------------------------------
+            # salt concentration exchange
+            elif dimension == 2:
+
+                r1_pair = [r1.new_temperature, r1.rstr_val_1]
+                my_pair = [replica.new_temperature, replica.rstr_val_1]
+
+                if r1_pair == my_pair:
+                    current_group.append(r1)
+
+            #-------------------------------------------------------------------
+            # us exchange 
+            elif dimension == 3:
+
+                r1_pair = [r1.new_temperature, r1.new_salt_concentration]
+                my_pair = [replica.new_temperature, \
+                           replica.new_salt_concentration]
+
+                if r1_pair == my_pair:
+                    current_group.append(r1)
 
         # 
         if len(current_group) != self.replicas_d2:

@@ -3,13 +3,13 @@
         "resource": "xsede.supermic",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "runtime" : "280",
+        "runtime" : "320",
         "cleanup" : "False",
-        "cores" : "540"
+        "cores" : "1020"
     },
     "input.MD": {
-        "number_of_cycles": "4",
-        "number_of_replicas": "512",
+        "number_of_cycles": "2",
+        "number_of_replicas": "1000",
         "input_folder": "amber_inp",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",

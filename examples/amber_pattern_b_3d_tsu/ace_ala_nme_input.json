@@ -1,10 +1,10 @@
 {
     "input.PILOT": {
-        "resource": "stampede.tacc.utexas.edu",
+        "resource": "xsede.stampede",
         "username" : "antontre",
         "project" : "TG-MCB090174",
         "queue" : "development",
-        "runtime" : "30",
+        "runtime" : "40",
         "cleanup" : "False",
         "cores" : "16"
     },
@@ -18,7 +18,7 @@
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "1000",
+        "steps_per_cycle": "2000",
         "exchange_off" : "False"
         },
     "input.DIM": {

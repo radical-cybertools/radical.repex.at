@@ -3,7 +3,7 @@
 
 KERNELS = {
 
-    "stampede.tacc.utexas.edu":
+    "xsede.stampede":
     {
         "params":
         {
@@ -36,7 +36,8 @@ KERNELS = {
             "amber": {
                 "environment" : {},
                 "pre_execution" : ["python-compute/2.7.6", "module load amber", "module use --append /work/e290/e290/marksant/privatemodules", "module load openmpi/HEAD", "module switch PrgEnv-cray PrgEnv-gnu"],
-                "executable" : "/work/y07/y07/amber/12/bin/sander"
+                "executable" : "sander",
+                "executable_mpi" : "sander.MPI"
             }
         }
     },"gordon.sdsc.xsede.org":
@@ -90,7 +91,7 @@ KERNELS = {
             }
         },
         "shell": "bourne"
-    },"ncsa.bw_orte":
+    },"ncsa.bw":
     {
         "params":
         {
@@ -104,7 +105,8 @@ KERNELS = {
                 "executable" : "/u/sciteam/treikali/amber14/bin/sander",
                 "executable_mpi" : "/u/sciteam/treikali/amber14/bin/sander.MPI"
             }
-        }
+        },
+        "shell": "bash"
     },"xsede.supermic":
     {
         "params":

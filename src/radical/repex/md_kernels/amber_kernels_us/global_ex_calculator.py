@@ -351,7 +351,7 @@ if __name__ == '__main__':
     for replica_id in r_ids[rank]:
         str_rid = str(replica_id)
         #temperatures = [0.0]*replicas
-        #energies = [0.0]*replicas
+        energies = [0.0]*replicas
 
         # getting history data for self
         history_name = base_name + "_" + \
@@ -361,32 +361,44 @@ if __name__ == '__main__':
         attempts = 0
         while (success == 0):
             try:
-                replica_path = "/replica_%d/" % (replica_id)
-                replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
-                
-                success1 = 0        
-                current_rstr = all_restraints[str_rid]
+                success1 = 0 
                 while (success1 == 0):
                     try:
+                        replica_path = "/replica_%d/" % (replica_id)
+                        replica_energy = 0.0
+
+                        replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
+                         
+                        current_rstr = all_restraints[str_rid]
+
                         #-------------------------------------------------------
                         # can avoid this step!
                         rstr_ppath = "../staging_area/" + current_rstr
                         rstr_file = file(rstr_ppath,'r')
                         rstr_lines = rstr_file.readlines()
                         rstr_file.close()
+
+                        #print "foo2"
                         #-------------------------------------------------------
                         rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
                         us_energy = 0.0
+
+                        #print "foo3"
                         r = Restraint()
 
+                        #print "foo4"
                         new_coor = "%s_%d_%d.rst" % (base_name, replica_id, current_cycle)
                         new_coor_path = "../staging_area" + replica_path + new_coor
 
+                        #print "foo5"
                         r.set_crd(new_coor_path)
                         for rstr_entry in rstr_entries:
                             r.set_rstr(rstr_entry); r.calc_energy()
                             us_energy += r.energy
-                        energies[replica_id] = replica_energy + us_energy
+
+                        #print "foo6"
+                        energies[int(replica_id)] = float(replica_energy) + float(us_energy)
+                        #print "foo7"
 
                         success1 = 1
                         print "Success processing replica: %s" % str_rid
@@ -404,7 +416,7 @@ if __name__ == '__main__':
                         #print "index: %d" % index
                         all_energies[index] = energies[r] 
 
-                print "rank {0}: Got history data for self!".format(rank)
+                print "rank {0}: Got history data!".format(rank)
                 success = 1
                 id_number += 1
             except:

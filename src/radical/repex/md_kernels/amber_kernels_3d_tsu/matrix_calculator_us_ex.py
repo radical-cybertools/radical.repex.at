@@ -241,7 +241,7 @@ if __name__ == '__main__':
             attempts += 1
             # most likely amber run failed
             # so we write zeros to matrix column file
-            if attempts >= 12:
+            if attempts >= 10:
                 #---------------------------------------------------------------
                 # writing to file
                 try:

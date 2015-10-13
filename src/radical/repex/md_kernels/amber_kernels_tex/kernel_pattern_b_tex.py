@@ -322,7 +322,11 @@ class KernelPatternBTex(object):
         stage_out.append(outfile)
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.pre_exec = ["module load intel/14.0.1.106", "module load python/2.7.6"]
+
+        if self.resource == "stampede.tacc.utexas.edu":
+            cu.pre_exec = ["module load intel/14.0.1.106", "module load python/2.7.6"]
+        else:
+            cu.pre_exec = self.pre_exec
         cu.executable = "python"
         cu.input_staging  = stage_in
         cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]

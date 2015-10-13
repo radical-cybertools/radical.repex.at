@@ -434,12 +434,15 @@ class KernelPatternBUS(object):
         stage_out.append(outfile)
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.pre_exec = self.pre_exec
+        if self.resource == "stampede.tacc.utexas.edu":
+            cu.pre_exec = ["module load intel/14.0.1.106", "module load python/2.7.6"]
+        else:
+            cu.pre_exec = self.pre_exec
         cu.executable = "python"
         cu.input_staging  = stage_in
         cu.arguments = ["global_ex_calculator.py", json_data_us]
         if self.replicas > 999:
-            self.cores = self.replicas / 2
+            cu.cores = self.replicas / 2
         elif self.cores < self.replicas:
             if (self.replicas % self.cores) != 0:
                 self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")

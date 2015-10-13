@@ -130,7 +130,7 @@ class PilotKernelPatternB(PilotKernel):
         GL = 1
         # bulk = 0: do sequential submission
         # bulk = 1: do bulk submission
-        BULK = 1
+        BULK = 0
 
         for current_cycle in range(1,CYCLES):
 
