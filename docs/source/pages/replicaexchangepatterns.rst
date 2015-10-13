@@ -5,29 +5,19 @@ Replica Exchange Patterns
 *************************
 
 One of the distinctive features that RepEx provides to its users, is ability to
-select an Execution Pattern. An Execution Pattern is the set of configurations,
-sequence and specific details of synchronization for a given REMD simulation.  
-Execution Patterns formalize the set of decisions taken to execute REMD 
-simulation, exposing certain variables and constraining some decisions.
+select a Replica Exchange Pattern. Replica Exchange Patterns differ in 
+synchronization modes between MD and Exchange steps. We define two types of 
+Replica Exchange Patterns:
 
-Execution Patterns are fully specified by two sub-categories: Replica Exchange
-Patterns and Execution Strategies. 
+ **1.** Synchronous Replica Exchange Pattern
 
-Replica Exchange Patterns
-=========================
+ **2.** Asynchronous Replica Exchange Pattern
 
-Replica Exchange Patterns are distinguished by synchronization modes between MD 
-and Exchange steps. We define two types of Replica Exchange Patterns:
+Synchronous Replica Exchange Pattern
+------------------------------------
 
- **1.** Synchronous Pattern (Replica Exchange Pattern A)
-
- **2.** Asynchronous Pattern (Replica Exchange Pattern B)
-
-Replica Exchange Pattern A
---------------------------
-
-Pattern A, corresponds to conventional, synchronous way of
-running REMD simulation, where all replicas propagate MD for a
+Synchronous Pattern, corresponds to conventional way of
+running REMD simulations, where all replicas propagate MD for a
 fixed period of simulation time (e.g. 2 ps) and execution time for replicas is
 not fixed - all replicas must finish MD-step before Exchange-step takes place.
 When all replicas have finished MD-step, the Exchange-step is performed. 
@@ -38,13 +28,11 @@ When all replicas have finished MD-step, the Exchange-step is performed.
 	:width: 7.0 in
 	:align: center
 
-Replica Exchange Pattern B
---------------------------
+Asynchronous Replica Exchange Pattern
+-------------------------------------
 
-Contrary to Pattern A, Pattern B has execution related invariant: the number of
-replicas must exceed allocated CPU cores so that only a fraction of replicas can
-run. In Pattern B, MD-step is defined as a fixed period of simulation time
-(e.g. 2 ps), but execution time for MD-step is fixed (e.g. 30 secs). Then
+Contrary to Synchronous Pattern, Asynchronous Pattern does not have a global synchronization 
+barrier - while some replicas are performing an MD-step others might be performing an Exchange-step amongst a subset of replicas. In current implementation of Asynchronous Pattern, MD-step is defined as a fixed period of simulation time (e.g. 2 ps), but execution time for MD-step is fixed (e.g. 30 secs). Then
 predefined execution time elapses, Exchange-step is performed amongst replicas
 which have finished MD-step. In this pattern there is no synchronization between
 MD and Exchange-step, thus this pattern can be referred to as asynchronous.

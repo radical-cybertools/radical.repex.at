@@ -4,7 +4,8 @@
 Flexible execution modes
 ************************
 
-Execution Strategies specify workload execution details and in particular
+REMD simulation corresponding to any of the two Replica Exchange Patterns can be executed 
+in multiple ways. Execution Strategies specify simulation execution details and in particular
 the resource management details. These strategies differ in: 
 
  **1.** MD simulation time definition: fixed period of simulation time (e.g. 2 ps) 
@@ -20,14 +21,14 @@ the resource management details. These strategies differ in:
 
  **5.** number of target resources used concurrently for a given simulation
 
-Next we will introduce three Execution Strategies which can be used with Replica 
-Exchange Pattern A.
+Next we will introduce three Execution Strategies which can be used with Synchronous Replica 
+Exchange Pattern.
 
-Execution Strategy A1
+Execution Strategy S1
 --------------------- 
 
-Simulation corresponding to Replica Exchange Pattern A, may be executed using 
-Execution strategy A1. This strategy differs from a conventional one in number of 
+Synchronous Replica Exchange simulations, may be executed using 
+Execution strategy S1. This strategy differs from a conventional one in number of 
 allocated cores on a target resource (bullet point **3.**). In this case number of 
 cores is 1/2 of the number of replicas. As a result of this, 
 only a half of replicas can propogate MD or Exchange-step concurrently. In this 
@@ -43,13 +44,13 @@ approach. Many MD packages are lacking the capability to use less cores than rep
     :width: 7.5 in
     :align: center
 
-Execution Strategy A2
+Execution Strategy S2
 ---------------------
 
-Execution Strategy A2 differs from Strategy A1 in MD simulation time definition. 
+Execution Strategy S2 differs from Strategy S1 in MD simulation time definition. 
 Here MD is specified as a fixed period of wall clock time (e.g. 2 minutes) for 
 all replicas. Replicas which will not finish MD-step within this time interval, 
-will be stopped. In addition, Strategy A2 differs from Strategy A1 in the number 
+will be stopped. In addition, Strategy S2 differs from Strategy S1 in the number 
 of allocated cores. Here number of cores equals to the number of replicas.
 
 .. image:: ../figures/exec-strategy-a2.png
@@ -58,10 +59,10 @@ of allocated cores. Here number of cores equals to the number of replicas.
     :width: 6.5 in
     :align: center
 
-Execution Strategy A3
+Execution Strategy S3
 ---------------------
 
-Last Execution strategy we will discuss in this section is Execution Strategy A3. 
+Last Execution strategy we will discuss in this section is Execution Strategy S3. 
 In this strategy all replicas are run concurrently for a presumably indefinite 
 period. At predefined intervals exchanges are performed amongst all (or a subset) 
 of replicas on resource using data from checkpoint files. Any replicas that accept

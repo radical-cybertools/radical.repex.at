@@ -1,6 +1,6 @@
 {
     "input.MD": {
-        "re_pattern": "A",
+        "re_pattern": "S",
         "exchange": "TUU-REMD",
         "number_of_cycles": "4",
         "input_folder": "tuu_remd_inputs",
@@ -16,14 +16,14 @@
         },
     "dim.input": {
         "umbrella_sampling_1": {
-            "number_of_replicas": "10",
+            "number_of_replicas": "2",
             "us_start_param": "0",
             "us_end_param": "360",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
             },
         "temperature_2": {
-            "number_of_replicas": "10",
+            "number_of_replicas": "2",
             "min_temperature": "300",
             "max_temperature": "600",
             "exchange_replica_cores" : "1",
@@ -31,7 +31,7 @@
             },
        
         "umbrella_sampling_3": {
-            "number_of_replicas": "10",
+            "number_of_replicas": "2",
             "us_start_param": "0",
             "us_end_param": "360",
             "exchange_replica_cores" : "1",

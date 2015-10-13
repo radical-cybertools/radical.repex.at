@@ -86,7 +86,7 @@ REMD input file for Amber kernel
 
 For use with Amber kernel, in REMD simulation input file **must** be provided the following parameters:
 
- - ``re_pattern`` - this parameter specifies Replica Exchange Pattern to use, options are: ``A`` and ``B``
+ - ``re_pattern`` - this parameter specifies Replica Exchange Pattern to use, options are: ``S`` - synchronous and ``A`` - asynchronous
 
  - ``exchange`` - this parameter specifies type of REMD simulation, for 1D simulation options are: ``T-REMD``, ``S-REMD`` and ``US-REMD``
 
@@ -120,7 +120,7 @@ Optional parameters are specific to each simulation type. Example REMD simulatio
 
 	{
     	    "remd.input": {
-        	    "re_pattern": "A",
+        	    "re_pattern": "S",
         	    "exchange": "T-REMD",
         	    "number_of_cycles": "4",
         	    "number_of_replicas": "16",
@@ -142,7 +142,7 @@ Optional parameters are specific to each simulation type. Example REMD simulatio
 T-REMD example (peptide ala10) with Amber kernel
 ================================================
 
-We will take a look at Temperature-Exchnage REMD example using peptide ala10 system
+We will take a look at Temperature-Exchange REMD example using peptide ala10 system
 with Amber simulations kernel. To run this example locally you must have Amber installed on your system.
 If you don't have Amber installed please download it from: ``http://ambermd.org/antechamber/download.html`` and install it using instructions at: ``http://ambermd.org/``
 
@@ -196,7 +196,7 @@ your requirements. By default ``t_remd_ala10.json`` file looks like this:
 
     {
         "remd.input": {
-            "re_pattern": "A",
+            "re_pattern": "S",
             "exchange": "T-REMD",
             "number_of_cycles": "4",
             "number_of_replicas": "8",

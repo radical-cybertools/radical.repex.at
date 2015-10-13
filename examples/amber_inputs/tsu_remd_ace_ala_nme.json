@@ -1,6 +1,6 @@
 {
     "remd.input": {
-        "re_pattern": "A",
+        "re_pattern": "S",
         "exchange": "TSU-REMD",
         "number_of_cycles": "3",
         "input_folder": "tsu_remd_inputs",

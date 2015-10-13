@@ -36,10 +36,10 @@ Next you need to verify if parameters specified in ``us_remd_ace_ala_nme.json`` 
 
 	{
     	"remd.input": {
-    	    "re_pattern": "A",
+    	    "re_pattern": "S",
         	"exchange": "US-REMD",
         	"number_of_cycles": "4",
-        	"number_of_replicas": "16",
+        	"number_of_replicas": "8",
         	"input_folder": "us_remd_inputs",
         	"input_file_basename": "ace_ala_nme_remd",
         	"amber_input": "ace_ala_nme.mdin",
