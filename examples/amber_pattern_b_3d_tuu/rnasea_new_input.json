@@ -1,0 +1,49 @@
+{
+    "input.PILOT": {
+        "resource": "xsede.stampede",
+        "username" : "chen1990",
+        "project" : "TG-MCB110101",
+        "runtime" : "30",
+        "queue": "normal",
+        "cleanup" : "False",
+        "cores" : "592"
+    },
+    "input.MD": {
+        "number_of_cycles": "3",
+        "input_folder": "amber_inp",
+        "input_file_basename": "RNaseA_new_remd",
+        "amber_input": "RNaseA_new.mdin",
+        "amber_parameters": "RNaseA_new.parm7",
+        "amber_coordinates": "RNaseA_new.inpcrd",
+        "same_coordinates": "True",
+        "amber_coordinates_folder": "RNaseA_new_coors",
+        "us_template": "RNaseA_new_us.RST",
+        "replica_mpi": "False",
+        "replica_cores": "1",
+        "steps_per_cycle": "100",
+        "exchange_off" : "False"
+        },
+    "input.DIM": {
+        "temperature_2": {
+            "number_of_replicas": "4",
+            "min_temperature": "273",
+            "max_temperature": "373",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            },
+        "umbrella_sampling_1": {
+            "number_of_replicas": "12",
+            "us_start_param": "-2.2",
+            "us_end_param": "2.2",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            },
+        "umbrella_sampling_3": {
+            "number_of_replicas": "12",
+            "us_start_param": "-2.2",
+            "us_end_param": "2.2",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            }    
+    }
+}

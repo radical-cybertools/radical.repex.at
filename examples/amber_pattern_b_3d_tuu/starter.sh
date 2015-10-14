@@ -6,6 +6,7 @@ export RADICAL_PILOT_VERBOSE=INFO;
 #python launch_simulation_pattern_b_3d_tuu.py --input='ace_gordon.json'
 #python launch_simulation_pattern_b_3d_tuu.py --input='phos_trans_input.json'
 python launch_simulation_pattern_b_3d_tuu.py --input='ace_ala_nme_input.json'
+#python launch_simulation_pattern_b_3d_tuu.py --input='rnasea_new_input.json'
 
 #python launch_simulation_pattern_b_3d_tuu.py --input='gordon.json'
 
