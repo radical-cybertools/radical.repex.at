@@ -19,7 +19,7 @@ import radical.utils.logger as rul
 
 #-------------------------------------------------------------------------------
 
-class PilotKernelPatternAmultiD(PilotKernel):
+class PilotKernelPatternSmultiD(PilotKernel):
    
     def __init__(self, inp_file, rconfig):
         """Constructor.

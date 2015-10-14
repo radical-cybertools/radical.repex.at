@@ -19,7 +19,7 @@ from pilot_kernels.pilot_kernel import *
 
 #-------------------------------------------------------------------------------
 #
-class PilotKernelPatternA(PilotKernel):
+class PilotKernelPatternS(PilotKernel):
     
     def __init__(self, inp_file, rconfig):
         """Constructor.
@@ -204,7 +204,7 @@ class PilotKernelPatternA(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = (t2-t1).total_seconds()
 
-            if (md_kernel.ex_name == 'salt-concentration'):
+            if (md_kernel.ex_name == 'salt-concentration') or (md_kernel.exchange_mpi == False):
                 t1 = datetime.datetime.utcnow()
                 unit_manager.wait_units()
                 t2 = datetime.datetime.utcnow()
@@ -264,7 +264,7 @@ class PilotKernelPatternA(PilotKernel):
                 for cu in submitted_replicas:
                     cu_performance_data["cycle_{0}".format(current_cycle)]["md_run"]["cu.uid_{0}".format(cu.uid)] = cu
 
-                #-----------------------------------------------------------
+                #---------------------------------------------------------------
                 # submitting unit which determines exchanges between replicas
                 if GL == 1:
 

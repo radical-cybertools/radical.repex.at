@@ -11,6 +11,7 @@
         "amber_coordinates": "ace_ala_nme.inpcrd",
         "replica_mpi": "False",
         "replica_cores": "1",
+        "exchange_mpi": "False",
         "min_temperature": "300",
         "max_temperature": "600",
         "steps_per_cycle": "1000",

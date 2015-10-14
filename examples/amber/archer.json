@@ -3,7 +3,8 @@
         "resource": "epsrc.archer",
         "username" : "antonst",
         "project" : "e290",
-        "runtime" : "40",
+        "queue" : "short",
+        "runtime" : "20",
         "cleanup" : "False",
         "cores" : "24"
     }

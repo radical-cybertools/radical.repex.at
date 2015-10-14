@@ -64,6 +64,15 @@ class KernelPatternSus(object):
         else:
             self.replica_mpi = False
 
+        if 'exchange_mpi' in inp_file['remd.input']:
+            mpi = inp_file['remd.input']['exchange_mpi']
+            if mpi == "True":
+                self.exchange_mpi = True
+            else:
+                self.exchange_mpi = False
+        else:
+            self.exchange_mpi = False
+            
         if 'download_mdinfo' in inp_file['remd.input']:
             if inp_file['remd.input']['download_mdinfo'] == 'True':
                 self.down_mdinfo = True

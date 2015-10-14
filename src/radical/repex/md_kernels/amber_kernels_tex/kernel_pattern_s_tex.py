@@ -20,7 +20,9 @@ import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 import amber_kernels_tex.input_file_builder
+import amber_kernels_tex.global_ex_calculator_mpi
 import amber_kernels_tex.global_ex_calculator
+import amber_kernels_tex.ind_ex_calculator
 from replicas.replica import *
 
 #-------------------------------------------------------------------------------
@@ -53,6 +55,15 @@ class KernelPatternStex(object):
                 self.replica_mpi = False
         else:
             self.replica_mpi = False
+
+        if 'exchange_mpi' in inp_file['remd.input']:
+            mpi = inp_file['remd.input']['exchange_mpi']
+            if mpi == "True":
+                self.exchange_mpi = True
+            else:
+                self.exchange_mpi = False
+        else:
+            self.exchange_mpi = False
 
         if 'replica_cores' in inp_file['remd.input']:
             self.replica_cores = int(inp_file['remd.input']['replica_cores'])
@@ -129,15 +140,23 @@ class KernelPatternStex(object):
         build_inp = os.path.dirname(amber_kernels_tex.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
-        global_calc = os.path.dirname(amber_kernels_tex.global_ex_calculator.__file__)
-        global_calc_path = global_calc + "/global_ex_calculator.py"
+        global_calc = os.path.dirname(amber_kernels_tex.global_ex_calculator_mpi.__file__)
+        global_calc_path = global_calc + "/global_ex_calculator_mpi.py"
+
+        global_calc_s = os.path.dirname(amber_kernels_tex.global_ex_calculator.__file__)
+        global_calc_path_s = global_calc_s + "/global_ex_calculator.py"
+
+        ind_calc = os.path.dirname(amber_kernels_tex.ind_ex_calculator.__file__)
+        ind_calc_path = ind_calc + "/ind_ex_calculator.py"
 
         #-----------------------------------------------------------------------
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(input_template)
         self.shared_files.append("input_file_builder.py")
+        self.shared_files.append("global_ex_calculator_mpi.py")
         self.shared_files.append("global_ex_calculator.py")
+        self.shared_files.append("ind_ex_calculator.py")
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)  
@@ -153,6 +172,12 @@ class KernelPatternStex(object):
 
         global_calc_url = 'file://%s' % (global_calc_path)
         self.shared_urls.append(global_calc_url)
+
+        global_calc_url_s = 'file://%s' % (global_calc_path_s)
+        self.shared_urls.append(global_calc_url_s)
+
+        ind_calc_url = 'file://%s' % (ind_calc_path)
+        self.shared_urls.append(ind_calc_url)
 
     #---------------------------------------------------------------------------
     #
@@ -332,44 +357,81 @@ class KernelPatternStex(object):
 
     #---------------------------------------------------------------------------
     #
+    def prepare_replica_for_exchange(self, replicas, replica, sd_shared_list):
+           
+        basename = self.inp_basename
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.cycle-1), str(replica.id))
+
+        stage_out = []
+        coor_out = {
+            'source': new_coor,
+            'target': 'staging:///%s' % new_coor,
+            'action': radical.pilot.COPY
+        }
+        stage_out.append(coor_out)
+
+        cu = radical.pilot.ComputeUnitDescription()
+        cu.executable = "python"
+        cu.input_staging  = sd_shared_list[6]
+        cu.output_staging = stage_out
+        cu.arguments = ["ind_ex_calculator.py", replica.id, (replica.cycle-1), self.replicas, basename, replica.new_temperature]
+        cu.cores = 1
+        cu.mpi = False
+        
+        return cu
+
+    #---------------------------------------------------------------------------
+    #
     def prepare_global_ex_calc(self, GL, current_cycle, replicas, sd_shared_list):
 
         stage_out = []
         stage_in = []
-
         cycle = replicas[0].cycle-1
-      
-        # global_ex_calculator.py file
-        stage_in.append(sd_shared_list[4])
 
         outfile = "pairs_for_exchange_{cycle}.dat".format(cycle=cycle)
         stage_out.append(outfile)
 
-        cu = radical.pilot.ComputeUnitDescription()
-        cu.pre_exec = self.pre_exec
-        cu.executable = "python"
-        cu.input_staging  = stage_in
-        cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+        if self.exchange_mpi == True:
+            # global_ex_calculator_mpi.py file
+            stage_in.append(sd_shared_list[4])
 
-        if self.replicas > 999:
-            self.cores = self.replicas / 2
-        elif self.cores < self.replicas:
-            if (self.replicas % self.cores) != 0:
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
+            cu.input_staging  = stage_in
+            cu.arguments = ["global_ex_calculator_mpi.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+
+            # guard for supermic
+            if self.replicas > 999:
+                self.cores = self.replicas / 2
+            elif self.cores < self.replicas:
+                if (self.replicas % self.cores) != 0:
+                    self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
+                    self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
+                    sys.exit()
+                else:
+                    cu.cores = self.cores
+            elif self.cores >= self.replicas:
+                cu.cores = self.replicas
+            else:
                 self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                 self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                 sys.exit()
-            else:
-                cu.cores = self.cores
-        elif self.cores >= self.replicas:
-            cu.cores = self.replicas
+            
+            cu.mpi = True         
+            cu.output_staging = stage_out
         else:
-            self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
-            self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
-            sys.exit()
-        
-        cu.mpi = True         
-        cu.output_staging = stage_out
+            # global_ex_calculator.py file
+            stage_in.append(sd_shared_list[5])
 
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
+            cu.input_staging  = stage_in
+            cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+            cu.cores = 1
+            cu.mpi = False         
+            cu.output_staging = stage_out
         return cu
 
     #---------------------------------------------------------------------------

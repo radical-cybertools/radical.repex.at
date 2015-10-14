@@ -48,7 +48,6 @@ setup(
               'namd_kernels_tex', 
               'amber_kernels_tex', 
               'amber_kernels_salt',
-              'amber_kernels_2d',
               'amber_kernels_us',
               'amber_kernels_3d_tuu',
               'amber_kernels_3d_tsu'],
@@ -61,7 +60,6 @@ setup(
                  'namd_kernels_tex': 'src/radical/repex/md_kernels/namd_kernels_tex',
                  'amber_kernels_tex': 'src/radical/repex/md_kernels/amber_kernels_tex',
                  'amber_kernels_salt': 'src/radical/repex/md_kernels/amber_kernels_salt',
-                 'amber_kernels_2d': 'src/radical/repex/md_kernels/amber_kernels_2d',
                  'amber_kernels_us': 'src/radical/repex/md_kernels/amber_kernels_us',
                  'amber_kernels_3d_tuu': 'src/radical/repex/md_kernels/amber_kernels_3d_tuu',
                  'amber_kernels_3d_tsu': 'src/radical/repex/md_kernels/amber_kernels_3d_tsu'},
@@ -69,5 +67,5 @@ setup(
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Module',
     long_description=open('README.md').read(),
-    install_requires=['radical.pilot', 'sphinx_rtd_theme', 'mpi4py']
+    install_requires=['radical.pilot', 'mpi4py']
 )

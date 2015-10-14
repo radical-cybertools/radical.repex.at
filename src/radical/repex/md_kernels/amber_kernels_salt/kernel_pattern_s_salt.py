@@ -18,7 +18,6 @@ import datetime
 from os import path
 import radical.pilot
 import radical.utils.logger as rul
-from md_kernels.md_kernel_salt import *
 from kernels.kernels import KERNELS
 import amber_kernels_salt.input_file_builder
 import amber_kernels_salt.salt_conc_pre_exec
