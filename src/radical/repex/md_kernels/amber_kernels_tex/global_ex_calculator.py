@@ -92,10 +92,11 @@ def do_exchange(dimension, replicas, swap_matrix):
 class Replica(object):
     """Class representing replica and it's associated data.
     """
-    def __init__(self, my_id):
+    def __init__(self, my_id, new_temperature=None):
        
         self.id = int(my_id)
         self.sid = int(my_id)
+        self.new_temperature = new_temperature
 
 #-------------------------------------------------------------------------------
 
@@ -142,7 +143,7 @@ if __name__ == '__main__':
                 replica_dict[data[0]] = [data[1], data[2]]
                 #---------------------------------------------------------------
                 # creating replica
-                r = Replica3d(rid, new_temperature=replica_dict[rid][1])
+                r = Replica(rid, replica_dict[str(rid)][1])
                 replicas_obj.append(r)
                 success = 1
                 print "Success processing replica: %s" % rid

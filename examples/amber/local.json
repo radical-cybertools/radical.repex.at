@@ -1,9 +1,9 @@
 {
     "target": {
         "resource": "local.localhost",
-        "username" : "octocat",
+        "username" : "antons",
         "runtime" : "30",
         "cleanup" : "False",
-        "cores" : "4"
+        "cores" : "2"
     }
 }

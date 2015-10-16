@@ -74,7 +74,8 @@ KERNELS = {
                 "executable" : "/home/antons/amber/amber14/bin/sander",
                 "executable_mpi" : "/home/antons/amber/amber14/bin/sander"
             }
-        }
+        },
+        "shell": "bash"
     },"xsede.comet":
     {
         "params":
@@ -91,7 +92,7 @@ KERNELS = {
             }
         },
         "shell": "bourne"
-    },"ncsa.bw_orte":
+    },"ncsa.bw":
     {
         "params":
         {

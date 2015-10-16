@@ -129,6 +129,7 @@ class PilotKernel(object):
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
             
+            """
             pilot_description._config = {'number_of_workers' : {'StageinWorker'   :  8,
                                                                 'ExecWorker'      :  8,
                                                                 'StageoutWorker'  :  8,
@@ -159,6 +160,7 @@ class PilotKernel(object):
                                                                 'StageoutWorker'  :  1,
                                                                 'update_queue'    :  1,
                                                                 'UpdateWorker'    :  1}}
+            """
             
             pilot_object = pilot_manager.submit_pilots(pilot_description)
             

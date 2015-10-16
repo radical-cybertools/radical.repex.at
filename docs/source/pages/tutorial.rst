@@ -32,7 +32,7 @@ By default this file looks like this:
         "target": {
             "resource": "xsede.stampede",
             "username" : "octocat",
-        	"project" : "bigthings",
+            "project" : "bigthings",
             "runtime" : "30",
             "cleanup" : "False",
             "cores" : "16"

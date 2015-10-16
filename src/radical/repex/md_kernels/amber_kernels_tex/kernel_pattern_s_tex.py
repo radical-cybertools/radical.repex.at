@@ -360,15 +360,15 @@ class KernelPatternStex(object):
     def prepare_replica_for_exchange(self, replicas, replica, sd_shared_list):
            
         basename = self.inp_basename
-        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.cycle-1), str(replica.id))
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
 
         stage_out = []
-        coor_out = {
-            'source': new_coor,
-            'target': 'staging:///%s' % new_coor,
+        col_out = {
+            'source': matrix_col,
+            'target': 'staging:///%s' % matrix_col,
             'action': radical.pilot.COPY
         }
-        stage_out.append(coor_out)
+        stage_out.append(col_out)
 
         cu = radical.pilot.ComputeUnitDescription()
         cu.executable = "python"
