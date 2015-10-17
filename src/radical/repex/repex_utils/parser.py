@@ -20,12 +20,19 @@ def parse_command_line():
     parser = optparse.OptionParser(usage=usage)
 
     parser.add_option('--input',
-              dest='input_file',
-              help='specifies RadicalPilot, NAMD and RE simulation parameters')
+              dest='remd_input',
+              help='specifies RepEx simulation parameters')
+
+    parser.add_option('--rconfig',
+              dest='resource_config',
+              help='specifies options to access remote resource')
 
     (options, args) = parser.parse_args()
 
-    if options.input_file is None:
+    if options.remd_input is None:
         parser.error("You must specify simulation input file (--input). Try --help for help.")
+
+    if options.resource_config is None:
+        parser.error("You must specify resource configuration file (--rconfig). Try --help for help.")
 
     return options

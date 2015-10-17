@@ -1,0 +1,11 @@
+{
+    "target": {
+        "resource": "xsede.stampede",
+        "username" : "octocat",
+        "project" : "XYZ-123456",
+        "queue" : "development",
+        "runtime" : "60",
+        "cleanup" : "False",
+        "cores" : "16"
+    }
+}
