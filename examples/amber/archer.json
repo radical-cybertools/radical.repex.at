@@ -1,10 +1,9 @@
 {
     "target": {
         "resource": "epsrc.archer",
-        "username" : "antonst",
-        "project" : "e290",
-        "queue" : "short",
-        "runtime" : "20",
+        "username" : "octocat",
+        "project" : "aaa111",
+        "runtime" : "60",
         "cleanup" : "False",
         "cores" : "24"
     }

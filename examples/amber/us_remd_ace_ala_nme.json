@@ -3,7 +3,7 @@
         "re_pattern": "S",
         "exchange": "US-REMD",
         "number_of_cycles": "3",
-        "number_of_replicas": "8",
+        "number_of_replicas": "16",
         "input_folder": "us_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -16,8 +16,8 @@
         "us_start_param": "120",
         "us_end_param": "160",
         "init_temperature": "300.0",
-        "steps_per_cycle": "1000",
-        "download_mdinfo": "False",
-        "download_mdout" : "False"
+        "steps_per_cycle": "4000",
+        "download_mdinfo": "True",
+        "download_mdout" : "True"
     }
 }

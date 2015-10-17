@@ -2,7 +2,7 @@
     "input.MD": {
         "re_pattern": "S",
         "exchange": "TUU-REMD",
-        "number_of_cycles": "4",
+        "number_of_cycles": "3",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -11,8 +11,10 @@
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "6000",
-        "exchange_off" : "False"
+        "steps_per_cycle": "4000",
+        "exchange_off" : "False",
+        "download_mdinfo": "True",
+        "download_mdout" : "True"
         },
     "dim.input": {
         "umbrella_sampling_1": {

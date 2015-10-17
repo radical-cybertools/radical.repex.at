@@ -2,7 +2,7 @@
     "remd.input": {
         "re_pattern": "S",
         "exchange": "S-REMD",
-        "number_of_cycles": "4",
+        "number_of_cycles": "3",
         "number_of_replicas": "16",
         "input_folder": "s_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
@@ -16,6 +16,8 @@
         "min_salt": "0.0",
         "max_salt": "1.0",
         "init_temperature": "300",
-        "steps_per_cycle": "500"
+        "steps_per_cycle": "4000",
+        "download_mdinfo": "True",
+        "download_mdout" : "True"
     }
 }
