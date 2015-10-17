@@ -24,8 +24,8 @@ the resource management details. These strategies differ in:
 Next we will introduce three Execution Strategies which can be used with Synchronous Replica 
 Exchange Pattern.
 
-Execution Strategy S1
---------------------- 
+Execution Mode S1
+-----------------
 
 Synchronous Replica Exchange simulations, may be executed using 
 Execution strategy S1. This strategy differs from a conventional one in number of 
@@ -43,8 +43,8 @@ approach. Many MD packages are lacking the capability to use less cores than rep
     :width: 7.5 in
     :align: center
 
-Execution Strategy S2
----------------------
+Execution Mode S2
+-----------------
 
 Execution Strategy S2 differs from Strategy S1 in MD simulation time definition. 
 Here MD is specified as a fixed period of wall clock time (e.g. 2 minutes) for 
@@ -57,8 +57,8 @@ of allocated cores. Here number of cores equals to the number of replicas.
     :width: 6.5 in
     :align: center
 
-Execution Strategy S3
----------------------
+Execution Mode S3
+-----------------
 
 Last Execution strategy we will discuss in this section is Execution Strategy S3. 
 In this strategy all replicas are run concurrently for a presumably indefinite 

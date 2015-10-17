@@ -24,6 +24,8 @@ from replicas.replica import Replica1d
 from kernels.kernels import KERNELS
 import amber_kernels_us.input_file_builder
 import amber_kernels_us.global_ex_calculator
+import amber_kernels_us.global_ex_calculator_mpi
+import amber_kernels_us.ind_ex_calculator
 
 #-------------------------------------------------------------------------------
 
@@ -46,7 +48,7 @@ class KernelPatternSus(object):
         self.replicas = int(inp_file['remd.input']['number_of_replicas'])
         self.cores = int(rconfig['target']['cores'])
         self.us_template = inp_file['remd.input']['us_template']                           
-        #self.init_temperature = float(inp_file['remd.input']['init_temperature'])
+        self.init_temperature = float(inp_file['remd.input']['init_temperature'])
         self.cycle_steps = int(inp_file['remd.input']['steps_per_cycle'])
         self.work_dir_local = work_dir_local
         
@@ -208,18 +210,25 @@ class KernelPatternSus(object):
         build_inp = os.path.dirname(amber_kernels_us.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
-        global_calc = os.path.dirname(amber_kernels_us.global_ex_calculator.__file__)
-        global_calc_path = global_calc + "/global_ex_calculator.py"
+        global_calc = os.path.dirname(amber_kernels_us.global_ex_calculator_mpi.__file__)
+        global_calc_path = global_calc + "/global_ex_calculator_mpi.py"
 
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
+        global_calc_s = os.path.dirname(amber_kernels_us.global_ex_calculator.__file__)
+        global_calc_path_s = global_calc_s + "/global_ex_calculator.py"
+
+        ind_calc = os.path.dirname(amber_kernels_us.ind_ex_calculator.__file__)
+        ind_calc_path = ind_calc + "/ind_ex_calculator.py"
         #-----------------------------------------------------------------------
 
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("input_file_builder.py")
-        self.shared_files.append("global_ex_calculator.py")
+        self.shared_files.append("global_ex_calculator_mpi.py")
         self.shared_files.append(self.us_template)
+        self.shared_files.append("global_ex_calculator.py")
+        self.shared_files.append("ind_ex_calculator.py")
 
         for f in listdir(coor_path):
             self.shared_files.append(f)
@@ -241,6 +250,12 @@ class KernelPatternSus(object):
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
 
+        global_calc_url_s = 'file://%s' % (global_calc_path_s)
+        self.shared_urls.append(global_calc_url_s)
+
+        ind_calc_url = 'file://%s' % (ind_calc_path)
+        self.shared_urls.append(ind_calc_url)
+
         for f in listdir(coor_path):
             cf_path = join(coor_path,f)
             coor_url = 'file://%s' % (cf_path)
@@ -249,8 +264,6 @@ class KernelPatternSus(object):
     #---------------------------------------------------------------------------
     # 
     def prepare_replica_for_md(self, replica, sd_shared_list):
-        """
-        """
  
         basename = self.inp_basename
             
@@ -324,7 +337,7 @@ class KernelPatternSus(object):
         data = {
             "cycle_steps": str(self.cycle_steps),
             "new_restraints" : str(replica.new_restraints),
-            "new_temperature" : str(replica.new_temperature),
+            "new_temperature" : str(self.init_temperature),
             "amber_input" : str(self.amber_input),
             "new_input_file" : str(new_input_file),
             "us_template": str(self.us_template),
@@ -338,7 +351,6 @@ class KernelPatternSus(object):
 
         #-----------------------------------------------------------------------
         # umbrella sampling
-        # ????????????????????
         data = {
             "replica_id": str(rid),
             "replica_cycle" : str(replica.cycle-1),
@@ -458,12 +470,74 @@ class KernelPatternSus(object):
 
     #---------------------------------------------------------------------------
     #
+    def prepare_replica_for_exchange(self, replicas, replica, sd_shared_list):
+           
+        basename  = self.inp_basename
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
+
+        stage_out = []
+        col_out = {
+            'source': matrix_col,
+            'target': 'staging:///%s' % matrix_col,
+            'action': radical.pilot.COPY
+        }
+        stage_out.append(col_out)
+
+        all_restraints = []
+        for r in replicas:
+            all_restraints.append(str(r.new_restraints))
+
+        data = {
+            "replica_id": str(replica.id),
+            "replica_cycle" : str(replica.cycle-1),
+            "replicas" : str(self.replicas),
+            "base_name" : str(basename),
+            "init_temp" : str(self.init_temperature),
+            "new_restraints" : str(replica.new_restraints),
+            "amber_path" : str(self.amber_path),
+            "amber_input" : str(self.amber_input),
+            "all_restraints" : all_restraints
+        }
+        dump_data = json.dumps(data)
+        json_data = dump_data.replace("\\", "")
+
+        """
+        rid = replica.id
+        data = {
+            "replica_id": str(rid),
+            "replica_cycle" : str(replica.cycle-1),
+            "replicas" : str(self.replicas),
+            "base_name" : str(basename),
+            "init_temp" : str(replica.new_temperature),
+            "new_restraints" : str(replica.new_restraints)
+        }
+        dump_data = json.dumps(data)
+        json_post_data_us_bash = dump_data.replace("\\", "")
+        json_post_data_us_sh   = dump_data.replace("\"", "\\\\\"")
+        """
+
+        cu = radical.pilot.ComputeUnitDescription()
+        cu.executable = "python"
+        cu.input_staging  = sd_shared_list[6]
+        cu.output_staging = stage_out
+        #cu.arguments = ["ind_ex_calculator.py", replica.id, (replica.cycle-1), self.replicas, basename, replica.new_temperature, replica.new_restraints]
+        cu.arguments = ["ind_ex_calculator.py", json_data]
+        cu.cores = 1
+        cu.mpi = False
+        
+        return cu
+
+    #---------------------------------------------------------------------------
+    #
     def prepare_global_ex_calc(self, GL, current_cycle, replicas, sd_shared_list):
 
         stage_out = []
         stage_in = []
 
         cycle = replicas[0].cycle-1
+
+        outfile = "pairs_for_exchange_{cycle}.dat".format(cycle=cycle)
+        stage_out.append(outfile)
 
         all_restraints = {}
         all_temperatures = {}
@@ -481,36 +555,45 @@ class KernelPatternSus(object):
         dump_data = json.dumps(data)
         json_data_us = dump_data.replace("\\", "")
 
+        if self.exchange_mpi == True:
+            # global_ex_calculator_mpi.py file
+            stage_in.append(sd_shared_list[3])
 
-        # global_ex_calculator.py file
-        stage_in.append(sd_shared_list[3])
-
-        outfile = "pairs_for_exchange_{cycle}.dat".format(cycle=cycle)
-        stage_out.append(outfile)
-
-        cu = radical.pilot.ComputeUnitDescription()
-        cu.pre_exec = self.pre_exec
-        cu.executable = "python"
-        cu.input_staging  = stage_in
-        #cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
-        cu.arguments = ["global_ex_calculator.py", json_data_us]
-        if self.replicas > 999:
-            self.cores = self.replicas / 2
-        elif self.cores < self.replicas:
-            if (self.replicas % self.cores) != 0:
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
+            cu.input_staging  = stage_in
+            #cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+            cu.arguments = ["global_ex_calculator.py", json_data_us]
+            if self.replicas > 999:
+                self.cores = self.replicas / 2
+            elif self.cores < self.replicas:
+                if (self.replicas % self.cores) != 0:
+                    self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
+                    self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
+                    sys.exit()
+                else:
+                    cu.cores = self.cores
+            elif self.cores >= self.replicas:
+                cu.cores = self.replicas
+            else:
                 self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                 self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                 sys.exit()
-            else:
-                cu.cores = self.cores
-        elif self.cores >= self.replicas:
-            cu.cores = self.replicas
+            cu.mpi = True         
+            cu.output_staging = stage_out
         else:
-            self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
-            self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
-            sys.exit()
-        cu.mpi = True         
-        cu.output_staging = stage_out
+            # global_ex_calculator.py file
+            stage_in.append(sd_shared_list[5])
+
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
+            cu.input_staging  = stage_in
+            cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+            cu.cores = 1
+            cu.mpi = False         
+            cu.output_staging = stage_out
 
         return cu
 
