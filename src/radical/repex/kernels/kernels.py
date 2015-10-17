@@ -39,7 +39,8 @@ KERNELS = {
                 "executable" : "/work/y07/y07/amber/12/bin/sander",
                 "executable_mpi" : "/work/y07/y07/amber/12/bin/sander.MPI"
             }
-        }
+        },
+        "shell": "bash"
     },"xsede.gordon":
     {
         "params":
