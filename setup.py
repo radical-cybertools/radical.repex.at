@@ -35,8 +35,8 @@ def get_version():
 #-------------------------------------------------------------------------------
 
 setup(
-    name='RepEx',
-    version=get_version(),
+    name='radical.repex',
+    version=0.1,
     author='Antons Treikalis',
     author_email='antons.treikalis@rutgers.edu',
     packages=['repex_utils', 
@@ -65,7 +65,8 @@ setup(
                  'amber_kernels_3d_tsu': 'src/radical/repex/md_kernels/amber_kernels_3d_tsu'},
     scripts=['bin/repex-version', 'bin/repex-amber'],
     license='LICENSE.txt',
-    description='Radical Pilot based Replica Exchange Simulations Module',
-    long_description=open('README.md').read(),
-    install_requires=['radical.pilot', 'mpi4py']
+    description='Radical Pilot based Replica Exchange Simulations Package',
+    install_requires=['radical.pilot', 'mpi4py'],
+    download_url = 'https://github.com/AntonsT/radical.repex/tarball/0.1',
+    url = 'https://github.com/radical-cybertools/radical.repex.git'
 )
