@@ -37,7 +37,7 @@ def get_version():
 
 setup(
     name='radical.repex',
-    version='0.2.2',
+    version='0.2.1',
     author='Antons Treikalis',
     author_email='antons.treikalis@rutgers.edu',
     packages=['repex_utils', 
