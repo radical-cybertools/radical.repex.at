@@ -5,7 +5,7 @@ Multi-dimensional REMD simulations
 **********************************
 
 In addition to one-dimensional REMD simulations, RepEx also supports multi-dimensional REMD
-simulations. With Amber Kernel currently supported are two three-dimensional usecases: 
+simulations. For the Amber Kernel, we currently support two three-dimensional scenarios:
  - TSU-REMD with one Temperature, one Salt Concentraiton and one Umbrella restraint dimension
 
  - TUU-REMD with one Temperature dimension and two Umbrella restraint dimensions
@@ -70,7 +70,7 @@ Next you need to verify if parameters specified in ``tuu_remd_ace_ala_nme.json``
     	}
 	}
 
-In comparison to REMD simulaiton input files used previously, this file has the following additional parameters:
+In comparison to REMD simulation input files used previously, this file has the following additional parameters:
 
  - ``dim.input`` - under this key must be specified parameters and names of individual dimensions for all multi-dimensional REMD simulations.
 
