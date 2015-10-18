@@ -4,6 +4,7 @@ from distutils.core import setup
 from setuptools import setup, find_packages
 
 def get_version():
+
     v_long = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
     v_short = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
 
@@ -36,7 +37,7 @@ def get_version():
 
 setup(
     name='radical.repex',
-    version=0.1,
+    version='0.2.1',
     author='Antons Treikalis',
     author_email='antons.treikalis@rutgers.edu',
     packages=['repex_utils', 

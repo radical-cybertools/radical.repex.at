@@ -1,4 +1,4 @@
 #!/usr/bin/env python
 
 import pkg_resources
-print  pkg_resources.require("RepEx")[0].version
+print  pkg_resources.require("radical.repex")[0].version
