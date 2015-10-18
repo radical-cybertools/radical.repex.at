@@ -20,7 +20,7 @@ import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 import amber_kernels_tex.input_file_builder
-import amber_kernels_tex.global_ex_calculator_mpi
+#import amber_kernels_tex.global_ex_calculator_mpi
 import amber_kernels_tex.global_ex_calculator
 import amber_kernels_tex.ind_ex_calculator
 from replicas.replica import *
@@ -140,8 +140,8 @@ class KernelPatternStex(object):
         build_inp = os.path.dirname(amber_kernels_tex.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
-        global_calc = os.path.dirname(amber_kernels_tex.global_ex_calculator_mpi.__file__)
-        global_calc_path = global_calc + "/global_ex_calculator_mpi.py"
+        global_calc = os.path.dirname(amber_kernels_tex.global_ex_calculator.__file__)
+        global_calc_path = global_calc + "/global_ex_calculator.py"
 
         global_calc_s = os.path.dirname(amber_kernels_tex.global_ex_calculator.__file__)
         global_calc_path_s = global_calc_s + "/global_ex_calculator.py"
@@ -154,7 +154,7 @@ class KernelPatternStex(object):
         self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(input_template)
         self.shared_files.append("input_file_builder.py")
-        self.shared_files.append("global_ex_calculator_mpi.py")
+        self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append("ind_ex_calculator.py")
 

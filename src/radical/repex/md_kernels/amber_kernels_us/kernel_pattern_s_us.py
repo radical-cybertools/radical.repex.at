@@ -24,7 +24,7 @@ from replicas.replica import Replica1d
 from kernels.kernels import KERNELS
 import amber_kernels_us.input_file_builder
 import amber_kernels_us.global_ex_calculator
-import amber_kernels_us.global_ex_calculator_mpi
+#import amber_kernels_us.global_ex_calculator_mpi
 import amber_kernels_us.ind_ex_calculator
 
 #-------------------------------------------------------------------------------
@@ -210,8 +210,8 @@ class KernelPatternSus(object):
         build_inp = os.path.dirname(amber_kernels_us.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
-        global_calc = os.path.dirname(amber_kernels_us.global_ex_calculator_mpi.__file__)
-        global_calc_path = global_calc + "/global_ex_calculator_mpi.py"
+        global_calc = os.path.dirname(amber_kernels_us.global_ex_calculator.__file__)
+        global_calc_path = global_calc + "/global_ex_calculator.py"
 
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
@@ -225,7 +225,7 @@ class KernelPatternSus(object):
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("input_file_builder.py")
-        self.shared_files.append("global_ex_calculator_mpi.py")
+        self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append("ind_ex_calculator.py")
@@ -564,7 +564,7 @@ class KernelPatternSus(object):
             cu.executable = "python"
             cu.input_staging  = stage_in
             #cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
-            cu.arguments = ["global_ex_calculator.py", json_data_us]
+            cu.arguments = ["global_ex_calculator_mpi.py", json_data_us]
             if self.replicas > 999:
                 self.cores = self.replicas / 2
             elif self.cores < self.replicas:

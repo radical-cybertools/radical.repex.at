@@ -1,8 +1,8 @@
 {
     "target": {
         "resource": "xsede.stampede",
-        "username" : "octocat",
-        "project" : "XYZ-123456",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
         "queue" : "development",
         "runtime" : "60",
         "cleanup" : "False",
