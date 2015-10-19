@@ -4,10 +4,7 @@ from distutils.core import setup
 from setuptools import setup, find_packages
 
 def get_version():
-<<<<<<< HEAD
 
-=======
->>>>>>> ade37afd7ec4476ac6e123170dde221d2e464ce4
     v_long = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
     v_short = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
 
