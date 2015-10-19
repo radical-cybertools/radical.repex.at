@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 *********************************
-Welcome to repex's documentation!
+Welcome to RepEx's documentation!
 *********************************
 
 Contents:
@@ -33,5 +33,5 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. |VERSION| replace:: 0.2
+.. |VERSION| replace:: 0.2.3
 
