@@ -563,8 +563,8 @@ class KernelPatternSus(object):
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             cu.input_staging  = stage_in
-            #cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
             cu.arguments = ["global_ex_calculator_mpi.py", json_data_us]
+
             if self.replicas > 999:
                 self.cores = self.replicas / 2
             elif self.cores < self.replicas:

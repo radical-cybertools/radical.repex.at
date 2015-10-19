@@ -4,9 +4,9 @@
 Flexible execution modes
 ************************
 
-REMD simulation corresponding to any of the two Replica Exchange Patterns can be executed 
-in multiple ways. Execution Strategies specify simulation execution details and in particular
-the resource management details. These strategies differ in: 
+Depending upon the relative size of the resources available to the size of simulations (=number of replicas x resource requirement of each replica), Replica Exchange Patterns are executed differently. The details of the execution,
+and in particular the resource management details, are captured by the concept of Execution Strategy. Importantly as an
+end-user you do not have to worry about how these details are managed, but should be aware of how these strategies differ:
 
  **1.** MD simulation time definition: fixed period of simulation time (e.g. 2 ps) 
  for all replicas or fixed period of wall clock time (e.g. 2 minutes) for all 
@@ -73,3 +73,4 @@ one can be attributed to bullet point **3.**
     :alt: pattern-a
     :width: 6.0 in
     :align: center
+
