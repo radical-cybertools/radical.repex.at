@@ -6,7 +6,7 @@ Flexible execution modes
 
 Depending upon the relative size of the resources available to the size of simulations (=number of replicas x resource requirement of each replica), Replica Exchange Patterns are executed differently. The details of the execution,
 and in particular the resource management details, are captured by the concept of Execution Strategy. Importantly as an
-end-user you do not have to worry about how these details are managed, but should be aware of how these strategies differ:
+end-user you do not have to worry about how these details are managed, but should be aware of how these modes differ:
 
  **1.** MD simulation time definition: fixed period of simulation time (e.g. 2 ps) 
  for all replicas or fixed period of wall clock time (e.g. 2 minutes) for all 

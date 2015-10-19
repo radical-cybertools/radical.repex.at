@@ -17,5 +17,5 @@ which is designed to facilitate development of extension modules by it's users.
 
 ###User guide
 
-RepEx user guide can be found at: [repex.readthedocs.org](http://repex.readthedocs.org/en/latest/)
+RepEx user guide can be found at: [repex.readthedocs.org](http://repex.readthedocs.org/en/master/)
 

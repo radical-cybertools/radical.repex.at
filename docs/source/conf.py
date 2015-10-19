@@ -268,7 +268,7 @@ latex_show_pagerefs = True
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'repex', u'RepEx Documentation',
+    (master_doc, 'RepEx', u'RepEx Documentation',
      [author], 1)
 ]
 
@@ -282,8 +282,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'repex', u'repex Documentation',
-   author, 'repex', 'One line description of project.',
+  (master_doc, 'RepEx', u'RepEx Documentation',
+   author, 'RepEx', 'One line description of project.',
    'Miscellaneous'),
 ]
 
