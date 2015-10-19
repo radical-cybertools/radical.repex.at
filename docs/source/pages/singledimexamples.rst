@@ -53,7 +53,6 @@ Next you need to verify if parameters specified in ``us_remd_ace_ala_nme.json`` 
         	"us_end_param": "160",
         	"init_temperature": "300.0",
         	"steps_per_cycle": "2000",
-        	"exchange_mpi": "False",
             "download_mdinfo": "True",
             "download_mdout" : "True"
     	}
@@ -72,8 +71,6 @@ this input file contains some additional parameters:
  - ``us_end_param`` - ending value of Umbrella interval
 
  - ``init_temperature`` - initial temperature to use
-
- - ``exchange_mpi`` - specifies if exchange step should use MPI interface. Options are: ``True`` or ``False``
 
 To run this example, all you need to do is to specify path to ``sander`` executable on your laptop. To do that please add ``amber_path`` parameter under ``remd.input``. For example:
 

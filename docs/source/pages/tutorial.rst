@@ -97,11 +97,9 @@ with Amber simulations kernel. You need to verify if parameters specified in ``t
             "amber_coordinates": "ala10_minimized.inpcrd",
             "replica_mpi": "False",
             "replica_cores": "1",
-            "exchange_mpi": "False",
             "min_temperature": "300",
             "max_temperature": "600",
             "steps_per_cycle": "4000",
-            "exchange_mpi": "False",
             "download_mdinfo": "True",
             "download_mdout" : "True"
         }
@@ -113,8 +111,6 @@ contains some additional parameters:
  - ``min_temperature`` - minimal temperature value to be assigned to replicas
 
  - ``max_temperature`` - maximal temperature value to be assigned to replicas (we use geometrical progression for temperature assignment)
-
- - ``exchange_mpi`` - specifies if exchange step should use MPI interface. Options are: ``True`` or ``False``
 
 Since we are using a supercomputer to run REMD simulation we increase the nuber 
 of replicas to use. Please set ``"number_of_replicas"`` to ``"16"``.

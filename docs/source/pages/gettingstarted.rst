@@ -5,8 +5,7 @@ Getting Started
 ***************
 
 In this section we will briefly describe how RepEx can be invoked, how input and 
-resource configuration files should be used. We will also introduce two concepts, 
-central to RepEx - Replica Exchange Patterns and Execution Strategies.  
+resource configuration files should be used.
 
 Invoking RepEx
 ==============
@@ -207,11 +206,9 @@ your requirements. By default ``t_remd_ala10.json`` file looks like this:
             "amber_coordinates": "ala10_minimized.inpcrd",
             "replica_mpi": "False",
             "replica_cores": "1",
-            "exchange_mpi": "False",
             "min_temperature": "300",
             "max_temperature": "600",
             "steps_per_cycle": "4000",
-            "exchange_mpi": "False",
             "download_mdinfo": "True",
             "download_mdout" : "True"
         }
@@ -223,8 +220,6 @@ contains some additional parameters:
  - ``min_temperature`` - minimal temperature value to be assigned to replicas
 
  - ``max_temperature`` - maximal temperature value to be assigned to replicas (we use geometrical progression for temperature assignment)
-
- - ``exchange_mpi`` - specifies if exchange step should use MPI interface. Options are: ``True`` or ``False``
 
 To run this example, all you need to do is to specify path to ``sander`` executable on your laptop. To do that please add ``amber_path`` parameter under ``remd.input``. For example:
 
