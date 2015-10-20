@@ -39,7 +39,7 @@ class PilotKernel(object):
         self.sandbox = rconfig['target'].get('sandbox')
         self.user = rconfig['target'].get('username')
         self.password = rconfig['target'].get('password')
-        self.project = rconfig['target']get('project')
+        self.project = rconfig['target'].get('project')
         self.queue = rconfig['target'].get('queue')
         self.cores = int(rconfig['target'].get('cores')
             
