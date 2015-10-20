@@ -106,7 +106,7 @@ def isgood(name):
 
 setup(
     name='radical.repex',
-    version='0.2.5',
+    version='0.2.6',
     author='Antons Treikalis',
     author_email='antons.treikalis@rutgers.edu',
     packages=['repex_utils', 

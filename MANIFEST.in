@@ -1,4 +1,4 @@
 include *.txt
 
 recursive-include src      *.txt  *.py
-recursive-include examples *.json *.py
+recursive-include examples *
