@@ -152,7 +152,7 @@ you need to obtain input files::
 
 and cd into examples directory where input files recide:
 
-.. parsed-literal:: cd examples/amber
+.. parsed-literal:: cd repex.examples/examples/amber
 
 Amongst other things in this directory are present:
 
