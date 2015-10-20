@@ -13,17 +13,15 @@ Contents:
    :numbered:
    :maxdepth: 4
 
-   introduction
-   installation
-   gettingstarted
-   singledimexamples
-   multidimexamples
-   replicaexchangepatterns
-   flexibleexecutionmodes
-   advancedexamples
-   faq
-
-
+   pages/introduction.rst
+   pages/installation.rst
+   pages/gettingstarted.rst
+   pages/singledimexamples.rst
+   pages/multidimexamples.rst
+   pages/replicaexchangepatterns.rst
+   pages/flexibleexecutionmodes.rst
+   pages/advancedexamples.rst
+   pages/faq.rst
 
 
 Indices and tables
