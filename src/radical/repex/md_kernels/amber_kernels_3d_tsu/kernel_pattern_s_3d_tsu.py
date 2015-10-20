@@ -102,7 +102,7 @@ class KernelPatternS3dTSU(object):
         self.current_cycle = -1
 
         # for now defaults to True in all cases!
-        self.amber_coordinates_path = inp_file['remd.input']['amber_coordinates_folder']
+        # self.amber_coordinates_path = inp_file['remd.input']['amber_coordinates_folder']
         if 'same_coordinates' in inp_file['remd.input']:
             coors = inp_file['remd.input']['same_coordinates']
             if coors == "True":
