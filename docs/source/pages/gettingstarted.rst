@@ -146,13 +146,9 @@ with Amber simulations kernel. To run this example locally you must have Amber i
 If you don't have Amber installed please download it from: ``http://ambermd.org/antechamber/download.html`` and install it using instructions at: ``http://ambermd.org/``
 
 This guide assumes that you have already installed RepEx. In order to run examples, first 
-you need to obtain input files::
+you need to cd into directory where input files recide:
 
-.. parsed-literal:: git clone https://github.com/antonst/repex.examples.git
-
-and cd into examples directory where input files recide:
-
-.. parsed-literal:: cd repex.examples/examples/amber
+.. parsed-literal:: cd $HOME/repex-env/share/radical.repex/examples/amber
 
 Amongst other things in this directory are present:
 

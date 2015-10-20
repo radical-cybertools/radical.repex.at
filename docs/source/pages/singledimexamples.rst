@@ -14,9 +14,9 @@ US-REMD example using Alanine Dipeptide system with Amber kernel
 For the example we will use Alanine Dipeptide (Ace-Ala-Nme) system. To run this example locally you must have Amber installed on your system. If you don't have Amber installed please download it from: ``http://ambermd.org/antechamber/download.html`` and install it using instructions at: ``http://ambermd.org/``
 
 This guide assumes that you have already run example in getting-started section and 
-are currently in ``repex.examples/examples/amber`` directory, if not please cd into this directory:
+are currently in ``radical.repex/examples/amber`` directory, if not please cd into this directory:
 
-.. parsed-literal:: cd repex.examples/examples/amber
+.. parsed-literal:: cd $HOME/repex-env/share/radical.repex/examples
 
 Amongst other things in this directory are present:
 
