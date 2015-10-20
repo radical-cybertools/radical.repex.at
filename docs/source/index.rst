@@ -31,5 +31,5 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. |VERSION| replace:: 0.2.4
+.. |VERSION| replace:: 0.2.5
 
