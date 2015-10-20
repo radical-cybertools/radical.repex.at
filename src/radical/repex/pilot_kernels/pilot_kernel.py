@@ -91,10 +91,16 @@ class PilotKernel(object):
             pilot_manager.register_callback(pilot_state_cb)
 
             pilot_description = radical.pilot.ComputePilotDescription()
+            if self.resource == "xsede.stampede.wf":
+                pilot_description.access_schema = "gsissh"
+
             if self.resource.startswith("localhost"):
                 pilot_description.resource = "local.localhost"
-            else:
-                pilot_description.resource = self.resource
+
+            if self.resource == "xsede.stampede.wf":
+                self.resource = "xsede.stampede"
+
+            pilot_description.resource = self.resource
 
             if(self.sandbox != None):
                 pilot_description.sandbox = str(self.sandbox)
@@ -109,8 +115,7 @@ class PilotKernel(object):
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
             
-            if self.resource == "xsede.stampede.wf":
-                pilot_description.access_schema = "gsissh"
+            
             
             pilot_object = pilot_manager.submit_pilots(pilot_description)
             
