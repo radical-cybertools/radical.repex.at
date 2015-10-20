@@ -46,7 +46,7 @@ class PilotKernel(object):
         self.runtime = int(rconfig['target'].get('runtime'))
         self.dburl = rconfig['target'].get('mongo_url')
 
-        if self.dburl in none:
+        if self.dburl in None:
             self.logger.info("Using default Mongo DB url" )
             self.dburl = "mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/cdi-test"
 
