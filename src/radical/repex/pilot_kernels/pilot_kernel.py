@@ -41,9 +41,9 @@ class PilotKernel(object):
         self.password = rconfig['target'].get('password')
         self.project = rconfig['target'].get('project')
         self.queue = rconfig['target'].get('queue')
-        self.cores = int(rconfig['target'].get('cores')
+        self.cores = int(rconfig['target'].get('cores'))
             
-        self.runtime = int(rconfig['target'].get('runtime')
+        self.runtime = int(rconfig['target'].get('runtime'))
         self.dburl = rconfig['target'].get('mongo_url')
 
         if self.dburl in none:
