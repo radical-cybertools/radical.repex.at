@@ -35,45 +35,22 @@ class PilotKernel(object):
         self.logger  = rul.getLogger ('radical.repex', self.name)
         
         # pilot parameters
-        self.resource = rconfig['target']['resource']
-        try:
-            self.sandbox = rconfig['target']['sandbox']
-        except:
-            self.sandbox = None
-      
-        if 'username' in rconfig['target']:
-            self.user = rconfig['target']['username']
-
-        try:
-            self.password = rconfig['target']['password']
-        except:
-            self.password = None
-        try:
-            self.project = rconfig['target']['project']
-        except:
-            self.project = None
- 
-        try:
-            self.queue = rconfig['target']['queue']
-        except:
-            self.queue = None
-
-        try:
-            self.queue = rconfig['target']['queue']
-        except:
-            self.queue = None
-        try:
-            self.cores = int(rconfig['target']['cores'])
-        except:
-            self.logger.info("Field 'cores' must be defined" )
+        self.resource = rconfig['target'].get('resource')
+        self.sandbox = rconfig['target'].get('sandbox')
+        self.user = rconfig['target'].get('username')
+        self.password = rconfig['target'].get('password')
+        self.project = rconfig['target']get('project')
+        self.queue = rconfig['target'].get('queue')
+        self.cores = int(rconfig['target'].get('cores')
             
-        self.runtime = int(rconfig['target']['runtime'])
-        try:
-            self.dburl = rconfig['target']['mongo_url']
-        except:
+        self.runtime = int(rconfig['target'].get('runtime')
+        self.dburl = rconfig['target'].get('mongo_url')
+
+        if self.dburl in none:
             self.logger.info("Using default Mongo DB url" )
             self.dburl = "mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/cdi-test"
-        cleanup = rconfig['target']['cleanup']
+
+        cleanup = rconfig['target'].get('cleanup','False')
         if (cleanup == "True"):
             self.cleanup = True
         else:
@@ -105,7 +82,6 @@ class PilotKernel(object):
 
         try:
             # Add an ssh identity to the session.
-
             if self.user:
                 cred = radical.pilot.Context('ssh')
                 cred.user_id = self.user
@@ -144,6 +120,7 @@ class PilotKernel(object):
 
         except radical.pilot.PilotException, ex:
             self.logger.error("Error: {0}".format(ex))
+            session.close (cleanup=False) 
 
         return pilot_manager, pilot_object, session
 
