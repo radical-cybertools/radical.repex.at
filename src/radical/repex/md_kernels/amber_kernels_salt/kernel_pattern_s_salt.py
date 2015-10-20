@@ -114,7 +114,7 @@ class KernelPatternSsalt(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_shared_data(self):
+    def prepare_shared_data(self, replicas):
 
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + \
                     self.amber_parameters

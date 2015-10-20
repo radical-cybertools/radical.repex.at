@@ -11,7 +11,7 @@ import os
 import sys
 import shutil
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def move_output_files(work_dir_local, inp_basename, replicas):
     """Moves all files starting with <inp_basename> to replica directories. These are files generated and 
@@ -22,9 +22,9 @@ def move_output_files(work_dir_local, inp_basename, replicas):
     replicas - list of Replica objects
     """
 
-    #----------------------------------------------------------
+    #---------------------------------------------------------------------------
     # moving shared files
-    #----------------------------------------------------------
+
     dir_path = "%s/shared_files" % (work_dir_local)
     if not os.path.exists(dir_path):
         try:
@@ -39,11 +39,13 @@ def move_output_files(work_dir_local, inp_basename, replicas):
         if (item.startswith(pairs_name)):
             source =  work_dir_local + "/" + str(item)
             destination = dir_path + "/"
+            d_file = destination + str(item)
+            if os.path.exists(d_file):
+                os.remove(d_file)
             shutil.move( source, destination)
 
-    #----------------------------------------------------------
+    #---------------------------------------------------------------------------
     # moving individual files
-    #----------------------------------------------------------
 
     for r in range(len(replicas)):
         dir_path = "%s/replica_%d" % (work_dir_local, r )
@@ -63,9 +65,12 @@ def move_output_files(work_dir_local, inp_basename, replicas):
             if (item.startswith(base_name) or item.startswith(col_name) or item.startswith(rst_name)):
                 source =  work_dir_local + "/" + str(item)
                 destination = dir_path + "/"
+                d_file = destination + str(item)
+                if os.path.exists(d_file):
+                    os.remove(d_file)
                 shutil.move( source, destination)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def clean_up(work_dir_local, replicas):
     """Automates deletion of directories of individual replicas and all files in 

@@ -125,9 +125,7 @@ class KernelPatternSus(object):
         self.input_folder = inp_file['remd.input']['input_folder']
         self.us_start_param = float(inp_file['remd.input']['us_start_param'])
         self.us_end_param = float(inp_file['remd.input']['us_end_param'])
-
         self.current_cycle = -1
-
         self.name = 'ak-us-patternB'
         self.ex_name = 'umbrella_sampling'
         self.logger  = rul.getLogger ('radical.repex', self.name)
@@ -151,28 +149,9 @@ class KernelPatternSus(object):
         # parse coor file
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         coor_list  = listdir(coor_path)
-
         base = coor_list[0]
 
-        self.c_prefix = ''
-        self.c_infix = ''
-        self.c_postfix = ''
-
-        under = 0
-        dot = 0
-        for ch in base:
-            if ch == '_':
-                under += 1
-            if ch == '.':
-                dot += 1
-
-            if under == 0 and dot == 0:
-                self.c_prefix += ch
-            elif under == 1 and dot == 1 and ch != '.':
-                self.c_infix += ch
-            elif under == 2 and dot == 2 and ch != '.':
-                self.c_postfix += ch
-
+        self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
         #-----------------------------------------------------------------------
         # 
         for k in range(self.replicas):
@@ -183,14 +162,14 @@ class KernelPatternSus(object):
             rstr_val_1 = str(starting_value)
 
             if self.same_coordinates == False:
-                coor_file = self.c_prefix + "_0." + self.c_infix + "_" + str(k) + "." + self.c_postfix
+                coor_file = self.coor_basename + ".0." + str(k)
                 r = Replica1d(k, new_restraints=self.restraints_files[k], \
                              rstr_val_1=float(rstr_val_1), \
                              coor=coor_file, \
                              indx1=0, \
                              indx2=k)
             else:
-                coor_file = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
+                coor_file = self.coor_basename + ".0.0"
                 r = Replica1d(k, new_restraints=self.restraints_files[k], \
                                  rstr_val_1=float(rstr_val_1), \
                                  coor=coor_file)
@@ -201,7 +180,7 @@ class KernelPatternSus(object):
 
     #---------------------------------------------------------------------------
     # 
-    def prepare_shared_data(self):
+    def prepare_shared_data(self, replicas):
 
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
@@ -230,9 +209,11 @@ class KernelPatternSus(object):
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append("ind_ex_calculator.py")
 
-        for f in listdir(coor_path):
-            self.shared_files.append(f)
-
+        if self.same_coordinates == False:
+            for repl in replicas:
+                self.shared_files.append(repl.coor_file)
+        else:
+            self.shared_files.append(replicas[0].coor_file)
         #-----------------------------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
@@ -256,8 +237,13 @@ class KernelPatternSus(object):
         ind_calc_url = 'file://%s' % (ind_calc_path)
         self.shared_urls.append(ind_calc_url)
 
-        for f in listdir(coor_path):
-            cf_path = join(coor_path,f)
+        if self.same_coordinates == False:
+            for repl in replicas:
+                cf_path = join(coor_path,repl.coor_file)
+                coor_url = 'file://%s' % (cf_path)
+                self.shared_urls.append(coor_url)
+        else:
+            cf_path = join(coor_path,replicas[0].coor_file)
             coor_url = 'file://%s' % (cf_path)
             self.shared_urls.append(coor_url)
 
@@ -285,7 +271,6 @@ class KernelPatternSus(object):
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
 
         replica.cycle += 1
-
         #-----------------------------------------------------------------------  
 
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
@@ -324,7 +309,6 @@ class KernelPatternSus(object):
             'action': radical.pilot.COPY
         }
         stage_out.append(new_coor_out)
-
         #-----------------------------------------------------------------------
          
         info_out = {
@@ -405,12 +389,6 @@ class KernelPatternSus(object):
             #-------------------------------------------------------------------            
             # replica coor
             repl_coor = replica.coor_file
-
-            if self.same_coordinates == False:
-                while (repl_coor not in self.shared_files):
-                    repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.c_postfix
-            else:
-                repl_coor = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
 
             # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 

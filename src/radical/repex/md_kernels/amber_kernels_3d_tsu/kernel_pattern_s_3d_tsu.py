@@ -101,12 +101,23 @@ class KernelPatternS3dTSU(object):
         self.us_template = inp_file['remd.input']['us_template']                       
         self.current_cycle = -1
 
+        # for now defaults to True in all cases!
+        self.amber_coordinates_path = inp_file['remd.input']['amber_coordinates_folder']
+        if 'same_coordinates' in inp_file['remd.input']:
+            coors = inp_file['remd.input']['same_coordinates']
+            if coors == "True":
+                self.same_coordinates = True
+            else:
+                self.same_coordinates = True
+        else:
+            self.same_coordinates = True
+
         # hardcoded for now
-        self.replicas_d1 = int(inp_file['input.dim']\
+        self.replicas_d1 = int(inp_file['dim.input']\
                            ['temperature_1']["number_of_replicas"])
-        self.replicas_d2 = int(inp_file['input.dim']\
+        self.replicas_d2 = int(inp_file['dim.input']\
                            ['salt_concentration_2']["number_of_replicas"])
-        self.replicas_d3 = int(inp_file['input.dim']\
+        self.replicas_d3 = int(inp_file['dim.input']\
                            ['umbrella_sampling_3']["number_of_replicas"])
 
         #-----------------------------------------------------------------------
@@ -116,47 +127,47 @@ class KernelPatternS3dTSU(object):
         self.d3 = 'umbrella_sampling'
 
         # temperature exchange
-        self.min_temp = float(inp_file['input.dim']\
+        self.min_temp = float(inp_file['dim.input']\
                         ['temperature_1']['min_temperature'])
-        self.max_temp = float(inp_file['input.dim']\
+        self.max_temp = float(inp_file['dim.input']\
                         ['temperature_1']['max_temperature'])
 
-        self.temp_ex_cores = int(inp_file['input.dim']\
+        self.temp_ex_cores = int(inp_file['dim.input']\
                              ['temperature_1']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['input.dim']['temperature_1']:
-            if inp_file['input.dim']\
+        if 'exchange_replica_mpi' in inp_file['dim.input']['temperature_1']:
+            if inp_file['dim.input']\
                 ['temperature_1']['exchange_replica_mpi'] == 'True':
                 self.temp_ex_mpi = True
             else:
                 self.temp_ex_mpi = False
 
         # salt concentration
-        self.min_salt = float(inp_file['input.dim']\
+        self.min_salt = float(inp_file['dim.input']\
                         ['salt_concentration_2']['min_salt'])
-        self.max_salt = float(inp_file['input.dim']\
+        self.max_salt = float(inp_file['dim.input']\
                         ['salt_concentration_2']['max_salt'])
 
-        self.salt_ex_cores = int(inp_file['input.dim']\
+        self.salt_ex_cores = int(inp_file['dim.input']\
                              ['salt_concentration_2']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['input.dim']\
+        if 'exchange_replica_mpi' in inp_file['dim.input']\
                                              ['salt_concentration_2']:
-            if inp_file['input.dim']['salt_concentration_2']\
+            if inp_file['dim.input']['salt_concentration_2']\
                                     ['exchange_replica_mpi'] == 'True':
                 self.salt_ex_mpi = True
             else:
                 self.salt_ex_mpi = False
 
         # umbrella sampling
-        self.us_start_param = float(inp_file['input.dim']\
+        self.us_start_param = float(inp_file['dim.input']\
                               ['umbrella_sampling_3']['us_start_param'])
-        self.us_end_param = float(inp_file['input.dim']\
+        self.us_end_param = float(inp_file['dim.input']\
                             ['umbrella_sampling_3']['us_end_param'])
 
-        self.us_ex_cores = int(inp_file['input.dim']\
+        self.us_ex_cores = int(inp_file['dim.input']\
                            ['umbrella_sampling_3']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['input.dim']\
+        if 'exchange_replica_mpi' in inp_file['dim.input']\
                                              ['umbrella_sampling_3']:
-            if inp_file['input.dim']\
+            if inp_file['dim.input']\
                 ['umbrella_sampling_3']['exchange_replica_mpi'] == 'True':
                 self.us_ex_mpi = True
             else:
@@ -218,6 +229,15 @@ class KernelPatternS3dTSU(object):
         """Initializes replicas and their attributes to default values
         """
 
+        #-----------------------------------------------------------------------
+        # parse coor file
+        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
+        coor_list  = listdir(coor_path)
+
+        base = coor_list[0]
+
+        self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
+
         replicas = []
 
         d1_params = []
@@ -238,7 +258,6 @@ class KernelPatternS3dTSU(object):
             for j in range(self.replicas_d2):
                 s1 = float(d2_params[j])
                 for k in range(self.replicas_d3):
-                 
                     #-----------------------------------------------------------
 
                     rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
@@ -247,14 +266,11 @@ class KernelPatternS3dTSU(object):
                     spacing = (self.us_end_param - self.us_start_param) / float(self.replicas_d3)
                     starting_value = self.us_start_param + k*spacing
                     rstr_val_1 = str(starting_value+spacing)
-
-                    #print "rid: %d temp: %f salt: %f us: %f " % (rid, t1, float(s1), float(rstr_val_1))
-
+                    
                     r = Replica3d(rid, new_temperature=t1, new_salt=s1, new_restraints=r1, rstr_val_1=float(rstr_val_1), cores=1)
                     replicas.append(r)
 
         return replicas
-
     # --------------------------------------------------------------------------
     #
     def prepare_shared_data(self, replicas):
@@ -295,7 +311,6 @@ class KernelPatternS3dTSU(object):
         self.shared_files.append("input_file_builder.py")
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
-
         #-----------------------------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
@@ -351,7 +366,6 @@ class KernelPatternS3dTSU(object):
         replica.old_info = old_name + ".mdinfo"
         
         replica.cycle += 1
-
         #-----------------------------------------------------------------------
       
         crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
@@ -369,7 +383,6 @@ class KernelPatternS3dTSU(object):
         rid = replica.id
 
         replica_path = "replica_%d/" % (rid)
-
         #-----------------------------------------------------------------------
 
         if self.down_mdinfo == True:

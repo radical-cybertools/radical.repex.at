@@ -98,6 +98,8 @@ class PilotKernelPatternSmultiD(PilotKernel):
         hl_performance_data = {}
         cu_performance_data = {}
 
+        do_profile = os.getenv('REPEX_PROFILING', '0')
+
         md_kernel.init_matrices(replicas)
 
         stagein_end = datetime.datetime.utcnow()
@@ -318,72 +320,74 @@ class PilotKernelPatternSmultiD(PilotKernel):
             
             #-------------------------------------------------------------------
             # performance data
-            outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
-            with open(outfile, 'a') as f:
-                
-                #---------------------------------------------------------------
-                #
-                head = "Cycle; Dim; Run; Duration"
-                f.write("{row}\n".format(row=head))
+            if do_profile == '1':
+                outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
+                with open(outfile, 'a') as f:
+                    
+                    #-----------------------------------------------------------
+                    #
+                    head = "Cycle; Dim; Run; Duration"
+                    f.write("{row}\n".format(row=head))
 
-                hl_cycle = "cycle_{0}".format(current_cycle)
-                hl_dim   = "dim_{0}".format(DIM)
-                
-                for run in hl_performance_data[hl_cycle][hl_dim].keys():
-                    dur = hl_performance_data[hl_cycle][hl_dim][run]
+                    hl_cycle = "cycle_{0}".format(current_cycle)
+                    hl_dim   = "dim_{0}".format(DIM)
+                    
+                    for run in hl_performance_data[hl_cycle][hl_dim].keys():
+                        dur = hl_performance_data[hl_cycle][hl_dim][run]
 
-                    row = "{Cycle}; {Dim}; {Run}; {Duration}".format(
-                        Duration=dur,
-                        Cycle=hl_cycle,
-                        Dim=hl_dim,
-                        Run=run)
-
-                    f.write("{r}\n".format(r=row))
-
-                #---------------------------------------------------------------
-                head = "CU_ID; Scheduling; StagingInput; PendingAgentInputStaging; AgentStagingInput; Allocating; Executing; PendingAgentOutputStaging; PendingOutputStaging; StagingOutput; Done; Cycle; Dim; Run;"
-                f.write("{row}\n".format(row=head))
-               
-                for run in cu_performance_data[hl_cycle][hl_dim].keys():
-                    for cid in cu_performance_data[hl_cycle][hl_dim][run].keys():
-                        cu = cu_performance_data[hl_cycle][hl_dim][run][cid]
-                        st_data = {}
-                        for st in cu.state_history:
-                            st_dict = st.as_dict()
-                            st_data["{0}".format( st_dict["state"] )] = {}
-                            st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-                       
-                        row = "{uid}; {Scheduling}; {StagingInput}; {PendingAgentInputStaging}; {AgentStagingInput}; {Allocating}; {Executing}; {PendingAgentOutputStaging}; {PendingOutputStaging}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
-                            uid=cu.uid,
-                            #Unscheduled=st_data['Unscheduled'],
-                            Scheduling=st_data['Scheduling'],
-                            #PendingInputStaging = st_data['PendingInputStaging'],
-                            StagingInput=st_data['StagingInput'],
-                            PendingAgentInputStaging=st_data['PendingAgentInputStaging'],
-                            AgentStagingInput=st_data['AgentStagingInput'],
-                            #PendingExecution=st_data['PendingExecution'],
-                            Allocating=st_data['Allocating'],
-                            Executing=st_data['Executing'],
-                            PendingAgentOutputStaging=st_data['PendingAgentOutputStaging'],
-                            #AgentStagingOutput=st_data['AgentStagingOutput'],
-                            PendingOutputStaging=st_data['PendingOutputStaging'],
-                            StagingOutput=st_data['StagingOutput'],
-                            Done=st_data['Done'],
+                        row = "{Cycle}; {Dim}; {Run}; {Duration}".format(
+                            Duration=dur,
                             Cycle=hl_cycle,
                             Dim=hl_dim,
                             Run=run)
 
                         f.write("{r}\n".format(r=row))
+
+                    #-----------------------------------------------------------
+                    head = "CU_ID; Scheduling; StagingInput; PendingAgentInputStaging; AgentStagingInput; Allocating; Executing; PendingAgentOutputStaging; PendingOutputStaging; StagingOutput; Done; Cycle; Dim; Run;"
+                    f.write("{row}\n".format(row=head))
+                   
+                    for run in cu_performance_data[hl_cycle][hl_dim].keys():
+                        for cid in cu_performance_data[hl_cycle][hl_dim][run].keys():
+                            cu = cu_performance_data[hl_cycle][hl_dim][run][cid]
+                            st_data = {}
+                            for st in cu.state_history:
+                                st_dict = st.as_dict()
+                                st_data["{0}".format( st_dict["state"] )] = {}
+                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+                           
+                            row = "{uid}; {Scheduling}; {StagingInput}; {PendingAgentInputStaging}; {AgentStagingInput}; {Allocating}; {Executing}; {PendingAgentOutputStaging}; {PendingOutputStaging}; {StagingOutput}; {Done}; {Cycle}; {Dim}; {Run}".format(
+                                uid=cu.uid,
+                                #Unscheduled=st_data['Unscheduled'],
+                                Scheduling=st_data['Scheduling'],
+                                #PendingInputStaging = st_data['PendingInputStaging'],
+                                StagingInput=st_data['StagingInput'],
+                                PendingAgentInputStaging=st_data['PendingAgentInputStaging'],
+                                AgentStagingInput=st_data['AgentStagingInput'],
+                                #PendingExecution=st_data['PendingExecution'],
+                                Allocating=st_data['Allocating'],
+                                Executing=st_data['Executing'],
+                                PendingAgentOutputStaging=st_data['PendingAgentOutputStaging'],
+                                #AgentStagingOutput=st_data['AgentStagingOutput'],
+                                PendingOutputStaging=st_data['PendingOutputStaging'],
+                                StagingOutput=st_data['StagingOutput'],
+                                Done=st_data['Done'],
+                                Cycle=hl_cycle,
+                                Dim=hl_dim,
+                                Run=run)
+
+                            f.write("{r}\n".format(r=row))
             
         #-----------------------------------------------------------------------
         # end of loop
 
-        outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
-        with open(outfile, 'a') as f:
-            # RAW SIMULATION TIME
-            end = datetime.datetime.utcnow()
-            stagein_time = (stagein_end-stagein_start).total_seconds()
-            raw_simulation_time = (end-start).total_seconds()
-            f.write("Total simulaiton time: {row}\n".format(row=raw_simulation_time))
-            f.write("Stage-in time: {row}\n".format(row=stagein_time))
+        if do_profile == '1':
+            outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
+            with open(outfile, 'a') as f:
+                # RAW SIMULATION TIME
+                end = datetime.datetime.utcnow()
+                stagein_time = (stagein_end-stagein_start).total_seconds()
+                raw_simulation_time = (end-start).total_seconds()
+                f.write("Total simulaiton time: {row}\n".format(row=raw_simulation_time))
+                f.write("Stage-in time: {row}\n".format(row=stagein_time))
 

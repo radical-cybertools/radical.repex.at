@@ -9,14 +9,14 @@
         "amber_input": "ace_ala_nme.mdin",
         "amber_parameters": "ace_ala_nme.parm7",
         "amber_coordinates_folder": "ace_ala_nme_coors",
-        "same_coordinates": "True",
+        "same_coordinates": "False",
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
         "replica_cores": "1",
         "us_start_param": "120",
         "us_end_param": "160",
         "init_temperature": "300.0",
-        "steps_per_cycle": "4000",
+        "steps_per_cycle": "1000",
         "download_mdinfo": "True",
         "download_mdout" : "True"
     }

@@ -1,7 +1,6 @@
 import re
 import os
 import sys
-import shutil
 import subprocess
 from distutils.core import setup
 from setuptools import setup, find_packages
@@ -37,77 +36,10 @@ def get_version():
     return verstr
 
 #-------------------------------------------------------------------------------
-#
-# borrowed from the MoinMoin-wiki installer
-#
-def makeDataFiles(prefix, dir):
-    """ Create distutils data_files structure from dir
-    distutil will copy all file rooted under dir into prefix, excluding
-    dir itself, just like 'ditto src dst' works, and unlike 'cp -r src
-    dst, which copy src into dst'.
-    Typical usage:
-        # install the contents of 'wiki' under sys.prefix+'share/moin'
-        data_files = makeDataFiles('share/moin', 'wiki')
-    For this directory structure:
-        root
-            file1
-            file2
-            dir
-                file
-                subdir
-                    file
-    makeDataFiles('prefix', 'root')  will create this distutil data_files structure:
-        [('prefix', ['file1', 'file2']),
-         ('prefix/dir', ['file']),
-         ('prefix/dir/subdir', ['file'])]
-    """
-    # Strip 'dir/' from of path before joining with prefix
-    dir = dir.rstrip('/')
-    strip = len(dir) + 1
-    found = []
-    os.path.walk(dir, visit, (prefix, strip, found))
-    return found
-
-def visit((prefix, strip, found), dirname, names):
-    """ Visit directory, create distutil tuple
-    Add distutil tuple for each directory using this format:
-        (destination, [dirname/file1, dirname/file2, ...])
-    distutil will copy later file1, file2, ... info destination.
-    """
-    files = []
-    # Iterate over a copy of names, modify names
-    for name in names[:]:
-        path = os.path.join(dirname, name)
-        # Ignore directories -  we will visit later
-        if os.path.isdir(path):
-            # Remove directories we don't want to visit later
-            if isbad(name):
-                names.remove(name)
-            continue
-        elif isgood(name):
-            files.append(path)
-    destination = os.path.join(prefix, dirname[strip:])
-    found.append((destination, files))
-
-def isbad(name):
-    """ Whether name should not be installed """
-    return (name.startswith('.') or
-            name.startswith('#') or
-            name.endswith('.pickle') or
-            name == 'CVS')
-
-def isgood(name):
-    """ Whether name should be installed """
-    if not isbad(name):
-        if name.endswith('.py') or name.endswith('.json'):
-            return True
-    return False
-
-#-------------------------------------------------------------------------------
 
 setup(
     name='radical.repex',
-    version='0.2.3',
+    version='0.2.4',
     author='Antons Treikalis',
     author_email='antons.treikalis@rutgers.edu',
     packages=['repex_utils', 
@@ -139,6 +71,5 @@ setup(
     description='Radical Pilot based Replica Exchange Simulations Package',
     install_requires=['radical.pilot'],
     download_url = 'https://github.com/AntonsT/radical.repex/tarball/0.1',
-    url = 'https://github.com/radical-cybertools/radical.repex.git',
-    data_files=makeDataFiles('share/radical.repex/examples/', 'examples')
+    url = 'https://github.com/radical-cybertools/radical.repex.git'
 )

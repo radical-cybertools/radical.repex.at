@@ -25,10 +25,7 @@ import amber_kernels_3d_tuu.matrix_calculator_temp_ex
 import amber_kernels_3d_tuu.matrix_calculator_us_ex
 import amber_kernels_3d_tuu.input_file_builder
 import amber_kernels_3d_tuu.global_ex_calculator
-
 from replicas.replica import Replica3d
-#from amber_kernels_tex.amber_kernel_tex_pattern_b import AmberKernelTexPatternB
-#from amber_kernels_us.kernel_pattern_s_us import KernelPatternSus
 
 #-------------------------------------------------------------------------------
 #
@@ -114,11 +111,11 @@ class KernelPatternS3dTUU(object):
         self.current_cycle = -1
 
         # hardcoded for now
-        self.replicas_d1 = int(inp_file['input.dim']\
+        self.replicas_d1 = int(inp_file['dim.input']\
                            ['umbrella_sampling_1']["number_of_replicas"])
-        self.replicas_d2 = int(inp_file['input.dim']\
+        self.replicas_d2 = int(inp_file['dim.input']\
                            ['temperature_2']["number_of_replicas"])
-        self.replicas_d3 = int(inp_file['input.dim']\
+        self.replicas_d3 = int(inp_file['dim.input']\
                            ['umbrella_sampling_3']["number_of_replicas"])
 
         #-----------------------------------------------------------------------
@@ -132,19 +129,19 @@ class KernelPatternS3dTUU(object):
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
  
-        self.us_start_param_d1 = float(inp_file['input.dim']\
+        self.us_start_param_d1 = float(inp_file['dim.input']\
                                  ['umbrella_sampling_1']['us_start_param'])
-        self.us_end_param_d1 = float(inp_file['input.dim']\
+        self.us_end_param_d1 = float(inp_file['dim.input']\
                                ['umbrella_sampling_1']['us_end_param'])
 
-        self.us_start_param_d3 = float(inp_file['input.dim']\
+        self.us_start_param_d3 = float(inp_file['dim.input']\
                                 ['umbrella_sampling_3']['us_start_param'])
-        self.us_end_param_d3 = float(inp_file['input.dim']\
+        self.us_end_param_d3 = float(inp_file['dim.input']\
                                ['umbrella_sampling_3']['us_end_param'])
         
-        self.min_temp = float(inp_file['input.dim']\
+        self.min_temp = float(inp_file['dim.input']\
                         ['temperature_2']['min_temperature'])
-        self.max_temp = float(inp_file['input.dim']\
+        self.max_temp = float(inp_file['dim.input']\
                         ['temperature_2']['max_temperature'])
 
         #-----------------------------------------------------------------------
@@ -203,27 +200,8 @@ class KernelPatternS3dTUU(object):
         # parse coor file
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         coor_list  = listdir(coor_path)
-
         base = coor_list[0]
-
-        self.c_prefix = ''
-        self.c_infix = ''
-        self.c_postfix = ''
-
-        under = 0
-        dot = 0
-        for ch in base:
-            if ch == '_':
-                under += 1
-            if ch == '.':
-                dot += 1
-
-            if under == 0 and dot == 0:
-                self.c_prefix += ch
-            elif under == 1 and dot == 1 and ch != '.':
-                self.c_infix += ch
-            elif under == 2 and dot == 2 and ch != '.':
-                self.c_postfix += ch
+        self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
 
         #-----------------------------------------------------------------------
 
@@ -255,8 +233,7 @@ class KernelPatternS3dTUU(object):
         
                     #-----------------------------------------------------------
                     if self.same_coordinates == False:
-                        
-                        coor_file = self.c_prefix + "_" + str(i) + "." + self.c_infix + "_" + str(k) + "." + self.c_postfix
+                        coor_file = self.coor_basename + "." + str(i) + "." + str(k)
                         r = Replica3d(rid, \
                                       new_temperature=t1, \
                                       new_restraints=r1, \
@@ -268,7 +245,7 @@ class KernelPatternS3dTUU(object):
                                       indx2=k)
                         replicas.append(r)                        
                     else:
-                        coor_file = self.c_prefix + "_0." + self.c_infix + "_0." + self.c_postfix
+                        coor_file = self.coor_basename + ".0.0"
                         r = Replica3d(rid, \
                                       new_temperature=t1, \
                                       new_restraints=r1, \
@@ -279,7 +256,6 @@ class KernelPatternS3dTUU(object):
                                       indx1=i, \
                                       indx2=k)
                         replicas.append(r)
-
         return replicas
 
     #---------------------------------------------------------------------------
@@ -315,8 +291,11 @@ class KernelPatternS3dTUU(object):
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
 
-        for repl in replicas:
-            self.shared_files.append(repl.coor_file)
+        if self.same_coordinates == False:
+            for repl in replicas:
+                self.shared_files.append(repl.coor_file)
+        else:
+            self.shared_files.append(replicas[0].coor_file)
 
         #-----------------------------------------------------------------------
 
@@ -341,9 +320,13 @@ class KernelPatternS3dTUU(object):
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
 
-        #for f in listdir(coor_path):
-        for repl in replicas:
-            cf_path = join(coor_path,repl.coor_file)
+        if self.same_coordinates == False:
+            for repl in replicas:
+                cf_path = join(coor_path,repl.coor_file)
+                coor_url = 'file://%s' % (cf_path)
+                self.shared_urls.append(coor_url)
+        else:
+            cf_path = join(coor_path,replicas[0].coor_file)
             coor_url = 'file://%s' % (cf_path)
             self.shared_urls.append(coor_url)
 
@@ -383,6 +366,12 @@ class KernelPatternS3dTUU(object):
         stage_out = []
         stage_in = []
 
+        new_coor = replica.new_coor
+        new_traj = replica.new_traj
+        new_info = replica.new_info
+        old_coor = replica.old_coor
+        rid = replica.id
+
         if self.down_mdinfo == True:
             info_local = {
                 'source':   new_info,
@@ -398,12 +387,6 @@ class KernelPatternS3dTUU(object):
                 'action':   radical.pilot.TRANSFER
             }
             stage_out.append(output_local)
-
-        new_coor = replica.new_coor
-        new_traj = replica.new_traj
-        new_info = replica.new_info
-        old_coor = replica.old_coor
-        rid = replica.id
 
         replica_path = "replica_%d/" % (rid)
 
@@ -542,9 +525,9 @@ class KernelPatternS3dTUU(object):
             # replica coor
             repl_coor = replica.coor_file
 
-            while (repl_coor not in self.shared_files):
+            #while (repl_coor not in self.shared_files):
                 #repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.postfix
-                repl_coor = replica.coor_file
+                #repl_coor = replica.coor_file
  
             # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 

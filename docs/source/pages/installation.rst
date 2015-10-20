@@ -34,13 +34,9 @@ potentially incompatible system-wide packages.
 
 **Step 2** : Install RepEx:
 
-.. parsed-literal:: git clone https://github.com/radical-cybertools/radical.repex.git
+.. parsed-literal:: pip install radical.repex
 
-.. parsed-literal:: cd radical.repex
-
-.. parsed-literal:: python setup.py install
-
-Now you should be able to print the installed version of RepEx:
+If installation was successful, you should be able to print the installed version of RepEx:
 
 .. parsed-literal:: repex-version
 
