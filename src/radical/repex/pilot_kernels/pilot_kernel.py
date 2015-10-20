@@ -41,7 +41,9 @@ class PilotKernel(object):
         except:
             self.sandbox = None
       
-        self.user = rconfig['target']['username']
+        if 'username' in rconfig['target']:
+            self.user = rconfig['target']['username']
+
         try:
             self.password = rconfig['target']['password']
         except:
@@ -91,7 +93,7 @@ class PilotKernel(object):
                 if state == radical.pilot.states.FAILED:
                     self.logger.error("Pilot error: {0}".format(pilot.log) )
                     self.logger.error("RepEx execution FAILED.")
-                    # sys.exit(1)
+                    sys.exit(1)
         # ----------------------------------------------------------------------
         
         session = None
@@ -103,9 +105,11 @@ class PilotKernel(object):
 
         try:
             # Add an ssh identity to the session.
-            cred = radical.pilot.Context('ssh')
-            cred.user_id = self.user
-            session.add_context(cred)
+
+            if self.user:
+                cred = radical.pilot.Context('ssh')
+                cred.user_id = self.user
+                session.add_context(cred)
 
             pilot_manager = radical.pilot.PilotManager(session=session)
             pilot_manager.register_callback(pilot_state_cb)
@@ -129,38 +133,8 @@ class PilotKernel(object):
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
             
-            """
-            pilot_description._config = {'number_of_workers' : {'StageinWorker'   :  8,
-                                                                'ExecWorker'      :  8,
-                                                                'StageoutWorker'  :  8,
-                                                                'UpdateWorker'    :  1},
-                                         'blowup_factor'     : {'Agent'           :  1,
-                                                                'stagein_queue'   :  1,
-                                                                'StageinWorker'   :  1,
-                                                                'schedule_queue'  :  1,
-                                                                'Scheduler'       :  1,
-                                                                'execution_queue' :  1,
-                                                                'ExecWorker'      :  1,
-                                                                'watch_queue'     :  1,
-                                                                'Watcher'         :  1,
-                                                                'stageout_queue'  :  1,
-                                                                'StageoutWorker'  :  1,
-                                                                'update_queue'    :  1,
-                                                                'UpdateWorker'    :  1},
-                                         'drop_clones'       : {'Agent'           :  1,
-                                                                'stagein_queue'   :  1,
-                                                                'StageinWorker'   :  1,
-                                                                'schedule_queue'  :  1,
-                                                                'Scheduler'       :  1,
-                                                                'execution_queue' :  1,
-                                                                'ExecWorker'      :  1,
-                                                                'watch_queue'     :  1,
-                                                                'Watcher'         :  1,
-                                                                'stageout_queue'  :  1,
-                                                                'StageoutWorker'  :  1,
-                                                                'update_queue'    :  1,
-                                                                'UpdateWorker'    :  1}}
-            """
+            if self.resource == "xsede.stampede.wf":
+                pilot_description.access_schema = "gsissh"
             
             pilot_object = pilot_manager.submit_pilots(pilot_description)
             
