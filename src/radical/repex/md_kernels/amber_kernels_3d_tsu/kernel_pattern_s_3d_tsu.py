@@ -229,15 +229,6 @@ class KernelPatternS3dTSU(object):
         """Initializes replicas and their attributes to default values
         """
 
-        #-----------------------------------------------------------------------
-        # parse coor file
-        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
-        coor_list  = listdir(coor_path)
-
-        base = coor_list[0]
-
-        self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
-
         replicas = []
 
         d1_params = []
@@ -258,6 +249,7 @@ class KernelPatternS3dTSU(object):
             for j in range(self.replicas_d2):
                 s1 = float(d2_params[j])
                 for k in range(self.replicas_d3):
+                 
                     #-----------------------------------------------------------
 
                     rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
@@ -266,7 +258,9 @@ class KernelPatternS3dTSU(object):
                     spacing = (self.us_end_param - self.us_start_param) / float(self.replicas_d3)
                     starting_value = self.us_start_param + k*spacing
                     rstr_val_1 = str(starting_value+spacing)
-                    
+
+                    #print "rid: %d temp: %f salt: %f us: %f " % (rid, t1, float(s1), float(rstr_val_1))
+
                     r = Replica3d(rid, new_temperature=t1, new_salt=s1, new_restraints=r1, rstr_val_1=float(rstr_val_1), cores=1)
                     replicas.append(r)
 
@@ -311,6 +305,7 @@ class KernelPatternS3dTSU(object):
         self.shared_files.append("input_file_builder.py")
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
+
         #-----------------------------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
@@ -366,6 +361,7 @@ class KernelPatternS3dTSU(object):
         replica.old_info = old_name + ".mdinfo"
         
         replica.cycle += 1
+
         #-----------------------------------------------------------------------
       
         crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
@@ -383,23 +379,8 @@ class KernelPatternS3dTSU(object):
         rid = replica.id
 
         replica_path = "replica_%d/" % (rid)
+
         #-----------------------------------------------------------------------
-
-        if self.down_mdinfo == True:
-            info_local = {
-                'source':   new_info,
-                'target':   new_info,
-                'action':   radical.pilot.TRANSFER
-            }
-            stage_out.append(info_local)
-
-        if self.down_mdout == True:
-            output_local = {
-                'source':   output_file,
-                'target':   output_file,
-                'action':   radical.pilot.TRANSFER
-            }
-            stage_out.append(output_local)
 
         new_coor_out = {
             'source': new_coor,
@@ -408,6 +389,7 @@ class KernelPatternS3dTSU(object):
         }
         stage_out.append(new_coor_out)
 
+        
         out_string = "_%d.out" % (replica.cycle-1)
         rstr_out = {
             'source': (replica.new_restraints + '.out'),
@@ -416,18 +398,21 @@ class KernelPatternS3dTSU(object):
         }
         stage_out.append(rstr_out)
         
+
         #-----------------------------------------------------------------------
         # common code from prepare_for_exchange()
         
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
 
-        # for all cases!
-        matrix_col_out = {
-            'source': matrix_col,
-            'target': 'staging:///%s' % (matrix_col),
-            'action': radical.pilot.COPY
-        }
-        stage_out.append(matrix_col_out)
+        # for all cases! NOT
+
+        if dimension != 2:
+            matrix_col_out = {
+                'source': matrix_col,
+                'target': 'staging:///%s' % (matrix_col),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(matrix_col_out)
 
         # for all cases (OPTIONAL)    
         info_out = {
@@ -437,7 +422,7 @@ class KernelPatternS3dTSU(object):
             }
         stage_out.append(info_out)
 
-        current_group = self.get_current_group(dimension, replicas, replica)
+        current_group = self.get_current_group_ids(dimension, replicas, replica)
         #-----------------------------------------------------------------------
         # json for input_file_builder.py
         data = {

@@ -16,11 +16,9 @@ Contents:
    pages/introduction.rst
    pages/installation.rst
    pages/gettingstarted.rst
-   pages/singledimexamples.rst
-   pages/multidimexamples.rst
-   pages/replicaexchangepatterns.rst
-   pages/flexibleexecutionmodes.rst
-   pages/advancedexamples.rst
+   pages/userguide.rst
+   pages/runningonhpcclusters.rst
+   pages/futurework.rst
    pages/faq.rst
 
 

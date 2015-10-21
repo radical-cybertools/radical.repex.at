@@ -1,8 +1,8 @@
 .. _advancedexamples:
 
-*****************
-Advanced Examples
-*****************
+***********************
+Running on HPC clusters
+***********************
 
 This section will walk you through the steps required to run 1D-REMD and 3D-REMD examples with RepEx 
 on HPC clusters. This guide assumes that you have already installed RepEx and cloned RepEx repository during the installation. If you haven't installed RepEx, please follow the steps

@@ -391,6 +391,8 @@ class KernelPatternStex(object):
         outfile = "pairs_for_exchange_{cycle}.dat".format(cycle=cycle)
         stage_out.append(outfile)
 
+        # so that Ioannis can't use it!
+        """
         if self.exchange_mpi == True:
             # global_ex_calculator_mpi.py file
             stage_in.append(sd_shared_list[4])
@@ -421,17 +423,20 @@ class KernelPatternStex(object):
             cu.mpi = True         
             cu.output_staging = stage_out
         else:
-            # global_ex_calculator.py file
-            stage_in.append(sd_shared_list[5])
+        """
 
-            cu = radical.pilot.ComputeUnitDescription()
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
-            cu.input_staging  = stage_in
-            cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
-            cu.cores = 1
-            cu.mpi = False         
-            cu.output_staging = stage_out
+        # global_ex_calculator.py file
+        stage_in.append(sd_shared_list[5])
+
+        cu = radical.pilot.ComputeUnitDescription()
+        cu.pre_exec = self.pre_exec
+        cu.executable = "python"
+        cu.input_staging  = stage_in
+        cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+        cu.cores = 1
+        cu.mpi = False         
+        cu.output_staging = stage_out
+
         return cu
 
     #---------------------------------------------------------------------------
