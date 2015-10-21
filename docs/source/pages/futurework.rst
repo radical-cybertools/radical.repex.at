@@ -1,11 +1,10 @@
 .. _futurework:
 
 ***********
-Future Work
+Preview 
 ***********
 
-In this section we will describe some of the features, which will be available in
-RepEx in a near future. 
+In this section we will describe some of the features, which have been developed but have not been released yet. They will be available in RepEx (as beta) in the very near future. 
 
 Replica Exchange Patterns
 =========================
