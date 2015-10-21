@@ -422,7 +422,7 @@ class KernelPatternS3dTSU(object):
             }
         stage_out.append(info_out)
 
-        current_group = self.get_current_group_ids(dimension, replicas, replica)
+        current_group = self.get_current_group(dimension, replicas, replica)
         #-----------------------------------------------------------------------
         # json for input_file_builder.py
         data = {

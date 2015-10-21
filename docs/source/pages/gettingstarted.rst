@@ -69,7 +69,7 @@ Example resource configuration file for Stampede supercomputer might look like t
 
 	{
     	    "target": {
-        	    "resource" : "stampede.tacc.utexas.edu",
+        	    "resource" : "xsede.stampede",
         	    "username" : "octocat",
         	    "project"  : "TG-XYZ123456",
         	    "queue"    : "development",

@@ -4,14 +4,15 @@
 User guide
 **********
 
-In this section we will describe how to run REMD simulations with RepEx. 
+In this section we will describe how to run REMD simulations with RepEx on your local system.
+To run examples of this section you must have Amber installed on your system.
+If you don't have Amber installed please download it from: ``http://ambermd.org/antechamber/download.html`` and install it using instructions at: ``http://ambermd.org/`` 
 
 T-REMD example (peptide ala10) with Amber kernel
 ================================================
 
 We will take a look at Temperature-Exchange REMD example using peptide ala10 system
-with Amber simulations kernel. To run this example locally you must have Amber installed on your system.
-If you don't have Amber installed please download it from: ``http://ambermd.org/antechamber/download.html`` and install it using instructions at: ``http://ambermd.org/``
+with Amber simulations kernel. 
 
 This guide assumes that you have already installed RepEx, if not please go back to installation section. To obtain input files, please clone repex-examples repository:
 

@@ -1,19 +1,19 @@
-.. _advancedexamples:
+.. _runningonhpcclusters:
 
 ***********************
 Running on HPC clusters
 ***********************
 
 This section will walk you through the steps required to run 1D-REMD and 3D-REMD examples with RepEx 
-on HPC clusters. This guide assumes that you have already installed RepEx and cloned RepEx repository during the installation. If you haven't installed RepEx, please follow the steps
-in Installation section of this user guide. If you can't find location of radical.repex 
+on HPC clusters. This guide assumes that you have already installed RepEx and cloned repex.examples repository. If you haven't installed RepEx, please follow the steps
+in Installation section of this user guide. If you can't find location of repex.examles 
 directory, please clone repository again:
 
-.. parsed-literal:: git clone https://github.com/radical-cybertools/radical.repex.git
+.. parsed-literal:: git clone https://github.com/antonst/repex.examples.git
 
 and cd into Amber examples directory where input files recide:
 
-.. parsed-literal:: cd radical.repex/examples/amber
+.. parsed-literal:: cd repex.examples/examples/amber
 
 To run examples you will need to modify resource configuration file - ``<resource>.json``. 
 Please read Getting Started section of this guide to find out about clusters supported 
