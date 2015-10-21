@@ -13,8 +13,7 @@ Molecular Dynamics application kernels and can be easily modified to support
 any conventional MD package. The main motivation behind RepEx is to enable 
 efficient and scalable multidimensional REMD simulations on HPC systems, while separating 
 execution details from simulation setup, specific to a given MD package. 
-RepEx provides several Execution Patterns designed to meet the needs of it's 
-users. RepEx relies on a concept of Pilot-Job to run RE simulations on HPC 
+RepEx relies on a concept of Pilot-Job to run RE simulations on HPC 
 clusters. Namely, RepEx is using `Radical Pilot <http://radicalpilot.readthedocs.org/en/latest/>`_
 Pilot System for execution of it's workloads. RepEx effectively takes advantage 
 of a task-level-parallelism concept to run REMD simulations. RepEx 
