@@ -11,6 +11,7 @@ import sys
 import math
 import json
 
+
 #-------------------------------------------------------------------------------
 
 class Replica1d(object):
