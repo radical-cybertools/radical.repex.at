@@ -63,6 +63,8 @@ In addition are provided the following **optional** parameters:
 
  - ``cleanup`` - specifies if files on remote machine must be deleted. Possible values are: ``True`` or ``False``
 
+ - ``mongo_url`` - url to your own Mongo DB instance
+
 Example resource configuration file for Stampede supercomputer might look like this:
 
 .. parsed-literal::
