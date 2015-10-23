@@ -42,12 +42,12 @@ class PilotKernel(object):
         self.project = rconfig['target'].get('project')
         self.queue = rconfig['target'].get('queue')
         self.cores = int(rconfig['target'].get('cores'))
-            
         self.runtime = int(rconfig['target'].get('runtime'))
         self.dburl = rconfig['target'].get('mongo_url')
+        self.access_schema = rconfig['target'].get('access_schema')
 
         if self.dburl is None:
-            self.logger.info("Using default Mongo DB url" )
+            self.logger.info("Using default Mongo DB url")
             self.dburl = "mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242/cdi-test"
 
         cleanup = rconfig['target'].get('cleanup','False')
@@ -60,7 +60,7 @@ class PilotKernel(object):
     #
     def launch_pilot(self):
  
-        # ----------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         #
         def pilot_state_cb(pilot, state):
            
@@ -71,7 +71,7 @@ class PilotKernel(object):
                     self.logger.error("Pilot error: {0}".format(pilot.log) )
                     self.logger.error("RepEx execution FAILED.")
                     sys.exit(1)
-        # ----------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         
         session = None
         pilot_manager = None
@@ -91,14 +91,11 @@ class PilotKernel(object):
             pilot_manager.register_callback(pilot_state_cb)
 
             pilot_description = radical.pilot.ComputePilotDescription()
-            if self.resource == "xsede.stampede.wf":
+            if self.access_schema == "gsissh":
                 pilot_description.access_schema = "gsissh"
 
             if self.resource.startswith("localhost"):
                 pilot_description.resource = "local.localhost"
-
-            if self.resource == "xsede.stampede.wf":
-                self.resource = "xsede.stampede"
 
             pilot_description.resource = self.resource
 
@@ -114,8 +111,6 @@ class PilotKernel(object):
             pilot_description.cores = self.cores
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
-            
-            
             
             pilot_object = pilot_manager.submit_pilots(pilot_description)
             

@@ -40,160 +40,109 @@ class KernelPatternS3dTSU(object):
         specified by user 
         work_dir_local - directory from which main simulation script was invoked
         """
+  
+        self.name = 'ak-patternB-3d-TSU'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
 
-        self.dims = 3
+        self.resource         = rconfig['target'].get('resource')
+        self.inp_basename     = inp_file['remd.input'].get('input_file_basename')
+        self.input_folder     = inp_file['remd.input'].get('input_folder')
+        self.us_template      = inp_file['remd.input'].get('us_template') 
+        self.amber_parameters = inp_file['remd.input'].get('amber_parameters')
+        self.amber_input      = inp_file['remd.input'].get('amber_input')
+        self.work_dir_local   = work_dir_local
+        self.current_cycle    = -1
+        self.dims             = 3
 
-        self.resource = rconfig['target']['resource']
+        self.cores         = int(rconfig['target'].get('cores', '1'))
+        self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
+        self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
+        self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
 
-        self.amber_coordinates = inp_file['remd.input']['amber_coordinates']
-        self.amber_parameters = inp_file['remd.input']['amber_parameters']
+        self.init_temperature = float(inp_file['remd.input'].get('init_temperature'))
+        self.us_start_param   = float(inp_file['remd.input'].get('us_start_param'))
+        self.us_end_param     = float(inp_file['remd.input'].get('us_end_param'))
 
-        if 'number_of_cycles' in inp_file['remd.input']:
-            self.nr_cycles = int(inp_file['remd.input']['number_of_cycles'])
-        else:
-            self.nr_cycles = None
-        
-        self.input_folder = inp_file['remd.input']['input_folder']
-        self.inp_basename = inp_file['remd.input']['input_file_basename']
-        self.cycle_steps = int(inp_file['remd.input']['steps_per_cycle'])
-        self.work_dir_local = work_dir_local
-        self.amber_input = inp_file['remd.input']['amber_input']
+        self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3
 
         #-----------------------------------------------------------------------
-        if 'exchange_off' in inp_file['remd.input']:
-            if inp_file['remd.input']['exchange_off'] == "True":
-                self.exchange_off = True
-            else:
-                self.exchange_off = False
-        else:
-            self.exchange_off = False
-        #-----------------------------------------------------------------------
 
-        if 'download_mdinfo' in inp_file['remd.input']:
-            if inp_file['remd.input']['download_mdinfo'] == 'True':
-                self.down_mdinfo = True
-            else:
-                self.down_mdinfo = False
-        else:
-            self.down_mdinfo = True
-
-        if 'download_mdout' in inp_file['remd.input']:
-            if inp_file['remd.input']['download_mdout'] == 'True':
-                self.down_mdout = True
-            else:
-                self.down_mdout = False
-        else:
-            self.down_mdout = True
-
-        if 'replica_mpi' in inp_file['remd.input']:
-            if inp_file['remd.input']['replica_mpi'] == "True":
-                self.md_replica_mpi = True
-            else:
-                self.md_replica_mpi = False
-        else:
-            self.md_replica_mpi= False
-
-        if 'replica_cores' in inp_file['remd.input']:
-            self.md_replica_cores = int(inp_file['remd.input']['replica_cores'])
-        else:
-            self.md_replica_cores = 1
-
-        self.us_template = inp_file['remd.input']['us_template']                       
-        self.current_cycle = -1
-
-        # for now defaults to True in all cases!
-        # self.amber_coordinates_path = inp_file['remd.input']['amber_coordinates_folder']
-        if 'same_coordinates' in inp_file['remd.input']:
-            coors = inp_file['remd.input']['same_coordinates']
-            if coors == "True":
-                self.same_coordinates = True
-            else:
-                self.same_coordinates = True
-        else:
+        self.amber_coordinates_path = inp_file['remd.input'].get('amber_coordinates_folder')
+        if inp_file['remd.input'].get('same_coordinates') == "True":
             self.same_coordinates = True
+        else:
+            self.same_coordinates = False
+        
+        if inp_file['remd.input'].get('exchange_off') == "True":
+            self.exchange_off = True
+        else:
+            self.exchange_off = False  
 
-        # hardcoded for now
-        self.replicas_d1 = int(inp_file['dim.input']\
-                           ['temperature_1']["number_of_replicas"])
-        self.replicas_d2 = int(inp_file['dim.input']\
-                           ['salt_concentration_2']["number_of_replicas"])
-        self.replicas_d3 = int(inp_file['dim.input']\
-                           ['umbrella_sampling_3']["number_of_replicas"])
+        if inp_file['remd.input'].get('download_mdinfo') == 'True':
+            self.down_mdinfo = True
+        else:
+            self.down_mdinfo = False
+     
+        if inp_file['remd.input'].get('download_mdout') == 'True':
+            self.down_mdout = True
+        else:
+            self.down_mdout = False
+
+        if inp_file['remd.input'].get('replica_mpi') == "True":
+            self.replica_mpi = True
+        else:
+            self.replica_mpi = False  
 
         #-----------------------------------------------------------------------
-        # hardcoding dimension names
+        # hardcoded 
+
         self.d1 = 'temperature'
         self.d2 = 'salt_concentration'
         self.d3 = 'umbrella_sampling'
 
-        # temperature exchange
+        self.replicas_d1 = int(inp_file['dim.input']\
+                           ['temperature_1'].get("number_of_replicas"))
+        self.replicas_d2 = int(inp_file['dim.input']\
+                           ['salt_concentration_2'].get("number_of_replicas"))
+        self.replicas_d3 = int(inp_file['dim.input']\
+                           ['umbrella_sampling_3'].get("number_of_replicas"))
+
         self.min_temp = float(inp_file['dim.input']\
-                        ['temperature_1']['min_temperature'])
+                        ['temperature_1'].get('min_temperature'))
         self.max_temp = float(inp_file['dim.input']\
-                        ['temperature_1']['max_temperature'])
+                        ['temperature_1'].get('max_temperature'))
 
-        self.temp_ex_cores = int(inp_file['dim.input']\
-                             ['temperature_1']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['dim.input']['temperature_1']:
-            if inp_file['dim.input']\
-                ['temperature_1']['exchange_replica_mpi'] == 'True':
-                self.temp_ex_mpi = True
-            else:
-                self.temp_ex_mpi = False
-
-        # salt concentration
         self.min_salt = float(inp_file['dim.input']\
-                        ['salt_concentration_2']['min_salt'])
+                        ['salt_concentration_2'].get('min_salt'))
         self.max_salt = float(inp_file['dim.input']\
-                        ['salt_concentration_2']['max_salt'])
+                        ['salt_concentration_2'].get('max_salt'))
+
+        self.us_start_param = float(inp_file['dim.input']\
+                              ['umbrella_sampling_3'].get('us_start_param'))
+        self.us_end_param = float(inp_file['dim.input']\
+                            ['umbrella_sampling_3'].get('us_end_param'))
 
         self.salt_ex_cores = int(inp_file['dim.input']\
-                             ['salt_concentration_2']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['dim.input']\
-                                             ['salt_concentration_2']:
-            if inp_file['dim.input']['salt_concentration_2']\
-                                    ['exchange_replica_mpi'] == 'True':
-                self.salt_ex_mpi = True
-            else:
-                self.salt_ex_mpi = False
+                             ['salt_concentration_2'].get('exchange_replica_cores'))
 
-        # umbrella sampling
-        self.us_start_param = float(inp_file['dim.input']\
-                              ['umbrella_sampling_3']['us_start_param'])
-        self.us_end_param = float(inp_file['dim.input']\
-                            ['umbrella_sampling_3']['us_end_param'])
-
-        self.us_ex_cores = int(inp_file['dim.input']\
-                           ['umbrella_sampling_3']['exchange_replica_cores'])
-        if 'exchange_replica_mpi' in inp_file['dim.input']\
-                                             ['umbrella_sampling_3']:
-            if inp_file['dim.input']\
-                ['umbrella_sampling_3']['exchange_replica_mpi'] == 'True':
-                self.us_ex_mpi = True
-            else:
-                self.us_ex_mpi = False
-
-        self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3 
         self.restraints_files = []
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
 
         #-----------------------------------------------------------------------
-
-        self.name = 'ak-patternB-3d-TSU'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
-
+        self.amber_path     = inp_file['remd.input'].get('amber_path')
+        self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
+        if self.amber_path == None:
+            self.logger.info("Using default Amber path for: {0}".format(rconfig['target'].get('resource')))
+            self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
+            self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
+        if self.amber_path == None:
+            self.logger.info("Amber (sander) path can't be found, looking for sander.MPI")
+            if self.amber_path_mpi == None:
+                self.logger.info("Amber (sander.MPI) path can't be found, exiting...")
+            sys.exit(1)
+        
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
-        try:
-            self.amber_path = inp_file['remd.input']['amber_path']
-        except:
-            self.logger.info("Using default Amber path for: {0}".format(rconfig['target']['resource']) )
-            try:
-                self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
-            except:
-                self.logger.info("Amber path for localhost is not defined!")
-
-        self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"]["executable_mpi"]
 
         self.shared_urls = []
         self.shared_files = []
@@ -569,10 +518,10 @@ class KernelPatternS3dTSU(object):
                 
                 cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
                 cu.pre_exec = self.pre_exec
-                cu.cores = self.md_replica_cores
+                cu.cores = self.replica_cores
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
-                cu.mpi = self.md_replica_mpi
+                cu.mpi = self.replica_mpi
             
         #-----------------------------------------------------------------------
         # from cycle 2 onwards   
@@ -618,8 +567,8 @@ class KernelPatternS3dTSU(object):
                 cu.pre_exec = self.pre_exec
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
-                cu.cores = self.md_replica_cores
-                cu.mpi = self.md_replica_mpi
+                cu.cores = self.replica_cores
+                cu.mpi = self.replica_mpi
             elif dimension == 2:
                 # salt concentration
 
@@ -627,9 +576,9 @@ class KernelPatternS3dTSU(object):
                 stage_in.append(sd_shared_list[2])
                       
                 cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
-                cu.cores = self.md_replica_cores
+                cu.cores = self.replica_cores
                 cu.pre_exec = self.pre_exec     
-                cu.mpi = self.md_replica_mpi
+                cu.mpi = self.replica_mpi
                 cu.output_staging = stage_out 
                 cu.input_staging = stage_in
             else:
@@ -642,8 +591,8 @@ class KernelPatternS3dTSU(object):
                 cu.pre_exec = self.pre_exec
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
-                cu.cores = self.md_replica_cores
-                cu.mpi = self.md_replica_mpi           
+                cu.cores = self.replica_cores
+                cu.mpi = self.replica_mpi           
 
         return cu
 
@@ -736,7 +685,7 @@ class KernelPatternS3dTSU(object):
 
             cu.arguments = ['-ng', str(self.replicas_d2), '-groupfile', 'groupfile']
             cu.cores = self.replicas_d2
-            cu.mpi = self.salt_ex_mpi
+            cu.mpi = True
             cu.output_staging = out_list   
 
         return cu

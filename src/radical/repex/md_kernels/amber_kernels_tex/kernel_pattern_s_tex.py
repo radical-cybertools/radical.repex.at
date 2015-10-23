@@ -42,83 +42,65 @@ class KernelPatternStex(object):
         self.ex_name = 'temperature'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
-        if 'number_of_cycles' in inp_file['remd.input']:
-            self.nr_cycles = int(inp_file['remd.input']['number_of_cycles'])
-        else:
-            self.nr_cycles = None
+        self.resource          = rconfig['target'].get('resource')
+        self.inp_basename      = inp_file['remd.input'].get('input_file_basename')
+        self.input_folder      = inp_file['remd.input'].get('input_folder')
+        self.us_template       = inp_file['remd.input'].get('us_template') 
+        self.amber_parameters  = inp_file['remd.input'].get('amber_parameters')
+        self.amber_coordinates = inp_file['remd.input'].get('amber_coordinates')
+        self.amber_input       = inp_file['remd.input'].get('amber_input')
+        self.work_dir_local    = work_dir_local
+        self.current_cycle     = -1
 
-        if 'replica_mpi' in inp_file['remd.input']:
-            mpi = inp_file['remd.input']['replica_mpi']
-            if mpi == "True":
-                self.replica_mpi = True
-            else:
-                self.replica_mpi = False
+        self.cores         = int(rconfig['target'].get('cores', '1'))
+        self.replicas      = int(inp_file['remd.input'].get('number_of_replicas'))
+        self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
+        self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
+        self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
+
+        self.min_temp = float(inp_file['remd.input'].get('min_temperature'))
+        self.max_temp = float(inp_file['remd.input'].get('max_temperature'))
+        #-----------------------------------------------------------------------
+
+        if inp_file['remd.input'].get('replica_mpi') == "True":
+            self.replica_mpi = True
         else:
             self.replica_mpi = False
-
-        if 'exchange_mpi' in inp_file['remd.input']:
-            mpi = inp_file['remd.input']['exchange_mpi']
-            if mpi == "True":
-                self.exchange_mpi = True
-            else:
-                self.exchange_mpi = False
+        
+        if inp_file['remd.input'].get('exchange_mpi') == "True":
+            self.exchange_mpi = True
         else:
             self.exchange_mpi = False
-
-        if 'replica_cores' in inp_file['remd.input']:
-            self.replica_cores = int(inp_file['remd.input']['replica_cores'])
-        else:
-            self.replica_cores = 1
-
-        self.resource = rconfig['target']['resource']
-        self.cores    = int(rconfig['target']['cores'])
-        self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
-
-        if 'download_mdinfo' in inp_file['remd.input']:
-            if inp_file['remd.input']['download_mdinfo'] == 'True':
-                self.down_mdinfo = True
-            else:
-                self.down_mdinfo = False
-        else:
+        
+        if inp_file['remd.input'].get('download_mdinfo') == 'True':
             self.down_mdinfo = True
-
-        if 'download_mdout' in inp_file['remd.input']:
-            if inp_file['remd.input']['download_mdout'] == 'True':
-                self.down_mdout = True
-            else:
-                self.down_mdout = False
         else:
+            self.down_mdinfo = False
+     
+        if inp_file['remd.input'].get('download_mdout') == 'True':
             self.down_mdout = True
-
-        if self.resource == 'local.localhost':
-            if 'amber_path' in inp_file['remd.input']:
-                self.amber_path = inp_file['remd.input']['amber_path']
-            else:
-                self.logger.info("Amber path for {0} is not defined".format( rconfig['target']['resource'] ) )
-                sys.exit(1)
         else:
-            if 'amber_path' in inp_file['remd.input']:
-                self.amber_path = inp_file['remd.input']['amber_path']
-            else:
-                self.logger.info("Using default Amber path for: {0}".format( rconfig['target']['resource'] ) )
-                try:
-                    self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
-                except:
-                    self.logger.info("Amber path for {0} is not defined".format( rconfig['target']['resource'] ) )
+            self.down_mdout = False
 
-        self.input_folder = inp_file['remd.input']['input_folder']   
-        self.amber_coordinates = inp_file['remd.input']['amber_coordinates']
-        self.amber_parameters = inp_file['remd.input']['amber_parameters']
-        self.amber_input = inp_file['remd.input']['amber_input']
-        self.input_folder = inp_file['remd.input']['input_folder']
-        self.inp_basename = inp_file['remd.input']['input_file_basename']
-        self.replicas = int(inp_file['remd.input']['number_of_replicas'])
-        self.min_temp = float(inp_file['remd.input']['min_temperature'])
-        self.max_temp = float(inp_file['remd.input']['max_temperature'])
-        self.cycle_steps = int(inp_file['remd.input']['steps_per_cycle'])
-        self.work_dir_local = work_dir_local
+        if inp_file['remd.input'].get('exchange_off') == "True":
+            self.exchange_off = True
+        else:
+            self.exchange_off = False
 
-        self.current_cycle = -1
+        #-----------------------------------------------------------------------
+
+        self.amber_path = inp_file['remd.input'].get('amber_path')
+        if self.amber_path == None:
+            self.logger.info("Using default Amber path for: {0}".format(rconfig['target'].get('resource')))
+            self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
+            self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
+        if self.amber_path == None:
+            self.logger.info("Amber (sander) path can't be found, looking for sander.MPI")
+            if self.amber_path_mpi == None:
+                self.logger.info("Amber (sander.MPI) path can't be found, exiting...")
+            sys.exit(1)
+
+        self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
  
         self.shared_urls = []
         self.shared_files = []

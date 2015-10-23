@@ -42,93 +42,81 @@ class KernelPatternSus(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.resource = rconfig['target']['resource']
-        self.inp_basename = inp_file['remd.input']['input_file_basename']
-        self.input_folder = inp_file['remd.input']['input_folder']
-        self.replicas = int(inp_file['remd.input']['number_of_replicas'])
-        self.cores = int(rconfig['target']['cores'])
-        self.us_template = inp_file['remd.input']['us_template']                           
-        self.init_temperature = float(inp_file['remd.input']['init_temperature'])
-        self.cycle_steps = int(inp_file['remd.input']['steps_per_cycle'])
-        self.work_dir_local = work_dir_local
-        
-        try:
-            self.nr_cycles = int(inp_file['remd.input']['number_of_cycles'])
-        except:
-            self.nr_cycles = None
+        self.name = 'ak-us-patternB'
+        self.ex_name = 'umbrella_sampling'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
 
-        if 'replica_mpi' in inp_file['remd.input']:
-            mpi = inp_file['remd.input']['replica_mpi']
-            if mpi == "True":
-                self.replica_mpi = True
-            else:
-                self.replica_mpi = False
+        self.resource         = rconfig['target'].get('resource')
+        self.inp_basename     = inp_file['remd.input'].get('input_file_basename')
+        self.input_folder     = inp_file['remd.input'].get('input_folder')
+        self.us_template      = inp_file['remd.input'].get('us_template') 
+        self.amber_parameters = inp_file['remd.input'].get('amber_parameters')
+        self.amber_input      = inp_file['remd.input'].get('amber_input')
+        self.work_dir_local   = work_dir_local
+        self.current_cycle    = -1
+
+        self.cores        = int(rconfig['target'].get('cores', '1'))
+        self.replicas     = int(inp_file['remd.input'].get('number_of_replicas'))
+        self.cycle_steps  = int(inp_file['remd.input'].get('steps_per_cycle'))
+        self.nr_cycles    = int(inp_file['remd.input'].get('number_of_cycles','1'))
+        self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
+
+        self.init_temperature = float(inp_file['remd.input'].get('init_temperature'))
+        self.us_start_param   = float(inp_file['remd.input'].get('us_start_param'))
+        self.us_end_param     = float(inp_file['remd.input'].get('us_end_param'))
+
+        #-----------------------------------------------------------------------
+
+        if inp_file['remd.input'].get('replica_mpi') == "True":
+            self.replica_mpi = True
         else:
             self.replica_mpi = False
-
-        if 'exchange_mpi' in inp_file['remd.input']:
-            mpi = inp_file['remd.input']['exchange_mpi']
-            if mpi == "True":
-                self.exchange_mpi = True
-            else:
-                self.exchange_mpi = False
+        
+        if inp_file['remd.input'].get('exchange_mpi') == "True":
+            self.exchange_mpi = True
         else:
             self.exchange_mpi = False
-            
-        if 'download_mdinfo' in inp_file['remd.input']:
-            if inp_file['remd.input']['download_mdinfo'] == 'True':
-                self.down_mdinfo = True
-            else:
-                self.down_mdinfo = False
-        else:
+        
+        if inp_file['remd.input'].get('download_mdinfo') == 'True':
             self.down_mdinfo = True
-
-        if 'download_mdout' in inp_file['remd.input']:
-            if inp_file['remd.input']['download_mdout'] == 'True':
-                self.down_mdout = True
-            else:
-                self.down_mdout = False
         else:
+            self.down_mdinfo = False
+     
+        if inp_file['remd.input'].get('download_mdout') == 'True':
             self.down_mdout = True
+        else:
+            self.down_mdout = False
 
-        try:
-            self.replica_cores = inp_file['remd.input']['replica_cores']
-        except:
-            self.replica_cores = 1
+        if inp_file['remd.input'].get('exchange_off') == "True":
+            self.exchange_off = True
+        else:
+            self.exchange_off = False
 
+        #-----------------------------------------------------------------------
+
+        self.amber_path = inp_file['remd.input'].get('amber_path')
+        if self.amber_path == None:
+            self.logger.info("Using default Amber path for: {0}".format(rconfig['target'].get('resource')))
+            self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
+            self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
+        if self.amber_path == None:
+            self.logger.info("Amber (sander) path can't be found, looking for sander.MPI")
+            if self.amber_path_mpi == None:
+                self.logger.info("Amber (sander.MPI) path can't be found, exiting...")
+            sys.exit(1)
+
+        self.amber_coordinates_path = inp_file['remd.input']['amber_coordinates_folder']
+        
+        if inp_file['remd.input'].get('same_coordinates') == "True":
+            self.same_coordinates = True
+        else:
+            self.same_coordinates = False
+       
         self.restraints_files = []
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
 
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
-        try:
-            self.amber_path = inp_file['remd.input']['amber_path']
-        except:
-            print "Using default Amber path for %s" % rconfig['target']['resource']
-            try:
-                self.amber_path = KERNELS[self.resource]["kernels"]["amber"]["executable"]
-            except:
-                print "Amber path for localhost is not defined..."
-
-        self.amber_coordinates_path = inp_file['remd.input']['amber_coordinates_folder']
-        if 'same_coordinates' in inp_file['remd.input']:
-            coors = inp_file['remd.input']['same_coordinates']
-            if coors == "True":
-                self.same_coordinates = True
-            else:
-                self.same_coordinates = False
-        else:
-            self.same_coordinates = True
-
-        self.amber_parameters = inp_file['remd.input']['amber_parameters']
-        self.amber_input = inp_file['remd.input']['amber_input']
-        self.input_folder = inp_file['remd.input']['input_folder']
-        self.us_start_param = float(inp_file['remd.input']['us_start_param'])
-        self.us_end_param = float(inp_file['remd.input']['us_end_param'])
-        self.current_cycle = -1
-        self.name = 'ak-us-patternB'
-        self.ex_name = 'umbrella_sampling'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
 
         self.shared_urls = []
         self.shared_files = []

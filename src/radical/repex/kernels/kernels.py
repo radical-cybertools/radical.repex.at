@@ -2,29 +2,7 @@
 """
 
 KERNELS = {
-    "xsede.stampede.wf":
-    {
-        "params":
-        {
-            "cores": 16,
-        },
-        "kernels":
-        {
-            "amber": {
-                "environment" : {},
-                "pre_execution" : ["module restore", "module load amber", "module load python"],
-                "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander",
-                "executable_mpi" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI"
-
-            },
-            "namd": {
-                "environment" : {},
-                "pre_execution" : ["module load TACC", "module load namd/2.9"],
-                "executable" : "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2"
-            }
-        },
-        "shell": "bash"
-    },"xsede.stampede":
+    "xsede.stampede":
     {
         "params":
         {
@@ -93,8 +71,8 @@ KERNELS = {
         {
             "amber": {
                 "pre_execution" : [],
-                "executable" : "/home/antons/amber/amber14/bin/sander",
-                "executable_mpi" : "/home/antons/amber/amber14/bin/sander"
+                "executable" : None,
+                "executable_mpi" : None
             }
         },
         "shell": "bash"

@@ -65,6 +65,8 @@ In addition are provided the following **optional** parameters:
 
  - ``mongo_url`` - url to your own Mongo DB instance
 
+ - ``access_schema`` - RP access schema
+
 Example resource configuration file for Stampede supercomputer might look like this:
 
 .. parsed-literal::
