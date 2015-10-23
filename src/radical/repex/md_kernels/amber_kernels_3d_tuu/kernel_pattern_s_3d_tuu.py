@@ -59,10 +59,6 @@ class KernelPatternS3dTUU(object):
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
 
-        self.init_temperature = float(inp_file['remd.input'].get('init_temperature'))
-        self.us_start_param   = float(inp_file['remd.input'].get('us_start_param'))
-        self.us_end_param     = float(inp_file['remd.input'].get('us_end_param'))
-
         #-----------------------------------------------------------------------
     
         self.amber_coordinates_path = inp_file['remd.input'].get('amber_coordinates_folder')
@@ -109,6 +105,7 @@ class KernelPatternS3dTUU(object):
         self.restraints_files = []
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
+
  
         self.us_start_param_d1 = float(inp_file['dim.input']\
                                  ['umbrella_sampling_1'].get('us_start_param'))
@@ -213,28 +210,19 @@ class KernelPatternS3dTUU(object):
                     #-----------------------------------------------------------
                     if self.same_coordinates == False:
                         coor_file = self.coor_basename + "." + str(i) + "." + str(k)
-                        r = Replica3d(rid, \
-                                      new_temperature=t1, \
-                                      new_restraints=r1, \
-                                      rstr_val_1=float(rstr_val_1), \
-                                      rstr_val_2=float(rstr_val_2),  \
-                                      cores=1, \
-                                      coor=coor_file, \
-                                      indx1=i, \
-                                      indx2=k)
-                        replicas.append(r)                        
                     else:
                         coor_file = self.coor_basename + ".0.0"
-                        r = Replica3d(rid, \
-                                      new_temperature=t1, \
-                                      new_restraints=r1, \
-                                      rstr_val_1=float(rstr_val_1), \
-                                      rstr_val_2=float(rstr_val_2),  \
-                                      cores=1, \
-                                      coor=coor_file, \
-                                      indx1=i, \
-                                      indx2=k)
-                        replicas.append(r)
+                    r = Replica3d(rid, \
+                                  new_temperature=t1, \
+                                  new_restraints=r1, \
+                                  rstr_val_1=float(rstr_val_1), \
+                                  rstr_val_2=float(rstr_val_2),  \
+                                  cores=1, \
+                                  coor=coor_file, \
+                                  indx1=i, \
+                                  indx2=k)
+                    replicas.append(r)                        
+                  
         return replicas
 
     #---------------------------------------------------------------------------
@@ -242,8 +230,6 @@ class KernelPatternS3dTUU(object):
     def prepare_shared_data(self, replicas):
 
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
-
-        #-----------------------------------------------------------------------
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
@@ -272,7 +258,8 @@ class KernelPatternS3dTUU(object):
 
         if self.same_coordinates == False:
             for repl in replicas:
-                self.shared_files.append(repl.coor_file)
+                if repl.coor_file not in self.shared_files:
+                    self.shared_files.append(repl.coor_file)
         else:
             self.shared_files.append(replicas[0].coor_file)
 
@@ -302,8 +289,9 @@ class KernelPatternS3dTUU(object):
         if self.same_coordinates == False:
             for repl in replicas:
                 cf_path = join(coor_path,repl.coor_file)
-                coor_url = 'file://%s' % (cf_path)
-                self.shared_urls.append(coor_url)
+                if cf_path not in self.shared_urls:
+                    coor_url = 'file://%s' % (cf_path)
+                    self.shared_urls.append(coor_url)
         else:
             cf_path = join(coor_path,replicas[0].coor_file)
             coor_url = 'file://%s' % (cf_path)
@@ -503,11 +491,6 @@ class KernelPatternS3dTUU(object):
             #-------------------------------------------------------------------            
             # replica coor
             repl_coor = replica.coor_file
-
-            #while (repl_coor not in self.shared_files):
-                #repl_coor = self.c_prefix + "_" + str(replica.indx1-1) + "." + self.c_infix + "_" + str(replica.indx2-1) + "." + self.postfix
-                #repl_coor = replica.coor_file
- 
             # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 
             stage_in.append(sd_shared_list[c_index])

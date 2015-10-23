@@ -150,7 +150,7 @@ class KernelPatternSus(object):
             rstr_val_1 = str(starting_value)
 
             if self.same_coordinates == False:
-                coor_file = self.coor_basename + ".0." + str(k)
+                coor_file = self.coor_basename + "." + str(k) + ".0"
                 r = Replica1d(k, new_restraints=self.restraints_files[k], \
                              rstr_val_1=float(rstr_val_1), \
                              coor=coor_file, \
@@ -160,7 +160,7 @@ class KernelPatternSus(object):
                 coor_file = self.coor_basename + ".0.0"
                 r = Replica1d(k, new_restraints=self.restraints_files[k], \
                                  rstr_val_1=float(rstr_val_1), \
-                                 coor=coor_file)
+                                 coor=coor_file, cores=1)
 
             replicas.append(r)
             

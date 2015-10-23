@@ -16,6 +16,8 @@ import random
 import shutil
 import datetime
 from os import path
+from os import listdir
+from os.path import isfile, join
 import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
@@ -59,12 +61,6 @@ class KernelPatternS3dTSU(object):
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
 
-        self.init_temperature = float(inp_file['remd.input'].get('init_temperature'))
-        self.us_start_param   = float(inp_file['remd.input'].get('us_start_param'))
-        self.us_end_param     = float(inp_file['remd.input'].get('us_end_param'))
-
-        self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3
-
         #-----------------------------------------------------------------------
 
         self.amber_coordinates_path = inp_file['remd.input'].get('amber_coordinates_folder')
@@ -107,6 +103,8 @@ class KernelPatternS3dTSU(object):
         self.replicas_d3 = int(inp_file['dim.input']\
                            ['umbrella_sampling_3'].get("number_of_replicas"))
 
+        self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3
+
         self.min_temp = float(inp_file['dim.input']\
                         ['temperature_1'].get('min_temperature'))
         self.max_temp = float(inp_file['dim.input']\
@@ -124,6 +122,11 @@ class KernelPatternS3dTSU(object):
 
         self.salt_ex_cores = int(inp_file['dim.input']\
                              ['salt_concentration_2'].get('exchange_replica_cores'))
+
+        if self.salt_ex_cores == None or self.salt_ex_cores < self.replicas_d2:
+            self.logger.info("Number of cores for Exchange Step in Salt Concentration dimension \"exchange_replica_cores\" must be == or > nr_replicas!")
+            sys.exit(1)
+
 
         self.restraints_files = []
         for k in range(self.replicas):
@@ -178,6 +181,13 @@ class KernelPatternS3dTSU(object):
         """Initializes replicas and their attributes to default values
         """
 
+        #-----------------------------------------------------------------------
+        # parse coor file
+        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
+        coor_list  = listdir(coor_path)
+        base = coor_list[0]
+        self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
+
         replicas = []
 
         d1_params = []
@@ -208,9 +218,18 @@ class KernelPatternS3dTSU(object):
                     starting_value = self.us_start_param + k*spacing
                     rstr_val_1 = str(starting_value+spacing)
 
-                    #print "rid: %d temp: %f salt: %f us: %f " % (rid, t1, float(s1), float(rstr_val_1))
+                    if self.same_coordinates == False:
+                        coor_file = self.coor_basename + "." + str(k) + ".0"
+                    else:
+                        coor_file = self.coor_basename + ".0.0"
 
-                    r = Replica3d(rid, new_temperature=t1, new_salt=s1, new_restraints=r1, rstr_val_1=float(rstr_val_1), cores=1)
+                    r = Replica3d(rid, \
+                                  new_temperature=t1, \
+                                  new_salt=s1, \
+                                  new_restraints=r1, \
+                                  rstr_val_1=float(rstr_val_1), \
+                                  coor=coor_file, \
+                                  cores=1)
                     replicas.append(r)
 
         return replicas
@@ -218,8 +237,8 @@ class KernelPatternS3dTSU(object):
     #
     def prepare_shared_data(self, replicas):
 
+        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
-        coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
         calc_temp = os.path.dirname(amber_kernels_3d_tsu.matrix_calculator_temp_ex.__file__)
@@ -245,7 +264,6 @@ class KernelPatternS3dTSU(object):
         #-----------------------------------------------------------------------
 
         self.shared_files.append(self.amber_parameters)
-        self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("matrix_calculator_temp_ex.py")
         self.shared_files.append("matrix_calculator_us_ex.py")
@@ -255,13 +273,17 @@ class KernelPatternS3dTSU(object):
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
 
+        if self.same_coordinates == False:
+            for repl in replicas:
+                if repl.coor_file not in self.shared_files:
+                    self.shared_files.append(repl.coor_file)
+        else:
+            self.shared_files.append(replicas[0].coor_file)
+
         #-----------------------------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
-
-        coor_url = 'file://%s' % (coor_path)
-        self.shared_urls.append(coor_url)
 
         inp_url = 'file://%s' % (inp_path)
         self.shared_urls.append(inp_url)
@@ -286,6 +308,17 @@ class KernelPatternS3dTSU(object):
 
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
+
+        if self.same_coordinates == False:
+            for repl in replicas:
+                cf_path = join(coor_path,repl.coor_file)
+                if cf_path not in self.shared_urls:
+                    coor_url = 'file://%s' % (cf_path)
+                    self.shared_urls.append(coor_url)
+        else:
+            cf_path = join(coor_path,replicas[0].coor_file)
+            coor_url = 'file://%s' % (cf_path)
+            self.shared_urls.append(coor_url)
  
     #---------------------------------------------------------------------------
     #
@@ -313,7 +346,6 @@ class KernelPatternS3dTSU(object):
 
         #-----------------------------------------------------------------------
       
-        crds = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
 
@@ -486,7 +518,7 @@ class KernelPatternS3dTSU(object):
             argument_str = " -O " + " -i " + new_input_file + \
                            " -o " + output_file + \
                            " -p " +  self.amber_parameters + \
-                           " -c " + self.amber_coordinates + \
+                           " -c " + replica.coor_file + \
                            " -r " + new_coor + \
                            " -x " + new_traj + \
                            " -inf " + new_info  
@@ -500,21 +532,27 @@ class KernelPatternS3dTSU(object):
             stage_out.append(restraints_out_st)
 
             #-------------------------------------------------------------------
-            # files needed to be staged in replica dir (params, coors, amber_input)
-            for i in range(3):
+            # files needed to be staged in replica dir (params, amber_input)
+            for i in range(2):
                 stage_in.append(sd_shared_list[i])
 
             # input_file_builder.py
-            stage_in.append(sd_shared_list[7])
+            stage_in.append(sd_shared_list[6])
 
             # restraint template file: ace_ala_nme_us.RST
-            stage_in.append(sd_shared_list[9])
+            stage_in.append(sd_shared_list[8])
+
+            # replica coor
+            repl_coor = replica.coor_file
+            # index of replica_coor
+            c_index = self.shared_files.index(repl_coor) 
+            stage_in.append(sd_shared_list[c_index])
 
             #-------------------------------------------------------------------
             # temperature exchange
             if dimension == 1:
                 # copying matrix_calculator_temp_ex.py from staging area to cu folder
-                stage_in.append(sd_shared_list[3])
+                stage_in.append(sd_shared_list[2])
                 
                 cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
                 cu.pre_exec = self.pre_exec
@@ -540,10 +578,10 @@ class KernelPatternS3dTSU(object):
             stage_in.append(sd_shared_list[0])
 
             # base input file ala10_us.mdin
-            stage_in.append(sd_shared_list[2])
+            stage_in.append(sd_shared_list[1])
 
             # input_file_builder.py
-            stage_in.append(sd_shared_list[7])
+            stage_in.append(sd_shared_list[6])
             #-------------------------------------------------------------------
             # restraint file
             restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
@@ -561,7 +599,7 @@ class KernelPatternS3dTSU(object):
             if dimension == 1:
                 #---------------------------------------------------------------
                 # matrix_calculator_temp_ex.py file
-                stage_in.append(sd_shared_list[3])
+                stage_in.append(sd_shared_list[2])
                
                 cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
                 cu.pre_exec = self.pre_exec
@@ -573,7 +611,7 @@ class KernelPatternS3dTSU(object):
                 # salt concentration
 
                 # copying amber_input from staging area to cu folder
-                stage_in.append(sd_shared_list[2])
+                stage_in.append(sd_shared_list[1])
                       
                 cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
                 cu.cores = self.replica_cores
@@ -585,7 +623,7 @@ class KernelPatternS3dTSU(object):
                 # us exchange
 
                 # copying calculator from staging area to cu folder
-                stage_in.append(sd_shared_list[4])                
+                stage_in.append(sd_shared_list[3])                
                 
                 cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us] 
                 cu.pre_exec = self.pre_exec
@@ -654,9 +692,9 @@ class KernelPatternS3dTSU(object):
             rid = replica.id
             in_list = []
             in_list.append(sd_shared_list[0])
-            in_list.append(sd_shared_list[2])
+            in_list.append(sd_shared_list[1])
+            in_list.append(sd_shared_list[4])
             in_list.append(sd_shared_list[5])
-            in_list.append(sd_shared_list[6])
 
             # copying .RST files from staging area to replica folder
             rst_group = []
