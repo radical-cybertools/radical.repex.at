@@ -943,7 +943,7 @@ class KernelPatternS3dTSU(object):
             cycle = replicas[0].cycle
         
         # global_ex_calculator.py file
-        stage_in.append(sd_shared_list[8])
+        stage_in.append(sd_shared_list[7])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=cycle)
         stage_out.append(outfile)
