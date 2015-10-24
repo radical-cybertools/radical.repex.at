@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
     new_coor_file = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
-    new_coor = path_to_replica_folder + "/" + new_coor_file
+    new_coor = path_to_replica_folder + new_coor_file
 
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
