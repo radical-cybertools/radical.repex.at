@@ -14,6 +14,7 @@ import math
 import json
 import random
 import shutil
+import tarfile
 import datetime
 from os import path
 import radical.pilot
@@ -140,6 +141,7 @@ class KernelPatternS3dTUU(object):
 
         self.shared_urls = []
         self.shared_files = []
+        self.shared_archives = []
 
         self.all_temp_list = []
         self.all_rstr_list_d1 = []
@@ -287,11 +289,10 @@ class KernelPatternS3dTUU(object):
         self.shared_urls.append(rstr_template_url)
 
         if self.same_coordinates == False:
-            for repl in replicas:
-                cf_path = join(coor_path,repl.coor_file)
-                if cf_path not in self.shared_urls:
-                    coor_url = 'file://%s' % (cf_path)
-                    self.shared_urls.append(coor_url)
+            for idx in range(7,len(self.shared_files)):
+                cf_path = join(coor_path,self.shared_files[idx])
+                coor_url = 'file://%s' % (cf_path)
+                self.shared_urls.append(coor_url)
         else:
             cf_path = join(coor_path,replicas[0].coor_file)
             coor_url = 'file://%s' % (cf_path)

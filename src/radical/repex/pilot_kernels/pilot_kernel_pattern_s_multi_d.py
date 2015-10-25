@@ -80,12 +80,10 @@ class PilotKernelPatternSmultiD(PilotKernel):
         shared_input_files = md_kernel.shared_files
 
         for i in range(len(shared_input_files)):
-
             sd_pilot = {'source': shared_input_file_urls[i],
                         'target': 'staging:///%s' % shared_input_files[i],
                         'action': radical.pilot.TRANSFER
             }
-
             pilot_object.stage_in(sd_pilot)
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],

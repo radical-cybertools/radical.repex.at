@@ -127,7 +127,6 @@ class KernelPatternS3dTSU(object):
             self.logger.info("Number of cores for Exchange Step in Salt Concentration dimension \"exchange_replica_cores\" must be == or > nr_replicas!")
             sys.exit(1)
 
-
         self.restraints_files = []
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
@@ -310,11 +309,10 @@ class KernelPatternS3dTSU(object):
         self.shared_urls.append(rstr_template_url)
 
         if self.same_coordinates == False:
-            for repl in replicas:
-                cf_path = join(coor_path,repl.coor_file)
-                if cf_path not in self.shared_urls:
-                    coor_url = 'file://%s' % (cf_path)
-                    self.shared_urls.append(coor_url)
+            for idx in range(9,len(self.shared_files)):
+                cf_path = join(coor_path,self.shared_files[idx])
+                coor_url = 'file://%s' % (cf_path)
+                self.shared_urls.append(coor_url)
         else:
             cf_path = join(coor_path,replicas[0].coor_file)
             coor_url = 'file://%s' % (cf_path)
@@ -323,8 +321,6 @@ class KernelPatternS3dTSU(object):
     #---------------------------------------------------------------------------
     #
     def prepare_replica_for_md(self, dimension, replicas, replica, sd_shared_list):
-        """
-        """
 
         basename = self.inp_basename
 
@@ -643,8 +639,7 @@ class KernelPatternS3dTSU(object):
     #---------------------------------------------------------------------------
     #
     def prepare_replica_for_exchange(self, dimension, replicas, replica, sd_shared_list):
-        """
-        """
+
         # name of the file which contains swap matrix column data for each replica
         basename = self.inp_basename
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
@@ -770,8 +765,6 @@ class KernelPatternS3dTSU(object):
     #---------------------------------------------------------------------------
     #
     def do_exchange(self, current_cycle, dimension, replicas):
-        """tuu
-        """
 
         r1 = None
         r2 = None
@@ -817,9 +810,6 @@ class KernelPatternS3dTSU(object):
     #---------------------------------------------------------------------------
     #
     def init_matrices(self, replicas):
-        """
-        change...
-        """
 
         # id_matrix
         for r in replicas:
@@ -886,8 +876,6 @@ class KernelPatternS3dTSU(object):
     #---------------------------------------------------------------------------
     #
     def get_current_group(self, dimension, replicas, replica):
-        """
-        """
 
         current_group = []
 
@@ -958,3 +946,28 @@ class KernelPatternS3dTSU(object):
         cu.output_staging = stage_out
 
         return cu
+
+    #---------------------------------------------------------------------------
+    #
+    def get_all_groups(self, dimension, replicas):
+
+        all_groups = []
+        
+        for r1 in replicas:
+            get = True
+            for group in all_groups:
+                if r1 in group:
+                    get = False
+                    break
+
+            if (get == True):
+                cur_group = self.get_current_group(dimension, replicas, r1)
+                if len(cur_group) > 0:
+                    all_groups.append(cur_group)   
+
+        #for group in all_groups:
+        #    for r in group:
+        #        print r.id
+        #    print "..."
+
+        return all_groups

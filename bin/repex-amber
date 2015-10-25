@@ -16,7 +16,6 @@ from amber_kernels_salt.kernel_pattern_s_salt     import KernelPatternSsalt
 from amber_kernels_3d_tsu.kernel_pattern_s_3d_tsu import KernelPatternS3dTSU
 from amber_kernels_3d_tuu.kernel_pattern_s_3d_tuu import KernelPatternS3dTUU
 
-
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
