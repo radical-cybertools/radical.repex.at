@@ -1,0 +1,9 @@
+{
+    "target": {
+        "resource": "local.localhost",
+        "username" : "antons",
+        "runtime" : "30",
+        "cleanup" : "False",
+        "cores" : "2"
+    }
+}

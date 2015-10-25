@@ -1,0 +1,11 @@
+{
+    "target": {
+        "resource": "xsede.stampede",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
+        "queue" : "development",
+        "runtime" : "30",
+        "cleanup" : "False",
+        "cores" : "16"
+    }
+}

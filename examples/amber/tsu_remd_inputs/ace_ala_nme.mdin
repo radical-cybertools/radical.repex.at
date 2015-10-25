@@ -1,0 +1,18 @@
+ alanine dipeptide
+ &cntrl
+  saltcon = @salt@,
+  irest = @irest@, ntx = @ntx@,
+  nstlim = @nstlim@, dt = 0.001,
+  ntt = 3, gamma_ln = 5.0,
+  temp0 = @temp@, ig = -1,
+  ntc = 2, ntf = 2, tol = 1e-08,
+  ntb = 0,
+  cut = 999.0, rgbmax = 999.0, nmropt = 1,
+  ntpr = 1000, ntwx = 1000, ntwr = -1000,
+ /
+ &wt 
+   type='END' 
+ /
+DISANG=@disang@
+DUMPAVE=@disang@.out 
+
