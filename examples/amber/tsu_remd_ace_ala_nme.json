@@ -19,18 +19,18 @@
         },
     "dim.input": {
         "temperature_1": {
-            "number_of_replicas": "2",
+            "number_of_replicas": "4",
             "min_temperature": "300",
             "max_temperature": "600"
             },
         "salt_concentration_2": {
-            "number_of_replicas": "2",
-            "exchange_replica_cores" : "2",
+            "number_of_replicas": "4",
+            "exchange_replica_cores" : "4",
             "min_salt": "0.0",
             "max_salt": "1.0"
             },
         "umbrella_sampling_3": {
-            "number_of_replicas": "2",
+            "number_of_replicas": "4",
             "us_start_param": "0",
             "us_end_param": "360"
             }    

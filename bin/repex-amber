@@ -7,8 +7,9 @@ from os import path
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
-from pilot_kernels.pilot_kernel_pattern_s         import PilotKernelPatternS
-from pilot_kernels.pilot_kernel_pattern_s_multi_d import PilotKernelPatternSmultiD
+from pilot_kernels.pilot_kernel_pattern_s            import PilotKernelPatternS
+from pilot_kernels.pilot_kernel_pattern_s_multi_d    import PilotKernelPatternSmultiD
+from pilot_kernels.pilot_kernel_pattern_s_multi_d_sc import PilotKernelPatternSmultiDsc
 
 from amber_kernels_tex.kernel_pattern_s_tex       import KernelPatternStex
 from amber_kernels_us.kernel_pattern_s_us         import KernelPatternSus
@@ -151,7 +152,7 @@ if __name__ == '__main__':
         
 		# initializing kernels
 		md_kernel = KernelPatternS3dTSU( inp_file, rconfig, work_dir_local )
-		pilot_kernel = PilotKernelPatternSmultiD( inp_file, rconfig )
+		pilot_kernel = PilotKernelPatternSmultiDsc( inp_file, rconfig )
 
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()

@@ -97,10 +97,7 @@ if __name__ == '__main__':
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
     r_old_path = data["r_old_path"]
-
     pwd = os.getcwd()
-
-    #---------------------------------------------------------------------------
 
     temperatures = [0.0]*replicas  
     energies = [0.0]*replicas
@@ -115,7 +112,6 @@ if __name__ == '__main__':
         except:
              raise
 
-    # init swap column
     swap_column = [0.0]*replicas
 
     #for j in range(replicas):
