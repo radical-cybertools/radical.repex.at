@@ -399,7 +399,7 @@ class KernelPatternS3dTSU(object):
             }
         stage_out.append(info_out)
 
-        current_group = self.get_current_group(dimension, replicas, replica)
+        current_group = self.get_current_group_ids(dimension, replicas, replica)
         #-----------------------------------------------------------------------
         # json for input_file_builder.py
         data = {
@@ -644,10 +644,7 @@ class KernelPatternS3dTSU(object):
         basename = self.inp_basename
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
 
-        current_group = self.get_current_group(dimension, replicas, replica)
-
-        #print "current group for replica: {0}".format(replica.id)
-        #print current_group
+        current_group = self.get_current_group_ids(dimension, replicas, replica)
 
         cu = radical.pilot.ComputeUnitDescription()
         
@@ -875,7 +872,7 @@ class KernelPatternS3dTSU(object):
 
     #---------------------------------------------------------------------------
     #
-    def get_current_group(self, dimension, replicas, replica):
+    def get_current_group_ids(self, dimension, replicas, replica):
 
         current_group = []
 
@@ -971,3 +968,39 @@ class KernelPatternS3dTSU(object):
         #    print "..."
 
         return all_groups
+
+    #---------------------------------------------------------------------------
+    #
+    def get_current_group(self, dimension, replicas, replica):
+
+        current_group = []
+        for r1 in replicas:
+            #-------------------------------------------------------------------
+            # temperature exchange
+            if dimension == 1:
+                r1_pair = [r1.new_salt_concentration, r1.rstr_val_1]
+                my_pair = [replica.new_salt_concentration, replica.rstr_val_1]
+                  
+                if r1_pair == my_pair:
+                    current_group.append(r1)
+            #-------------------------------------------------------------------
+            # salt concentration exchange
+            elif dimension == 2:
+                r1_pair = [r1.new_temperature, r1.rstr_val_1]
+                my_pair = [replica.new_temperature, replica.rstr_val_1]
+
+                if r1_pair == my_pair:
+                    current_group.append(r1)
+            #-------------------------------------------------------------------
+            # us exchange 
+            elif dimension == 3:
+                r1_pair = [r1.new_temperature, r1.new_salt_concentration]
+                my_pair = [replica.new_temperature, \
+                           replica.new_salt_concentration]
+
+                if r1_pair == my_pair:
+                    current_group.append(r1)
+     
+        return current_group
+
+        

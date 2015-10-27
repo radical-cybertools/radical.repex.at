@@ -141,7 +141,6 @@ class KernelPatternS3dTUU(object):
 
         self.shared_urls = []
         self.shared_files = []
-        self.shared_archives = []
 
         self.all_temp_list = []
         self.all_rstr_list_d1 = []
