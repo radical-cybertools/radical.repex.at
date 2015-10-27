@@ -14,11 +14,13 @@ import math
 import json
 import random
 import shutil
+import operator
 import datetime
 from os import path
 import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
+from replicas.replica import Replica1d
 import amber_kernels_salt.input_file_builder
 import amber_kernels_salt.salt_conc_pre_exec
 import amber_kernels_salt.salt_conc_post_exec
@@ -37,6 +39,10 @@ class KernelPatternSsalt(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
+        self.name = 'ak-patternB-sc'
+        self.ex_name = 'salt-concentration'
+        self.logger  = rul.getLogger ('radical.repex', self.name)
+
         self.resource          = rconfig['target'].get('resource')
         self.inp_basename      = inp_file['remd.input'].get('input_file_basename')
         self.input_folder      = inp_file['remd.input'].get('input_folder')
@@ -52,6 +58,7 @@ class KernelPatternSsalt(object):
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
+        self.nr_ex_neighbors = int(inp_file['remd.input'].get('nr_exchange_neighbors', '1'))
 
         self.min_salt         = float(inp_file['remd.input'].get('min_salt'))
         self.max_salt         = float(inp_file['remd.input'].get('max_salt'))
@@ -95,9 +102,7 @@ class KernelPatternSsalt(object):
         self.shared_urls = []
         self.shared_files = []
 
-        self.name = 'ak-patternB-sc'
-        self.ex_name = 'salt-concentration'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
+        self.salt_dict = {}
 
     #---------------------------------------------------------------------------
     #
@@ -167,6 +172,7 @@ class KernelPatternSsalt(object):
             new_salt = (self.max_salt-self.min_salt)/(N-1)*k + self.min_salt
             r = Replica1d(k, new_salt_concentration=new_salt)
             replicas.append(r)
+            self.salt_dict[r.id] = r.new_salt_concentration
             
         return replicas
 
@@ -286,8 +292,6 @@ class KernelPatternSsalt(object):
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
             cu.executable = '/bin/bash'          
 
-        print self.replica_mpi
-
         if replica.cycle == 1:       
             
             amber_str = self.amber_path
@@ -363,9 +367,28 @@ class KernelPatternSsalt(object):
         basename = self.inp_basename
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
 
-        all_salts = {}
-        for r in replicas:
-            all_salts[str(r.id)] = str(r.new_salt_concentration)
+        salts_sorted = sorted(self.salt_dict.items(), key=operator.itemgetter(1))
+
+        count = 0
+        for item in salts_sorted:
+            if item[0] == replica.id:
+                idx = count
+            else:
+                count += 1
+
+        group_salts = {}
+        rid  = salts_sorted[idx][0]
+        salt = salts_sorted[idx][1]
+        group_salts[str(rid)] = str(salt)
+        for i in range(self.nr_ex_neighbors):
+            if (idx+i+1) < len(replicas):
+                rid  = salts_sorted[idx+i+1][0]
+                salt = salts_sorted[idx+i+1][1]
+                group_salts[str(rid)] = str(salt)
+            if (idx-i-1) >= 0:
+                rid  = salts_sorted[idx-i-1][0]
+                salt = salts_sorted[idx-i-1][1]
+                group_salts[str(rid)] = str(salt)
 
         cu = radical.pilot.ComputeUnitDescription()
         
@@ -378,7 +401,7 @@ class KernelPatternSsalt(object):
             "init_salt" : str(replica.new_salt_concentration),
             "amber_path" : str(self.amber_path),
             "amber_input" : str(self.amber_input),
-            "all_salts" : all_salts, 
+            "all_salts" : group_salts, 
             "amber_parameters": str(self.amber_parameters), 
             "r_old_path": str(replica.old_path),
         }
@@ -409,8 +432,8 @@ class KernelPatternSsalt(object):
         }
         out_list.append(matrix_col_out)
 
-        cu.arguments = ['-ng', str(self.replicas), '-groupfile', 'groupfile']
-        cu.cores = self.replicas
+        cu.arguments = ['-ng', str(len(group_salts)), '-groupfile', 'groupfile']
+        cu.cores = len(group_salts)
         cu.mpi = True
         cu.output_staging = out_list   
 
@@ -456,12 +479,17 @@ class KernelPatternSsalt(object):
         """
 
         # swap temperatures
-        temp = replica_j.new_salt_concentration
-        replica_j.new_salt_concentration = replica_i.new_salt_concentration
-        replica_i.new_salt_concentration = temp
+        temp_j = replica_j.new_salt_concentration
+        temp_i = replica_i.new_salt_concentration
+
+        replica_j.new_salt_concentration = temp_i
+        replica_i.new_salt_concentration = temp_j
         # record that swap was performed
         replica_i.swap = 1
         replica_j.swap = 1
+
+        self.salt_dict[replica_j.id] = temp_i
+        self.salt_dict[replica_i.id] = temp_j
 
     #---------------------------------------------------------------------------
     #
