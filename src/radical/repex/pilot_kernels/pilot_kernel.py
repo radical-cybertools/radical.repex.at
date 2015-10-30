@@ -111,7 +111,7 @@ class PilotKernel(object):
             pilot_description.cores = self.cores
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
-            
+
             pilot_object = pilot_manager.submit_pilots(pilot_description)
             
             # we wait for the pilot to start running on resource
