@@ -134,7 +134,7 @@ class PilotKernelPatternS(PilotKernel):
             self.logger.info("Submitting {0} replica tasks for execution. cycle {1}".format(md_kernel.replicas, current_cycle) )
             #-------------------------------------------------------------------
             # sequential submission
-            if BULK == 0:
+            if not BULK:
                 cu_prep = 0.0
                 cu_sub = 0.0
                 for replica in replicas:
@@ -153,9 +153,12 @@ class PilotKernelPatternS(PilotKernel):
                         f.write("repex_md_prep_time {0}\n".format(cu_prep))
                         f.write("rp_submit_time {0}\n".format(cu_sub))
               
-                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = cu_prep
-                t1 = datetime.datetime.utcnow()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_prep"] = cu_prep
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_sub"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_sub"] = cu_sub
+                
             #-------------------------------------------------------------------
             # bulk submision
             else:
@@ -171,34 +174,37 @@ class PilotKernelPatternS(PilotKernel):
 
                 if do_profile == '1':
                     with open(outfile, 'a') as f:
-                        value =  (t_2-t_1).total_seconds()
-                        f.write("repex_md_prep_time {0}\n".format(value))
+                        cu_prep = (t_2-t_1).total_seconds()
+                        f.write("repex_md_prep_time {0}\n".format(cu_prep))
 
                         t_1 = datetime.datetime.utcnow()
                         simulation_replicas = unit_manager.submit_units(c_replicas)
                         t_2 = datetime.datetime.utcnow()
                         cu_sub = (t_2-t_1).total_seconds()
-                        f.write("rp_submit_time {0}\n".format(value))
+                        f.write("rp_submit_time {0}\n".format(cu_sub))
                 else:
                     simulation_replicas = unit_manager.submit_units(c_replicas)
 
-                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("md_prep")] = (t_2-t_1).total_seconds()
-                t1 = datetime.datetime.utcnow()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_prep"] = cu_prep
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_sub"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_sub"] = cu_sub
  
             if (md_kernel.ex_name == 'salt-concentration') or (md_kernel.exchange_mpi == False):
 
+                t1 = datetime.datetime.utcnow()
                 unit_manager.wait_units()
                 t2 = datetime.datetime.utcnow()
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = cu_sub + (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = (t2-t1).total_seconds()
 
                 cu_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = {}
                 for cu in simulation_replicas:
                     cu_performance_data["cycle_{0}".format(current_cycle)]["md_run"]["cu.uid_{0}".format(cu.uid)] = cu
 
-                if BULK == 0:
+                if not BULK:
                     #-----------------------------------------------------------
                     # sequential submission
                     cu_prep = 0.0
@@ -219,8 +225,11 @@ class PilotKernelPatternS(PilotKernel):
                             f.write("repex_ind_ex_prep_time {0}\n".format(cu_prep))
                             f.write("rp_ind_ex_submit_time {0}\n".format(cu_sub))
               
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("ex_prep")] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("ex_prep")] = cu_prep
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep"] = cu_prep
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub"] = cu_sub
                     t1 = datetime.datetime.utcnow()
                 else:
                     #-----------------------------------------------------------
@@ -233,15 +242,11 @@ class PilotKernelPatternS(PilotKernel):
                         ex_replica = md_kernel.prepare_replica_for_exchange(replicas, replica, self.sd_shared_list)
                         e_replicas.append(ex_replica)
                     t_2 = datetime.datetime.utcnow()
-
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep"] = (t_2-t_1).total_seconds()
+                    cu_prep =  (t_2-t_1).total_seconds()
 
                     if do_profile == '1':
                         with open(outfile, 'a') as f:
-                            value =  (t_2-t_1).total_seconds()
-                            f.write("repex_ind_ex_prep_time {0}\n".format(value))
-
+                            f.write("repex_ind_ex_prep_time {0}\n".format(cu_prep))
                             t_1 = datetime.datetime.utcnow()
                             exchange_replicas = unit_manager.submit_units(e_replicas)
                             t_2 = datetime.datetime.utcnow()
@@ -249,6 +254,12 @@ class PilotKernelPatternS(PilotKernel):
                             f.write("rp_ind_ex_submit_time {0}\n".format(cu_sub))
                     else:
                         exchange_replicas = unit_manager.submit_units(e_replicas)
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep"] = cu_prep
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub"] = cu_sub
                     t1 = datetime.datetime.utcnow()
                 #---------------------------------------------------------------
                 
@@ -256,7 +267,7 @@ class PilotKernelPatternS(PilotKernel):
                 t2 = datetime.datetime.utcnow()
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run"] = cu_sub + (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run"] = (t2-t1).total_seconds()
 
                 cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run"] = {}
                 for cu in exchange_replicas:
@@ -277,22 +288,26 @@ class PilotKernelPatternS(PilotKernel):
                     t2 = datetime.datetime.utcnow()
                     cu_sub = (t2-t1).total_seconds()
 
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global"] = cu_sub
+
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = cu_sub + (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = (t2-t1).total_seconds()
 
                     cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = {}
                     cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
 
             else:
+                t1 = datetime.datetime.utcnow()
                 unit_manager.wait_units()
                 t2 = datetime.datetime.utcnow()
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = {}
-                hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = cu_sub + (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = (t2-t1).total_seconds()
 
                 cu_performance_data["cycle_{0}".format(current_cycle)]["md_run"] = {}
                 for cu in simulation_replicas:
@@ -316,12 +331,15 @@ class PilotKernelPatternS(PilotKernel):
                     t2 = datetime.datetime.utcnow()
                     cu_sub = (t2-t1).total_seconds()
 
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global"] = cu_sub
+
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
                     t2 = datetime.datetime.utcnow()
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = cu_sub + (t2-t1).total_seconds()
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = (t2-t1).total_seconds()
 
                     cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"] = {}
                     cu_performance_data["cycle_{0}".format(current_cycle)]["ex_run_global"]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
@@ -339,8 +357,8 @@ class PilotKernelPatternS(PilotKernel):
 
             t2 = datetime.datetime.utcnow()
 
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("post_processing")] = {}
-            hl_performance_data["cycle_{0}".format(current_cycle)]["run_{0}".format("post_processing")] = (t2-t1).total_seconds()
+            hl_performance_data["cycle_{0}".format(current_cycle)]["post_proc"] = {}
+            hl_performance_data["cycle_{0}".format(current_cycle)]["post_proc"] = (t2-t1).total_seconds()
 
             #-------------------------------------------------------------------
 

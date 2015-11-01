@@ -3,7 +3,7 @@
         "re_pattern": "S",
         "exchange": "S-REMD",
         "number_of_cycles": "3",
-        "number_of_replicas": "8",
+        "number_of_replicas": "64",
         "nr_exchange_neighbors": "1",
         "input_folder": "s_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
