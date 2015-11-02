@@ -528,7 +528,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt"] = {}
             for cu in exchange_replicas:
-                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt")]["cu.uid_{0}".format(cu.uid)] = cu
+                cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt"]["cu.uid_{0}".format(cu.uid)] = cu
 
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["global_ex_run"] = {}
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["global_ex_run"]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
