@@ -49,6 +49,7 @@ if __name__ == '__main__':
             username=inp_file['input.PILOT']['username'], 
             project=inp_file['input.PILOT']['project'],
             #queue=inp_file['input.PILOT']['queue'],
+            database_url='mongodb://ec2-54-221-194-147.compute-1.amazonaws.com:24242',
             database_name='repex-tests'
         )
 
@@ -63,9 +64,13 @@ if __name__ == '__main__':
 
         re_pattern.add_replicas(replicas)
 
-        # run RE simulation  
-        cluster.run(re_pattern, 
+        # run RE simulation 
+
+        try: 
+            cluster.run(re_pattern, 
                     force_plugin="replica_exchange.static_pattern_3")
+        except:
+            raise
 
         # this is a quick hack
         base = re_pattern.inp_basename + ".mdin"

@@ -25,7 +25,7 @@ class AmberTex(ReplicaExchange):
     """
     TODO
     """
-    def __init__(self, inp_file,  work_dir_local):
+    def __init__(self, inp_file,  workdir_local):
         """Constructor.
 
         Arguments:
@@ -41,7 +41,7 @@ class AmberTex(ReplicaExchange):
         self.replicas = int(inp_file['input.MD']['number_of_replicas'])
         self.cores = int(inp_file['input.PILOT']['cores'])
         self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
-        self.work_dir_local = work_dir_local
+        self.workdir_local = workdir_local
         self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
        
         try:
@@ -72,15 +72,15 @@ class AmberTex(ReplicaExchange):
     #
     def prepare_shared_data(self):
  
-        parm_path = self.work_dir_local + "/" + self.inp_folder + "/" + \
+        parm_path = self.workdir_local + "/" + self.inp_folder + "/" + \
                     self.amber_parameters
-        coor_path = self.work_dir_local + "/" + self.inp_folder + "/" + \
+        coor_path = self.workdir_local + "/" + self.inp_folder + "/" + \
                     self.amber_coordinates
-        rstr_path = self.work_dir_local + "/" + self.inp_folder + "/" + \
+        rstr_path = self.workdir_local + "/" + self.inp_folder + "/" + \
                     self.amber_restraints
 
         input_template = self.inp_basename[:-5] + ".mdin"
-        input_template_path = self.work_dir_local + "/" + self.inp_folder + "/" + input_template
+        input_template_path = self.workdir_local + "/" + self.inp_folder + "/" + input_template
 
         calc_temp_ex = os.path.dirname(remote_modules.matrix_calculator_temp_ex.__file__)
         calc_temp_ex_path = calc_temp_ex + "/matrix_calculator_temp_ex.py"
@@ -205,11 +205,11 @@ class AmberTex(ReplicaExchange):
         old_coor = replica.old_coor
         old_traj = replica.old_traj
 
-        crds = self.work_dir_local + "/" + \
+        crds = self.workdir_local + "/" + \
                self.inp_folder + "/" + self.amber_coordinates
-        parm = self.work_dir_local + "/" + \
+        parm = self.workdir_local + "/" + \
                self.inp_folder + "/" + self.amber_parameters
-        rstr = self.work_dir_local + "/" + \
+        rstr = self.workdir_local + "/" + \
                self.inp_folder + "/" + self.amber_restraints
 
         data = {
