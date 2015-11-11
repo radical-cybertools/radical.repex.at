@@ -182,11 +182,11 @@ if __name__ == '__main__':
                 r_file.close()
                 tbuffer = tbuffer.split()
 
-                line = 2
                 for word in tbuffer:
-                    if word.startswith("r2=") and line == 2:
+                    if word.startswith("r2="):
                         num_list = word.split('=')
                         rstr_val_1 = float(num_list[1])
+                        break
                     
                 # creating replica
                 r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_salt=replica_dict[rid][3], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1)
