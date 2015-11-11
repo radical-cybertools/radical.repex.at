@@ -18,7 +18,7 @@ NVT equilibration
   temp0 = @temp@,
   ntt = 3,
   gamma_ln=5.0,
-  ioutfm = 1, ig=-1
+  ig=-1,
   nmropt=1
  /
  &wt

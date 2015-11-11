@@ -10,7 +10,7 @@
   ntwr = @nstlim@,
   ntc = 2, ntf = 2, tol = 1e-08, 
   ntt = 3, gamma_ln = 5.0, ig = -1, 
-  ntb = 0, cut = 999.0, rgbmax = 999.0,
+  ntb = 0, cut = 999.0, rgbmax = 999.0, igb = 5,
   nmropt=1
  /
  &wt

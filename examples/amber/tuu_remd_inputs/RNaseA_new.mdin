@@ -4,7 +4,7 @@ qmmm
  irest = @irest@, 
  ntx = @ntx@,
  nstlim = @nstlim@, dt = 0.001,
- ntpr = 100, ntwx = 100, ntwr = 100,
+ ntpr = @nstlim@, ntwx = @nstlim@, ntwr = @nstlim@,
  iwrap = 1,
  ntc = 2, ntf = 2, tol = 1e-8,
  ig = -1,
