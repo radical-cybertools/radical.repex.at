@@ -91,7 +91,7 @@ KERNELS = {
                 "executable_mpi" : "/opt/amber/bin/sander.MPI"
             }
         },
-        "shell": "bourne"
+        "shell": "bash"
     },"ncsa.bw":
     {
         "params":
