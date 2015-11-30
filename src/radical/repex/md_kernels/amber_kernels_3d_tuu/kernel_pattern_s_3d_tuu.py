@@ -457,6 +457,7 @@ class KernelPatternS3dTUU(object):
 
         cu = radical.pilot.ComputeUnitDescription()
 
+        """
         if KERNELS[self.resource]["shell"] == "bash":
             cu.executable = '/bin/bash'
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
@@ -467,10 +468,20 @@ class KernelPatternS3dTUU(object):
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'"
             post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_sh + "\'"
             post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_sh + "\'"
+        """
+
+        #cu.executable = '/bin/bash'
+        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
+        post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_bash + "\'"
+        post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_bash + "\'"
+
 
         if replica.cycle == 1:    
 
-            amber_str = self.amber_path
+            if (self.replica_mpi == True):
+                amber_str = self.amber_path_mpi
+            else:
+                amber_str = self.amber_path
             argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
                            " -p " +  self.amber_parameters + " -c " + replica.coor_file + \
                            " -r " + new_coor + " -x " + new_traj + " -inf " + new_info  
@@ -508,17 +519,24 @@ class KernelPatternS3dTUU(object):
 
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[3])
-  
-                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us] 
-                cu.pre_exec = self.pre_exec
+             
+                #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us] 
+                
+                cu.executable = amber_str + argument_str
+                cu.pre_exec = self.pre_exec + [pre_exec_str]
+                cu.post_exec = [post_exec_str_us]
                 cu.cores = self.replica_cores
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.mpi = self.replica_mpi
 
         else:
+            if (self.replica_mpi == True):
+                amber_str = self.amber_path_mpi
+            else:
+                amber_str = self.amber_path
 
-            amber_str = self.amber_path
+            #old_coor_path = "../staging_area/" + replica_path + old_coor 
             argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
                            " -p " +  self.amber_parameters + " -c " + old_coor + \
                            " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
@@ -541,7 +559,7 @@ class KernelPatternS3dTUU(object):
 
             old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
                            'target': (old_coor),
-                           'action': radical.pilot.LINK
+                           'action': radical.pilot.COPY
             }
             stage_in.append(old_coor_st)
 
@@ -552,8 +570,11 @@ class KernelPatternS3dTUU(object):
                 # matrix_calculator_temp_ex.py file
                 stage_in.append(sd_shared_list[2])
                
-                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp]
-                cu.pre_exec = self.pre_exec
+                #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp]
+                cu.executable = amber_str + argument_str
+                cu.pre_exec = self.pre_exec + [pre_exec_str]
+                cu.post_exec = [post_exec_str_temp]
+
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.cores = self.replica_cores
@@ -572,8 +593,12 @@ class KernelPatternS3dTUU(object):
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[3])                
              
-                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us]
-                cu.pre_exec = self.pre_exec
+                #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us]
+                
+                cu.executable = amber_str + argument_str
+                cu.pre_exec = self.pre_exec + [pre_exec_str]
+                cu.post_exec = [post_exec_str_us]
+
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.cores = self.replica_cores

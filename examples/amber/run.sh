@@ -3,7 +3,7 @@ export RADICAL_PILOT_VERBOSE=info;
 export REPEX_PROFILING=1;
 #unset RADICAL_PILOT_VERBOSE;
 
-repex-amber --input='tuu_remd_ace_ala_nme.json' --rconfig='comet.json'
+nohup repex-amber --input='tuu_remd_ace_ala_nme.json' --rconfig='stamp.json' 2> stampede.216.16.log &
 
 #nohup repex-amber --input='s_remd_ace_ala_nme.json' --rconfig='smic.json' 2> smic_salt_64_6000.log &
 

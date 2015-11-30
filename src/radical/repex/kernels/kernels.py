@@ -14,13 +14,13 @@ KERNELS = {
                 "environment" : {},
                 "pre_execution" : ["module restore", "module load intel/13.0.2.146", "module load amber", "module load python"],
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander",
-                "executable_mpi" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI"
+                "executable_mpi" : "pmemd.MPI"
 
             },
             "namd": {
                 "environment" : {},
-                "pre_execution" : ["module load TACC", "module load namd/2.9"],
-                "executable" : "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2"
+                "pre_execution" : ["module load TACC", "module load namd/2.10"],
+                "executable" : "/opt/apps/intel15/mvapich2_2_1/namd/2.10/bin/namd2"
             }
         },
         "shell": "bash"

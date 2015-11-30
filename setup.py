@@ -133,7 +133,7 @@ setup(
                  'amber_kernels_us': 'src/radical/repex/md_kernels/amber_kernels_us',
                  'amber_kernels_3d_tuu': 'src/radical/repex/md_kernels/amber_kernels_3d_tuu',
                  'amber_kernels_3d_tsu': 'src/radical/repex/md_kernels/amber_kernels_3d_tsu'},
-    scripts=['bin/repex-version', 'bin/repex-amber'],
+    scripts=['bin/repex-version', 'bin/repex-amber', 'bin/repex-namd'],
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Package',
     install_requires=['radical.pilot'],
