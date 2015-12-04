@@ -1,0 +1,11 @@
+{
+    "target": {
+        "resource": "xsede.comet",
+        "username" : "chen1990",
+        "project" : "TG-MCB110101",
+        "queue" : "compute",
+        "runtime" : "30",
+        "cleanup" : "False",
+        "cores" : "48"
+    }
+}
