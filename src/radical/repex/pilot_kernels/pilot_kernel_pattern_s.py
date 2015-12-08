@@ -178,6 +178,7 @@ class PilotKernelPatternS(PilotKernel):
                         f.write("repex_md_prep_time {0}\n".format(cu_prep))
 
                         t_1 = datetime.datetime.utcnow()
+                        md_sub_start = t_1
                         simulation_replicas = unit_manager.submit_units(c_replicas)
                         t_2 = datetime.datetime.utcnow()
                         cu_sub = (t_2-t_1).total_seconds()
@@ -187,6 +188,9 @@ class PilotKernelPatternS(PilotKernel):
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["md_prep"] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["md_prep"] = cu_prep
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_sub_start"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["md_sub_start"] = md_sub_start
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["md_sub"] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["md_sub"] = cu_sub
@@ -248,6 +252,7 @@ class PilotKernelPatternS(PilotKernel):
                         with open(outfile, 'a') as f:
                             f.write("repex_ind_ex_prep_time {0}\n".format(cu_prep))
                             t_1 = datetime.datetime.utcnow()
+                            ex_sub_start = t_1
                             exchange_replicas = unit_manager.submit_units(e_replicas)
                             t_2 = datetime.datetime.utcnow()
                             cu_sub = (t_2-t_1).total_seconds()
@@ -260,6 +265,9 @@ class PilotKernelPatternS(PilotKernel):
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub"] = cu_sub
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_start"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_start"] = ex_sub_start
                     t1 = datetime.datetime.utcnow()
                 #---------------------------------------------------------------
                 
@@ -284,12 +292,16 @@ class PilotKernelPatternS(PilotKernel):
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_prep_global"] = (t_2-t_1).total_seconds()
 
                     t1 = datetime.datetime.utcnow()
+                    ex_sub_global_start = t1
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
                     t2 = datetime.datetime.utcnow()
                     cu_sub = (t2-t1).total_seconds()
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global"] = cu_sub
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global_start"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global_start"] = ex_sub_global_start
 
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()
@@ -327,12 +339,16 @@ class PilotKernelPatternS(PilotKernel):
 
                     self.logger.info("Submitting exchange tasks for execution. cycle {0}".format(current_cycle) )
                     t1 = datetime.datetime.utcnow()
+                    ex_sub_global_start = t1
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
                     t2 = datetime.datetime.utcnow()
                     cu_sub = (t2-t1).total_seconds()
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global"] = cu_sub
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global_start"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["ex_sub_global_start"] = ex_sub_global_start
 
                     t1 = datetime.datetime.utcnow()
                     unit_manager.wait_units()

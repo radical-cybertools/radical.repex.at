@@ -121,6 +121,11 @@ KERNELS = {
                 "pre_execution" : ["module unload python/2.7.7-anaconda", "module load python/2.7.7/GCC-4.9.0", "module load amber/14/INTEL-140-MVAPICH2-2.0"],
                 "executable" : "/home/antontre/amber14/bin/sander",
                 "executable_mpi" : "/usr/local/packages/amber/14/INTEL-140-MVAPICH2-2.0/bin/sander.MPI"
+            },
+            "namd": {
+                "environment" : {},
+                "pre_execution" : ["module unload python/2.7.7-anaconda", "module load python/2.7.7/GCC-4.9.0", "module load namd"],
+                "executable" : "/usr/local/packages/namd/2.10/INTEL-140-ibverbs/namd2"
             }
         },
         "shell": "bash"

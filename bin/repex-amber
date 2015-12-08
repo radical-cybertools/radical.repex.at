@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
 		# initializing kernels
 		md_kernel    = KernelPatternS3dTUU( inp_file, rconfig, work_dir_local )
-		pilot_kernel = PilotKernelPatternSmultiD( inp_file, rconfig )
+		pilot_kernel = PilotKernelPatternSmultiDsc( inp_file, rconfig )
 
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()

@@ -355,6 +355,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 md_prep_timing += (t2-t1).total_seconds()
 
                 batch = []
+                first = 0
                 for group in all_groups:
                     if (len(batch)+len(group)) <= self.cores:
                         batch += group
@@ -368,6 +369,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         md_prep_timing += (t2-t1).total_seconds()
 
                         t1 = datetime.datetime.utcnow()
+                        if first == 0:
+                            sub_start = t1
+                            first = 1
                         submitted_replicas += unit_manager.submit_units(c_replicas)
                         t2 = datetime.datetime.utcnow()
                         md_sub_timing += (t2-t1).total_seconds()
@@ -388,6 +392,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     md_prep_timing += (t2-t1).total_seconds()
 
                     t1 = datetime.datetime.utcnow()
+                    if first == 0:
+                        sub_start = t1
+                        first = 1
                     submitted_replicas += unit_manager.submit_units(c_replicas)
                     t2 = datetime.datetime.utcnow()
                     md_sub_timing += (t2-t1).total_seconds()
@@ -402,6 +409,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_sub"] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_sub"] = md_sub_timing
+
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_sub_start"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_sub_start"] = sub_start
 
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["md_run"] = md_exec_timing
@@ -419,6 +429,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     ex_prep_timing += (t2-t1).total_seconds()
 
                     batch = []
+                    first = 0
                     for group in all_groups:
                         if (len(batch)+len(group)) <= self.cores:
                             batch += group
@@ -432,6 +443,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                             ex_prep_timing += (t2-t1).total_seconds()
 
                             t1 = datetime.datetime.utcnow()
+                            if first == 0:
+                                sub_start = t1
+                                first = 1
                             exchange_replicas += unit_manager.submit_units(e_replicas) 
                             t2 = datetime.datetime.utcnow()
                             ex_sub_timing += (t2-t1).total_seconds()
@@ -452,6 +466,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         ex_prep_timing += (t2-t1).total_seconds()
 
                         t1 = datetime.datetime.utcnow()
+                        if first == 0:
+                            sub_start = t1
+                            first = 1
                         exchange_replicas += unit_manager.submit_units(e_replicas) 
                         t2 = datetime.datetime.utcnow()
                         ex_sub_timing += (t2-t1).total_seconds()
@@ -466,6 +483,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub_salt"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub_salt"] = ex_sub_timing
+
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub_start_salt"] = {}
+                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub_start_salt"] = sub_start
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_run_salt"] = ex_exec_timing
@@ -486,6 +506,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                         hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub"] = {}
                         hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub"] = (t_2-t_1).total_seconds()
+
+                        hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub_start"] = {}
+                        hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub_start"] = t_1
                     #-----------------------------------------------------------
                     
                     t1 = datetime.datetime.utcnow()
@@ -511,6 +534,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                         hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub"] = {}
                         hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub"] = (t_2-t_1).total_seconds()
+
+                        hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub_start"] = {}
+                        hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(DIM)]["ex_sub_start"] = t_1
                     #-----------------------------------------------------------
 
                     t1 = datetime.datetime.utcnow()

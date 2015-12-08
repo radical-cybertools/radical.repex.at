@@ -20,7 +20,7 @@ import radical.pilot
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 import amber_kernels_tex.input_file_builder
-#import amber_kernels_tex.global_ex_calculator_mpi
+import amber_kernels_tex.global_ex_calculator_mpi
 import amber_kernels_tex.global_ex_calculator
 import amber_kernels_tex.ind_ex_calculator
 from replicas.replica import *
@@ -122,8 +122,8 @@ class KernelPatternStex(object):
         build_inp = os.path.dirname(amber_kernels_tex.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
-        global_calc = os.path.dirname(amber_kernels_tex.global_ex_calculator.__file__)
-        global_calc_path = global_calc + "/global_ex_calculator.py"
+        global_calc = os.path.dirname(amber_kernels_tex.global_ex_calculator_mpi.__file__)
+        global_calc_path = global_calc + "/global_ex_calculator_mpi.py"
 
         global_calc_s = os.path.dirname(amber_kernels_tex.global_ex_calculator.__file__)
         global_calc_path_s = global_calc_s + "/global_ex_calculator.py"
@@ -136,7 +136,7 @@ class KernelPatternStex(object):
         self.shared_files.append(self.amber_coordinates)
         self.shared_files.append(input_template)
         self.shared_files.append("input_file_builder.py")
-        self.shared_files.append("global_ex_calculator.py")
+        self.shared_files.append("global_ex_calculator_mpi.py")
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append("ind_ex_calculator.py")
 
@@ -275,16 +275,24 @@ class KernelPatternStex(object):
 
         cu = radical.pilot.ComputeUnitDescription()
 
+        """
         if KERNELS[self.resource]["shell"] == "bourne":
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'"
             cu.executable = '/bin/sh'
         elif KERNELS[self.resource]["shell"] == "bash":
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
             cu.executable = '/bin/bash'          
+        """
 
-        if replica.cycle == 1:       
-            
-            amber_str = self.amber_path
+        pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
+        #post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_bash + "\'"
+
+        if replica.cycle == 1:
+            if (self.replica_mpi == True):
+                amber_str = self.amber_path_mpi
+            else:
+                amber_str = self.amber_path       
+
             argument_str = " -O " + " -i " + new_input_file + \
                            " -o " + output_file + \
                            " -p " +  self.amber_parameters + \
@@ -304,8 +312,9 @@ class KernelPatternStex(object):
             for i in range(4):
                 stage_in.append(sd_shared_list[i])
                 
-            cu.pre_exec = self.pre_exec
-            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]                                   
+            cu.executable = amber_str + argument_str
+            cu.pre_exec = self.pre_exec + [pre_exec_str]
+            #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]                                   
             cu.mpi = self.replica_mpi
             cu.cores          = self.replica_cores
             cu.input_staging  = stage_in
@@ -313,7 +322,11 @@ class KernelPatternStex(object):
         else:
             old_coor = "../staging_area/" + self.amber_coordinates
 
-            amber_str = self.amber_path
+            if (self.replica_mpi == True):
+                amber_str = self.amber_path_mpi
+            else:
+                amber_str = self.amber_path
+            
             argument_str = " -O " + " -i " + new_input_file + \
                            " -o " + output_file + \
                            " -p " +  self.amber_parameters + \
@@ -328,8 +341,9 @@ class KernelPatternStex(object):
             for i in range(4):
                 stage_in.append(sd_shared_list[i])
 
-            cu.pre_exec = self.pre_exec
-            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
+            cu.executable = amber_str + argument_str
+            cu.pre_exec = self.pre_exec + [pre_exec_str]
+            #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
             cu.mpi = self.replica_mpi
             cu.cores = self.replica_cores
             cu.input_staging = stage_in
@@ -374,7 +388,7 @@ class KernelPatternStex(object):
         stage_out.append(outfile)
 
         # so that Ioannis can't use it!
-        """
+        
         if self.exchange_mpi == True:
             # global_ex_calculator_mpi.py file
             stage_in.append(sd_shared_list[4])
@@ -405,19 +419,17 @@ class KernelPatternStex(object):
             cu.mpi = True         
             cu.output_staging = stage_out
         else:
-        """
+            # global_ex_calculator.py file
+            stage_in.append(sd_shared_list[5])
 
-        # global_ex_calculator.py file
-        stage_in.append(sd_shared_list[5])
-
-        cu = radical.pilot.ComputeUnitDescription()
-        cu.pre_exec = self.pre_exec
-        cu.executable = "python"
-        cu.input_staging  = stage_in
-        cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
-        cu.cores = 1
-        cu.mpi = False         
-        cu.output_staging = stage_out
+            cu = radical.pilot.ComputeUnitDescription()
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
+            cu.input_staging  = stage_in
+            cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+            cu.cores = 1
+            cu.mpi = False         
+            cu.output_staging = stage_out
 
         return cu
 

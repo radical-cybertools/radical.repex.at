@@ -410,8 +410,12 @@ class KernelPatternStex(object):
             cu.arguments = ["global_ex_calculator_mpi.py", str(cycle), str(self.replicas), str(self.inp_basename)]
 
             # guard for supermic
-            if self.replicas > 999:
+            if self.replicas == 1000:
+                print "1000"
                 cu.cores = self.replicas / 2
+            elif self.replicas == 1728:
+                print "1728"
+                cu.cores = self.replicas / 4
             elif self.cores < self.replicas:
                 if (self.replicas % self.cores) != 0:
                     self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")

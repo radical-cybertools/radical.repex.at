@@ -3,7 +3,7 @@ export RADICAL_PILOT_VERBOSE=info;
 export REPEX_PROFILING=1;
 #unset RADICAL_PILOT_VERBOSE;
 
-repex-namd --input='t_remd_ala.json' --rconfig='stamp.json'
+repex-namd --input='t_remd_ala.json' --rconfig='smic.json'
 
 #nohup repex-amber --input='s_remd_ace_ala_nme.json' --rconfig='smic.json' 2> smic_salt_64_6000.log &
 

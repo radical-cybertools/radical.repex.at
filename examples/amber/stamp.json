@@ -3,8 +3,8 @@
         "resource": "xsede.stampede",
         "username" : "antontre",
         "project" : "TG-MCB150124",
-        "runtime" : "420",
+        "runtime" : "60",
         "cleanup" : "False",
-        "cores" : "3488"
+        "cores" : "160"
     }
 }
