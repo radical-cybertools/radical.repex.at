@@ -13,5 +13,4 @@ repex-amber --input='tuu_remd_ace_ala_nme.json' --rconfig='smic.json'
 
 #repex-amber --input='t_remd_ala10.json' --rconfig='archer.json'
 
-
 #repex-amber --input='tsu_remd_dna_gold.json' --rconfig='stamp.json'
