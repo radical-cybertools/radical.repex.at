@@ -20,38 +20,38 @@ from amber_kernels_3d_tuu.kernel_pattern_s_3d_tuu import KernelPatternS3dTUU
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    
-    name = 'amber'
-    logger  = rul.getLogger ('radical.repex', name)
 
-    work_dir_local = os.getcwd()
-    params = parse_command_line()
-    
-    # get remd_input file
-    json_data=open(params.remd_input)
-    inp_file = json.load(json_data)
-    json_data.close()
+	name = 'amber'
+	logger  = rul.getLogger ('radical.repex', name)
 
-    # get resource config
-    json_data=open(params.resource_config)
-    rconfig = json.load(json_data)
-    json_data.close()
+	work_dir_local = os.getcwd()
+	params = parse_command_line()
 
-    if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'T-REMD'):
+	# get remd_input file
+	json_data=open(params.remd_input)
+	inp_file = json.load(json_data)
+	json_data.close()
+
+	# get resource config
+	json_data=open(params.resource_config)
+	rconfig = json.load(json_data)
+	json_data.close()
+
+	if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'T-REMD'):
 
 		logger.info("*********************************************************")
 		logger.info("*           RepEx: T-REMD with AMBER kernel             *")
 		logger.info("*********************************************************")
-        
-	    # initializing kernels
+
+		# initializing kernels
 		md_kernel = KernelPatternStex( inp_file, rconfig, work_dir_local )
 		pilot_kernel = PilotKernelPatternS( inp_file, rconfig )
-        
+
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()
-            
-    if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'US-REMD'):
-        
+
+	if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'US-REMD'):
+
 		logger.info("*********************************************************")
 		logger.info("*           RepEx: US-REMD with AMBER kernel            *")
 		logger.info("*********************************************************")
@@ -62,9 +62,9 @@ if __name__ == '__main__':
 
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()
-            
-    if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'S-REMD'):
-        
+
+	if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'S-REMD'):
+
 		logger.info("*********************************************************")
 		logger.info("*           RepEx: S-REMD with AMBER kernel             *")
 		logger.info("*********************************************************")
@@ -75,22 +75,22 @@ if __name__ == '__main__':
 
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()   
-            
-    if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'TSU-REMD'):
-        
+
+	if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'TSU-REMD'):
+
 		logger.info("*********************************************************")
 		logger.info("*           RepEx: TSU-REMD with AMBER kernel           *")
 		logger.info("*********************************************************")
-        
+
 		# initializing kernels
 		md_kernel = KernelPatternS3dTSU( inp_file, rconfig, work_dir_local )
 		pilot_kernel = PilotKernelPatternSmultiDsc( inp_file, rconfig )
 
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()
-            
-    if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'TUU-REMD'):
-        
+
+	if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'TUU-REMD'):
+
 		logger.info("*********************************************************")
 		logger.info("*           RepEx: TUU-REMD with AMBER kernel           *")
 		logger.info("*********************************************************")
@@ -102,20 +102,20 @@ if __name__ == '__main__':
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()
 
-    #---------------------------------------------------------------------------
-    # the same for all cases
+	#---------------------------------------------------------------------------
+	# the same for all cases
 	try:
 		pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
-        
+
 		# now we can run RE simulation
 		pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
-        
+
 	except:
 		raise
 	try:
 		# finally we are moving all files to individual replica directories
 		move_output_files(work_dir_local, md_kernel, replicas ) 
-        
+
 		logger.info("Simulation successfully finished!")
 		logger.info("Please check output files in replica_x directories.")
 	except:
@@ -123,5 +123,5 @@ if __name__ == '__main__':
 		raise 
 	finally :
 		logger.info("Closing session.")
-		session.close (cleanup=False)  
+		session.close (cleanup=True, terminate=True)  
 
