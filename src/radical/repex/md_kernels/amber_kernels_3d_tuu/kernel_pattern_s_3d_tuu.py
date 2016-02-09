@@ -83,6 +83,11 @@ class KernelPatternS3dTUU(object):
         else:
             self.replica_mpi = False  
 
+        if inp_file['remd.input'].get('replica_gpu') == "True":
+            self.replica_gpu = True
+        else:
+            self.replica_gpu = False  
+
         if inp_file['remd.input'].get('exchange_off') == "True":
             self.exchange_off = True
         else:
@@ -133,10 +138,13 @@ class KernelPatternS3dTUU(object):
             self.logger.info("Using default Amber path for: {0}".format(rconfig['target'].get('resource')))
             self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
             self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
+            self.amber_path_gpu = KERNELS[self.resource]["kernels"]["amber"].get("executable_gpu")
         if self.amber_path == None:
             self.logger.info("Amber (sander) path can't be found, looking for sander.MPI")
-            if self.amber_path_mpi == None:
-                self.logger.info("Amber (sander.MPI) path can't be found, exiting...")
+            if (self.amber_path_mpi == None):
+                self.logger.info("Amber (sander.MPI) path can't be found, looking for pmemd.cuda")
+                if (self.amber_path_gpu == None):
+                    self.logger.info("Amber (pmemd.cuda) path can't be found, exiting.")
             sys.exit(1)
 
         self.shared_urls = []
@@ -468,9 +476,13 @@ class KernelPatternS3dTUU(object):
             post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_sh + "\'"
             post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_sh + "\'"
 
-        if replica.cycle == 1:    
+        if replica.cycle == 1:
 
-            amber_str = self.amber_path
+            if (self.replica_gpu == True):
+                amber_str = self.amber_path_gpu
+            else:
+                amber_str = self.amber_path    
+
             argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
                            " -p " +  self.amber_parameters + " -c " + replica.coor_file + \
                            " -r " + new_coor + " -x " + new_traj + " -inf " + new_info  
@@ -517,8 +529,11 @@ class KernelPatternS3dTUU(object):
                 cu.mpi = self.replica_mpi
 
         else:
+            if (self.replica_gpu == True):
+                amber_str = self.amber_path_gpu
+            else:
+                amber_str = self.amber_path 
 
-            amber_str = self.amber_path
             argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
                            " -p " +  self.amber_parameters + " -c " + old_coor + \
                            " -r " + new_coor + " -x " + new_traj + " -inf " + new_info

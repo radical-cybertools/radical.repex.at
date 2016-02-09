@@ -89,6 +89,11 @@ class KernelPatternS3dTSU(object):
         else:
             self.replica_mpi = False  
 
+        if inp_file['remd.input'].get('replica_gpu') == "True":
+            self.replica_gpu = True
+        else:
+            self.replica_gpu = False 
+
         #-----------------------------------------------------------------------
         # hardcoded 
 
@@ -138,10 +143,13 @@ class KernelPatternS3dTSU(object):
             self.logger.info("Using default Amber path for: {0}".format(rconfig['target'].get('resource')))
             self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
             self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
+            self.amber_path_gpu = KERNELS[self.resource]["kernels"]["amber"].get("executable_gpu")
         if self.amber_path == None:
             self.logger.info("Amber (sander) path can't be found, looking for sander.MPI")
-            if self.amber_path_mpi == None:
-                self.logger.info("Amber (sander.MPI) path can't be found, exiting...")
+            if (self.amber_path_mpi == None):
+                self.logger.info("Amber (sander.MPI) path can't be found, looking for pmemd.cuda")
+                if (self.amber_path_gpu == None):
+                    self.logger.info("Amber (pmemd.cuda) path can't be found, exiting.")
             sys.exit(1)
         
         self.pre_exec = KERNELS[self.resource]["kernels"]["amber"]["pre_execution"]
@@ -510,7 +518,11 @@ class KernelPatternS3dTSU(object):
 
         if replica.cycle == 1:
 
-            amber_str = self.amber_path
+            if (self.replica_gpu == True):
+                amber_str = self.amber_path_gpu
+            else:
+                amber_str = self.amber_path  
+
             argument_str = " -O " + " -i " + new_input_file + \
                            " -o " + output_file + \
                            " -p " +  self.amber_parameters + \
@@ -560,8 +572,12 @@ class KernelPatternS3dTSU(object):
         #-----------------------------------------------------------------------
         # from cycle 2 onwards   
         else:
+            
+            if (self.replica_gpu == True):
+                amber_str = self.amber_path_gpu
+            else:
+                amber_str = self.amber_path  
 
-            amber_str = self.amber_path
             argument_str = " -O " + " -i " + new_input_file + \
                            " -o " + output_file + \
                            " -p " +  self.amber_parameters + \
