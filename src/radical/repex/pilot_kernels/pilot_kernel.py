@@ -48,7 +48,7 @@ class PilotKernel(object):
 
         if self.dburl is None:
             self.logger.info("Using default Mongo DB url")
-            self.dburl = "mongodb://treikali:pf43ek6klo@ds047095.mongolab.com:47095/repex-tests"
+            self.dburl = "mongodb://treikali:pf43ek6klo@ds051595.mongolab.com:51595/cdi-testing"
 
         cleanup = rconfig['target'].get('cleanup','False')
         if (cleanup == "True"):
