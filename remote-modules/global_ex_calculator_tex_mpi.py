@@ -260,7 +260,7 @@ if __name__ == '__main__':
     all_temperatures = comm.bcast(all_temperatures, root=0)
     all_energies = comm.bcast(all_energies, root=0)
 
-    #--------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     if rank ==0:
         swap_matrix = []
         temp_columns = [[0.0]*replicas]*replicas

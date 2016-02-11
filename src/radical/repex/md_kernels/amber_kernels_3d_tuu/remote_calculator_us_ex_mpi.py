@@ -1,8 +1,3 @@
-"""
-.. module:: radical.repex.md_kernels.amber_kernels_salt.amber_matrix_calculator_pattern_b
-.. moduleauthor::  <haoyuan.chen@rutgers.edu>
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
-"""
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
 __license__ = "MIT"
@@ -13,6 +8,9 @@ import json
 import math
 import time
 import shutil
+from mpi4py import MPI
+from subprocess import *
+import subprocess
 
 #-------------------------------------------------------------------------------
 
@@ -133,14 +131,13 @@ class Restraint(object):
 #-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
-    """Calculates reduced energy.
-
+    """
+    Calculates reduced energy.
     Arguments:
     temperature - replica temperature
     potential - replica potential energy
-
     Returns:
-    reduced enery of replica
+    reduced energy
     """
     kb = 0.0019872041    #boltzmann const in kcal/mol
     if temperature != 0:
@@ -197,58 +194,132 @@ def get_historical_data(replica_path=None, history_name=None):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """ 
-    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
-    replica_id = int(data["replica_id"])
-    replica_cycle = int(data["replica_cycle"])
-    replicas = int(data["replicas"])
-    base_name = data["base_name"]
-    new_restraints = data["new_restraints"]
-    prmtop_name = data["amber_parameters"]
-    mdin_name = data["amber_input"]
-    # INITIAL REPLICA TEMPERATURE:
-    init_temp = float(data["init_temp"])
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    
+    rids = data["ex_us"].keys()
+    rid = rids[rank]
 
-    current_group_rst = data["current_group_rst"]
-   
+    group_id = data["gen_input"]["group_id"]
+    amber_input = data["gen_input"]["substr"] + data["gen_input"]["amber_inp"]
+    cycle_steps = data["gen_input"]["steps"]
+    new_restraints = data["gen_input"]["substr"] + data["ex_us"][rid]["new_rstr"]
+    new_temperature = data["ex_us"][rid]["new_t"]
+    basename = data["gen_input"]["base"]
+    cycle = data["gen_input"]["cnr"]
+    us_template = data["gen_input"]["substr"] + data["gen_input"]["us_tmpl"]
+    rstr_val_1 = float(data["ex_us"][rid]["rv1"])
+    rstr_val_2 = float(data["ex_us"][rid]["rv2"])
 
+    amber_path = data['amber']['path']
 
+    new_input_file = "%s_%s_%s.mdin" % (basename, rid, cycle)
+    output_file = "%s_%s_%s.mdout" % (basename, rid, cycle)
+    amber_parameters = data["gen_input"]["substr"] + data["gen_input"]["amber_prm"]
+    coor_file = data["gen_input"]["substr"] + data["ex_us"][rid]["r_coor"]
+    new_coor = "%s_%s_%s.rst" % (basename, rid, cycle)
+    new_traj = "%s_%s_%s.mdcrd" % (basename, rid, cycle)
+    new_info = "%s_%s_%s.mdinfo" % (basename, rid, cycle)
+    old_coor = "%s_%s_%d.rst" % (basename, rid, (int(cycle)-1))
 
-    # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
-    new_coor = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
+    replicas = int(data["gen_input"]["replicas"])
+
+    #---------------------------------------------------------------------------
+    # this is for every cycle
+    try:
+        r_file = open(amber_input, "r")
+    except IOError:
+        print "Warning: unable to access template file: {0}".format(amber_input) 
+
+    tbuffer = r_file.read()
+    r_file.close()
+
+    tbuffer = tbuffer.replace("@nstlim@",cycle_steps)
+    tbuffer = tbuffer.replace("@disang@",new_restraints)
+    tbuffer = tbuffer.replace("@temp@",new_temperature)
+
+    if cycle == '0':
+        tbuffer = tbuffer.replace("@irest@","0")
+        tbuffer = tbuffer.replace("@ntx@","1")
+    else:
+        tbuffer = tbuffer.replace("@irest@","1")
+        tbuffer = tbuffer.replace("@ntx@","5")
+
+    try:
+        w_file = open(new_input_file, "w")
+        w_file.write(tbuffer)
+        w_file.close()
+    except IOError:
+        print "Warning: unable to access file: {0}".format(new_input_file)
+
+    #---------------------------------------------------------------------------
+    # this is for first cycle only
+    if cycle == '0':
+        print "first cycle"
+        try:
+            r_file = open(us_template, "r")
+            tbuffer = r_file.read()
+            r_file.close()
+        except IOError:
+            print "Warning: unable to access file: {0}".format(us_template) 
+
+        try:
+            w_file = open(new_restraints, "w")
+            tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
+            tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
+            tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
+            tbuffer = tbuffer.replace("@val2@", str(rstr_val_2))
+            tbuffer = tbuffer.replace("@val2l@", str(rstr_val_2-90))
+            tbuffer = tbuffer.replace("@val2h@", str(rstr_val_2+90))
+            w_file.write(tbuffer)
+            w_file.close()
+        except IOError:
+            print "Warning: unable to access file: {0}".format(new_restraints)
+ 
+    #---------------------------------------------------------------------------
+    # MD:
+
+    if cycle == '0':
+        argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                       " -p " +  amber_parameters + " -c " + coor_file + \
+                       " -r " + new_coor + " -x " + new_traj + " -inf " + new_info 
+    else:
+        argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                       " -p " +  amber_parameters + " -c " + old_coor + \
+                       " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
+
+    cmd = amber_path + argument_str
+    process = Popen(cmd, subprocess.PIPE, shell=True)
+    process.wait()
+
+    #---------------------------------------------------------------------------
+    # Exchange:
 
     pwd = os.getcwd()
-    matrix_col = "matrix_column_%d_%d.dat" % ( replica_id, replica_cycle ) 
-
-    # getting history data for self
-    history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    replica_path = "/replica_%d/" % (replica_id)
-
-    # init swap column
+    matrix_col = "matrix_column_%s_%s.dat" % ( rid, cycle ) 
     swap_column = [0.0]*replicas
-
     success = 0
     attempts = 0
     while (success == 0):
         try:
-            replica_energy, path_to_replica_folder = get_historical_data(replica_path=None, history_name=history_name)
+            replica_energy, path_to_replica_folder = get_historical_data(replica_path=None, history_name=new_info)
             print "Got history data for self!"
             success = 1
         except:
             print "Waiting for self (history file)"
             time.sleep(1)
             attempts += 1
-            # most likely amber run failed
-            # so we write zeros to matrix column file
-            if attempts >= 12:
+            # most likely amber run failed, we write zeros to matrix column file
+            if attempts >= 5:
                 #---------------------------------------------------------------
                 # writing to file
                 try:
-                    outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
+                    outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=cycle, replica=rid )
                     with open(outfile, 'w+') as f:
                         row_str = ""
                         for item in swap_column:
@@ -258,46 +329,57 @@ if __name__ == '__main__':
                                 row_str = str(item)
                             f.write(row_str)
                             f.write('\n')
-                            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
+                            row_str = rid + " " + cycle + " " + new_restraints + " " + new_temperature
                             f.write(row_str)
-
                         f.close()
 
                 except IOError:
-                    print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
+                    print 'Error: unable to create column file %s for replica %s' % (outfile, rid)
                 #---------------------------------------------------------------
-                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+                #sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
             pass
 
     # getting history data for all replicas
-    # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
+    # we rely on the fact that last cycle for every replica is the same, 
     # but this is easily changeble for arbitrary cycle numbers
-    temperatures = [0.0]*replicas   #need to pass the replica temperature here
+    temperatures = [0.0]*replicas 
     energies = [0.0]*replicas
-
-    #if replica_cycle != 0:
-    for j in current_group_rst.keys():
+    if rank == 0:
+        rstr_entr_list_temp = [['', '', '']]*size
+    rstr_entr_list_final = [['', '', '']]*size
+ 
+    success = 0        
+    while (success == 0):
+        try:
+            rstr_file = file(new_restraints,'r')
+            rstr_lines = rstr_file.readlines()
+            rstr_file.close()
+            rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
+            rstr_entries.insert(0,rid)
+            rstr_entr_list_temp  = comm.gather(rstr_entries, root=0)
+            rstr_entr_list_final = comm.bcast(rstr_entr_list_temp, root=0)
+            success = 1
+            print "Success obtaining rstr_entries for self: %s" % rid
+        except:
+            print "Waiting for rstr_entries being available: %s" % rid
+            time.sleep(1)
+            pass
+            
+    for item in rstr_entr_list_final:
         success = 0        
-        current_rstr = current_group_rst[j]
         while (success == 0):
             try:
-                #---------------------------------------------------------------
-                # can avoid this step!
-                rstr_ppath = "../staging_area/" + current_rstr
-                rstr_file = file(rstr_ppath,'r')
-                rstr_lines = rstr_file.readlines()
-                rstr_file.close()
-                #---------------------------------------------------------------
-                rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
                 us_energy = 0.0
                 r = Restraint()
                 r.set_crd(new_coor)
-                for rstr_entry in rstr_entries:
-                    r.set_rstr(rstr_entry); r.calc_energy()
-                    us_energy += r.energy
+                j = int(item[0])
+                for rstr_entry in item:
+                    if rstr_entry != item[0]:
+                        r.set_rstr(rstr_entry)
+                        r.calc_energy()
+                        us_energy += r.energy
                 energies[int(j)] = replica_energy + us_energy
-                temperatures[int(j)] = float(init_temp)
-
+                temperatures[int(j)] = float(new_temperature)
                 success = 1
                 print "Success processing replica: %s" % j
             except:
@@ -305,30 +387,49 @@ if __name__ == '__main__':
                 time.sleep(1)
                 pass
 
-    #for j in range(replicas):
-    for j in current_group_rst.keys():      
-        swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
+    if rank ==0:
+        matrix_columns = [[0.0]*(replicas+1)]*(replicas+1)
+        data_list = [["","","",""]]*size
 
+    data_col = [rid, cycle, new_restraints, new_temperature]
+
+    for item in rstr_entr_list_final:
+        j = int(item[0])
+        print "j: {0}".format(j)
+        swap_column[j] = reduced_energy(float(temperatures[j]), energies[int(rid)])
+
+    # adding rid as a first element of swap column:
+    swap_column.insert(0,int(rid))
+
+    matrix_columns = comm.gather(swap_column, root=0)
+    data_list = comm.gather(data_col, root=0)
+   
+    # we do a single write of all columns in current group to file
+    # instead of a single column by each replica
     #---------------------------------------------------------------------------
     # writing to file
+    if rank == 0:
+        try:
+            outfile = "matrix_column_{group}_{cycle}.dat".format(cycle=cycle, group=group_id )
+            with open(outfile, 'w+') as f:
+                for swap_column in matrix_columns:
+                    row_str = ""
+                    for item in swap_column:
+                        if len(row_str) != 0:
+                            row_str = row_str + " " + str(item)
+                        else:
+                            row_str = str(item)
+                    f.write(row_str)
+                    f.write('\n')
+                for entry in data_list:
+                    row_str = ""
+                    for i in entry:
+                        row_str += i + " "
+                    f.write(row_str)
+                    f.write('\n')
+            f.close()
 
-    try:
-        outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
-        with open(outfile, 'w+') as f:
-            row_str = ""
-            for item in swap_column:
-                if len(row_str) != 0:
-                    row_str = row_str + " " + str(item)
-                else:
-                    row_str = str(item)
-            f.write(row_str)
-            f.write('\n')
-            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
-            f.write(row_str)
+        except IOError:
+            print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
 
-        f.close()
-
-    except IOError:
-        print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-
- 
+            

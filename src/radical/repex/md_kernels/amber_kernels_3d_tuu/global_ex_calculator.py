@@ -75,8 +75,6 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 #-------------------------------------------------------------------------------
 #
 def do_exchange(dimension, replicas, swap_matrix):
-    """
-    """
 
     exchanged = []
     for r_i in replicas:
@@ -92,9 +90,7 @@ def do_exchange(dimension, replicas, swap_matrix):
 #-------------------------------------------------------------------------------
 
 class Replica3d(object):
-    """Class representing replica and it's associated data.
-       US = Umbrella Sampling
-    """
+    
     def __init__(self, my_id, new_temperature=None, new_salt=None, new_restraints=None, rstr_val_1=None, rstr_val_2=None):
        
         self.id = int(my_id)
@@ -133,26 +129,23 @@ class Replica3d(object):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """
-    """
 
     argument_list = str(sys.argv)
     replicas = int(sys.argv[1])
     current_cycle = int(sys.argv[2])
     dimension = int(sys.argv[3])
+    group_nr = int(sys.argv[4])
+    group_size = replicas / group_nr
 
     replica_dict = {}
-
     replicas_obj = []
-
     base_name = "matrix_column"
 
-    # init matrix
     swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
 
-    for rid in range(replicas):
+    for gid in range(group_nr):
         success = 0
-        column_file = base_name + "_" + str(rid) + "_" + str(current_cycle) + ".dat" 
+        column_file = base_name + "_" + str(gid) + "_" + str(current_cycle) + ".dat" 
         path = "../staging_area/" + column_file     
         while (success == 0):
             try:
@@ -160,47 +153,52 @@ if __name__ == '__main__':
                 lines = f.readlines()
                 f.close()
                 
-                #--------------------------------------------------
-                # populating matrix column
-                data = lines[0].split()
-                for i in range(replicas):
-                    swap_matrix[i][int(rid)] = float(data[i])
-                #--------------------------------------------------
-                # populating replica dict
-                data = lines[1].split()
-                replica_dict[data[0]] = [data[1], data[2], data[3]]
-                #---------------------------------------------------
-                # updating rstr_val's for a given replica
-                rid = data[0]
-   
-                current_rstr = replica_dict[rid][1]
-                try:
-                    r_file = open(("../staging_area/" + current_rstr), "r")
-                except IOError:
-                    print "Warning: unable to access template file: {0}".format(current_rstr)
+                # processing matrix columns
+                for i in range(group_size):
+                    #-----------------------------------------------------------
+                    # populating matrix columns
+                    # rid is column index
+                    data = lines[i].split()
 
-                tbuffer = r_file.read()
-                r_file.close()
-                tbuffer = tbuffer.split()
+                    rid = data.pop(0)
 
-                line = 2
-                for word in tbuffer:
-                    if word == '/':
-                        line = 3
-                    if word.startswith("r2=") and line == 2:
-                        num_list = word.split('=')
-                        rstr_val_1 = float(num_list[1])
-                    if word.startswith("r2=") and line == 3:
-                        num_list = word.split('=')
-                        rstr_val_2 = float(num_list[1])
+                    for i in range(replicas):
+                        swap_matrix[i][int(rid)] = float(data[i])
 
-                # creating replica
-                r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
-                replicas_obj.append(r)
+                #---------------------------------------------------------------
+                # processing data
+                for i in range(group_size,group_size*2):      
+                    data = lines[i].split()
+                    replica_dict[data[0]] = [data[1], data[2], data[3]]
+                    rid = data[0]
+       
+                    current_rstr = replica_dict[rid][1]
+                    try:
+                        r_file = open(("../staging_area/" + current_rstr), "r")
+                    except IOError:
+                        print "Warning: unable to access template file: {0}".format(current_rstr)
 
-                success = 1
-                print "Success processing replica: %s" % rid
+                    tbuffer = r_file.read()
+                    r_file.close()
+                    tbuffer = tbuffer.split()
 
+                    line = 2
+                    for word in tbuffer:
+                        if word == '/':
+                            line = 3
+                        if word.startswith("r2=") and line == 2:
+                            num_list = word.split('=')
+                            rstr_val_1 = float(num_list[1])
+                        if word.startswith("r2=") and line == 3:
+                            num_list = word.split('=')
+                            rstr_val_2 = float(num_list[1])
+
+                    # creating replica
+                    r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
+                    replicas_obj.append(r)
+
+                    success = 1
+                    print "Success processing replica: %s" % rid
             except:
                 print "Waiting for replica: %s" % rid
                 time.sleep(1)

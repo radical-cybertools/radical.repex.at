@@ -71,7 +71,7 @@ KERNELS = {
         {
             "amber": {
                 "pre_execution" : [],
-                "executable" : None,
+                "executable" : "/home/antons/amber/amber14/bin/sander",
                 "executable_mpi" : None
             }
         },

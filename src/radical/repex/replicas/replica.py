@@ -11,7 +11,6 @@ import sys
 import math
 import json
 
-
 #-------------------------------------------------------------------------------
 
 class Replica1d(object):
@@ -157,6 +156,7 @@ class Replica3d(object):
         self.sid = int(my_id)
         self.state = 'I'
         self.cycle = 0
+        self.group_idx = [None, None, None]
 
         if coor is not None:
             self.coor_file = coor

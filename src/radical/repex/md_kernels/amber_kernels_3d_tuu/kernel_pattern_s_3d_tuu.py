@@ -23,7 +23,7 @@ from os.path import isfile, join
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 import amber_kernels_3d_tuu.matrix_calculator_temp_ex
-import amber_kernels_3d_tuu.matrix_calculator_us_ex
+import amber_kernels_3d_tuu.remote_calculator_us_ex_mpi
 import amber_kernels_3d_tuu.input_file_builder
 import amber_kernels_3d_tuu.global_ex_calculator
 from replicas.replica import Replica3d
@@ -106,7 +106,6 @@ class KernelPatternS3dTUU(object):
         self.restraints_files = []
         for k in range(self.replicas):
             self.restraints_files.append(self.us_template + "." + str(k) )
-
  
         self.us_start_param_d1 = float(inp_file['dim.input']\
                                  ['umbrella_sampling_1'].get('us_start_param'))
@@ -122,7 +121,6 @@ class KernelPatternS3dTUU(object):
                         ['temperature_2'].get('min_temperature'))
         self.max_temp = float(inp_file['dim.input']\
                         ['temperature_2'].get('max_temperature'))
-
         #-----------------------------------------------------------------------
 
         self.pre_exec = KERNELS[self.resource]["kernels"]\
@@ -172,7 +170,6 @@ class KernelPatternS3dTUU(object):
     def initialize_replicas(self):
         """Initializes replicas and their attributes to default values
         """
-
         #-----------------------------------------------------------------------
         # parse coor file
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
@@ -181,7 +178,6 @@ class KernelPatternS3dTUU(object):
         self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
 
         #-----------------------------------------------------------------------
-
         replicas = []
 
         d2_params = []
@@ -195,7 +191,6 @@ class KernelPatternS3dTUU(object):
             for j in range(self.replicas_d2):
                 t1 = float(d2_params[j])
                 for k in range(self.replicas_d3):
-                 
                     rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
                     r1 = self.restraints_files[rid]
 
@@ -221,9 +216,50 @@ class KernelPatternS3dTUU(object):
                                   cores=1, \
                                   coor=coor_file, \
                                   indx1=i, \
-                                  indx2=k)
-                    replicas.append(r)                        
-                  
+                                  indx2=k,)
+                    replicas.append(r)
+                    
+        #-----------------------------------------------------------------------
+        # assigning group idx
+        g_d1 = []
+        g_d2 = []
+        g_d3 = []
+
+        for r in replicas:
+            if len(g_d1) == 0:
+                g_d1.append([r.new_temperature, r.rstr_val_2]) 
+                g_d2.append([r.rstr_val_1, r.rstr_val_2]) 
+                g_d3.append([r.rstr_val_1, r.new_temperature])
+
+            for i in range(len(g_d1)):
+                if (g_d1[i][0] == r.new_temperature) and (g_d1[i][1] == r.rstr_val_2):
+                    r.group_idx[0] = i
+            if r.group_idx[0] == None:
+                g_d1.append([r.new_temperature, r.rstr_val_2])
+                r.group_idx[0] = len(g_d1) - 1
+                    
+            for i in range(len(g_d2)):
+                if (g_d2[i][0] == r.rstr_val_1) and (g_d2[i][1] == r.rstr_val_2):
+                    r.group_idx[1] = i
+            if r.group_idx[1] == None:
+                g_d2.append([r.rstr_val_1, r.rstr_val_2])
+                r.group_idx[1] = len(g_d2) - 1
+
+            for i in range(len(g_d3)):
+                if (g_d3[i][0] == r.rstr_val_1) and (g_d3[i][1] == r.new_temperature):
+                    r.group_idx[2] = i
+            if r.group_idx[2] == None:
+                g_d3.append([r.rstr_val_1, r.new_temperature])
+                r.group_idx[2] = len(g_d3) - 1
+
+            #print "group_d1={0} group_d2={1} group_d3={2} rstr_1={3} temp={4} rstr_2={5}".format( r.group_d1, r.group_d2, r.group_d3, r.rstr_val_1, r.new_temperature, r.rstr_val_2 )
+        self.groups_numbers = [len(g_d1), len(g_d2), len(g_d3)] 
+        
+        #print g_d1
+        #print g_d2
+        #print g_d3
+        #print "groups d1: {0}".format( self.groups_d1 )
+
         return replicas
 
     #---------------------------------------------------------------------------
@@ -237,8 +273,8 @@ class KernelPatternS3dTUU(object):
         calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_temp_ex.__file__)
         calc_temp_ex_path = calc_temp_ex + "/matrix_calculator_temp_ex.py"
 
-        calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_us_ex.__file__)
-        calc_us_ex_path = calc_us_ex + "/matrix_calculator_us_ex.py"
+        calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.remote_calculator_us_ex_mpi.__file__)
+        calc_us_ex_path = calc_us_ex + "/remote_calculator_us_ex_mpi.py"
 
         build_inp = os.path.dirname(amber_kernels_3d_tuu.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
@@ -252,7 +288,7 @@ class KernelPatternS3dTUU(object):
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("matrix_calculator_temp_ex.py")
-        self.shared_files.append("matrix_calculator_us_ex.py")
+        self.shared_files.append("remote_calculator_us_ex_mpi.py")
         self.shared_files.append("input_file_builder.py")
         self.shared_files.append("global_ex_calculator.py")
         self.shared_files.append(self.us_template)
@@ -327,7 +363,7 @@ class KernelPatternS3dTUU(object):
 
         #-----------------------------------------------------------------------  
 
-        input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
+        #input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
 
         stage_out = []
@@ -580,12 +616,326 @@ class KernelPatternS3dTUU(object):
                 cu.mpi = self.replica_mpi
 
         return cu
-   
+
+    #---------------------------------------------------------------------------
+    #                     
+    def prepare_group_for_md(self, dimension, group, sd_shared_list):
+
+        print "group: "
+        print group
+
+        group.pop(0)
+        group_id = group[0].group_idx[dimension]
+
+        stage_out = []
+        stage_in = []
+
+        #-----------------------------------------------------------------------
+        # files needed to be staged in replica dir
+        for i in range(2):
+            stage_in.append(sd_shared_list[i])
+
+        #-----------------------------------------------------------------------
+        # input_file_builder.py
+        stage_in.append(sd_shared_list[4])
+        # restraint template file: ace_ala_nme_us.RST
+        stage_in.append(sd_shared_list[6])
+
+        if dimension == 2:
+            # matrix_calculator_temp_ex.py file
+            stage_in.append(sd_shared_list[2])
+        else:
+            # matrix_calculator_us_ex.py file
+            stage_in.append(sd_shared_list[3])
+            
+        #----------------------------------------------------------------------- 
+        #
+        if self.same_coordinates == True:          
+            # replica coor
+            repl_coor = group[0].coor_file
+            # index of replica_coor
+            c_index = self.shared_files.index(repl_coor) 
+            stage_in.append(sd_shared_list[c_index])
+
+        data = {}
+        #data['ids'] = []
+        data['gen_input'] = {}
+        data['amber']     = {}
+        data['amber']     = {'path': self.amber_path}
+
+        if dimension == 2:
+            data['ex_temp']   = {}
+        else:
+            data['ex_us']     = {}
+        
+        basename = self.inp_basename
+        substr = basename[:-5]
+        len_substr = len(substr)
+        #-----------------------------------------------------------------------
+        # for all
+        # assumption: all input files share a substring (ace_ala_nme)
+        data['gen_input'] = {
+            "steps": str(self.cycle_steps),
+            "amber_inp" : str(self.amber_input[len_substr:]),
+            "us_tmpl": str(self.us_template[len_substr:]),
+            "cnr" : str(group[0].cycle),
+            "base" : str(basename),
+            "substr": str(substr),
+            "replicas" : str(self.replicas),
+            "amber_prm": str(self.amber_parameters[len_substr:]),
+            "group_id": str(group_id)
+            }
+
+        #replica = group[0]
+        #for ko in range(4):
+        for replica in group:
+            #data['ids'].append(replica.id)
+
+            ####################################################################
+            # to generate in calculator:
+            ####################################################################
+
+            new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
+            output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle))
+
+            replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
+            replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
+            replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
+
+            new_coor = replica.new_coor
+            new_traj = replica.new_traj
+            new_info = replica.new_info
+
+
+            replica.old_coor = "%s_%d_%d.rst" % (basename, replica.id, (replica.cycle-1))
+            old_coor = replica.old_coor
+            ####################################################################
+            #outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
+            
+
+            if (replica.cycle == 0):
+                first_step = 0
+            elif (replica.cycle == 1):
+                first_step = int(self.cycle_steps)
+            else:
+                first_step = (replica.cycle - 1) * int(self.cycle_steps)
+
+            #input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
+            
+            rid = replica.id
+
+            if self.down_mdinfo == True:
+                info_local = {
+                    'source':   new_info,
+                    'target':   new_info,
+                    'action':   radical.pilot.TRANSFER
+                }
+                stage_out.append(info_local)
+
+            if self.down_mdout == True:
+                output_local = {
+                    'source':   output_file,
+                    'target':   output_file,
+                    'action':   radical.pilot.TRANSFER
+                }
+                stage_out.append(output_local)
+
+            replica_path = "replica_%d/" % (rid)
+
+            new_coor_out = {
+                'source': new_coor,
+                'target': 'staging:///%s' % (replica_path + new_coor),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(new_coor_out)
+
+            out_string = "_%d.out" % (replica.cycle)
+            rstr_out = {
+                'source': (replica.new_restraints + '.out'),
+                'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(rstr_out)
+            
+            matrix_col = "matrix_column_%s_%s.dat" % (str(group_id), str(replica.cycle))
+            matrix_col_out = {
+                'source': matrix_col,
+                'target': 'staging:///%s' % (matrix_col),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(matrix_col_out)
+
+            # for all cases (OPTIONAL)    
+            info_out = {
+                    'source': new_info,
+                    'target': 'staging:///%s' % (replica_path + new_info),
+                    'action': radical.pilot.COPY
+                }
+            stage_out.append(info_out)
+
+            # check!!! no need
+            #current_group = self.get_current_group(dimension, replicas, replica)
+
+            #-------------------------------------------------------------------
+            # temperature
+            if dimension == 2:
+                data['ex_temp'][str(rid)] = {}
+                data['ex_temp'][str(rid)] = {
+                    "rv1" : str(replica.rstr_val_1),
+                    "rv2" : str(replica.rstr_val_2),
+                    "new_rstr" : str(replica.new_restraints[len_substr:]),
+                    "new_t" : str(replica.new_temperature),
+                    "r_coor" : str(replica.coor_file[len_substr:])
+                    }
+
+            #dump_data = json.dumps(data)
+            #json_post_data_temp_bash = dump_data.replace("\\", "")
+            #json_post_data_temp_sh   = dump_data.replace("\"", "\\\\\"")
+            #-------------------------------------------------------------------
+            # umbrella sampling
+
+            # check, no need
+            #current_group_rst = {}
+            #for repl in replicas:
+            #    if str(repl.id) in current_group:
+            #        current_group_rst[str(repl.id)] = str(repl.new_restraints)
+
+            base_restraint = self.us_template + "."
+
+            if (dimension == 1) or (dimension == 3):
+                data['ex_us'][str(rid)] = {}
+                data['ex_us'][str(rid)] = {
+                    "rv1" : str(replica.rstr_val_1),
+                    "rv2" : str(replica.rstr_val_2),
+                    "new_t" : str(replica.new_temperature),
+                    "new_rstr" : str(replica.new_restraints[len_substr:]),
+                    "r_coor" : str(replica.coor_file[len_substr:])
+                }
+            
+            #dump_data = json.dumps(data)
+            #json_post_data_us_bash = dump_data.replace("\\", "")
+            #json_post_data_us_sh   = dump_data.replace("\"", "\\\\\"")
+            #-------------------------------------------------------------------
+            if replica.cycle == 0:    
+                #amber_str = self.amber_path
+                #argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                #               " -p " +  self.amber_parameters + " -c " + replica.coor_file + \
+                #               " -r " + new_coor + " -x " + new_traj + " -inf " + new_info  
+
+                #data['amber_str'][str(replica.id)] = {}
+                #data['amber_str'][str(replica.id)] = argument_str
+
+                #data['amber'].update( {str(replica.id): argument_str} )
+
+                restraints_out = replica.new_restraints
+                restraints_out_st = {
+                    'source': (replica.new_restraints),
+                    'target': 'staging:///%s' % (replica.new_restraints),
+                    'action': radical.pilot.COPY
+                }
+                stage_out.append(restraints_out_st)
+
+                if self.same_coordinates == False: 
+                    #-----------------------------------------------------------         
+                    # replica coor
+                    repl_coor = replica.coor_file
+                    # index of replica_coor
+                    c_index = self.shared_files.index(repl_coor) 
+                    stage_in.append(sd_shared_list[c_index])
+               
+                #if dimension == 1:
+                    # check
+                    #arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us] 
+                    #cu.pre_exec = self.pre_exec
+                    #cu.cores = self.replica_cores
+                    #cu.input_staging = stage_in
+                    #cu.output_staging = stage_out
+                    #cu.mpi = self.replica_mpi
+
+            else:
+                #amber_str = self.amber_path
+                #argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                #               " -p " +  self.amber_parameters + " -c " + old_coor + \
+                #               " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
+                #data['amber'].update( {str(replica.id): argument_str} )
+
+                #---------------------------------------------------------------
+                # restraint file
+                restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
+                                    'target': replica.new_restraints,
+                                    'action': radical.pilot.COPY
+                }
+                stage_in.append(restraints_in_st)
+
+                old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
+                               'target': (old_coor),
+                               'action': radical.pilot.LINK
+                }
+                stage_in.append(old_coor_st)
+
+                #---------------------------------------------------------------
+                # temperature exchange
+                #if dimension == 2:
+                    
+                    #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp]
+                    #cu.pre_exec = self.pre_exec
+                    #cu.input_staging = stage_in
+                    #cu.output_staging = stage_out
+                    #cu.cores = self.replica_cores
+                    #cu.mpi = self.replica_mpi
+                #else:
+                    #-----------------------------------------------------------
+                    # us exchange
+
+                    #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us]
+                    #cu.pre_exec = self.pre_exec
+                    #cu.input_staging = stage_in
+                    #cu.output_staging = stage_out
+                    #cu.cores = self.replica_cores
+                    #cu.mpi = self.replica_mpi
+            replica.cycle += 1
+        #-----------------------------------------------------------------------
+        # data for input file generation 
+        dump_data = json.dumps(data)
+        json_data_bash = dump_data.replace("\\", "")
+        json_data_sh   = dump_data.replace("\"", "\\\\\"")
+
+        #if KERNELS[self.resource]["shell"] == "bash":
+        #    cu.executable = '/bin/bash'
+        #    pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
+        #    post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_bash + "\'"
+        #    post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_bash + "\'"
+        #elif KERNELS[self.resource]["shell"] == "bourne":
+        #    cu.executable = '/bin/sh'
+        #    pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'"
+        #    post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_sh + "\'"
+        #    post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_sh + "\'"
+
+        cu = radical.pilot.ComputeUnitDescription()
+
+        if (dimension == 1) or (dimension == 3):
+            if KERNELS[self.resource]["shell"] == "bash":
+                cu.executable = "python remote_calculator_us_ex_mpi.py " + "\'" + json_data_bash + "\'"
+            elif KERNELS[self.resource]["shell"] == "bourne":
+                cu.executable = "python remote_calculator_us_ex_mpi.py " + "\'" + json_data_sh + "\'"
+        else:
+            if KERNELS[self.resource]["shell"] == "bash":
+                cu.executable = "python remote_calculator_temp_ex_mpi.py " + "\'" + json_data_bash + "\'"
+            elif KERNELS[self.resource]["shell"] == "bourne":
+                cu.executable = "python remote_calculator_temp_ex_mpi.py " + "\'" + json_data_sh + "\'"
+
+        #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str] 
+        cu.pre_exec = self.pre_exec
+        cu.input_staging = stage_in
+        cu.output_staging = stage_out
+        cu.cores = self.replica_cores
+        cu.mpi = self.replica_mpi
+
+        return cu
+
     #---------------------------------------------------------------------------
     #
     def exchange_params(self, dimension, replica_1, replica_2):
-        """
-        """
         
         if dimension == 2:
             self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
@@ -664,6 +1014,8 @@ class KernelPatternS3dTUU(object):
 
         stage_out = []
         stage_in = []
+ 
+        group_nr = self.groups_numbers[dimension]
 
         if GL == 1:
             cycle = replicas[0].cycle-1
@@ -681,7 +1033,7 @@ class KernelPatternS3dTUU(object):
         cu.pre_exec = self.pre_exec
         cu.executable = "python"
         cu.input_staging  = stage_in
-        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dimension)]
+        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dimension), str(group_nr)]
         cu.cores = 1
         cu.mpi = False            
         cu.output_staging = stage_out
@@ -692,7 +1044,7 @@ class KernelPatternS3dTUU(object):
     #
     def init_matrices(self, replicas):
         """
-        Change...
+        DOES NOT WORK!
         """
 
         # id_matrix
@@ -739,7 +1091,6 @@ class KernelPatternS3dTUU(object):
         self.us_d1_matrix = sorted(self.us_d1_matrix)
         self.logger.debug("[init_matrices] us_d1_matrix: {0:s}".format(self.us_d1_matrix) )
 
-    
     #---------------------------------------------------------------------------
     #
     def get_current_group(self, dimension, replicas, replica):
@@ -779,4 +1130,17 @@ class KernelPatternS3dTUU(object):
                     current_group.append(str(r1.id))
 
         return current_group
+
+    #---------------------------------------------------------------------------
+    #
+    def get_all_groups(self, dim, replicas):
+
+        all_groups = []
+        for i in range(self.groups_numbers[dim]):
+            all_groups.append([None])
+
+        for r in replicas:
+            all_groups[r.group_idx[dim]].append(r)
+
+        return all_groups
 
