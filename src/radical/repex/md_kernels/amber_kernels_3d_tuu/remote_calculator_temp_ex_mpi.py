@@ -13,7 +13,7 @@ from mpi4py import MPI
 from subprocess import *
 import subprocess
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
@@ -175,6 +175,8 @@ if __name__ == '__main__':
     attempts = 0
     while (success == 0):
         try:
+            history_name = basename + "_" + rid + "_" + cycle + ".mdinfo"
+            
             replica_temp, replica_energy, path_to_replica_folder = get_historical_data(None, history_name)
             print "Got history data for self!"
             success = 1
@@ -211,14 +213,24 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas 
     energies = [0.0]*replicas
 
-    if rank == 0:
-        c_temperatures = [0.0]*replicas 
-        c_energies = [0.0]*replicas
+    m_temperatures = [0.0]*replicas 
+    m_energies = [0.0]*replicas
 
-    c_temperatures  = comm.gather(replica_temp, root=0)
-    c_energies  = comm.gather(replica_energy, root=0)
-    temperatures = comm.bcast(c_temperatures, root=0)
-    energies = comm.bcast(c_energies, root=0)
+    if rank == 0:
+        temp_pairs = [[0, 0.0]]*size
+        energy_pairs = [[0, 0.0]]*size
+
+    temp_pairs  = comm.gather([int(rid), replica_temp], root=0)
+    energy_pairs  = comm.gather([int(rid), replica_energy], root=0)
+
+    if rank == 0:
+        for pair in temp_pairs:
+            m_temperatures[pair[0]] = pair[1]
+        for pair in energy_pairs:
+            m_energies[pair[0]] = pair[1]
+
+    temperatures = comm.bcast(m_temperatures, root=0)
+    energies = comm.bcast(m_energies, root=0)
 
     if rank ==0:
         matrix_columns = [[0.0]*(replicas+1)]*(replicas+1)
@@ -263,4 +275,3 @@ if __name__ == '__main__':
         except IOError:
             print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
 
-            
