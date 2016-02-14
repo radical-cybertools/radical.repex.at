@@ -14,58 +14,33 @@ import json
 #-------------------------------------------------------------------------------
 
 class Replica1d(object):
-    """Class representing replica and it's associated data.
-    """
-    def __init__(self, my_id, new_temperature=None, new_salt_concentration=None, new_restraints=None, rstr_val_1=None,  coor=None, indx1=None, indx2=None, cores=1):
-        """Constructor.
 
-        Arguments:
-        my_id - integer representing replica's id
-        new_temperature - temperature at which replica is initialized (default: None)
-        cores - number of cores to be used by replica's NAMD instance (default: 1)
-        """
+    def __init__(self, my_id,  
+                 d1_param=0.0, 
+                 d1_type = None, 
+                 new_restraints=None, 
+                 coor=None, 
+                 cores=1):
+       
         self.id = int(my_id)
         self.sid = int(my_id)
         self.state = 'I'
         self.cycle = 0
 
-        if rstr_val_1 is None:
-            self.rstr_val_1 = 0
-        else:
-            self.rstr_val_1 = rstr_val_1
-
         if coor is not None:
             self.coor_file = coor
 
-        if indx1 is not None:
-            self.indx1 = indx1
-
-        if indx2 is not None:
-            self.indx2 = indx2
-
-        #---------------------------------------------------------
-        if new_temperature is None:
-            self.new_temperature = 0
-        else:
-            self.new_temperature = new_temperature
-        self.old_temperature = new_temperature
-        
-        #---------------------------------------------------------
-        if new_salt_concentration is None:
-            self.new_salt_concentration = 0
-        else:
-            self.new_salt_concentration = new_salt_concentration
-        self.old_salt_concentration = new_salt_concentration
-        #---------------------------------------------------------
-
         if new_restraints is None:
             self.new_restraints = ''
+            self.old_restraints = ''
         else:
             self.new_restraints = new_restraints
-        self.old_restraints = new_restraints
-        #---------------------------------------------------------
+            self.old_restraints = new_restraints
 
-        self.potential = 0
+        self.d1_param = d1_param
+        self.d1_param_old = self.d1_param
+
+        self.d1_type = d1_type
 
         # amber stuff
         self.new_traj = ""
@@ -90,34 +65,46 @@ class Replica1d(object):
 #-------------------------------------------------------------------------------
 
 class Replica2d(object):
-    """Class representing replica and it's associated data.
-    """
-    def __init__(self, my_id, new_temperature=None, new_salt_concentration=None, cores=1):
-        """Constructor.
-
-        """
+    
+    def __init__(self, 
+                 my_id,  
+                 d1_param=0.0, 
+                 d2_param=0.0, 
+                 d1_type = None, 
+                 d2_type = None, 
+                 new_restraints=None, 
+                 coor=None, 
+                 cores=1):
+        
         self.id = int(my_id)
         self.sid = int(my_id)
         self.cycle = 0
-        if new_salt_concentration is None:
-            self.new_salt_concentration = 0
-        else:
-            self.new_salt_concentration = new_salt_concentration
-        self.old_salt_concentration = new_salt_concentration
 
-        if new_temperature is None:
-            self.new_temperature = 0
-        else:
-            self.new_temperature = new_temperature
-        self.old_temperature = new_temperature
+        self.group_idx = [None, None]
 
-        self.potential = 0
+        if coor is not None:
+            self.coor_file = coor
+
+        if new_restraints is None:
+            self.new_restraints = ''
+            self.old_restraints = ''
+        else:
+            self.new_restraints = new_restraints
+            self.old_restraints = new_restraints
+
+        self.d1_param = d1_param
+        self.d1_param_old = self.d1_param
+
+        self.d2_param = d2_param
+        self.d2_param_old = self.d2_param
+
+        self.d1_type = d1_type
+        self.d2_type = d2_type
 
         # amber stuff
         self.new_traj = ""  # ok
         self.new_info = ""  # ok
         self.new_coor = ""  # ok both namd and amber
-
 
         self.old_traj = ""  # ok
         self.old_info = ""  # ok 
@@ -131,27 +118,27 @@ class Replica2d(object):
         self.old_vel = ""         # namd only
         self.old_ext_system = ""  # namd only
 
-
         self.old_path = ""
         self.first_path = ""
         self.swap = 0
         self.cores = cores
-        self.stopped_run = -1
 
 #-------------------------------------------------------------------------------
 
 class Replica3d(object):
-    """Class representing replica and it's associated data.
-       US = Umbrella Sampling
-    """
-    def __init__(self, my_id, new_temperature=None, new_salt=None, new_restraints=None, rstr_val_1=None, rstr_val_2=None, coor=None, indx1=None, indx2=None, cores=1):
-        """Constructor.
-
-        Arguments:
-        my_id - integer representing replica's id
-        new_temperature - temperature at which replica is initialized (default: None)
-        cores - number of cores to be used by replica's NAMD instance (default: 1)
-        """
+    
+    def __init__(self, 
+                 my_id, 
+                 d1_param=0.0, 
+                 d2_param=0.0, 
+                 d3_param=0.0, 
+                 d1_type = None, 
+                 d2_type = None, 
+                 d3_type = None, 
+                 new_restraints=None, 
+                 coor=None, 
+                 cores=1):
+    
         self.id = int(my_id)
         self.sid = int(my_id)
         self.state = 'I'
@@ -161,56 +148,37 @@ class Replica3d(object):
         if coor is not None:
             self.coor_file = coor
 
-        if indx1 is not None:
-            self.indx1 = indx1
-
-        if indx2 is not None:
-            self.indx2 = indx2
-
-        if new_salt is None:
-            self.new_salt_concentration = 0
-        else:
-            self.new_salt_concentration = new_salt
-        self.old_salt_concentration = new_salt
-
         if new_restraints is None:
             self.new_restraints = ''
             self.old_restraints = ''
         else:
             self.new_restraints = new_restraints
             self.old_restraints = new_restraints
-        self.potential_1 = 0
 
-        if new_temperature is None:
-            self.new_temperature = 0
-        else:
-            self.new_temperature = new_temperature
-        self.old_temperature = new_temperature
+        self.d1_param = d1_param
+        self.d1_param_old = self.d1_param
 
-        if rstr_val_1 is None:
-            self.rstr_val_1 = 0
-        else:
-            self.rstr_val_1 = rstr_val_1
+        self.d2_param = d2_param
+        self.d2_param_old = self.d2_param
 
-        if rstr_val_2 is None:
-            self.rstr_val_2 = 0
-        else:
-            self.rstr_val_2 = rstr_val_2
+        self.d3_param = d3_param
+        self.d3_param_old = self.d3_param
+
+        self.d1_type = d1_type
+        self.d2_type = d2_type
+        self.d3_type = d3_type
 
         # amber stuff
         self.new_traj = ""  # ok
         self.new_info = ""  # ok
         self.new_coor = ""  # ok both namd and amber
 
-
         self.old_traj = ""  # ok
         self.old_info = ""  # ok 
         self.old_coor = ""  # ok both namd and amber
-        ###################
-        ###################
 
         self.old_path = ""
         self.first_path = ""
         self.swap = 0
         self.cores = cores
-        self.stopped_run = -1
+

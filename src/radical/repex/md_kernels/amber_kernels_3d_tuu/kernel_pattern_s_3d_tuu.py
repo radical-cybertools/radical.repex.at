@@ -123,17 +123,22 @@ class KernelPatternS3dTUU(object):
 
         if self.nr_dims == 1:
             self.replicas = self.dims['d1']['replicas']
+            self.ex_accept_id_matrix_d1 = []
         elif self.nr_dims == 2:
             self.replicas = self.dims['d1']['replicas'] * self.dims['d2']['replicas']
+            self.ex_accept_id_matrix_d1 = []
+            self.ex_accept_id_matrix_d2 = []
         elif self.nr_dims == 3:
             self.replicas = self.dims['d1']['replicas'] * self.dims['d2']['replicas'] * self.dims['d3']['replicas']
+            self.ex_accept_id_matrix_d1 = []
+            self.ex_accept_id_matrix_d2 = []
+            self.ex_accept_id_matrix_d3 = []   
 
         if self.us_template:
             self.restraints_files = []
             for k in range(self.replicas):
                 self.restraints_files.append(self.us_template + "." + str(k) )
  
-        print self.dims
         for k in self.dims:
             if self.dims[k]['type'] == 'umbrella':
                 self.dims[k]['us_start'] = float(inp_file['dim.input'][k].get('us_start_param'))
@@ -141,10 +146,8 @@ class KernelPatternS3dTUU(object):
             if self.dims[k]['type'] == 'temperature':
                 self.dims[k]['temp_start'] = float(inp_file['dim.input'][k].get('min_temperature'))
                 self.dims[k]['temp_end'] = float(inp_file['dim.input'][k].get('max_temperature'))
-        print self.dims
 
         #-----------------------------------------------------------------------
-        # good till here
 
         self.pre_exec = KERNELS[self.resource]["kernels"]\
                         ["amber"].get("pre_execution")
@@ -161,19 +164,7 @@ class KernelPatternS3dTUU(object):
             sys.exit(1)
 
         self.shared_urls = []
-        self.shared_files = []
-
-        self.all_temp_list = []
-        self.all_rstr_list_d1 = []
-        self.all_rstr_list_d3 = []
-
-        self.d1_id_matrix = []
-        self.d2_id_matrix = []
-        self.d3_id_matrix = []        
-
-        self.temp_matrix = []
-        self.us_d1_matrix = []
-        self.us_d3_matrix = []
+        self.shared_files = []     
 
     #---------------------------------------------------------------------------
     #
@@ -202,45 +193,137 @@ class KernelPatternS3dTUU(object):
         #-----------------------------------------------------------------------
         replicas = []
 
-        d2_params = []
-        N = self.replicas_d2
-        factor = (self.max_temp/self.min_temp)**(1./(N-1))
-        for k in range(N):
-            new_temp = self.min_temp * (factor**k)
-            d2_params.append(new_temp)
+        # assigning parameters:
+        dim_params = {}
+        for k in self.dims:
+            if self.dims[k]['type'] == 'temperature':
+                dim_params[k] = []
+                N = self.dims[k]['replicas']
+                factor = (self.dims[k]['temp_end']/self.dims[k]['temp_start'])**(1./(N-1))
+                for n in range(N):
+                    new_temp = self.dims[k]['temp_start'] * (factor**n)
+                    dim_params[k].append(new_temp)
+            if self.dims[k]['type'] == 'umbrella':
+                dim_params[k] = []
+                for i in range(self.dims[k]['replicas']):
+                    spacing = (self.dims[k]['us_end'] - self.dims[k]['us_start']) / (float(self.dims[k]['replicas'])-1)
+                    starting_value = self.dims[k]['us_start'] + i*spacing
+                    dim_params[k].append(starting_value)
 
-        for i in range(self.replicas_d1):
-            for j in range(self.replicas_d2):
-                t1 = float(d2_params[j])
-                for k in range(self.replicas_d3):
-                    rid = k + j*self.replicas_d3 + i*self.replicas_d3*self.replicas_d2
-                    r1 = self.restraints_files[rid]
+        if self.nr_dims == 3:
+            for i in range(self.dims['d1']['replicas']):
+                for j in range(self.dims['d2']['replicas']):
+                    for k in range(self.dims['d3']['replicas']):
+                        rid = k + j*self.dims['d3']['replicas'] + i*self.dims['d3']['replicas']*self.dims['d2']['replicas']
 
-                    spacing_d1 = (self.us_end_param_d1 - self.us_start_param_d1) / (float(self.replicas_d1)-1)
-                    starting_value_d1 = self.us_start_param_d1 + i*spacing_d1
+                        if self.us_template:
+                            r = self.restraints_files[rid]
+                        if self.same_coordinates == False:
+                            indexes = []
+                            if self.dims['d1']['type'] == 'umbrella':
+                                indexes.append(i)
+                            if self.dims['d2']['type'] == 'umbrella':
+                                indexes.append(j)
+                            if self.dims['d3']['type'] == 'umbrella':
+                                indexes.append(k)
+                            coor_file = self.coor_basename
+                            for ind in indexes:
+                                coor_file += "." + str(ind)
+                        else:
+                            coor_file = self.coor_basename + ".0.0.0"
 
-                    spacing_d3 = (self.us_end_param_d3 - self.us_start_param_d3) / (float(self.replicas_d3)-1)
-                    starting_value_d3 = self.us_start_param_d3 + k*spacing_d3
+                        if self.us_template:
+                            r = Replica3d(rid, \
+                                          new_restraints=r, \
+                                          cores=1, \
+                                          coor=coor_file,
+                                          d1_param=float(dim_params['d1'][i]), \
+                                          d2_param=float(dim_params['d2'][j]), \
+                                          d3_param=float(dim_params['d3'][k]), \
+                                          d1_type = self.dims['d1']['type'], \
+                                          d2_type = self.dims['d2']['type'], \
+                                          d3_type = self.dims['d3']['type'])
+                            replicas.append(r)
+                        else:
+                            r = Replica3d(rid, \
+                                          cores=1, \
+                                          coor=coor_file,
+                                          d1_param=float(dim_params['d1'][i]), \
+                                          d2_param=float(dim_params['d2'][j]), \
+                                          d3_param=float(dim_params['d3'][k]), \
+                                          d1_type = self.dims['d1']['type'], \
+                                          d2_type = self.dims['d2']['type'], \
+                                          d3_type = self.dims['d3']['type'])
+                            replicas.append(r)
 
-                    rstr_val_1 = str(starting_value_d1)
-                    rstr_val_2 = str(starting_value_d3)
-        
-                    #-----------------------------------------------------------
+        if self.nr_dims == 2:
+            for i in range(self.dims['d1']['replicas']):
+                for j in range(self.dims['d2']['replicas']):
+                    rid = j + i*self.dims['d2']['replicas']
+
+                    if self.us_template:
+                        r = self.restraints_files[rid]
                     if self.same_coordinates == False:
-                        coor_file = self.coor_basename + "." + str(i) + "." + str(k)
+                        indexes = []
+                        if self.dims['d1']['type'] == 'umbrella':
+                            indexes.append(i)
+                        if self.dims['d2']['type'] == 'umbrella':
+                            indexes.append(j)
+                        coor_file = self.coor_basename
+                        for ind in indexes:
+                            coor_file += "." + str(ind)
                     else:
                         coor_file = self.coor_basename + ".0.0"
-                    r = Replica3d(rid, \
-                                  new_temperature=t1, \
-                                  new_restraints=r1, \
-                                  rstr_val_1=float(rstr_val_1), \
-                                  rstr_val_2=float(rstr_val_2),  \
+
+                    if self.us_template:
+                        r = Replica2d(rid, \
+                                      new_restraints=r, \
+                                      cores=1, \
+                                      coor=coor_file,
+                                      d1_param=float(dim_params['d1'][i]), \
+                                      d2_param=float(dim_params['d2'][j]), \
+                                      d1_type = self.dims['d1']['type'], \
+                                      d2_type = self.dims['d2']['type'], )
+                        replicas.append(r)
+                    else:
+                        r = Replica2d(rid, \
+                                      cores=1, \
+                                      coor=coor_file,
+                                      d1_param=float(dim_params['d1'][i]), \
+                                      d2_param=float(dim_params['d2'][j]), \
+                                      d1_type = self.dims['d1']['type'], \
+                                      d2_type = self.dims['d2']['type'], )
+                        replicas.append(r)
+
+        if self.nr_dims == 1:
+            for i in range(self.dims['d1']['replicas']):
+                rid = i
+
+                if self.us_template:
+                    r = self.restraints_files[rid]
+                if self.same_coordinates == False:
+                    coor_file = self.coor_basename
+                    if self.dims['d1']['type'] == 'umbrella':
+                        coor_file += "." + str(i)
+                else:
+                    coor_file = self.coor_basename + ".0"
+
+                if self.us_template:
+                    r = Replica1d(rid, \
+                                  new_restraints=r, \
                                   cores=1, \
-                                  coor=coor_file, \
-                                  indx1=i, \
-                                  indx2=k,)
+                                  coor=coor_file,
+                                  d1_param=float(dim_params['d1'][i]), \
+                                  d1_type = self.dims['d1']['type'] )
                     replicas.append(r)
-                    
+                else:
+                    r = Replica1d(rid, \
+                                  cores=1, \
+                                  coor=coor_file,
+                                  d1_param=float(dim_params['d1'][i]), \
+                                  d1_type = self.dims['d1']['type'] )
+                    replicas.append(r)
+
         #-----------------------------------------------------------------------
         # assigning group idx
         g_d1 = []
