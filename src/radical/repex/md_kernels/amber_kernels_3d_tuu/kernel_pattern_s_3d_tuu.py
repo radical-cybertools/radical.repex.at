@@ -53,7 +53,6 @@ class KernelPatternS3dTUU(object):
         self.amber_input      = inp_file['remd.input'].get('amber_input')
         self.work_dir_local   = work_dir_local
         self.current_cycle    = -1
-        self.dims             = 3
 
         self.cores         = int(rconfig['target'].get('cores', '1'))
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
@@ -88,40 +87,64 @@ class KernelPatternS3dTUU(object):
         else:
             self.exchange_off = False  
     
+        self.dims = {}
+        self.dims['d1'] = {'replicas' : None, 'type' : None} 
+        self.dims['d2'] = {'replicas' : None, 'type' : None}
+        self.dims['d3'] = {'replicas' : None, 'type' : None}
+
         #-----------------------------------------------------------------------
-        # hardcoded 
-        self.replicas_d1 = int(inp_file['dim.input']\
-                           ['umbrella_sampling_1'].get("number_of_replicas"))
-        self.replicas_d2 = int(inp_file['dim.input']\
-                           ['temperature_2'].get("number_of_replicas"))
-        self.replicas_d3 = int(inp_file['dim.input']\
-                           ['umbrella_sampling_3'].get("number_of_replicas"))
+        #  
+        if inp_file['dim.input'].get('d1'):
+            self.dims['d1']['replicas'] = int(inp_file['dim.input']\
+                               ['d1'].get("number_of_replicas"))
+            self.dims['d1']['type'] = (inp_file['dim.input']['d1'].get("type"))
 
-        self.d1 = 'umbrella_sampling'
-        self.d2 = 'temperature'
-        self.d3 = 'umbrella_sampling'
+        if inp_file['dim.input'].get('d2'):
+            self.dims['d2']['replicas'] = int(inp_file['dim.input']\
+                               ['d2'].get("number_of_replicas"))
+            self.dims['d2']['type'] = (inp_file['dim.input']['d2'].get("type"))
 
-        self.replicas = self.replicas_d1 * self.replicas_d2 * self.replicas_d3
+        if inp_file['dim.input'].get('d3'):
+            self.dims['d3']['replicas'] = int(inp_file['dim.input']\
+                               ['d3'].get("number_of_replicas"))
+            self.dims['d3']['type'] = (inp_file['dim.input']['d3'].get("type"))
 
-        self.restraints_files = []
-        for k in range(self.replicas):
-            self.restraints_files.append(self.us_template + "." + str(k) )
+        self.nr_dims = 0
+        if self.dims['d1']['replicas'] and (not self.dims['d2']['replicas']) and (not self.dims['d3']['replicas']):
+            self.nr_dims = 1
+        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] and (not self.dims['d3']['replicas']):
+            self.nr_dims = 2
+        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] and self.dims['d3']['replicas']:
+            self.nr_dims = 3
+
+        if self.nr_dims == 0:
+            self.logger.info("Number of dimensions must be greater than 0, exiting...")
+            sys.exit(1)
+
+        if self.nr_dims == 1:
+            self.replicas = self.dims['d1']['replicas']
+        elif self.nr_dims == 2:
+            self.replicas = self.dims['d1']['replicas'] * self.dims['d2']['replicas']
+        elif self.nr_dims == 3:
+            self.replicas = self.dims['d1']['replicas'] * self.dims['d2']['replicas'] * self.dims['d3']['replicas']
+
+        if self.us_template:
+            self.restraints_files = []
+            for k in range(self.replicas):
+                self.restraints_files.append(self.us_template + "." + str(k) )
  
-        self.us_start_param_d1 = float(inp_file['dim.input']\
-                                 ['umbrella_sampling_1'].get('us_start_param'))
-        self.us_end_param_d1 = float(inp_file['dim.input']\
-                               ['umbrella_sampling_1'].get('us_end_param'))
+        print self.dims
+        for k in self.dims:
+            if self.dims[k]['type'] == 'umbrella':
+                self.dims[k]['us_start'] = float(inp_file['dim.input'][k].get('us_start_param'))
+                self.dims[k]['us_end'] = float(inp_file['dim.input'][k].get('us_end_param'))
+            if self.dims[k]['type'] == 'temperature':
+                self.dims[k]['temp_start'] = float(inp_file['dim.input'][k].get('min_temperature'))
+                self.dims[k]['temp_end'] = float(inp_file['dim.input'][k].get('max_temperature'))
+        print self.dims
 
-        self.us_start_param_d3 = float(inp_file['dim.input']\
-                                ['umbrella_sampling_3'].get('us_start_param'))
-        self.us_end_param_d3 = float(inp_file['dim.input']\
-                               ['umbrella_sampling_3'].get('us_end_param'))
-        
-        self.min_temp = float(inp_file['dim.input']\
-                        ['temperature_2'].get('min_temperature'))
-        self.max_temp = float(inp_file['dim.input']\
-                        ['temperature_2'].get('max_temperature'))
         #-----------------------------------------------------------------------
+        # good till here
 
         self.pre_exec = KERNELS[self.resource]["kernels"]\
                         ["amber"].get("pre_execution")

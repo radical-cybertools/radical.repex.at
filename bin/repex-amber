@@ -89,7 +89,7 @@ if __name__ == '__main__':
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()
 
-	if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'TUU-REMD'):
+	if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'GENERAL'):
 
 		logger.info("*********************************************************")
 		logger.info("*           RepEx: TUU-REMD with AMBER kernel           *")
