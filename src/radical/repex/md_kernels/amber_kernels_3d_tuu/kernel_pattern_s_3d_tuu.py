@@ -48,7 +48,7 @@ class KernelPatternS3dTUU(object):
         self.resource         = rconfig['target'].get('resource')
         self.inp_basename     = inp_file['remd.input'].get('input_file_basename')
         self.input_folder     = inp_file['remd.input'].get('input_folder')
-        self.us_template      = inp_file['remd.input'].get('us_template') 
+        self.us_template      = inp_file['remd.input'].get('us_template', '') 
         self.amber_parameters = inp_file['remd.input'].get('amber_parameters')
         self.amber_input      = inp_file['remd.input'].get('amber_input')
         self.work_dir_local   = work_dir_local
@@ -134,10 +134,9 @@ class KernelPatternS3dTUU(object):
             self.ex_accept_id_matrix_d2 = []
             self.ex_accept_id_matrix_d3 = []   
 
-        if self.us_template:
-            self.restraints_files = []
-            for k in range(self.replicas):
-                self.restraints_files.append(self.us_template + "." + str(k) )
+        self.restraints_files = []
+        for k in range(self.replicas):
+            self.restraints_files.append(self.us_template + "." + str(k) )
  
         for k in self.dims:
             if self.dims[k]['type'] == 'umbrella':
@@ -216,8 +215,7 @@ class KernelPatternS3dTUU(object):
                     for k in range(self.dims['d3']['replicas']):
                         rid = k + j*self.dims['d3']['replicas'] + i*self.dims['d3']['replicas']*self.dims['d2']['replicas']
 
-                        if self.us_template:
-                            r = self.restraints_files[rid]
+                        r = self.restraints_files[rid]
                         if self.same_coordinates == False:
                             indexes = []
                             if self.dims['d1']['type'] == 'umbrella':
@@ -232,37 +230,24 @@ class KernelPatternS3dTUU(object):
                         else:
                             coor_file = self.coor_basename + ".0.0.0"
 
-                        if self.us_template:
-                            r = Replica3d(rid, \
-                                          new_restraints=r, \
-                                          cores=1, \
-                                          coor=coor_file,
-                                          d1_param=float(dim_params['d1'][i]), \
-                                          d2_param=float(dim_params['d2'][j]), \
-                                          d3_param=float(dim_params['d3'][k]), \
-                                          d1_type = self.dims['d1']['type'], \
-                                          d2_type = self.dims['d2']['type'], \
-                                          d3_type = self.dims['d3']['type'])
-                            replicas.append(r)
-                        else:
-                            r = Replica3d(rid, \
-                                          cores=1, \
-                                          coor=coor_file,
-                                          d1_param=float(dim_params['d1'][i]), \
-                                          d2_param=float(dim_params['d2'][j]), \
-                                          d3_param=float(dim_params['d3'][k]), \
-                                          d1_type = self.dims['d1']['type'], \
-                                          d2_type = self.dims['d2']['type'], \
-                                          d3_type = self.dims['d3']['type'])
-                            replicas.append(r)
+                        r = Replica3d(rid, \
+                                      new_restraints=r, \
+                                      cores=1, \
+                                      coor=coor_file,
+                                      d1_param=float(dim_params['d1'][i]), \
+                                      d2_param=float(dim_params['d2'][j]), \
+                                      d3_param=float(dim_params['d3'][k]), \
+                                      d1_type = self.dims['d1']['type'], \
+                                      d2_type = self.dims['d2']['type'], \
+                                      d3_type = self.dims['d3']['type'])
+                        replicas.append(r)
 
         if self.nr_dims == 2:
             for i in range(self.dims['d1']['replicas']):
                 for j in range(self.dims['d2']['replicas']):
                     rid = j + i*self.dims['d2']['replicas']
 
-                    if self.us_template:
-                        r = self.restraints_files[rid]
+                    r = self.restraints_files[rid]
                     if self.same_coordinates == False:
                         indexes = []
                         if self.dims['d1']['type'] == 'umbrella':
@@ -275,32 +260,21 @@ class KernelPatternS3dTUU(object):
                     else:
                         coor_file = self.coor_basename + ".0.0"
 
-                    if self.us_template:
-                        r = Replica2d(rid, \
-                                      new_restraints=r, \
-                                      cores=1, \
-                                      coor=coor_file,
-                                      d1_param=float(dim_params['d1'][i]), \
-                                      d2_param=float(dim_params['d2'][j]), \
-                                      d1_type = self.dims['d1']['type'], \
-                                      d2_type = self.dims['d2']['type'], )
-                        replicas.append(r)
-                    else:
-                        r = Replica2d(rid, \
-                                      cores=1, \
-                                      coor=coor_file,
-                                      d1_param=float(dim_params['d1'][i]), \
-                                      d2_param=float(dim_params['d2'][j]), \
-                                      d1_type = self.dims['d1']['type'], \
-                                      d2_type = self.dims['d2']['type'], )
-                        replicas.append(r)
+                    r = Replica2d(rid, \
+                                  new_restraints=r, \
+                                  cores=1, \
+                                  coor=coor_file,
+                                  d1_param=float(dim_params['d1'][i]), \
+                                  d2_param=float(dim_params['d2'][j]), \
+                                  d1_type = self.dims['d1']['type'], \
+                                  d2_type = self.dims['d2']['type'], )
+                    replicas.append(r)
 
         if self.nr_dims == 1:
             for i in range(self.dims['d1']['replicas']):
                 rid = i
 
-                if self.us_template:
-                    r = self.restraints_files[rid]
+                r = self.restraints_files[rid]
                 if self.same_coordinates == False:
                     coor_file = self.coor_basename
                     if self.dims['d1']['type'] == 'umbrella':
@@ -308,55 +282,72 @@ class KernelPatternS3dTUU(object):
                 else:
                     coor_file = self.coor_basename + ".0"
 
-                if self.us_template:
-                    r = Replica1d(rid, \
-                                  new_restraints=r, \
-                                  cores=1, \
-                                  coor=coor_file,
-                                  d1_param=float(dim_params['d1'][i]), \
-                                  d1_type = self.dims['d1']['type'] )
-                    replicas.append(r)
-                else:
-                    r = Replica1d(rid, \
-                                  cores=1, \
-                                  coor=coor_file,
-                                  d1_param=float(dim_params['d1'][i]), \
-                                  d1_type = self.dims['d1']['type'] )
-                    replicas.append(r)
+                r = Replica1d(rid, \
+                              new_restraints=r, \
+                              cores=1, \
+                              coor=coor_file,
+                              d1_param=float(dim_params['d1'][i]), \
+                              d1_type = self.dims['d1']['type'] )
+                replicas.append(r)
 
         #-----------------------------------------------------------------------
         # assigning group idx
-        g_d1 = []
-        g_d2 = []
-        g_d3 = []
 
-        for r in replicas:
-            if len(g_d1) == 0:
-                g_d1.append([r.new_temperature, r.rstr_val_2]) 
-                g_d2.append([r.rstr_val_1, r.rstr_val_2]) 
-                g_d3.append([r.rstr_val_1, r.new_temperature])
+        if self.nr_dims == 3:
+            g_d1 = []
+            g_d2 = []
+            g_d3 = []
 
-            for i in range(len(g_d1)):
-                if (g_d1[i][0] == r.new_temperature) and (g_d1[i][1] == r.rstr_val_2):
-                    r.group_idx[0] = i
-            if r.group_idx[0] == None:
-                g_d1.append([r.new_temperature, r.rstr_val_2])
-                r.group_idx[0] = len(g_d1) - 1
-                    
-            for i in range(len(g_d2)):
-                if (g_d2[i][0] == r.rstr_val_1) and (g_d2[i][1] == r.rstr_val_2):
-                    r.group_idx[1] = i
-            if r.group_idx[1] == None:
-                g_d2.append([r.rstr_val_1, r.rstr_val_2])
-                r.group_idx[1] = len(g_d2) - 1
+            for r in replicas:
+                if len(g_d1) == 0:
+                    g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']]) 
+                    g_d2.append([r.dims['d1']['par'], r.dims['d3']['par']]) 
+                    g_d3.append([r.dims['d1']['par'], r.dims['d2']['par']])
+                for i in range(len(g_d1)):
+                    if (g_d1[i][0] == r.dims['d2']['par']) and (g_d1[i][1] == r.dims['d3']['par']):
+                        r.group_idx[0] = i
+                if r.group_idx[0] == None:
+                    g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']])
+                    r.group_idx[0] = len(g_d1) - 1
+                        
+                for i in range(len(g_d2)):
+                    if (g_d2[i][0] == r.dims['d1']['par']) and (g_d2[i][1] == r.dims['d3']['par']):
+                        r.group_idx[1] = i
+                if r.group_idx[1] == None:
+                    g_d2.append([r.dims['d1']['par'], r.dims['d3']['par']])
+                    r.group_idx[1] = len(g_d2) - 1
 
-            for i in range(len(g_d3)):
-                if (g_d3[i][0] == r.rstr_val_1) and (g_d3[i][1] == r.new_temperature):
-                    r.group_idx[2] = i
-            if r.group_idx[2] == None:
-                g_d3.append([r.rstr_val_1, r.new_temperature])
-                r.group_idx[2] = len(g_d3) - 1
-        self.groups_numbers = [len(g_d1), len(g_d2), len(g_d3)] 
+                for i in range(len(g_d3)):
+                    if (g_d3[i][0] == r.dims['d1']['par']) and (g_d3[i][1] == r.dims['d2']['par']):
+                        r.group_idx[2] = i
+                if r.group_idx[2] == None:
+                    g_d3.append([r.dims['d1']['par'], r.dims['d2']['par']])
+                    r.group_idx[2] = len(g_d3) - 1
+            self.groups_numbers = [len(g_d1), len(g_d2), len(g_d3)] 
+
+        if self.nr_dims == 2:
+            g_d1 = []
+            g_d2 = []
+
+            for r in replicas:
+                if len(g_d1) == 0:
+                    g_d1.append(r.dims['d2']['par']) 
+                    g_d2.append(r.dims['d1']['par']) 
+                for i in range(len(g_d1)):
+                    if (g_d1[i] == r.dims['d2']['par']):
+                        r.group_idx[0] = i
+                if r.group_idx[0] == None:
+                    g_d1.append(r.dims['d2']['par'])
+                    r.group_idx[0] = len(g_d1) - 1
+                        
+                for i in range(len(g_d2)):
+                    if (g_d2[i] == r.dims['d1']['par']):
+                        r.group_idx[1] = i
+                if r.group_idx[1] == None:
+                    g_d2.append(r.dims['d1']['par'])
+                    r.group_idx[1] = len(g_d2) - 1
+
+            self.groups_numbers = [len(g_d1), len(g_d2)] 
 
         return replicas
 
@@ -368,12 +359,15 @@ class KernelPatternS3dTUU(object):
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
+        # for 3d only, check
         calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.remote_calculator_temp_ex_mpi.__file__)
         calc_temp_ex_path = calc_temp_ex + "/remote_calculator_temp_ex_mpi.py"
 
+        # for 3d only, check
         calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.remote_calculator_us_ex_mpi.__file__)
         calc_us_ex_path = calc_us_ex + "/remote_calculator_us_ex_mpi.py"
 
+        # for 3d only, check
         global_calc = os.path.dirname(amber_kernels_3d_tuu.global_ex_calculator.__file__)
         global_calc_path = global_calc + "/global_ex_calculator.py"
 
@@ -382,11 +376,14 @@ class KernelPatternS3dTUU(object):
         #-----------------------------------------------------------------------
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_input)
+
+        # for 3d only, check
         self.shared_files.append("remote_calculator_temp_ex_mpi.py")
         self.shared_files.append("remote_calculator_us_ex_mpi.py")
         self.shared_files.append("global_ex_calculator.py")
-        self.shared_files.append(self.us_template)
 
+        self.shared_files.append(self.us_template)
+     
         if self.same_coordinates == False:
             for repl in replicas:
                 if repl.coor_file not in self.shared_files:
@@ -442,11 +439,11 @@ class KernelPatternS3dTUU(object):
         # restraint template file: ace_ala_nme_us.RST
         stage_in.append(sd_shared_list[5])
 
-        if dimension == 2:
-            # matrix_calculator_temp_ex.py file
+        if (self.dims[dimension]['type'] == 'temperature') and (self.nr_dims == 3):
+            # remote_calculator_temp_ex_mpi.py file
             stage_in.append(sd_shared_list[2])
-        else:
-            # matrix_calculator_us_ex.py file
+        if (self.dims[dimension]['type'] == 'umbrella') and (self.nr_dims == 3):
+            # remote_calculator_us_ex_mpi.py file
             stage_in.append(sd_shared_list[3])
             
         #----------------------------------------------------------------------- 
@@ -463,9 +460,9 @@ class KernelPatternS3dTUU(object):
         data['amber']     = {}
         data['amber']     = {'path': self.amber_path}
 
-        if dimension == 2:
+        if (self.dims[dimension]['type'] == 'temperature'):
             data['ex_temp']   = {}
-        else:
+        if (self.dims[dimension]['type'] == 'umbrella'):
             data['ex_us']     = {}
         
         basename = self.inp_basename
@@ -474,6 +471,7 @@ class KernelPatternS3dTUU(object):
         #-----------------------------------------------------------------------
         # for all
         # assumption: all input files share a substring (ace_ala_nme)
+
         data['gen_input'] = {
             "steps": str(self.cycle_steps),
             "amber_inp" : str(self.amber_input[len_substr:]),
@@ -487,9 +485,7 @@ class KernelPatternS3dTUU(object):
             }
 
         for replica in group:
-            ####################################################################
             # to generate in calculator:
-            ####################################################################
 
             new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
             output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle))
@@ -539,13 +535,14 @@ class KernelPatternS3dTUU(object):
             }
             stage_out.append(new_coor_out)
 
-            out_string = "_%d.out" % (replica.cycle)
-            rstr_out = {
-                'source': (replica.new_restraints + '.out'),
-                'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
-                'action': radical.pilot.COPY
-            }
-            stage_out.append(rstr_out)
+            self.us_template != '':
+                out_string = "_%d.out" % (replica.cycle)
+                rstr_out = {
+                    'source': (replica.new_restraints + '.out'),
+                    'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
+                    'action': radical.pilot.COPY
+                }
+                stage_out.append(rstr_out)
             
             matrix_col = "matrix_column_%s_%s.dat" % (str(group_id), str(replica.cycle))
             matrix_col_out = {
@@ -564,28 +561,37 @@ class KernelPatternS3dTUU(object):
             stage_out.append(info_out)
 
             #-------------------------------------------------------------------
-            # temperature
-            if dimension == 2:
-                data['ex_temp'][str(rid)] = {}
-                data['ex_temp'][str(rid)] = {
-                    "rv1" : str(replica.rstr_val_1),
-                    "rv2" : str(replica.rstr_val_2),
+            
+            data['ex'][str(rid)] = {}
+            if (self.dims[dimension] == 'd1':
+                data['ex'][str(rid)] = {
+                    "cd" : "d1",
+                    "d1" : str(replica.dims['d1']['par']),
+                    "d2" : str(replica.dims['d2']['par']),
+                    "d3" : str(replica.dims['d3']['par']),
                     "new_rstr" : str(replica.new_restraints[len_substr:]),
-                    "new_t" : str(replica.new_temperature),
+                    "r_coor" : str(replica.coor_file[len_substr:])
+                    }
+            if (self.dims[dimension] == 'd2':
+                data['ex'][str(rid)] = {
+                    "cd" : "d2",
+                    "d1" : str(replica.dims['d1']['par']),
+                    "d2" : str(replica.dims['d2']['par']),
+                    "d3" : str(replica.dims['d3']['par']),
+                    "new_rstr" : str(replica.new_restraints[len_substr:]),
+                    "r_coor" : str(replica.coor_file[len_substr:])
+                    }
+            if (self.dims[dimension] == 'd3':
+                data['ex'][str(rid)] = {
+                    "cd" : "d3",
+                    "d1" : str(replica.dims['d1']['par']),
+                    "d2" : str(replica.dims['d2']['par']),
+                    "d3" : str(replica.dims['d3']['par']),
+                    "new_rstr" : str(replica.new_restraints[len_substr:]),
                     "r_coor" : str(replica.coor_file[len_substr:])
                     }
 
             base_restraint = self.us_template + "."
-
-            if (dimension == 1) or (dimension == 3):
-                data['ex_us'][str(rid)] = {}
-                data['ex_us'][str(rid)] = {
-                    "rv1" : str(replica.rstr_val_1),
-                    "rv2" : str(replica.rstr_val_2),
-                    "new_t" : str(replica.new_temperature),
-                    "new_rstr" : str(replica.new_restraints[len_substr:]),
-                    "r_coor" : str(replica.coor_file[len_substr:])
-                }
             
             #-------------------------------------------------------------------
             if replica.cycle == 0:    
@@ -628,12 +634,13 @@ class KernelPatternS3dTUU(object):
 
         cu = radical.pilot.ComputeUnitDescription()
 
-        if (dimension == 1) or (dimension == 3):
+        if (self.dims[dimension]['type'] == 'umbrella'):
             if KERNELS[self.resource]["shell"] == "bash":
                 cu.executable = "python remote_calculator_us_ex_mpi.py " + "\'" + json_data_bash + "\'"
             elif KERNELS[self.resource]["shell"] == "bourne":
                 cu.executable = "python remote_calculator_us_ex_mpi.py " + "\'" + json_data_sh + "\'"
-        else:
+
+        if (self.dims[dimension]['type'] == 'temperature'):
             if KERNELS[self.resource]["shell"] == "bash":
                 cu.executable = "python remote_calculator_temp_ex_mpi.py " + "\'" + json_data_bash + "\'"
             elif KERNELS[self.resource]["shell"] == "bourne":
@@ -651,32 +658,19 @@ class KernelPatternS3dTUU(object):
     #
     def exchange_params(self, dimension, replica_1, replica_2):
         
-        if dimension == 2:
-            self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
-            temp = replica_2.new_temperature
-            replica_2.new_temperature = replica_1.new_temperature
-            replica_1.new_temperature = temp
-            self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
-        elif dimension == 1:
-            self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_restraints, replica_2.new_restraints) )
+        if (self.dims[dimension]['type'] == 'temperature'):
+            temp = replica_2.dims[dimension]['par']
+            replica_2.dims[dimension]['par'] = replica_1.dims[dimension]['param']
+            replica_1.dims[dimension]['par'] = temp
+
+        if (self.dims[dimension]['type'] == 'umbrella'):
+            rstr = replica_2.dims[dimension]['par']
+            replica_2.dims[dimension]['par'] = replica_1.dims[dimension]['param']
+            replica_1.dims[dimension]['par'] = rstr
             
             rstr = replica_2.new_restraints
             replica_2.new_restraints = replica_1.new_restraints
             replica_1.new_restraints = rstr
-
-            val = replica_2.rstr_val_1
-            replica_2.rstr_val_1 = replica_1.rstr_val_1
-            replica_1.rstr_val_1 = val
-
-            self.logger.debug("[exchange_params] after: r1: {0} r2: {1}".format(replica_1.new_restraints, replica_2.new_restraints) )
-        else:
-            rstr = replica_2.new_restraints
-            replica_2.new_restraints = replica_1.new_restraints
-            replica_1.new_restraints = rstr
-
-            val = replica_2.rstr_val_2
-            replica_2.rstr_val_2 = replica_1.rstr_val_2
-            replica_1.rstr_val_2 = val
 
     #---------------------------------------------------------------------------
     #

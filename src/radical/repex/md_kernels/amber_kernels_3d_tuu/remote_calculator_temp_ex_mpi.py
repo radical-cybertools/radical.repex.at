@@ -90,20 +90,20 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
     size = comm.Get_size()
     
-    rids = data["ex_temp"].keys()
+    rids = data["ex"].keys()
     rid = rids[rank]
 
     group_id = data["gen_input"]["group_id"]
     amber_input = data["gen_input"]["substr"] + data["gen_input"]["amber_inp"]
     cycle_steps = data["gen_input"]["steps"]
-    new_restraints = data["gen_input"]["substr"] + data["ex_temp"][rid]["new_rstr"]
-    new_temperature = data["ex_temp"][rid]["new_t"]
+    new_restraints = data["gen_input"]["substr"] + data["ex"][rid]["new_rstr"]
+    new_temperature = data["ex"][rid]["new_t"]
     basename = data["gen_input"]["base"]
     cycle = data["gen_input"]["cnr"]
     us_template = data["gen_input"]["substr"] + data["gen_input"]["us_tmpl"]
-    rstr_val_1 = float(data["ex_temp"][rid]["rv1"])
-    rstr_val_2 = float(data["ex_temp"][rid]["rv2"])
-    replica_coor = data["ex_temp"][rid]["r_coor"]
+    rstr_val_1 = float(data["ex"][rid]["rv1"])
+    rstr_val_2 = float(data["ex"][rid]["rv2"])
+    replica_coor = data["ex"][rid]["r_coor"]
 
     amber_path = data['amber']['path']
 

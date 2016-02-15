@@ -37,10 +37,8 @@ class Replica1d(object):
             self.new_restraints = new_restraints
             self.old_restraints = new_restraints
 
-        self.d1_param = d1_param
-        self.d1_param_old = self.d1_param
-
-        self.d1_type = d1_type
+        self.dims = {}
+        self.dims['d1'] = {'par' : d1_param, 'old_par' : d1_param, 'type' : d1_type} 
 
         # amber stuff
         self.new_traj = ""
@@ -92,14 +90,9 @@ class Replica2d(object):
             self.new_restraints = new_restraints
             self.old_restraints = new_restraints
 
-        self.d1_param = d1_param
-        self.d1_param_old = self.d1_param
-
-        self.d2_param = d2_param
-        self.d2_param_old = self.d2_param
-
-        self.d1_type = d1_type
-        self.d2_type = d2_type
+        self.dims = {}
+        self.dims['d1'] = {'par' : d1_param, 'old_par' : d1_param, 'type' : d1_type} 
+        self.dims['d2'] = {'par' : d2_param, 'old_par' : d2_param, 'type' : d2_type} 
 
         # amber stuff
         self.new_traj = ""  # ok
@@ -155,18 +148,10 @@ class Replica3d(object):
             self.new_restraints = new_restraints
             self.old_restraints = new_restraints
 
-        self.d1_param = d1_param
-        self.d1_param_old = self.d1_param
-
-        self.d2_param = d2_param
-        self.d2_param_old = self.d2_param
-
-        self.d3_param = d3_param
-        self.d3_param_old = self.d3_param
-
-        self.d1_type = d1_type
-        self.d2_type = d2_type
-        self.d3_type = d3_type
+        self.dims = {}
+        self.dims['d1'] = {'par' : d1_param, 'old_par' : d1_param, 'type' : d1_type} 
+        self.dims['d2'] = {'par' : d2_param, 'old_par' : d2_param, 'type' : d2_type} 
+        self.dims['d3'] = {'par' : d3_param, 'old_par' : d3_param, 'type' : d3_type} 
 
         # amber stuff
         self.new_traj = ""  # ok
