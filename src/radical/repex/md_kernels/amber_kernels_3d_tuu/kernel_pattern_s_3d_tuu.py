@@ -401,7 +401,7 @@ class KernelPatternS3dTUU(object):
             }
         stage_out.append(info_out)
 
-        current_group = self.get_current_group(dimension, replicas, replica)
+        current_group = self.get_current_group_ids(dimension, replicas, replica)
 
         #-----------------------------------------------------------------------
         # for all
@@ -757,25 +757,19 @@ class KernelPatternS3dTUU(object):
     
     #---------------------------------------------------------------------------
     #
-    def get_current_group(self, dimension, replicas, replica):
-        """
-        """
-
+    def get_current_group_ids(self, dimension, replicas, replica):
+        
         current_group = []
-
         for r1 in replicas:
-            
-            ###############################################
+        
             # temperature exchange
             if dimension == 2:
-                
                 r1_pair = [r1.rstr_val_1, r1.rstr_val_2]
                 my_pair = [replica.rstr_val_1, replica.rstr_val_2]
                   
                 if r1_pair == my_pair:
                     current_group.append(str(r1.id))
 
-            ###############################################
             # us exchange d1
             elif dimension == 1:
                 r1_pair = [r1.new_temperature, r1.rstr_val_2]
@@ -784,7 +778,6 @@ class KernelPatternS3dTUU(object):
                 if r1_pair == my_pair:
                     current_group.append(str(r1.id))
 
-            ###############################################
             # us exchange d3
             elif dimension == 3:
                 r1_pair = [r1.new_temperature, r1.rstr_val_1]
@@ -795,3 +788,57 @@ class KernelPatternS3dTUU(object):
 
         return current_group
 
+    #---------------------------------------------------------------------------
+    #
+    def get_current_group(self, dimension, replicas, replica):
+
+        current_group = []
+        for r1 in replicas:
+        
+            # temperature exchange
+            if dimension == 2:
+                r1_pair = [r1.rstr_val_1, r1.rstr_val_2]
+                my_pair = [replica.rstr_val_1, replica.rstr_val_2]
+                  
+                if r1_pair == my_pair:
+                    current_group.append(r1)
+
+            # us exchange d1
+            elif dimension == 1:
+                r1_pair = [r1.new_temperature, r1.rstr_val_2]
+                my_pair = [replica.new_temperature, replica.rstr_val_2]
+
+                if r1_pair == my_pair:
+                    current_group.append(r1)
+
+            # us exchange d3
+            elif dimension == 3:
+                r1_pair = [r1.new_temperature, r1.rstr_val_1]
+                my_pair = [replica.new_temperature, replica.rstr_val_1]
+
+                if r1_pair == my_pair:
+                    current_group.append(r1)
+
+        return current_group
+
+    #---------------------------------------------------------------------------
+    #
+    def get_all_groups(self, dimension, replicas):
+
+        all_groups = []
+        
+        for r1 in replicas:
+            get = True
+            for group in all_groups:
+                if r1 in group:
+                    get = False
+                    break
+
+            if (get == True):
+                cur_group = self.get_current_group(dimension, replicas, r1)
+                if len(cur_group) > 0:
+                    all_groups.append(cur_group)   
+
+        return all_groups
+
+    

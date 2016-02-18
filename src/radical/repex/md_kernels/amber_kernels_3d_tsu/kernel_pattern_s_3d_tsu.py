@@ -32,8 +32,7 @@ import amber_kernels_3d_tsu.global_ex_calculator
 #-------------------------------------------------------------------------------
 #
 class KernelPatternS3dTSU(object):
-    """TODO
-    """
+    
     def __init__(self, inp_file, rconfig, work_dir_local):
         """Constructor.
 
@@ -185,9 +184,7 @@ class KernelPatternS3dTSU(object):
     #---------------------------------------------------------------------------
     # 
     def initialize_replicas(self):
-        """Initializes replicas and their attributes to default values
-        """
-
+        
         #-----------------------------------------------------------------------
         # parse coor file
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
@@ -366,7 +363,6 @@ class KernelPatternS3dTSU(object):
         replica_path = "replica_%d/" % (rid)
 
         #-----------------------------------------------------------------------
-
         new_coor_out = {
             'source': new_coor,
             'target': 'staging:///%s' % (replica_path + new_coor),
@@ -374,7 +370,6 @@ class KernelPatternS3dTSU(object):
         }
         stage_out.append(new_coor_out)
 
-        
         out_string = "_%d.out" % (replica.cycle-1)
         rstr_out = {
             'source': (replica.new_restraints + '.out'),
@@ -383,7 +378,6 @@ class KernelPatternS3dTSU(object):
         }
         stage_out.append(rstr_out)
         
-
         #-----------------------------------------------------------------------
         # common code from prepare_for_exchange()
         
@@ -977,11 +971,6 @@ class KernelPatternS3dTSU(object):
                 cur_group = self.get_current_group(dimension, replicas, r1)
                 if len(cur_group) > 0:
                     all_groups.append(cur_group)   
-
-        #for group in all_groups:
-        #    for r in group:
-        #        print r.id
-        #    print "..."
 
         return all_groups
 

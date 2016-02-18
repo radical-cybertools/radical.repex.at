@@ -108,6 +108,22 @@ KERNELS = {
             }
         },
         "shell": "bash"
+    },"ncsa.bw_xk":
+    {
+        "params":
+        {
+            "cores": 16,
+        },
+        "kernels":
+        {
+            "amber": {
+                "environment" : {},
+                "pre_execution" : [],
+                "executable" : "/u/sciteam/treikali/amber14/bin/sander",
+                "executable_gpu" : "/u/sciteam/treikali/amber.cuda/amber/bin/pmemd.cuda"
+            }
+        },
+        "shell": "bash"
     },"xsede.supermic":
     {
         "params":
