@@ -372,12 +372,16 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         md_prep_timing += (t2-t1).total_seconds()
 
                         t1 = datetime.datetime.utcnow()
-                        submitted_replicas += unit_manager.submit_units(c_replicas)
+                        submitted_batch = unit_manager.submit_units(c_replicas)
+                        submitted_replicas += submitted_batch
                         t2 = datetime.datetime.utcnow()
                         md_sub_timing += (t2-t1).total_seconds()
 
+                        unit_ids = []
+                        for item in submitted_batch:
+                            unit_ids.append( item.uid )
                         t1 = datetime.datetime.utcnow()
-                        unit_manager.wait_units()
+                        unit_manager.wait_units( unit_ids=unit_ids)
                         t2 = datetime.datetime.utcnow()
                         md_exec_timing += (t2-t1).total_seconds()
                         batch = []
@@ -392,12 +396,16 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     md_prep_timing += (t2-t1).total_seconds()
 
                     t1 = datetime.datetime.utcnow()
-                    submitted_replicas += unit_manager.submit_units(c_replicas)
+                    submitted_batch += unit_manager.submit_units(c_replicas)
+                    submitted_replicas += submitted_batch
                     t2 = datetime.datetime.utcnow()
                     md_sub_timing += (t2-t1).total_seconds()
-                        
+                    
+                    unit_ids = []
+                    for item in submitted_batch:
+                        unit_ids.append( item.uid )    
                     t1 = datetime.datetime.utcnow()
-                    unit_manager.wait_units()
+                    unit_manager.wait_units( unit_ids=unit_ids)
                     t2 = datetime.datetime.utcnow()
                     md_exec_timing += (t2-t1).total_seconds()
 
@@ -499,7 +507,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim)]["ex_run"] = {}
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim)]["ex_run"] = (t2-t1).total_seconds()
                 
-                if (dim != 2) or (md_kernel.d2 != 'salt_concentration'):
+                else:
                     #-----------------------------------------------------------
                     if global_calc_after:
                         t1 = datetime.datetime.utcnow()
@@ -518,7 +526,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     #-----------------------------------------------------------
 
                     t1 = datetime.datetime.utcnow()
-                    unit_manager.wait_units()
+                    unit_manager.wait_units( unit_ids=global_ex_cu.uid )
                     t2 = datetime.datetime.utcnow()
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim)]["ex_run"] = {}
