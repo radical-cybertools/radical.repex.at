@@ -32,7 +32,7 @@ def reduced_energy(temperature, potential):
         beta = 1. / kb     
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path, history_name):
     """Retrieves temperature and potential energy from simulation output file .history file.
@@ -89,28 +89,39 @@ if __name__ == '__main__':
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
-    
+
     rids = data["ex"].keys()
     rid = rids[rank]
 
-    group_id = data["gen_input"]["group_id"]
-    amber_input = data["gen_input"]["substr"] + data["gen_input"]["amber_inp"]
+    group_id    = data["gen_input"]["group_id"]
     cycle_steps = data["gen_input"]["steps"]
+    basename    = data["gen_input"]["base"]
+    cycle       = data["gen_input"]["cnr"]
+    replica_coor     = data["ex"][rid]["r_coor"]
+
+    amber_input = data["gen_input"]["substr"] + data["gen_input"]["amber_inp"]
     new_restraints = data["gen_input"]["substr"] + data["ex"][rid]["new_rstr"]
-    new_temperature = data["ex"][rid]["new_t"]
-    basename = data["gen_input"]["base"]
-    cycle = data["gen_input"]["cnr"]
     us_template = data["gen_input"]["substr"] + data["gen_input"]["us_tmpl"]
-    rstr_val_1 = float(data["ex"][rid]["rv1"])
-    rstr_val_2 = float(data["ex"][rid]["rv2"])
-    replica_coor = data["ex"][rid]["r_coor"]
+
+    self_dim = data['ex'][rid]['cd']
+    self_par = ('p'+self_dim)
+
+    new_temperature  = data["ex"][rid][self_par] 
+
+    dim_str = ['1', '2', '3']
+    dims = []
+    for d in dim_str:
+        if d != self_dim:
+            par = float(data["ex"][rid][('p'+d)])
+            typ = data["ex"][rid][('t'+d)]
+            dims.append( [typ, par] )
 
     amber_path = data['amber']['path']
 
     new_input_file = "%s_%s_%s.mdin" % (basename, rid, cycle)
     output_file = "%s_%s_%s.mdout" % (basename, rid, cycle)
     amber_parameters = data["gen_input"]["substr"] + data["gen_input"]["amber_prm"]
-    coor_file = data["gen_input"]["substr"] + data["ex_temp"][rid]["r_coor"]
+    coor_file = data["gen_input"]["substr"] + replica_coor
     new_coor = "%s_%s_%s.rst" % (basename, rid, cycle)
     new_traj = "%s_%s_%s.mdcrd" % (basename, rid, cycle)
     new_info = "%s_%s_%s.mdinfo" % (basename, rid, cycle)
@@ -145,6 +156,64 @@ if __name__ == '__main__':
         w_file.close()
     except IOError:
         print "Warning: unable to access file: {0}".format(new_input_file)
+
+    #---------------------------------------------------------------------------
+    # this is for first cycle only
+    if cycle == '0':
+
+        # 2 dimensions of umbrella!
+        umbrellas = 0
+        for pair in dims:
+            if pair[0] == 'umbrella':
+                umbrellas += 1
+
+        if umbrellas == 2:
+            rstr_val_1 = dims[0][1]
+            rstr_val_1 = dims[1][1]
+
+            try:
+                r_file = open(us_template, "r")
+                tbuffer = r_file.read()
+                r_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(us_template) 
+
+            try:
+                w_file = open(new_restraints, "w")
+                tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
+                tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
+                tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
+                tbuffer = tbuffer.replace("@val2@", str(rstr_val_2))
+                tbuffer = tbuffer.replace("@val2l@", str(rstr_val_2-90))
+                tbuffer = tbuffer.replace("@val2h@", str(rstr_val_2+90))
+                w_file.write(tbuffer)
+                w_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(new_restraints)
+
+        #-----------------------------------------------------------------------
+        # 1 dimension of umbrella!
+        if umbrellas == 1:
+            for pair in dims:
+                if pair[0] == 'umbrella':
+                    rstr_val_1 = pair[1] 
+                
+            try:
+                r_file = open(us_template, "r")
+                tbuffer = r_file.read()
+                r_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(us_template) 
+
+            try:
+                w_file = open(new_restraints, "w")
+                tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
+                tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
+                tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
+                w_file.write(tbuffer)
+                w_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(new_restraints)
  
     #---------------------------------------------------------------------------
     # MD:

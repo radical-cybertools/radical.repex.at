@@ -104,7 +104,6 @@ class Replica2d(object):
         self.old_coor = ""  # ok both namd and amber
         ###################
 
-        
         self.new_vel = ""         # namd only
         self.new_history = ""     # namd only
         self.new_ext_system = ""  # namd only

@@ -202,26 +202,39 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
     size = comm.Get_size()
     
-    rids = data["ex_us"].keys()
+    rids = data["ex"].keys()
     rid = rids[rank]
 
-    group_id = data["gen_input"]["group_id"]
-    amber_input = data["gen_input"]["substr"] + data["gen_input"]["amber_inp"]
+    group_id    = data["gen_input"]["group_id"]
     cycle_steps = data["gen_input"]["steps"]
-    new_restraints = data["gen_input"]["substr"] + data["ex_us"][rid]["new_rstr"]
-    new_temperature = data["ex_us"][rid]["new_t"]
-    basename = data["gen_input"]["base"]
-    cycle = data["gen_input"]["cnr"]
-    us_template = data["gen_input"]["substr"] + data["gen_input"]["us_tmpl"]
-    rstr_val_1 = float(data["ex_us"][rid]["rv1"])
-    rstr_val_2 = float(data["ex_us"][rid]["rv2"])
+    basename    = data["gen_input"]["base"]
+    cycle       = data["gen_input"]["cnr"]
+
+    new_restraints = data["gen_input"]["substr"] + data["ex"][rid]["new_rstr"]
+    amber_input    = data["gen_input"]["substr"] + data["gen_input"]["amber_inp"]
+    us_template    = data["gen_input"]["substr"] + data["gen_input"]["us_tmpl"]
+
+    self_dim = data['ex'][rid]['cd']
+    # we know this is Umbrella exchange
+    rstr_val_1 = float(data['ex'][rid][('p'+self_dim)])
+    
+    dim_str = ['1', '2', '3']
+    dims = []
+    for d in dim_str:
+        if d != self_dim:
+            par = float(data["ex"][rid][('p'+d)])
+            typ = data["ex"][rid][('t'+d)]
+            dims.append( [typ, par] )
+            # assumption: there is only one temperature
+            if typ == 'temperature':
+                new_temperature = par
 
     amber_path = data['amber']['path']
 
     new_input_file = "%s_%s_%s.mdin" % (basename, rid, cycle)
     output_file = "%s_%s_%s.mdout" % (basename, rid, cycle)
     amber_parameters = data["gen_input"]["substr"] + data["gen_input"]["amber_prm"]
-    coor_file = data["gen_input"]["substr"] + data["ex_us"][rid]["r_coor"]
+    coor_file = data["gen_input"]["substr"] + data["ex"][rid]["r_coor"]
     new_coor = "%s_%s_%s.rst" % (basename, rid, cycle)
     new_traj = "%s_%s_%s.mdcrd" % (basename, rid, cycle)
     new_info = "%s_%s_%s.mdinfo" % (basename, rid, cycle)
@@ -241,7 +254,7 @@ if __name__ == '__main__':
 
     tbuffer = tbuffer.replace("@nstlim@",cycle_steps)
     tbuffer = tbuffer.replace("@disang@",new_restraints)
-    tbuffer = tbuffer.replace("@temp@",new_temperature)
+    tbuffer = tbuffer.replace("@temp@",str(new_temperature))
 
     if cycle == '0':
         tbuffer = tbuffer.replace("@irest@","0")
@@ -260,26 +273,52 @@ if __name__ == '__main__':
     #---------------------------------------------------------------------------
     # this is for first cycle only
     if cycle == '0':
-        print "first cycle"
-        try:
-            r_file = open(us_template, "r")
-            tbuffer = r_file.read()
-            r_file.close()
-        except IOError:
-            print "Warning: unable to access file: {0}".format(us_template) 
+        # 2 dimensions of umbrella!
+        umbrellas = 1
+        for pair in dims:
+            if pair[0] == 'umbrella':
+                umbrellas += 1
+                rstr_val_2 = float(pair[1])
 
-        try:
-            w_file = open(new_restraints, "w")
-            tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
-            tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
-            tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
-            tbuffer = tbuffer.replace("@val2@", str(rstr_val_2))
-            tbuffer = tbuffer.replace("@val2l@", str(rstr_val_2-90))
-            tbuffer = tbuffer.replace("@val2h@", str(rstr_val_2+90))
-            w_file.write(tbuffer)
-            w_file.close()
-        except IOError:
-            print "Warning: unable to access file: {0}".format(new_restraints)
+        if (umbrellas == 2):
+            try:
+                r_file = open(us_template, "r")
+                tbuffer = r_file.read()
+                r_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(us_template) 
+
+            try:
+                w_file = open(new_restraints, "w")
+                tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
+                tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
+                tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
+                tbuffer = tbuffer.replace("@val2@", str(rstr_val_2))
+                tbuffer = tbuffer.replace("@val2l@", str(rstr_val_2-90))
+                tbuffer = tbuffer.replace("@val2h@", str(rstr_val_2+90))
+                w_file.write(tbuffer)
+                w_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(new_restraints)
+
+        # 1 dimension of umbrella!
+        if (umbrellas == 1):
+            try:
+                r_file = open(us_template, "r")
+                tbuffer = r_file.read()
+                r_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(us_template) 
+
+            try:
+                w_file = open(new_restraints, "w")
+                tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
+                tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
+                tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
+                w_file.write(tbuffer)
+                w_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(new_restraints)
  
     #---------------------------------------------------------------------------
     # MD:
@@ -424,7 +463,7 @@ if __name__ == '__main__':
                 for entry in data_list:
                     row_str = ""
                     for i in entry:
-                        row_str += i + " "
+                        row_str += str(i) + " "
                     f.write(row_str)
                     f.write('\n')
             f.close()

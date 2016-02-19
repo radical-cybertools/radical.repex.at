@@ -15,7 +15,7 @@ from amber_kernels_tex.kernel_pattern_s_tex       import KernelPatternStex
 from amber_kernels_us.kernel_pattern_s_us         import KernelPatternSus
 from amber_kernels_salt.kernel_pattern_s_salt     import KernelPatternSsalt
 from amber_kernels_3d_tsu.kernel_pattern_s_3d_tsu import KernelPatternS3dTSU
-from amber_kernels_3d_tuu.kernel_pattern_s_3d_tuu import KernelPatternS3dTUU
+from amber_kernels_3d_tuu.kernel_pattern_s_3d_tuu import KernelPatternS3D
 
 #-------------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ if __name__ == '__main__':
 		logger.info("*********************************************************")
 
 		# initializing kernels
-		md_kernel    = KernelPatternS3dTUU( inp_file, rconfig, work_dir_local )
+		md_kernel    = KernelPatternS3D( inp_file, rconfig, work_dir_local )
 		pilot_kernel = PilotKernelPatternSmultiDsc( inp_file, rconfig )
 
 		# initializing replicas

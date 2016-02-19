@@ -30,7 +30,7 @@ from replicas.replica import Replica3d
 
 #-------------------------------------------------------------------------------
 #
-class KernelPatternS3dTUU(object):
+class KernelPatternS3D(object):
     """TODO
     """
     def __init__(self, inp_file, rconfig, work_dir_local):
@@ -423,13 +423,13 @@ class KernelPatternS3dTUU(object):
 
     #---------------------------------------------------------------------------
     #                     
-    def prepare_group_for_md(self, dimension, group, sd_shared_list):
+    def prepare_group_for_md(self, dim_int, dim_str, group, sd_shared_list):
 
         group.pop(0)
-        group_id = group[0].group_idx[dimension-1]
+        group_id = group[0].group_idx[dim_int-1]
 
         stage_out = []
-        stage_in = []
+        stage_in  = []
 
         #-----------------------------------------------------------------------
         # files needed to be staged in replica dir
@@ -439,10 +439,10 @@ class KernelPatternS3dTUU(object):
         # restraint template file: ace_ala_nme_us.RST
         stage_in.append(sd_shared_list[5])
 
-        if (self.dims[dimension]['type'] == 'temperature') and (self.nr_dims == 3):
+        if (self.dims[dim_str]['type'] == 'temperature') and (self.nr_dims == 3):
             # remote_calculator_temp_ex_mpi.py file
             stage_in.append(sd_shared_list[2])
-        if (self.dims[dimension]['type'] == 'umbrella') and (self.nr_dims == 3):
+        if (self.dims[dim_str]['type'] == 'umbrella') and (self.nr_dims == 3):
             # remote_calculator_us_ex_mpi.py file
             stage_in.append(sd_shared_list[3])
             
@@ -459,11 +459,12 @@ class KernelPatternS3dTUU(object):
         data['gen_input'] = {}
         data['amber']     = {}
         data['amber']     = {'path': self.amber_path}
+        data['ex']        = {}
 
-        if (self.dims[dimension]['type'] == 'temperature'):
-            data['ex_temp']   = {}
-        if (self.dims[dimension]['type'] == 'umbrella'):
-            data['ex_us']     = {}
+        #if (self.dims[dim_str]['type'] == 'temperature'):
+        #    data['ex']   = {}
+        #if (self.dims[dim_str]['type'] == 'umbrella'):
+        #    data['ex']    = {}
         
         basename = self.inp_basename
         substr = basename[:-5]
@@ -535,7 +536,7 @@ class KernelPatternS3dTUU(object):
             }
             stage_out.append(new_coor_out)
 
-            self.us_template != '':
+            if self.us_template != '':
                 out_string = "_%d.out" % (replica.cycle)
                 rstr_out = {
                     'source': (replica.new_restraints + '.out'),
@@ -563,34 +564,42 @@ class KernelPatternS3dTUU(object):
             #-------------------------------------------------------------------
             
             data['ex'][str(rid)] = {}
-            if (self.dims[dimension] == 'd1':
+            if (dim_str == 'd1'):
                 data['ex'][str(rid)] = {
-                    "cd" : "d1",
-                    "d1" : str(replica.dims['d1']['par']),
-                    "d2" : str(replica.dims['d2']['par']),
-                    "d3" : str(replica.dims['d3']['par']),
+                    "cd" : "1",
+                    "p1" : str(replica.dims['d1']['par']),
+                    "p2" : str(replica.dims['d2']['par']),
+                    "p3" : str(replica.dims['d3']['par']),
+                    "t1" : str(replica.dims['d1']['type']),
+                    "t2" : str(replica.dims['d2']['type']),
+                    "t3" : str(replica.dims['d3']['type']),
                     "new_rstr" : str(replica.new_restraints[len_substr:]),
                     "r_coor" : str(replica.coor_file[len_substr:])
                     }
-            if (self.dims[dimension] == 'd2':
+            if (dim_str == 'd2'):
                 data['ex'][str(rid)] = {
-                    "cd" : "d2",
-                    "d1" : str(replica.dims['d1']['par']),
-                    "d2" : str(replica.dims['d2']['par']),
-                    "d3" : str(replica.dims['d3']['par']),
+                    "cd" : "2",
+                    "p1" : str(replica.dims['d1']['par']),
+                    "p2" : str(replica.dims['d2']['par']),
+                    "p3" : str(replica.dims['d3']['par']),
+                    "t1" : str(replica.dims['d1']['type']),
+                    "t2" : str(replica.dims['d2']['type']),
+                    "t3" : str(replica.dims['d3']['type']),
                     "new_rstr" : str(replica.new_restraints[len_substr:]),
                     "r_coor" : str(replica.coor_file[len_substr:])
                     }
-            if (self.dims[dimension] == 'd3':
+            if (dim_str == 'd3'):
                 data['ex'][str(rid)] = {
-                    "cd" : "d3",
-                    "d1" : str(replica.dims['d1']['par']),
-                    "d2" : str(replica.dims['d2']['par']),
-                    "d3" : str(replica.dims['d3']['par']),
+                    "cd" : "3",
+                    "p1" : str(replica.dims['d1']['par']),
+                    "p2" : str(replica.dims['d2']['par']),
+                    "p3" : str(replica.dims['d3']['par']),
+                    "t1" : str(replica.dims['d1']['type']),
+                    "t2" : str(replica.dims['d2']['type']),
+                    "t3" : str(replica.dims['d3']['type']),
                     "new_rstr" : str(replica.new_restraints[len_substr:]),
                     "r_coor" : str(replica.coor_file[len_substr:])
                     }
-
             base_restraint = self.us_template + "."
             
             #-------------------------------------------------------------------
@@ -634,13 +643,13 @@ class KernelPatternS3dTUU(object):
 
         cu = radical.pilot.ComputeUnitDescription()
 
-        if (self.dims[dimension]['type'] == 'umbrella'):
+        if (self.dims[dim_str]['type'] == 'umbrella'):
             if KERNELS[self.resource]["shell"] == "bash":
                 cu.executable = "python remote_calculator_us_ex_mpi.py " + "\'" + json_data_bash + "\'"
             elif KERNELS[self.resource]["shell"] == "bourne":
                 cu.executable = "python remote_calculator_us_ex_mpi.py " + "\'" + json_data_sh + "\'"
 
-        if (self.dims[dimension]['type'] == 'temperature'):
+        if (self.dims[dim_str]['type'] == 'temperature'):
             if KERNELS[self.resource]["shell"] == "bash":
                 cu.executable = "python remote_calculator_temp_ex_mpi.py " + "\'" + json_data_bash + "\'"
             elif KERNELS[self.resource]["shell"] == "bourne":
@@ -656,17 +665,17 @@ class KernelPatternS3dTUU(object):
 
     #---------------------------------------------------------------------------
     #
-    def exchange_params(self, dimension, replica_1, replica_2):
+    def exchange_params(self, dim_str, replica_1, replica_2):
         
-        if (self.dims[dimension]['type'] == 'temperature'):
-            temp = replica_2.dims[dimension]['par']
-            replica_2.dims[dimension]['par'] = replica_1.dims[dimension]['param']
-            replica_1.dims[dimension]['par'] = temp
+        if (self.dims[dim_str]['type'] == 'temperature'):
+            temp = replica_2.dims[dim_str]['par']
+            replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
+            replica_1.dims[dim_str]['par'] = temp
 
-        if (self.dims[dimension]['type'] == 'umbrella'):
-            rstr = replica_2.dims[dimension]['par']
-            replica_2.dims[dimension]['par'] = replica_1.dims[dimension]['param']
-            replica_1.dims[dimension]['par'] = rstr
+        if (self.dims[dim_str]['type'] == 'umbrella'):
+            rstr = replica_2.dims[dim_str]['par']
+            replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
+            replica_1.dims[dim_str]['par'] = rstr
             
             rstr = replica_2.new_restraints
             replica_2.new_restraints = replica_1.new_restraints
@@ -674,16 +683,13 @@ class KernelPatternS3dTUU(object):
 
     #---------------------------------------------------------------------------
     #
-    def do_exchange(self, current_cycle, dimension, replicas):
-        """
-        """
+    def do_exchange(self, current_cycle, dim_int, dim_str, replicas):
 
         r1 = None
         r2 = None
-
         cycle = replicas[0].cycle-1
 
-        infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=cycle)
+        infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, cycle=cycle)
         try:
             f = open(infile)
             lines = f.readlines()
@@ -697,7 +703,6 @@ class KernelPatternS3dTUU(object):
                         r1 = r
                     if r.id == r2_id:
                         r2 = r
-
                 #---------------------------------------------------------------
                 # guard
                 if r1 == None:
@@ -707,10 +712,9 @@ class KernelPatternS3dTUU(object):
                     rid = random.randint(0,(len(replicas)-1))
                     r2 = replicas[rid]
                 #---------------------------------------------------------------
-
                 # swap parameters
                 if self.exchange_off == False:
-                    self.exchange_params(dimension, r1, r2)
+                    self.exchange_params(dim_str, r1, r2)
                     r1.swap = 1
                     r2.swap = 1
         except:
@@ -718,12 +722,17 @@ class KernelPatternS3dTUU(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_global_ex_calc(self, GL, current_cycle, dimension, replicas, sd_shared_list):
+    def prepare_global_ex_calc(self, GL, current_cycle, dim_int, dim_str, replicas, sd_shared_list):
 
         stage_out = []
         stage_in = []
- 
-        group_nr = self.groups_numbers[dimension-1]
+
+        d1_type = self.dims['d1']['type']
+        d2_type = self.dims['d2']['type']
+        d3_type = self.dims['d3']['type']
+        dims_string = d1_type + ' ' + d2_type + ' ' + d3_type
+
+        group_nr = self.groups_numbers[dim_int-1]
 
         if GL == 1:
             cycle = replicas[0].cycle-1
@@ -733,14 +742,14 @@ class KernelPatternS3dTUU(object):
         # global_ex_calculator.py file
         stage_in.append(sd_shared_list[4])
 
-        outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=cycle)
+        outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, cycle=cycle)
         stage_out.append(outfile)
 
         cu = radical.pilot.ComputeUnitDescription()
         cu.pre_exec = self.pre_exec
         cu.executable = "python"
         cu.input_staging  = stage_in
-        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dimension), str(group_nr)]
+        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dim_int), str(group_nr), dims_string]
         cu.cores = 1
         cu.mpi = False            
         cu.output_staging = stage_out
@@ -753,7 +762,8 @@ class KernelPatternS3dTUU(object):
         """
         DOES NOT WORK!
         """
-
+ 
+        """
         # id_matrix
         for r in replicas:
             row = []
@@ -797,12 +807,12 @@ class KernelPatternS3dTUU(object):
 
         self.us_d1_matrix = sorted(self.us_d1_matrix)
         self.logger.debug("[init_matrices] us_d1_matrix: {0:s}".format(self.us_d1_matrix) )
+        """
+        pass
 
     #---------------------------------------------------------------------------
     #
-    def get_current_group(self, dimension, replicas, replica):
-        """
-        """
+    def get_current_group(self, dim_str, replicas, replica):
 
         current_group = []
 
@@ -810,7 +820,7 @@ class KernelPatternS3dTUU(object):
             
             ###############################################
             # temperature exchange
-            if dimension == 2:
+            if dim_str == 2:
                 
                 r1_pair = [r1.rstr_val_1, r1.rstr_val_2]
                 my_pair = [replica.rstr_val_1, replica.rstr_val_2]
@@ -820,7 +830,7 @@ class KernelPatternS3dTUU(object):
 
             ###############################################
             # us exchange d1
-            elif dimension == 1:
+            elif dim_str == 1:
                 r1_pair = [r1.new_temperature, r1.rstr_val_2]
                 my_pair = [replica.new_temperature, replica.rstr_val_2]
 
@@ -829,7 +839,7 @@ class KernelPatternS3dTUU(object):
 
             ###############################################
             # us exchange d3
-            elif dimension == 3:
+            elif dim_str == 3:
                 r1_pair = [r1.new_temperature, r1.rstr_val_1]
                 my_pair = [replica.new_temperature, replica.rstr_val_1]
 
