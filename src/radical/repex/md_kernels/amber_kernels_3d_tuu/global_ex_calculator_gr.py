@@ -47,7 +47,7 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
                   swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
         j += 1
         
-    ######################################
+    #---------------------------------------------------------------------------
     new_ps = []
     for item in ps:
         if item > math.log(sys.float_info.max): new_item=sys.float_info.max
@@ -67,16 +67,12 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
         #print "...gibbs exchnage warning: j was None..."
     # actual replica
     r_j = replicas[j]
-    ######################################
 
     return r_j
-
 
 #-------------------------------------------------------------------------------
 #
 def do_exchange(dimension, replicas, swap_matrix):
-    """
-    """
 
     exchanged = []
     for r_i in replicas:
@@ -92,19 +88,27 @@ def do_exchange(dimension, replicas, swap_matrix):
 #-------------------------------------------------------------------------------
 
 class Replica3d(object):
-    """Class representing replica and it's associated data.
-       US = Umbrella Sampling
-    """
-    def __init__(self, my_id, new_temperature=None, new_salt=None, new_restraints=None, rstr_val_1=None, rstr_val_2=None):
-       
+    
+    def __init__(self, 
+                 my_id, 
+                 d1_param=0.0, 
+                 d2_param=0.0, 
+                 d3_param=0.0, 
+                 d1_type = None, 
+                 d2_type = None, 
+                 d3_type = None, 
+                 new_restraints=None):   
+
         self.id = int(my_id)
         self.sid = int(my_id)
 
-        if new_salt is None:
-            self.new_salt_concentration = 0
-        else:
-            self.new_salt_concentration = new_salt
-        self.old_salt_concentration = new_salt
+        self.d1_param = d1_param
+        self.d2_param = d2_param
+        self.d3_param = d3_param
+
+        self.d1_type = d1_type
+        self.d2_type = d2_type
+        self.d3_type = d3_type
 
         if new_restraints is None:
             self.new_restraints = ''
@@ -114,45 +118,31 @@ class Replica3d(object):
             self.old_restraints = new_restraints
         self.potential_1 = 0
 
-        if new_temperature is None:
-            self.new_temperature = 0
-        else:
-            self.new_temperature = new_temperature
-        self.old_temperature = new_temperature
-
-        if rstr_val_1 is None:
-            self.rstr_val_1 = 0
-        else:
-            self.rstr_val_1 = rstr_val_1
-
-        if rstr_val_2 is None:
-            self.rstr_val_2 = 0
-        else:
-            self.rstr_val_2 = rstr_val_2
-
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """
-    """
 
     argument_list = str(sys.argv)
     replicas = int(sys.argv[1])
     current_cycle = int(sys.argv[2])
     dimension = int(sys.argv[3])
+    group_nr = int(sys.argv[4])
+    dim_string = sys.argv[5]
+    group_size = replicas / group_nr
+
+    dim_types = []
+    dim_types.append('')
+    dim_types += dim_string.split()
 
     replica_dict = {}
-
     replicas_obj = []
-
     base_name = "matrix_column"
 
-    # init matrix
     swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
 
-    for rid in range(replicas):
+    for gid in range(group_nr):
         success = 0
-        column_file = base_name + "_" + str(rid) + "_" + str(current_cycle) + ".dat" 
+        column_file = base_name + "_" + str(gid) + "_" + str(current_cycle) + ".dat" 
         path = "../staging_area/" + column_file     
         while (success == 0):
             try:
@@ -160,117 +150,116 @@ if __name__ == '__main__':
                 lines = f.readlines()
                 f.close()
                 
-                #--------------------------------------------------
-                # populating matrix column
-                data = lines[0].split()
-                for i in range(replicas):
-                    swap_matrix[i][int(rid)] = float(data[i])
-                #--------------------------------------------------
-                # populating replica dict
-                data = lines[1].split()
-                replica_dict[data[0]] = [data[1], data[2], data[3]]
-                #---------------------------------------------------
-                # updating rstr_val's for a given replica
-                rid = data[0]
-   
-                current_rstr = replica_dict[rid][1]
-                try:
-                    r_file = open(("../staging_area/" + current_rstr), "r")
-                except IOError:
-                    print "Warning: unable to access template file: {0}".format(current_rstr)
+                # processing matrix columns
+                for i in range(group_size):
+                    #-----------------------------------------------------------
+                    # populating matrix columns
+                    # rid is column index
+                    data = lines[i].split()
+                    rid = data.pop(0)
+                    for i in range(replicas):
+                        swap_matrix[i][int(rid)] = float(data[i])
 
-                tbuffer = r_file.read()
-                r_file.close()
-                tbuffer = tbuffer.split()
+                #---------------------------------------------------------------
+                # processing data
+                for i in range(group_size,group_size*2):      
+                    data = lines[i].split()
+                    # assumption: we always have temperature 
+                    # and temperature is last in row 
+                    replica_dict[data[0]] = [data[1], data[2], data[3]]
+                    rid = data[0]
+       
+                    current_rstr = replica_dict[rid][1]
+                    try:
+                        r_file = open(("../staging_area/" + current_rstr), "r")
+                    except IOError:
+                        print "Warning: unable to access template file: {0}".format(current_rstr)
 
-                line = 2
-                for word in tbuffer:
-                    if word == '/':
-                        line = 3
-                    if word.startswith("r2=") and line == 2:
-                        num_list = word.split('=')
-                        rstr_val_1 = float(num_list[1])
-                    if word.startswith("r2=") and line == 3:
-                        num_list = word.split('=')
-                        rstr_val_2 = float(num_list[1])
+                    tbuffer = r_file.read()
+                    r_file.close()
+                    tbuffer = tbuffer.split()
 
-                # creating replica
-                r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
-                replicas_obj.append(r)
+                    line = 2
+                    rstr_val_2 = -1.0
+                    rstr_vals = []
+                    for word in tbuffer:
+                        if word == '/':
+                            line = 3
+                        if word.startswith("r2=") and line == 2:
+                            num_list = word.split('=')
+                            rstr_val_1 = float(num_list[1])
+                            rstr_vals.append( rstr_val_1 )
+                        if word.startswith("r2=") and line == 3:
+                            num_list = word.split('=')
+                            rstr_val_2 = float(num_list[1])
+                            rstr_vals.append( rstr_val_2 )
+                    
+                    params = [0.0]*4
+                    for i in range(len(dim_types)):
+                        if dim_types[i] == 'temperature':
+                            params[i] = replica_dict[rid][2]
+                        elif dim_types[i] == 'umbrella':
+                            params[i] = rstr_vals.pop(0)
 
-                success = 1
-                print "Success processing replica: %s" % rid
-
+                    r = Replica3d(rid, 
+                                  d1_param = params[1], 
+                                  d2_param = params[2], 
+                                  d3_param = params[3], 
+                                  d1_type = dim_types[1], 
+                                  d2_type = dim_types[2], 
+                                  d3_type = dim_types[3], 
+                                  new_restraints=replica_dict[rid][1])
+                    replicas_obj.append(r)
+                    success = 1
+                    print "Success processing replica: %s" % rid
             except:
                 print "Waiting for replica: %s" % rid
                 time.sleep(1)
                 pass
 
     #---------------------------------------------------------------------------
-
     d1_list = []
     d2_list = []
     d3_list = []
-
     exchange_list = []
-
+    #---------------------------------------------------------------------------
     for r1 in replicas_obj:
-        current_temp = r1.new_temperature
             
-        #-----------------------------------------------------------------------
-        # temperature exchange
-        if dimension == 2:
-            r_pair = [r1.rstr_val_1, r1.rstr_val_2]
-            if r_pair not in d2_list:
-                d2_list.append(r_pair)
-                current_group = []
-
-                for r2 in replicas_obj:
-                    if (r1.rstr_val_1 == r2.rstr_val_1) and (r1.rstr_val_2 == r2.rstr_val_2):
-                        current_group.append(r2)
-
-                #---------------------------------------------------------------
-                # perform exchange among group members
-                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                exchange_list.append(exchange_pair)
-        #-----------------------------------------------------------------------
-        # us exchange d1
-        elif dimension == 1:
-            r_pair = [r1.new_temperature, r1.rstr_val_2]
-
+        if dimension == 1:
+            r_pair = [r1.d2_param, r1.d3_param]
             if r_pair not in d1_list:
                 d1_list.append(r_pair)
                 current_group = []
-                    
                 for r2 in replicas_obj:
-                    if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_2 == r2.rstr_val_2):
+                    if (r1.d2_param == r2.d2_param) and (r1.d3_param == r2.d3_param):
                         current_group.append(r2)
-                    
-                #---------------------------------------------------------------
-                # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
-        #-----------------------------------------------------------------------
-        # us exchange d3
-        elif dimension == 3:
-            r_pair = [r1.new_temperature, r1.rstr_val_1]
 
+        elif dimension == 2:
+            r_pair = [r1.d1_param, r1.d3_param]
+            if r_pair not in d2_list:
+                d2_list.append(r_pair)
+                current_group = []
+                for r2 in replicas_obj:
+                    if (r1.d1_param == r2.d1_param) and (r1.d3_param == r2.d3_param):
+                        current_group.append(r2)
+                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                exchange_list.append(exchange_pair)
+
+        elif dimension == 3:
+            r_pair = [r1.d1_param, r1.d2_param]
             if r_pair not in d3_list:
                 d3_list.append(r_pair)
                 current_group = []
-                    
                 for r2 in replicas_obj:
-                    if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_1 == r2.rstr_val_1):
+                    if (r1.d1_param == r2.d1_param) and (r1.d2_param == r2.d2_param):
                         current_group.append(r2)
-                    
-                #---------------------------------------------------------------
-                # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
 
     #---------------------------------------------------------------------------
     # writing to file
-
     try:
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
         with open(outfile, 'w+') as f:

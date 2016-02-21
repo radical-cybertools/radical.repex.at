@@ -35,20 +35,6 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path, history_name):
-    """Retrieves temperature and potential energy from simulation output file .history file.
-    This file is generated after each simulation run. The function searches for directory 
-    where .history file recides by checking all computeUnit directories on target resource.
-
-    Arguments:
-    history_name - name of .history file for a given replica. 
-
-    Returns:
-    data[0] - temperature obtained from .history file
-    data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
-    input/output files for a given replica recide.
-       Get temperature and potential energy from mdinfo file.
-    """
 
     home_dir = os.getcwd()
     if replica_path != None:
@@ -161,6 +147,13 @@ if __name__ == '__main__':
     # this is for first cycle only
     if cycle == '0':
 
+        try:
+            r_file = open(us_template, "r")
+            tbuffer = r_file.read()
+            r_file.close()
+        except IOError:
+            print "Warning: unable to access file: {0}".format(us_template)
+
         # 2 dimensions of umbrella!
         umbrellas = 0
         for pair in dims:
@@ -169,14 +162,7 @@ if __name__ == '__main__':
 
         if umbrellas == 2:
             rstr_val_1 = dims[0][1]
-            rstr_val_1 = dims[1][1]
-
-            try:
-                r_file = open(us_template, "r")
-                tbuffer = r_file.read()
-                r_file.close()
-            except IOError:
-                print "Warning: unable to access file: {0}".format(us_template) 
+            rstr_val_2 = dims[1][1]
 
             try:
                 w_file = open(new_restraints, "w")
@@ -198,13 +184,6 @@ if __name__ == '__main__':
                 if pair[0] == 'umbrella':
                     rstr_val_1 = pair[1] 
                 
-            try:
-                r_file = open(us_template, "r")
-                tbuffer = r_file.read()
-                r_file.close()
-            except IOError:
-                print "Warning: unable to access file: {0}".format(us_template) 
-
             try:
                 w_file = open(new_restraints, "w")
                 tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))

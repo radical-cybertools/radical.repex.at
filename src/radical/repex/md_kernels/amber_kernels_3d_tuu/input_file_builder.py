@@ -12,22 +12,35 @@ import shutil
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """
-    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
     cycle_steps     = data["cycle_steps"]
     new_restraints  = data["new_restraints"]
-    new_temperature = data["new_temperature"]
     amber_input     = data["amber_input"]
     new_input_file  = data["new_input_file"]
     us_template     = data["us_template"]
     replica_cycle   = int(data["cycle"])
-    rstr_val_1      = float(data["rstr_val_1"])
-    rstr_val_2      = float(data["rstr_val_2"])
 
+    dim_str = ['1', '2', '3']
+    dims = []
+    for d in dim_str:
+        par = float(data[('p'+d)])
+        typ = data[('t'+d)]
+        dims.append( [typ, par] )
+
+    umbrellas = 0
+    for pair in dims:
+        if pair[0] == 'temperature':
+            new_temperature = pair[1]
+        if pair[0] == 'umbrella':
+            umbrellas += 1
+
+    if umbrellas == 2:
+        rstr_val_1 = dims[0][1]
+        rstr_val_2 = dims[1][1]
+                    
     #---------------------------------------------------------------------------
     # this is for every cycle
     try:
@@ -59,7 +72,6 @@ if __name__ == '__main__':
     #---------------------------------------------------------------------------
     # this is for first cycle only
     if replica_cycle == 1:
-        print "first cycle"
         try:
             r_file = open(us_template, "r")
             tbuffer = r_file.read()
@@ -67,18 +79,29 @@ if __name__ == '__main__':
         except IOError:
             print "Warning: unable to access file: {0}".format(us_template) 
 
-        try:
-            w_file = open(new_restraints, "w")
-            tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
-            tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
-            tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
-            tbuffer = tbuffer.replace("@val2@", str(rstr_val_2))
-            tbuffer = tbuffer.replace("@val2l@", str(rstr_val_2-90))
-            tbuffer = tbuffer.replace("@val2h@", str(rstr_val_2+90))
-            w_file.write(tbuffer)
-            w_file.close()
-        except IOError:
-            print "Warning: unable to access file: {0}".format(new_restraints)
+        if umbrellas == 2:
+            try:
+                w_file = open(new_restraints, "w")
+                tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
+                tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
+                tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
+                tbuffer = tbuffer.replace("@val2@", str(rstr_val_2))
+                tbuffer = tbuffer.replace("@val2l@", str(rstr_val_2-90))
+                tbuffer = tbuffer.replace("@val2h@", str(rstr_val_2+90))
+                w_file.write(tbuffer)
+                w_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(new_restraints)
+        if umbrellas == 1:
+            try:
+                w_file = open(new_restraints, "w")
+                tbuffer = tbuffer.replace("@val1@", str(rstr_val_1))
+                tbuffer = tbuffer.replace("@val1l@", str(rstr_val_1-90))
+                tbuffer = tbuffer.replace("@val1h@", str(rstr_val_1+90))
+                w_file.write(tbuffer)
+                w_file.close()
+            except IOError:
+                print "Warning: unable to access file: {0}".format(new_restraints)
  
         #-----------------------------------------------------------------------
         # copy to staging area

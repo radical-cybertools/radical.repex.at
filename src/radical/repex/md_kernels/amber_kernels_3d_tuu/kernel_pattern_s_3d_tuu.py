@@ -24,7 +24,10 @@ import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 import amber_kernels_3d_tuu.remote_calculator_temp_ex_mpi
 import amber_kernels_3d_tuu.remote_calculator_us_ex_mpi
+import amber_kernels_3d_tuu.matrix_calculator_temp_ex
+import amber_kernels_3d_tuu.matrix_calculator_us_ex
 import amber_kernels_3d_tuu.input_file_builder
+import amber_kernels_3d_tuu.global_ex_calculator_gr
 import amber_kernels_3d_tuu.global_ex_calculator
 from replicas.replica import Replica3d
 
@@ -58,6 +61,12 @@ class KernelPatternS3D(object):
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
+
+        self.group_exec = inp_file['remd.input'].get('group_exec', 'False')
+        self.group_exec == 'True':
+            self.group_exec = True
+        else:
+            self.group_exec = False
 
         #-----------------------------------------------------------------------
     
@@ -359,31 +368,51 @@ class KernelPatternS3D(object):
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
-        # for 3d only, check
+        #-----------------------------------------------------------------------
+        # for group exec only, check
         calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.remote_calculator_temp_ex_mpi.__file__)
-        calc_temp_ex_path = calc_temp_ex + "/remote_calculator_temp_ex_mpi.py"
+        calc_temp_ex_path_gr = calc_temp_ex + "/remote_calculator_temp_ex_mpi.py"
 
-        # for 3d only, check
         calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.remote_calculator_us_ex_mpi.__file__)
-        calc_us_ex_path = calc_us_ex + "/remote_calculator_us_ex_mpi.py"
+        calc_us_ex_path_gr = calc_us_ex + "/remote_calculator_us_ex_mpi.py"
 
-        # for 3d only, check
+        global_calc = os.path.dirname(amber_kernels_3d_tuu.global_ex_calculator_gr.__file__)
+        global_calc_path_gr = global_calc + "/global_ex_calculator_gr.py"
+        #
+        #-----------------------------------------------------------------------
+
+        calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_temp_ex.__file__)
+        calc_temp_ex_path = calc_temp_ex + "/matrix_calculator_temp_ex.py"
+
+        calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_us_ex.__file__)
+        calc_us_ex_path = calc_us_ex + "/matrix_calculator_us_ex.py"
+
         global_calc = os.path.dirname(amber_kernels_3d_tuu.global_ex_calculator.__file__)
         global_calc_path = global_calc + "/global_ex_calculator.py"
 
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
+        build_inp = os.path.dirname(amber_kernels_3d_tuu.input_file_builder.__file__)
+        build_inp_path = build_inp + "/input_file_builder.py"
+
         #-----------------------------------------------------------------------
+        # now adding to shared_files:
+
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_input)
 
-        # for 3d only, check
-        self.shared_files.append("remote_calculator_temp_ex_mpi.py")
-        self.shared_files.append("remote_calculator_us_ex_mpi.py")
-        self.shared_files.append("global_ex_calculator.py")
+        if self.group_exec == True:
+            self.shared_files.append("remote_calculator_temp_ex_mpi.py")
+            self.shared_files.append("remote_calculator_us_ex_mpi.py")
+            self.shared_files.append("global_ex_calculator_gr.py")
+        else:
+            self.shared_files.append("matrix_calculator_temp_ex.py")
+            self.shared_files.append("matrix_calculator_us_ex.py")
+            self.shared_files.append("input_file_builder.py")
+            self.shared_files.append("global_ex_calculator.py")
 
         self.shared_files.append(self.us_template)
-     
+
         if self.same_coordinates == False:
             for repl in replicas:
                 if repl.coor_file not in self.shared_files:
@@ -399,14 +428,27 @@ class KernelPatternS3D(object):
         inp_url = 'file://%s' % (inp_path)
         self.shared_urls.append(inp_url)
 
-        calc_temp_ex_url = 'file://%s' % (calc_temp_ex_path)
-        self.shared_urls.append(calc_temp_ex_url)
+        if self.group_exec == True:
+            calc_temp_ex_url = 'file://%s' % (calc_temp_ex_path_gr)
+            self.shared_urls.append(calc_temp_ex_url)
 
-        calc_us_ex_url = 'file://%s' % (calc_us_ex_path)
-        self.shared_urls.append(calc_us_ex_url)
+            calc_us_ex_url = 'file://%s' % (calc_us_ex_path_gr)
+            self.shared_urls.append(calc_us_ex_url)
 
-        global_calc_url = 'file://%s' % (global_calc_path)
-        self.shared_urls.append(global_calc_url)
+            global_calc_url = 'file://%s' % (global_calc_path_gr)
+            self.shared_urls.append(global_calc_url)
+        else:
+            calc_temp_ex_url = 'file://%s' % (calc_temp_ex_path)
+            self.shared_urls.append(calc_temp_ex_url)
+
+            calc_us_ex_url = 'file://%s' % (calc_us_ex_path)
+            self.shared_urls.append(calc_us_ex_url)
+
+            build_inp_url = 'file://%s' % (build_inp_path)
+            self.shared_urls.append(build_inp_url)
+
+            global_calc_url = 'file://%s' % (global_calc_path)
+            self.shared_urls.append(global_calc_url)
 
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
@@ -420,6 +462,285 @@ class KernelPatternS3D(object):
             cf_path = join(coor_path,replicas[0].coor_file)
             coor_url = 'file://%s' % (cf_path)
             self.shared_urls.append(coor_url)
+
+    #---------------------------------------------------------------------------
+    #                         
+    def prepare_replica_for_md(self, dim_int, dim_str, replicas, replica, sd_shared_list):
+       
+        stage_out = []
+        stage_in = []
+
+        basename = self.inp_basename
+            
+        new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
+        outputname = "%s_%d_%d.mdout" % (basename, replica.id, replica.cycle)
+        old_name = "%s_%d_%d" % (basename, replica.id, (replica.cycle-1))
+
+        replica.new_coor = "%s_%d_%d.rst" % (basename, replica.id, replica.cycle)
+        replica.new_traj = "%s_%d_%d.mdcrd" % (basename, replica.id, replica.cycle)
+        replica.new_info = "%s_%d_%d.mdinfo" % (basename, replica.id, replica.cycle)
+
+        replica.old_coor = old_name + ".rst"
+
+        if (replica.cycle == 0):
+            first_step = 0
+        elif (replica.cycle == 1):
+            first_step = int(self.cycle_steps)
+        else:
+            first_step = (replica.cycle - 1) * int(self.cycle_steps)
+
+        replica.cycle += 1
+
+        input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
+        output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
+
+        new_coor = replica.new_coor
+        new_traj = replica.new_traj
+        new_info = replica.new_info
+        old_coor = replica.old_coor
+        rid = replica.id
+
+        if self.down_mdinfo == True:
+            info_local = {
+                'source':   new_info,
+                'target':   new_info,
+                'action':   radical.pilot.TRANSFER
+            }
+            stage_out.append(info_local)
+
+        if self.down_mdout == True:
+            output_local = {
+                'source':   output_file,
+                'target':   output_file,
+                'action':   radical.pilot.TRANSFER
+            }
+            stage_out.append(output_local)
+
+        replica_path = "replica_%d/" % (rid)
+
+        new_coor_out = {
+            'source': new_coor,
+            'target': 'staging:///%s' % (replica_path + new_coor),
+            'action': radical.pilot.COPY
+        }
+        stage_out.append(new_coor_out)
+
+        out_string = "_%d.out" % (replica.cycle-1)
+        rstr_out = {
+            'source': (replica.new_restraints + '.out'),
+            'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
+            'action': radical.pilot.COPY
+        }
+        stage_out.append(rstr_out)
+        
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
+
+        # for all cases!
+        matrix_col_out = {
+            'source': matrix_col,
+            'target': 'staging:///%s' % (matrix_col),
+            'action': radical.pilot.COPY
+        }
+        stage_out.append(matrix_col_out)
+
+        # for all cases (OPTIONAL)    
+        info_out = {
+                'source': new_info,
+                'target': 'staging:///%s' % (replica_path + new_info),
+                'action': radical.pilot.COPY
+            }
+        stage_out.append(info_out)
+
+        current_group = self.get_current_group_ids(dim_int, replicas, replica)
+
+        #-----------------------------------------------------------------------
+        # for all
+        data = {
+            "p1" : str(replica.dims['d1']['par']),
+            "p2" : str(replica.dims['d2']['par']),
+            "p3" : str(replica.dims['d3']['par']),
+            "t1" : str(replica.dims['d1']['type']),
+            "t2" : str(replica.dims['d2']['type']),
+            "t3" : str(replica.dims['d3']['type']),
+            "cycle_steps": str(self.cycle_steps),
+            "new_restraints" : str(replica.new_restraints),
+            "amber_input" : str(self.amber_input),
+            "new_input_file" : str(new_input_file),
+            "us_template": str(self.us_template),
+            "cycle" : str(replica.cycle)
+            }
+        dump_data = json.dumps(data)
+        json_pre_data_bash = dump_data.replace("\\", "")
+        json_pre_data_sh   = dump_data.replace("\"", "\\\\\"")
+
+        if self.dims[dim_str]['type'] == 'temperature':
+            data = {
+                "rid": str(replica.id),
+                "replica_cycle" : str(replica.cycle-1),
+                "base_name" : str(basename),
+                "current_group" : current_group,
+                "replicas" : str(len(replicas)),
+                "amber_parameters": str(self.amber_parameters),
+                "new_restraints" : str(replica.new_restraints),
+                "init_temp" : str(replica.dims[dim_str]['par'])
+                }
+
+            dump_data = json.dumps(data)
+            json_post_data_bash = dump_data.replace("\\", "")
+            json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
+
+        #-----------------------------------------------------------------------
+
+        if self.dims[dim_str]['type'] == 'umbrella':
+            # IMPROVE!!!!!!!!!!!!!!!!!!
+            current_group_rst = {}
+            for repl in replicas:
+                if str(repl.id) in current_group:
+                    current_group_rst[str(repl.id)] = str(repl.new_restraints)
+
+            base_restraint = self.us_template + "."
+
+            data = {
+                "replica_id": str(rid),
+                "replica_cycle" : str(replica.cycle-1),
+                "replicas" : str(self.replicas),
+                "base_name" : str(basename),
+                "init_temp" : str(replica.dims[dim_str]['par']),
+                "amber_input" : str(self.amber_input),
+                "amber_parameters": str(self.amber_parameters),
+                "new_restraints" : str(replica.new_restraints),
+                "current_group_rst" : current_group_rst
+            }
+            dump_data = json.dumps(data)
+            json_post_data_bash = dump_data.replace("\\", "")
+            json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
+
+        #-----------------------------------------------------------------------
+
+        cu = radical.pilot.ComputeUnitDescription()
+
+        if KERNELS[self.resource]["shell"] == "bash":
+            cu.executable = '/bin/bash'
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'"
+            if self.dims[dim_str]['type'] == 'temperature':
+                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_bash + "\'"
+            if self.dims[dim_str]['type'] == 'umbrella':
+                post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_bash + "\'"
+        elif KERNELS[self.resource]["shell"] == "bourne":
+            cu.executable = '/bin/sh'
+            pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'"
+            if self.dims[dim_str]['type'] == 'temperature':
+                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_sh + "\'"
+            if self.dims[dim_str]['type'] == 'umbrella':
+                post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_sh + "\'"
+
+        if replica.cycle == 1:
+
+            if (self.replica_gpu == True):
+                amber_str = self.amber_path_gpu
+            else:
+                amber_str = self.amber_path    
+
+            argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                           " -p " +  self.amber_parameters + " -c " + replica.coor_file + \
+                           " -r " + new_coor + " -x " + new_traj + " -inf " + new_info  
+
+            restraints_out = replica.new_restraints
+            restraints_out_st = {
+                'source': (replica.new_restraints),
+                'target': 'staging:///%s' % (replica.new_restraints),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(restraints_out_st)
+
+            #-------------------------------------------------------------------
+            # files needed to be staged in replica dir
+            for i in range(2):
+                stage_in.append(sd_shared_list[i])
+
+            #-------------------------------------------------------------------            
+            # replica coor
+            repl_coor = replica.coor_file
+            # index of replica_coor
+            c_index = self.shared_files.index(repl_coor) 
+            stage_in.append(sd_shared_list[c_index])
+
+            #-------------------------------------------------------------------
+            # input_file_builder.py
+            stage_in.append(sd_shared_list[4])
+
+            # restraint template file: ace_ala_nme_us.RST
+            stage_in.append(sd_shared_list[6])
+
+            if self.dims[dim_str]['type'] == 'temperature':
+                # matrix_calculator_temp_ex.py
+                stage_in.append(sd_shared_list[2])
+            if self.dims[dim_str]['type'] == 'umbrella':    
+                # matrix_calculator_us_ex.py
+                stage_in.append(sd_shared_list[3])
+
+            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str] 
+            cu.pre_exec = self.pre_exec
+            cu.cores = self.replica_cores
+            cu.input_staging = stage_in
+            cu.output_staging = stage_out
+            cu.mpi = self.replica_mpi
+
+        else:
+            if (self.replica_gpu == True):
+                amber_str = self.amber_path_gpu
+            else:
+                amber_str = self.amber_path 
+
+            argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
+                           " -p " +  self.amber_parameters + " -c " + old_coor + \
+                           " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
+
+            # parameters file
+            stage_in.append(sd_shared_list[0])
+
+            # base input file ala10_us.mdin
+            stage_in.append(sd_shared_list[1])
+
+            # input_file_builder.py
+            stage_in.append(sd_shared_list[4])
+            
+            # restraint file
+            restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
+                                'target': replica.new_restraints,
+                                'action': radical.pilot.COPY
+            }
+            stage_in.append(restraints_in_st)
+
+            old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
+                           'target': (old_coor),
+                           'action': radical.pilot.LINK
+            }
+            stage_in.append(old_coor_st)
+
+            #-------------------------------------------------------------------
+            if self.dims[dim_str]['type'] == 'temperature':
+                # matrix_calculator_temp_ex.py
+                stage_in.append(sd_shared_list[2])
+            if self.dims[dim_str]['type'] == 'umbrella':    
+                # matrix_calculator_us_ex.py
+                stage_in.append(sd_shared_list[3])
+
+                new_coor_out = {
+                    'source': new_coor,
+                    'target': 'staging:///%s' % (replica_path + new_coor),
+                    'action': radical.pilot.COPY
+                }
+                stage_out.append(new_coor_out)
+               
+            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str]
+            cu.pre_exec = self.pre_exec
+            cu.input_staging = stage_in
+            cu.output_staging = stage_out
+            cu.cores = self.replica_cores
+            cu.mpi = self.replica_mpi
+                          
+        return cu
 
     #---------------------------------------------------------------------------
     #                     
@@ -739,8 +1060,12 @@ class KernelPatternS3D(object):
         else:
             cycle = replicas[0].cycle
         
-        # global_ex_calculator.py file
-        stage_in.append(sd_shared_list[4])
+        if self.group_exec == True:
+            # global_ex_calculator_gr.py file
+            stage_in.append(sd_shared_list[4])
+        else:
+            # global_ex_calculator.py file
+            stage_in.append(sd_shared_list[4])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, cycle=cycle)
         stage_out.append(outfile)
@@ -749,7 +1074,10 @@ class KernelPatternS3D(object):
         cu.pre_exec = self.pre_exec
         cu.executable = "python"
         cu.input_staging  = stage_in
-        cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dim_int), str(group_nr), dims_string]
+        if self.group_exec == True:
+            cu.arguments = ["global_ex_calculator_gr.py", str(self.replicas), str(cycle), str(dim_int), str(group_nr), dims_string]
+        else:
+            cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dim_int), dims_string]
         cu.cores = 1
         cu.mpi = False            
         cu.output_staging = stage_out
@@ -812,37 +1140,26 @@ class KernelPatternS3D(object):
 
     #---------------------------------------------------------------------------
     #
-    def get_current_group(self, dim_str, replicas, replica):
+    def get_current_group_ids(self, dim_int, replicas, replica):
 
         current_group = []
 
         for r1 in replicas:
-            
-            ###############################################
-            # temperature exchange
-            if dim_str == 2:
-                
-                r1_pair = [r1.rstr_val_1, r1.rstr_val_2]
-                my_pair = [replica.rstr_val_1, replica.rstr_val_2]
-                  
+            if dim_int == 1:
+                r1_pair = [r1.dims['d2']['par'], r1.dims['d3']['par']]
+                my_pair = [replica.dims['d2']['par'], replica.dims['d3']['par']]  
                 if r1_pair == my_pair:
                     current_group.append(str(r1.id))
 
-            ###############################################
-            # us exchange d1
-            elif dim_str == 1:
-                r1_pair = [r1.new_temperature, r1.rstr_val_2]
-                my_pair = [replica.new_temperature, replica.rstr_val_2]
-
+            elif dim_int == 2:
+                r1_pair = [r1.dims['d1']['par'], r1.dims['d3']['par']]
+                my_pair = [replica.dims['d1']['par'], replica.dims['d3']['par']]
                 if r1_pair == my_pair:
                     current_group.append(str(r1.id))
 
-            ###############################################
-            # us exchange d3
-            elif dim_str == 3:
-                r1_pair = [r1.new_temperature, r1.rstr_val_1]
-                my_pair = [replica.new_temperature, replica.rstr_val_1]
-
+            elif dim_int == 3:
+                r1_pair = [r1.dims['d1']['par'], r1.dims['d2']['par']]
+                my_pair = [replica.dims['d1']['par'], replica.dims['d2']['par']]
                 if r1_pair == my_pair:
                     current_group.append(str(r1.id))
 

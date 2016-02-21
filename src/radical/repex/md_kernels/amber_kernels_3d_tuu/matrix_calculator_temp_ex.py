@@ -14,18 +14,10 @@ import math
 import time
 import shutil
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
-    """Calculates reduced energy.
-
-    Arguments:
-    temperature - replica temperature
-    potential - replica potential energy
-
-    Returns:
-    reduced enery of replica
-    """
+   
     kb = 0.0019872041    #boltzmann const in kcal/mol
     if temperature != 0:
         beta = 1. / (kb*temperature)
@@ -33,24 +25,10 @@ def reduced_energy(temperature, potential):
         beta = 1. / kb     
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path, history_name):
-    """Retrieves temperature and potential energy from simulation output file .history file.
-    This file is generated after each simulation run. The function searches for directory 
-    where .history file recides by checking all computeUnit directories on target resource.
-
-    Arguments:
-    history_name - name of .history file for a given replica. 
-
-    Returns:
-    data[0] - temperature obtained from .history file
-    data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
-    input/output files for a given replica recide.
-       Get temperature and potential energy from mdinfo file.
-    """
-
+    
     home_dir = os.getcwd()
     if replica_path != None:
         path = "../staging_area" + replica_path
@@ -80,12 +58,9 @@ def get_historical_data(replica_path, history_name):
     
     return temp, eptot, path_to_replica_folder
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """This module calculates one swap matrix column for replica and writes this column to 
-    matrix_column_x_x.dat file. 
-    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -97,20 +72,15 @@ if __name__ == '__main__':
     amber_parameters = data["amber_parameters"]
     new_restraints = data["new_restraints"]
     init_temp = data["init_temp"]
-
     temp_group = data["current_group"]
-    current_group = []
 
+    current_group = []
     for i in temp_group:
         current_group.append(int(i))
      
-    # getting history data for self
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
+    swap_column  = [0.0]*replicas
 
-    # init swap column
-    swap_column = [0.0]*replicas
-
-    #----------------------------------------------------------------------
     # copy history_name to staging_area/replica_x 
     pwd = os.getcwd()
     replica_path = "/replica_%s/" % (replica_id)
@@ -133,7 +103,7 @@ if __name__ == '__main__':
         print "Fail copying history_name to staging_area..."
         pass
 
-    #----------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     success = 0
     attempts = 0
     while (success == 0):
@@ -145,8 +115,8 @@ if __name__ == '__main__':
             print "Waiting for self (history file)"
             time.sleep(1)
             attempts += 1
-            if attempts >= 12:
-                #---------------------------------------------------------------------------------------------------
+            if attempts >= 5:
+                #---------------------------------------------------------------
                 # writing to file
                 try:
                     outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
@@ -166,8 +136,7 @@ if __name__ == '__main__':
 
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-                #---------------------------------------------------------------------------------------------------
-                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+                    sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
             pass
 
     # getting history data for all replicas
@@ -180,7 +149,6 @@ if __name__ == '__main__':
     temperatures[int(replica_id)] = replica_temp
     energies[int(replica_id)] = replica_energy
 
-    #for j in range(replicas):
     for j in current_group:
         # for self already processed
         if j != int(replica_id):
@@ -218,9 +186,8 @@ if __name__ == '__main__':
     for j in current_group:      
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
-    #----------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # writing to file
-    
     try:
         outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
         with open(outfile, 'w+') as f:
