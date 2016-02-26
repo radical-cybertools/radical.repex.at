@@ -119,6 +119,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             s = 'd' + str(i+1)
             dim_str.append(s)
 
+        #print "replicas: "
+        #print replicas
+
         for c in range(0,cycles*dim_count):
 
             if dim_int < dim_count:
@@ -166,6 +169,13 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 md_exec_timing = 0.0
                 t1 = datetime.datetime.utcnow()
                 all_groups = md_kernel.get_all_groups(dim_int, replicas)
+
+                #print "all_groups: "
+                #print all_groups
+
+                for group in all_groups:
+                    group.pop(0)
+
                 t2 = datetime.datetime.utcnow()
                 md_prep_timing += (t2-t1).total_seconds()
 
@@ -233,10 +243,10 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                 #---------------------------------------------------------------
                 
-                if (dim_int == 2) and (md_kernel.d2 == 'salt_concentration'):
+                if (dim_int == 2) and (md_kernel.dims[dim_str[dim_int]]['type'] == 'salt_concentration'):
 
                     ex_prep_timing = 0.0
-                    ex_sub_timing = 0.0
+                    ex_sub_timing  = 0.0
                     ex_exec_timing = 0.0
                     t1 = datetime.datetime.utcnow()
                     all_groups = md_kernel.get_all_groups(dim_int, replicas)
@@ -374,7 +384,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 self.logger.error('ERROR: In D%d Global-Exchange-step failed for unit:  %s' % (dim_int, global_ex_cu.uid))
 
             # do exchange of parameters                     
-            md_kernel.do_exchange(current_cycle, dim_int, replicas)
+            md_kernel.do_exchange(current_cycle, dim_int, dim_str[dim_int], replicas)
             t2 = datetime.datetime.utcnow()
                 
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["post_proc"] = {}

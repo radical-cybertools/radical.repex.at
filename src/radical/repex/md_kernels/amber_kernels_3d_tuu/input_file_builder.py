@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     tbuffer = tbuffer.replace("@nstlim@",cycle_steps)
     tbuffer = tbuffer.replace("@disang@",new_restraints)
-    tbuffer = tbuffer.replace("@temp@",new_temperature)
+    tbuffer = tbuffer.replace("@temp@", str(new_temperature))
 
     if replica_cycle == 1:
         tbuffer = tbuffer.replace("@irest@","0")

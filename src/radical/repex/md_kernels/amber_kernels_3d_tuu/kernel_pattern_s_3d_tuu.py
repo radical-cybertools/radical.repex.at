@@ -63,10 +63,15 @@ class KernelPatternS3D(object):
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
 
         self.group_exec = inp_file['remd.input'].get('group_exec', 'False')
-        self.group_exec == 'True':
+        if self.group_exec == 'True':
             self.group_exec = True
         else:
             self.group_exec = False
+
+        if inp_file['remd.input'].get('replica_gpu') == "True":
+            self.replica_gpu = True
+        else:
+            self.replica_gpu = False
 
         #-----------------------------------------------------------------------
     
@@ -154,6 +159,9 @@ class KernelPatternS3D(object):
             if self.dims[k]['type'] == 'temperature':
                 self.dims[k]['temp_start'] = float(inp_file['dim.input'][k].get('min_temperature'))
                 self.dims[k]['temp_end'] = float(inp_file['dim.input'][k].get('max_temperature'))
+            if self.dims[k]['type'] == 'salt':
+                self.dims[k]['salt_start'] = float(inp_file['dim.input'][k].get('min_salt'))
+                self.dims[k]['salt_end'] = float(inp_file['dim.input'][k].get('max_salt'))
 
         #-----------------------------------------------------------------------
 
@@ -217,6 +225,11 @@ class KernelPatternS3D(object):
                     spacing = (self.dims[k]['us_end'] - self.dims[k]['us_start']) / (float(self.dims[k]['replicas'])-1)
                     starting_value = self.dims[k]['us_start'] + i*spacing
                     dim_params[k].append(starting_value)
+            if self.dims[k]['type'] == 'salt':
+                dim_params[k] = []
+                for i in range(self.dims[k]['replicas']):
+                    new_salt = (self.max_salt-self.min_salt)/(N-1)*k + self.min_salt
+                    dim_params[k].append(new_salt)
 
         if self.nr_dims == 3:
             for i in range(self.dims['d1']['replicas']):
@@ -601,7 +614,7 @@ class KernelPatternS3D(object):
             base_restraint = self.us_template + "."
 
             data = {
-                "replica_id": str(rid),
+                "rid": str(rid),
                 "replica_cycle" : str(replica.cycle-1),
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
@@ -614,6 +627,33 @@ class KernelPatternS3D(object):
             dump_data = json.dumps(data)
             json_post_data_bash = dump_data.replace("\\", "")
             json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
+
+
+        if self.dims[dim_str]['type'] == 'salt':
+            # IMPROVE!!!!!!!!!!!!!!!!!!
+            current_group_tsu = {}
+            for repl in replicas:
+                if str(repl.id) in current_group:
+                    current_group_tsu[str(repl.id)] = [str(repl.new_temperature), \
+                                                       str(repl.dims[dim_str]['par']), \
+                                                       str(repl.dims    new_restraints)]
+
+            data = {
+                "replica_id": str(replica.id),
+                "replica_cycle" : str(replica.cycle-1),
+                "replicas" : str(self.replicas),
+                "base_name" : str(basename),
+                "init_temp" : str(replica.new_temperature),
+                "amber_path" : str(self.amber_path),
+                "amber_input" : str(self.amber_input),
+                "amber_parameters": "../staging_area/"+str(self.amber_parameters),
+                "current_group_tsu" : current_group_tsu, 
+                "r_old_path": str(replica.old_path),
+            }
+
+            dump_data = json.dumps(data)
+            json_data_salt_bash = dump_data.replace("\\", "")
+            json_data_salt_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
 
@@ -746,7 +786,7 @@ class KernelPatternS3D(object):
     #                     
     def prepare_group_for_md(self, dim_int, dim_str, group, sd_shared_list):
 
-        group.pop(0)
+        #group.pop(0)
         group_id = group[0].group_idx[dim_int-1]
 
         stage_out = []
@@ -1065,7 +1105,7 @@ class KernelPatternS3D(object):
             stage_in.append(sd_shared_list[4])
         else:
             # global_ex_calculator.py file
-            stage_in.append(sd_shared_list[4])
+            stage_in.append(sd_shared_list[5])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, cycle=cycle)
         stage_out.append(outfile)
@@ -1077,7 +1117,7 @@ class KernelPatternS3D(object):
         if self.group_exec == True:
             cu.arguments = ["global_ex_calculator_gr.py", str(self.replicas), str(cycle), str(dim_int), str(group_nr), dims_string]
         else:
-            cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dim_int), dims_string]
+            cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dim_int), str(group_nr), dims_string]
         cu.cores = 1
         cu.mpi = False            
         cu.output_staging = stage_out

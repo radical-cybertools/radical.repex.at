@@ -72,7 +72,7 @@ class KernelPatternS3dTSU(object):
         if inp_file['remd.input'].get('exchange_off') == "True":
             self.exchange_off = True
         else:
-            self.exchange_off = False  
+            self.exchange_off = False
 
         if inp_file['remd.input'].get('download_mdinfo') == 'True':
             self.down_mdinfo = True
@@ -261,7 +261,7 @@ class KernelPatternS3dTSU(object):
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
         #-----------------------------------------------------------------------
-
+        #
         self.shared_files.append(self.amber_parameters)
         self.shared_files.append(self.amber_input)
         self.shared_files.append("matrix_calculator_temp_ex.py")

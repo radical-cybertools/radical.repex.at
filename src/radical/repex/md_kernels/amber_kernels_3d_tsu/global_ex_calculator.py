@@ -132,8 +132,6 @@ class Replica3d(object):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """
-    """
 
     argument_list = str(sys.argv)
     replicas = int(sys.argv[1])
@@ -141,7 +139,6 @@ if __name__ == '__main__':
     dimension = int(sys.argv[3])
 
     replica_dict = {}
-
     replicas_obj = []
 
     base_name = "matrix_column"

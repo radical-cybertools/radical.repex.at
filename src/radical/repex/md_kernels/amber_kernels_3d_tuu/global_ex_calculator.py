@@ -91,10 +91,10 @@ def do_exchange(dimension, replicas, swap_matrix):
 
 #-------------------------------------------------------------------------------
 
+"""
 class Replica3d(object):
-    """Class representing replica and it's associated data.
-       US = Umbrella Sampling
-    """
+    Class representing replica and it's associated data. US = Umbrella Sampling
+    
     def __init__(self, my_id, new_temperature=None, new_salt=None, new_restraints=None, rstr_val_1=None, rstr_val_2=None):
        
         self.id = int(my_id)
@@ -129,6 +129,40 @@ class Replica3d(object):
             self.rstr_val_2 = 0
         else:
             self.rstr_val_2 = rstr_val_2
+"""
+
+#-------------------------------------------------------------------------------
+
+class Replica3d(object):
+    
+    def __init__(self, 
+                 my_id, 
+                 d1_param=0.0, 
+                 d2_param=0.0, 
+                 d3_param=0.0, 
+                 d1_type = None, 
+                 d2_type = None, 
+                 d3_type = None, 
+                 new_restraints=None):   
+
+        self.id = int(my_id)
+        self.sid = int(my_id)
+
+        self.d1_param = d1_param
+        self.d2_param = d2_param
+        self.d3_param = d3_param
+
+        self.d1_type = d1_type
+        self.d2_type = d2_type
+        self.d3_type = d3_type
+
+        if new_restraints is None:
+            self.new_restraints = ''
+            self.old_restraints = ''
+        else:
+            self.new_restraints = new_restraints
+            self.old_restraints = new_restraints
+        self.potential_1 = 0
 
 #-------------------------------------------------------------------------------
 
@@ -140,9 +174,15 @@ if __name__ == '__main__':
     replicas = int(sys.argv[1])
     current_cycle = int(sys.argv[2])
     dimension = int(sys.argv[3])
+    group_nr = int(sys.argv[4])
+    dim_string = sys.argv[5]
+    group_size = replicas / group_nr
+
+    dim_types = []
+    dim_types.append('')
+    dim_types += dim_string.split()
 
     replica_dict = {}
-
     replicas_obj = []
 
     base_name = "matrix_column"
@@ -195,7 +235,15 @@ if __name__ == '__main__':
                         rstr_val_2 = float(num_list[1])
 
                 # creating replica
-                r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
+                #r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
+                r = Replica3d(rid, 
+                                  d1_param = params[1], 
+                                  d2_param = params[2], 
+                                  d3_param = params[3], 
+                                  d1_type = dim_types[1], 
+                                  d2_type = dim_types[2], 
+                                  d3_type = dim_types[3], 
+                                  new_restraints=replica_dict[rid][1])
                 replicas_obj.append(r)
 
                 success = 1
@@ -211,9 +259,45 @@ if __name__ == '__main__':
     d1_list = []
     d2_list = []
     d3_list = []
-
     exchange_list = []
 
+    #---------------------------------------------------------------------------
+    for r1 in replicas_obj:
+            
+        if dimension == 1:
+            r_pair = [r1.d2_param, r1.d3_param]
+            if r_pair not in d1_list:
+                d1_list.append(r_pair)
+                current_group = []
+                for r2 in replicas_obj:
+                    if (r1.d2_param == r2.d2_param) and (r1.d3_param == r2.d3_param):
+                        current_group.append(r2)
+                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                exchange_list.append(exchange_pair)
+
+        elif dimension == 2:
+            r_pair = [r1.d1_param, r1.d3_param]
+            if r_pair not in d2_list:
+                d2_list.append(r_pair)
+                current_group = []
+                for r2 in replicas_obj:
+                    if (r1.d1_param == r2.d1_param) and (r1.d3_param == r2.d3_param):
+                        current_group.append(r2)
+                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                exchange_list.append(exchange_pair)
+
+        elif dimension == 3:
+            r_pair = [r1.d1_param, r1.d2_param]
+            if r_pair not in d3_list:
+                d3_list.append(r_pair)
+                current_group = []
+                for r2 in replicas_obj:
+                    if (r1.d1_param == r2.d1_param) and (r1.d2_param == r2.d2_param):
+                        current_group.append(r2)
+                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                exchange_list.append(exchange_pair)
+
+    """
     for r1 in replicas_obj:
         current_temp = r1.new_temperature
             
@@ -267,6 +351,7 @@ if __name__ == '__main__':
                 # perform exchange among group members
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
+    """
 
     #---------------------------------------------------------------------------
     # writing to file

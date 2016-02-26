@@ -177,7 +177,7 @@ if __name__ == '__main__':
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
-    replica_id = int(data["replica_id"])
+    replica_id = int(data["rid"])
     replica_cycle = int(data["replica_cycle"])
     replicas = int(data["replicas"])
     base_name = data["base_name"]
