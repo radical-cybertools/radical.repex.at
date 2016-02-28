@@ -71,8 +71,8 @@ KERNELS = {
         {
             "amber": {
                 "pre_execution" : [],
-                "executable" : "/home/antons/amber/amber14/bin/sander",
-                "executable_mpi" : None
+                "executable" : "/home/antons/amber/amber14-single/bin/sander",
+                "executable_mpi" : "/home/antons/amber/amber14-mpi/bin/sander.MPI"
             }
         },
         "shell": "bash"

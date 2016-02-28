@@ -29,6 +29,8 @@ import amber_kernels_3d_tuu.matrix_calculator_us_ex
 import amber_kernels_3d_tuu.input_file_builder
 import amber_kernels_3d_tuu.global_ex_calculator_gr
 import amber_kernels_3d_tuu.global_ex_calculator
+import amber_kernels_3d_tuu.salt_conc_pre_exec
+import amber_kernels_3d_tuu.salt_conc_post_exec
 from replicas.replica import Replica3d
 
 #-------------------------------------------------------------------------------
@@ -45,7 +47,7 @@ class KernelPatternS3D(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.name = 'ak-patternB-3d-TUU'
+        self.name = 'amber-pattern-s-3d'
         self.logger  = rul.getLogger ('radical.repex', self.name)
 
         self.resource         = rconfig['target'].get('resource')
@@ -209,26 +211,23 @@ class KernelPatternS3D(object):
         #-----------------------------------------------------------------------
         replicas = []
 
-        # assigning parameters:
         dim_params = {}
         for k in self.dims:
+            N = self.dims[k]['replicas']
+            dim_params[k] = []
             if self.dims[k]['type'] == 'temperature':
-                dim_params[k] = []
-                N = self.dims[k]['replicas']
                 factor = (self.dims[k]['temp_end']/self.dims[k]['temp_start'])**(1./(N-1))
-                for n in range(N):
-                    new_temp = self.dims[k]['temp_start'] * (factor**n)
+                for i in range(N):
+                    new_temp = self.dims[k]['temp_start'] * (factor**i)
                     dim_params[k].append(new_temp)
             if self.dims[k]['type'] == 'umbrella':
-                dim_params[k] = []
-                for i in range(self.dims[k]['replicas']):
+                for i in range(N):
                     spacing = (self.dims[k]['us_end'] - self.dims[k]['us_start']) / (float(self.dims[k]['replicas'])-1)
                     starting_value = self.dims[k]['us_start'] + i*spacing
                     dim_params[k].append(starting_value)
             if self.dims[k]['type'] == 'salt':
-                dim_params[k] = []
-                for i in range(self.dims[k]['replicas']):
-                    new_salt = (self.max_salt-self.min_salt)/(N-1)*k + self.min_salt
+                for i in range(N):
+                    new_salt = (self.dims[k]['salt_end']-self.dims[k]['salt_start'])/(N-1.0)*float(i) + self.dims[k]['salt_start']
                     dim_params[k].append(new_salt)
 
         if self.nr_dims == 3:
@@ -319,7 +318,6 @@ class KernelPatternS3D(object):
             g_d1 = []
             g_d2 = []
             g_d3 = []
-
             for r in replicas:
                 if len(g_d1) == 0:
                     g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']]) 
@@ -370,6 +368,14 @@ class KernelPatternS3D(object):
                     r.group_idx[1] = len(g_d2) - 1
 
             self.groups_numbers = [len(g_d1), len(g_d2)] 
+ 
+        self.salt_str = ''
+        self.temperature_str = ''
+        for d_str in self.dims:
+            if self.dims[d_str]['type'] == 'temperature':
+                self.temperature_str = d_str
+            if self.dims[d_str]['type'] == 'salt':
+                self.salt_str = d_str
 
         return replicas
 
@@ -408,6 +414,12 @@ class KernelPatternS3D(object):
         build_inp = os.path.dirname(amber_kernels_3d_tuu.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
+        salt_pre_exec  = os.path.dirname(amber_kernels_3d_tuu.salt_conc_pre_exec.__file__)
+        salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
+
+        salt_post_exec  = os.path.dirname(amber_kernels_3d_tuu.salt_conc_post_exec.__file__)
+        salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
+
         #-----------------------------------------------------------------------
         # now adding to shared_files:
 
@@ -425,6 +437,9 @@ class KernelPatternS3D(object):
             self.shared_files.append("global_ex_calculator.py")
 
         self.shared_files.append(self.us_template)
+
+        self.shared_files.append("salt_conc_pre_exec.py")
+        self.shared_files.append("salt_conc_post_exec.py")
 
         if self.same_coordinates == False:
             for repl in replicas:
@@ -466,6 +481,12 @@ class KernelPatternS3D(object):
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
 
+        salt_pre_exec_url = 'file://%s' % (salt_pre_exec_path)
+        self.shared_urls.append(salt_pre_exec_url)
+
+        salt_post_exec_url = 'file://%s' % (salt_post_exec_path)
+        self.shared_urls.append(salt_post_exec_url)
+
         if self.same_coordinates == False:
             for idx in range(7,len(self.shared_files)):
                 cf_path = join(coor_path,self.shared_files[idx])
@@ -482,7 +503,6 @@ class KernelPatternS3D(object):
        
         stage_out = []
         stage_in = []
-
         basename = self.inp_basename
             
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
@@ -501,7 +521,6 @@ class KernelPatternS3D(object):
             first_step = int(self.cycle_steps)
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
-
         replica.cycle += 1
 
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
@@ -546,15 +565,14 @@ class KernelPatternS3D(object):
         }
         stage_out.append(rstr_out)
         
-        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
-
-        # for all cases!
-        matrix_col_out = {
-            'source': matrix_col,
-            'target': 'staging:///%s' % (matrix_col),
-            'action': radical.pilot.COPY
-        }
-        stage_out.append(matrix_col_out)
+        if self.dims[dim_str]['type'] != 'salt':
+            matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
+            matrix_col_out = {
+                'source': matrix_col,
+                'target': 'staging:///%s' % (matrix_col),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(matrix_col_out)
 
         # for all cases (OPTIONAL)    
         info_out = {
@@ -628,22 +646,21 @@ class KernelPatternS3D(object):
             json_post_data_bash = dump_data.replace("\\", "")
             json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
 
-
         if self.dims[dim_str]['type'] == 'salt':
             # IMPROVE!!!!!!!!!!!!!!!!!!
             current_group_tsu = {}
             for repl in replicas:
                 if str(repl.id) in current_group:
-                    current_group_tsu[str(repl.id)] = [str(repl.new_temperature), \
+                    current_group_tsu[str(repl.id)] = [str(repl.dims[self.temperature_str]['par']), \
                                                        str(repl.dims[dim_str]['par']), \
-                                                       str(repl.dims    new_restraints)]
+                                                       str(repl.new_restraints)]
 
             data = {
-                "replica_id": str(replica.id),
+                "rid": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
-                "init_temp" : str(replica.new_temperature),
+                "init_temp" : str(replica.dims[dim_str]['par']),
                 "amber_path" : str(self.amber_path),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": "../staging_area/"+str(self.amber_parameters),
@@ -719,7 +736,7 @@ class KernelPatternS3D(object):
                 # matrix_calculator_us_ex.py
                 stage_in.append(sd_shared_list[3])
 
-            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str] 
+            cu.arguments = ['-c', pre_exec_str + "; wait; " + amber_str + argument_str + "; wait; " + post_exec_str] 
             cu.pre_exec = self.pre_exec
             cu.cores = self.replica_cores
             cu.input_staging = stage_in
@@ -773,13 +790,16 @@ class KernelPatternS3D(object):
                 }
                 stage_out.append(new_coor_out)
                
-            cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str]
+            if self.dims[dim_str]['type'] != 'salt':
+                cu.arguments = ['-c', pre_exec_str + "; wait; " + amber_str + argument_str + "; wait; " + post_exec_str]
+            else:
+                cu.arguments = ['-c', pre_exec_str + "; wait; " + amber_str + argument_str]
             cu.pre_exec = self.pre_exec
             cu.input_staging = stage_in
             cu.output_staging = stage_out
             cu.cores = self.replica_cores
             cu.mpi = self.replica_mpi
-                          
+                   
         return cu
 
     #---------------------------------------------------------------------------
@@ -1026,6 +1046,96 @@ class KernelPatternS3D(object):
 
     #---------------------------------------------------------------------------
     #
+    def prepare_replica_for_exchange(self, 
+                                     dim_int, 
+                                     dim_str, 
+                                     replicas, 
+                                     replica, 
+                                     sd_shared_list):
+        """
+        should be used only for salt concentration exchange for 2d/3d
+        """
+
+        # name of the file which contains swap matrix column data for each replica
+        basename = self.inp_basename
+        matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), str(replica.cycle-1))
+        current_group = self.get_current_group_ids(dim_int, replicas, replica)
+
+        cu = radical.pilot.ComputeUnitDescription()
+        
+        current_group_tsu = {}
+        for repl in replicas:
+            if str(repl.id) in current_group:
+                current_group_tsu[str(repl.id)] = [str(repl.dims[self.temperature_str]['par']), \
+                                                   str(repl.dims[dim_str]['par']), \
+                                                   str(repl.new_restraints)]
+
+        data = {
+            "rid": str(replica.id),
+            "replica_cycle" : str(replica.cycle-1),
+            "replicas" : str(self.replicas),
+            "base_name" : str(basename),
+            "init_temp" : str(replica.dims[self.temperature_str]['par']),
+            "init_salt" : str(replica.dims[self.salt_str]['par']),
+            "new_restraints" : str(replica.new_restraints),
+            "amber_path" : str(self.amber_path),
+            "amber_input" : str(self.amber_input),
+            "amber_parameters": str(self.amber_parameters), 
+            "current_group_tsu" : current_group_tsu, 
+            "r_old_path": str(replica.old_path),
+        }
+
+        dump_data = json.dumps(data)
+        json_data = dump_data.replace("\\", "")
+
+        salt_pre_exec = ["python salt_conc_pre_exec.py " + "\'" + json_data + "\'"]
+        cu.pre_exec = self.pre_exec + salt_pre_exec
+        cu.executable = self.amber_path_mpi
+        salt_post_exec = ["python salt_conc_post_exec.py " + "\'" + json_data + "\'"]
+        cu.post_exec = salt_post_exec
+
+        rid = replica.id
+        in_list = []
+        in_list.append(sd_shared_list[0])
+        in_list.append(sd_shared_list[1])
+        in_list.append(sd_shared_list[4])
+        in_list.append(sd_shared_list[5])
+
+        # copying .RST files from staging area to replica folder
+        rst_group = []
+        for k in current_group_tsu.keys():
+            rstr_id = self.get_rstr_id(current_group_tsu[k][2])
+            rst_group.append(rstr_id)
+
+        for rsid in rst_group:
+            rst_file = self.us_template + '.' + str(rsid)
+            rstr_in = {
+                'source': 'staging:///%s' % (rst_file),
+                'target': rst_file,
+                'action': radical.pilot.COPY
+            }
+            in_list.append(rstr_in)
+  
+        out_list = []
+        matrix_col_out = {
+            'source': matrix_col,
+            'target': 'staging:///%s' % (matrix_col),
+            'action': radical.pilot.COPY
+        }
+        out_list.append(matrix_col_out)
+
+        gr_size = self.dims[dim_str]['replicas']
+
+        cu.input_staging = in_list
+        cu.arguments = ['-ng', str(gr_size), '-groupfile', 'groupfile']
+        cu.cores = gr_size
+        cu.mpi = True
+        cu.output_staging = out_list   
+
+        return cu
+
+    #---------------------------------------------------------------------------
+    #
     def exchange_params(self, dim_str, replica_1, replica_2):
         
         if (self.dims[dim_str]['type'] == 'temperature'):
@@ -1127,9 +1237,6 @@ class KernelPatternS3D(object):
     #---------------------------------------------------------------------------
     #
     def init_matrices(self, replicas):
-        """
-        DOES NOT WORK!
-        """
  
         """
         # id_matrix
@@ -1183,7 +1290,6 @@ class KernelPatternS3D(object):
     def get_current_group_ids(self, dim_int, replicas, replica):
 
         current_group = []
-
         for r1 in replicas:
             if dim_int == 1:
                 r1_pair = [r1.dims['d2']['par'], r1.dims['d3']['par']]
@@ -1207,13 +1313,12 @@ class KernelPatternS3D(object):
 
     #---------------------------------------------------------------------------
     #
-    def get_all_groups(self, dim, replicas):
+    def get_all_groups(self, dim_int, replicas):
 
-        dim = dim-1
+        dim = dim_int-1
         all_groups = []
         for i in range(self.groups_numbers[dim]):
             all_groups.append([None])
-
         for r in replicas:
             all_groups[r.group_idx[dim]].append(r)
 

@@ -36,10 +36,10 @@ if __name__ == '__main__':
             new_temperature = pair[1]
         if pair[0] == 'umbrella':
             umbrellas += 1
-
-    if umbrellas == 2:
-        rstr_val_1 = dims[0][1]
-        rstr_val_2 = dims[1][1]
+            if umbrellas == 1:
+                rstr_val_1 = pair[1]
+            if umbrellas == 2:
+                rstr_val_2 = pair[1]
                     
     #---------------------------------------------------------------------------
     # this is for every cycle

@@ -91,48 +91,6 @@ def do_exchange(dimension, replicas, swap_matrix):
 
 #-------------------------------------------------------------------------------
 
-"""
-class Replica3d(object):
-    Class representing replica and it's associated data. US = Umbrella Sampling
-    
-    def __init__(self, my_id, new_temperature=None, new_salt=None, new_restraints=None, rstr_val_1=None, rstr_val_2=None):
-       
-        self.id = int(my_id)
-        self.sid = int(my_id)
-
-        if new_salt is None:
-            self.new_salt_concentration = 0
-        else:
-            self.new_salt_concentration = new_salt
-        self.old_salt_concentration = new_salt
-
-        if new_restraints is None:
-            self.new_restraints = ''
-            self.old_restraints = ''
-        else:
-            self.new_restraints = new_restraints
-            self.old_restraints = new_restraints
-        self.potential_1 = 0
-
-        if new_temperature is None:
-            self.new_temperature = 0
-        else:
-            self.new_temperature = new_temperature
-        self.old_temperature = new_temperature
-
-        if rstr_val_1 is None:
-            self.rstr_val_1 = 0
-        else:
-            self.rstr_val_1 = rstr_val_1
-
-        if rstr_val_2 is None:
-            self.rstr_val_2 = 0
-        else:
-            self.rstr_val_2 = rstr_val_2
-"""
-
-#-------------------------------------------------------------------------------
-
 class Replica3d(object):
     
     def __init__(self, 
@@ -167,8 +125,6 @@ class Replica3d(object):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """
-    """
 
     argument_list = str(sys.argv)
     replicas = int(sys.argv[1])
@@ -224,16 +180,26 @@ if __name__ == '__main__':
                 tbuffer = tbuffer.split()
 
                 line = 2
+                rstr_val_2 = -1.0
+                rstr_vals = []
                 for word in tbuffer:
                     if word == '/':
                         line = 3
                     if word.startswith("r2=") and line == 2:
                         num_list = word.split('=')
                         rstr_val_1 = float(num_list[1])
+                        rstr_vals.append( rstr_val_1 )
                     if word.startswith("r2=") and line == 3:
                         num_list = word.split('=')
                         rstr_val_2 = float(num_list[1])
+                        rstr_vals.append( rstr_val_2 )
 
+                params = [0.0]*4
+                for i in range(len(dim_types)):
+                    if dim_types[i] == 'temperature':
+                        params[i] = replica_dict[rid][2]
+                    elif dim_types[i] == 'umbrella':
+                        params[i] = rstr_vals.pop(0)
                 # creating replica
                 #r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
                 r = Replica3d(rid, 
@@ -296,62 +262,6 @@ if __name__ == '__main__':
                         current_group.append(r2)
                 exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                 exchange_list.append(exchange_pair)
-
-    """
-    for r1 in replicas_obj:
-        current_temp = r1.new_temperature
-            
-        #-----------------------------------------------------------------------
-        # temperature exchange
-        if dimension == 2:
-            r_pair = [r1.rstr_val_1, r1.rstr_val_2]
-            if r_pair not in d2_list:
-                d2_list.append(r_pair)
-                current_group = []
-
-                for r2 in replicas_obj:
-                    if (r1.rstr_val_1 == r2.rstr_val_1) and (r1.rstr_val_2 == r2.rstr_val_2):
-                        current_group.append(r2)
-
-                #---------------------------------------------------------------
-                # perform exchange among group members
-                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                exchange_list.append(exchange_pair)
-        #-----------------------------------------------------------------------
-        # us exchange d1
-        elif dimension == 1:
-            r_pair = [r1.new_temperature, r1.rstr_val_2]
-
-            if r_pair not in d1_list:
-                d1_list.append(r_pair)
-                current_group = []
-                    
-                for r2 in replicas_obj:
-                    if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_2 == r2.rstr_val_2):
-                        current_group.append(r2)
-                    
-                #---------------------------------------------------------------
-                # perform exchange among group members
-                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                exchange_list.append(exchange_pair)
-        #-----------------------------------------------------------------------
-        # us exchange d3
-        elif dimension == 3:
-            r_pair = [r1.new_temperature, r1.rstr_val_1]
-
-            if r_pair not in d3_list:
-                d3_list.append(r_pair)
-                current_group = []
-                    
-                for r2 in replicas_obj:
-                    if (r1.new_temperature == r2.new_temperature) and (r1.rstr_val_1 == r2.rstr_val_1):
-                        current_group.append(r2)
-                    
-                #---------------------------------------------------------------
-                # perform exchange among group members
-                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                exchange_list.append(exchange_pair)
-    """
 
     #---------------------------------------------------------------------------
     # writing to file

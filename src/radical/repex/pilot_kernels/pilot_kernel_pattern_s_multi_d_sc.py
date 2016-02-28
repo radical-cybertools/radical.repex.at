@@ -119,9 +119,6 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             s = 'd' + str(i+1)
             dim_str.append(s)
 
-        #print "replicas: "
-        #print replicas
-
         for c in range(0,cycles*dim_count):
 
             if dim_int < dim_count:
@@ -147,31 +144,12 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             #-------------------------------------------------------------------
             #
             if bulk_submission:
-                #---------------------------------------------------------------
-                # submitting unit which determines exchanges between replicas
-                if not global_calc_after:
-                    t1 = datetime.datetime.utcnow()
-                    ex_calculator = md_kernel.prepare_global_ex_calc(global_calc_after, current_cycle, dim_int, dim_str[dim_int], replicas, self.sd_shared_list)
-                    t2 = datetime.datetime.utcnow()
-
-                    t_1 = datetime.datetime.utcnow()
-                    global_ex_cu = unit_manager.submit_units(ex_calculator)
-                    t_2 = datetime.datetime.utcnow()
-
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_prep"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_prep"] = (t2-t1).total_seconds()
-
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_sub"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_sub"] = (t_2-t_1).total_seconds()
-                #---------------------------------------------------------------
+                
                 md_prep_timing = 0.0
                 md_sub_timing  = 0.0
                 md_exec_timing = 0.0
                 t1 = datetime.datetime.utcnow()
                 all_groups = md_kernel.get_all_groups(dim_int, replicas)
-
-                #print "all_groups: "
-                #print all_groups
 
                 for group in all_groups:
                     group.pop(0)
@@ -186,6 +164,10 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     if ( (len(batch)+len(group))*r_cores ) <= self.cores:
                         batch += group
                     else:
+                        if len(batch) == 0:
+                            self.logger.error('ERROR: batch is empty, no replicas to prepare!')
+                            sys.exit(1)
+
                         t1 = datetime.datetime.utcnow()
                         c_replicas = []
                         for replica in batch:
@@ -219,7 +201,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     md_prep_timing += (t2-t1).total_seconds()
 
                     t1 = datetime.datetime.utcnow()
-                    submitted_batch += unit_manager.submit_units(c_replicas)
+                    submitted_batch = unit_manager.submit_units(c_replicas)
                     submitted_replicas += submitted_batch
                     t2 = datetime.datetime.utcnow()
                     md_sub_timing += (t2-t1).total_seconds()
@@ -242,8 +224,8 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["md_run"] = md_exec_timing
 
                 #---------------------------------------------------------------
-                
-                if (dim_int == 2) and (md_kernel.dims[dim_str[dim_int]]['type'] == 'salt_concentration'):
+                #
+                if (md_kernel.dims[dim_str[dim_int]]['type'] == 'salt'):
 
                     ex_prep_timing = 0.0
                     ex_sub_timing  = 0.0
@@ -253,15 +235,20 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     t2 = datetime.datetime.utcnow()
                     ex_prep_timing += (t2-t1).total_seconds()
 
-                    batch = []
                     for group in all_groups:
-                        if (len(batch)+len(group)) <= self.cores:
+                        group.pop(0)
+
+                    batch = []
+                    r_cores = md_kernel.dims[dim_str[dim_int]]['replicas']
+                    print "r_cores: {0}".format( r_cores )
+                    for group in all_groups:
+                        if ( (len(batch)+len(group))*r_cores ) <= self.cores:
                             batch += group
                         else:
                             t1 = datetime.datetime.utcnow()
                             e_replicas = []
                             for replica in batch:
-                                ex_replica = md_kernel.prepare_replica_for_exchange(dim_int, replicas, replica, self.sd_shared_list)
+                                ex_replica = md_kernel.prepare_replica_for_exchange(dim_int, dim_str[dim_int], replicas, replica, self.sd_shared_list)
                                 e_replicas.append(ex_replica)
                             t2 = datetime.datetime.utcnow()
                             ex_prep_timing += (t2-t1).total_seconds()
@@ -281,7 +268,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         t1 = datetime.datetime.utcnow()
                         e_replicas = []
                         for replica in batch:
-                            ex_replica = md_kernel.prepare_replica_for_exchange(dim_int, replicas, replica, self.sd_shared_list)
+                            ex_replica = md_kernel.prepare_replica_for_exchange(dim_int, dim_str[dim_int], replicas, replica, self.sd_shared_list)
                             e_replicas.append(ex_replica)
                         t2 = datetime.datetime.utcnow()
                         ex_prep_timing += (t2-t1).total_seconds()

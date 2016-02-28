@@ -15,20 +15,6 @@ import os,sys,socket,time
 #-------------------------------------------------------------------------------
 #
 def get_historical_data(replica_path, history_name):
-    """Retrieves temperature and potential energy from simulation output file .history file.
-    This file is generated after each simulation run. The function searches for directory 
-    where .history file recides by checking all computeUnit directories on target resource.
-
-    Arguments:
-    history_name - name of .history file for a given replica. 
-
-    Returns:
-    data[0] - temperature obtained from .history file
-    data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
-    input/output files for a given replica recide.
-       Get temperature and potential energy from mdinfo file.
-    """
 
     home_dir = os.getcwd()
     if replica_path != None:
@@ -61,25 +47,18 @@ def get_historical_data(replica_path, history_name):
 #-------------------------------------------------------------------------------
 #
 if __name__ == '__main__':
-    """This module calculates one swap matrix column for replica and writes this column to 
-    matrix_column_x_x.dat file. 
-    """
-
+    
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
-    replica_id = int(data["replica_id"])
+    replica_id = int(data["rid"])
     replica_cycle = int(data["replica_cycle"])
     replicas = int(data["replicas"])
     base_name = data["base_name"]
-
     prmtop_name = data["amber_parameters"]
     mdin_name = data["amber_input"]
-
     init_temp = float(data["init_temp"])
-
     amber_path = data["amber_path"]
-
     current_group_tsu = data["current_group_tsu"]
 
     # PATH TO SHARED INPUT FILES (to get ala10.prmtop)

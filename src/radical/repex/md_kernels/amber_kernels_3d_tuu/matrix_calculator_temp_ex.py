@@ -81,6 +81,7 @@ if __name__ == '__main__':
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
     swap_column  = [0.0]*replicas
 
+    #---------------------------------------------------------------------------
     # copy history_name to staging_area/replica_x 
     pwd = os.getcwd()
     replica_path = "/replica_%s/" % (replica_id)
@@ -94,14 +95,18 @@ if __name__ == '__main__':
         else:
             break
 
-    dst = path + "staging_area" + replica_path + history_name 
+    dst_path = path + "staging_area" + replica_path
+    dst = dst_path + history_name
+
+    if not os.path.exists(dst_path):
+        os.makedirs(dst_path)
 
     try:
         shutil.copyfile(src, dst)
         print "Success copying history_name to staging_area!"
     except:
         print "Fail copying history_name to staging_area..."
-        pass
+        raise
 
     #---------------------------------------------------------------------------
     success = 0
