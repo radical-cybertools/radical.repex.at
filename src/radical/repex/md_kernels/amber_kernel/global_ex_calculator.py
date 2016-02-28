@@ -75,8 +75,6 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 #-------------------------------------------------------------------------------
 #
 def do_exchange(dimension, replicas, swap_matrix):
-    """
-    """
 
     exchanged = []
     for r_i in replicas:
@@ -90,8 +88,8 @@ def do_exchange(dimension, replicas, swap_matrix):
     return  exchanged
 
 #-------------------------------------------------------------------------------
-
-class Replica3d(object):
+#
+class Replica(object):
     
     def __init__(self, 
                  my_id, 
@@ -138,6 +136,8 @@ if __name__ == '__main__':
     dim_types.append('')
     dim_types += dim_string.split()
 
+    nr_dims = int(len( dim_string.split() ))
+
     replica_dict = {}
     replicas_obj = []
 
@@ -156,16 +156,13 @@ if __name__ == '__main__':
                 lines = f.readlines()
                 f.close()
                 
-                #--------------------------------------------------
                 # populating matrix column
                 data = lines[0].split()
                 for i in range(replicas):
                     swap_matrix[i][int(rid)] = float(data[i])
-                #--------------------------------------------------
                 # populating replica dict
                 data = lines[1].split()
                 replica_dict[data[0]] = [data[1], data[2], data[3]]
-                #---------------------------------------------------
                 # updating rstr_val's for a given replica
                 rid = data[0]
    
@@ -200,25 +197,30 @@ if __name__ == '__main__':
                         params[i] = replica_dict[rid][2]
                     elif dim_types[i] == 'umbrella':
                         params[i] = rstr_vals.pop(0)
-                # creating replica
-                #r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
-                r = Replica3d(rid, 
-                                  d1_param = params[1], 
-                                  d2_param = params[2], 
-                                  d3_param = params[3], 
-                                  d1_type = dim_types[1], 
-                                  d2_type = dim_types[2], 
-                                  d3_type = dim_types[3], 
-                                  new_restraints=replica_dict[rid][1])
-                replicas_obj.append(r)
+                if nr_dims == 3:
+                    r = Replica(rid, 
+                                d1_param = params[1], 
+                                d2_param = params[2], 
+                                d3_param = params[3], 
+                                d1_type = dim_types[1], 
+                                d2_type = dim_types[2], 
+                                d3_type = dim_types[3], 
+                                new_restraints=replica_dict[rid][1])
+                elif nr_dims == 2:
+                    r = Replica(rid, 
+                                d1_param = params[1], 
+                                d2_param = params[2], 
+                                d1_type = dim_types[1], 
+                                d2_type = dim_types[2], 
+                                new_restraints=replica_dict[rid][1])
 
+                replicas_obj.append(r)
                 success = 1
                 print "Success processing replica: %s" % rid
-
             except:
                 print "Waiting for replica: %s" % rid
                 time.sleep(1)
-                pass
+                raise
 
     #---------------------------------------------------------------------------
 
@@ -227,41 +229,63 @@ if __name__ == '__main__':
     d3_list = []
     exchange_list = []
 
-    #---------------------------------------------------------------------------
-    for r1 in replicas_obj:
-            
-        if dimension == 1:
-            r_pair = [r1.d2_param, r1.d3_param]
-            if r_pair not in d1_list:
-                d1_list.append(r_pair)
-                current_group = []
-                for r2 in replicas_obj:
-                    if (r1.d2_param == r2.d2_param) and (r1.d3_param == r2.d3_param):
-                        current_group.append(r2)
-                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                exchange_list.append(exchange_pair)
+    if nr_dims == 3:
+        for r1 in replicas_obj:   
+            if dimension == 1:
+                r_pair = [r1.d2_param, r1.d3_param]
+                if r_pair not in d1_list:
+                    d1_list.append(r_pair)
+                    current_group = []
+                    for r2 in replicas_obj:
+                        if (r1.d2_param == r2.d2_param) and (r1.d3_param == r2.d3_param):
+                            current_group.append(r2)
+                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list.append(exchange_pair)
 
-        elif dimension == 2:
-            r_pair = [r1.d1_param, r1.d3_param]
-            if r_pair not in d2_list:
-                d2_list.append(r_pair)
-                current_group = []
-                for r2 in replicas_obj:
-                    if (r1.d1_param == r2.d1_param) and (r1.d3_param == r2.d3_param):
-                        current_group.append(r2)
-                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                exchange_list.append(exchange_pair)
+            elif dimension == 2:
+                r_pair = [r1.d1_param, r1.d3_param]
+                if r_pair not in d2_list:
+                    d2_list.append(r_pair)
+                    current_group = []
+                    for r2 in replicas_obj:
+                        if (r1.d1_param == r2.d1_param) and (r1.d3_param == r2.d3_param):
+                            current_group.append(r2)
+                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list.append(exchange_pair)
 
-        elif dimension == 3:
-            r_pair = [r1.d1_param, r1.d2_param]
-            if r_pair not in d3_list:
-                d3_list.append(r_pair)
-                current_group = []
-                for r2 in replicas_obj:
-                    if (r1.d1_param == r2.d1_param) and (r1.d2_param == r2.d2_param):
-                        current_group.append(r2)
-                exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                exchange_list.append(exchange_pair)
+            elif dimension == 3:
+                r_pair = [r1.d1_param, r1.d2_param]
+                if r_pair not in d3_list:
+                    d3_list.append(r_pair)
+                    current_group = []
+                    for r2 in replicas_obj:
+                        if (r1.d1_param == r2.d1_param) and (r1.d2_param == r2.d2_param):
+                            current_group.append(r2)
+                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list.append(exchange_pair)
+    elif nr_dims == 2:
+        for r1 in replicas_obj:
+            if dimension == 1:
+                r_par = r1.d2_param
+                if r_par not in d1_list:
+                    d1_list.append(r_par)
+                    current_group = []
+                    for r2 in replicas_obj:
+                        if (r1.d2_param == r2.d2_param):
+                            current_group.append(r2)
+                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list.append(exchange_pair)
+
+            elif dimension == 2:
+                r_par = r1.d1_param
+                if r_par not in d2_list:
+                    d2_list.append(r_par)
+                    current_group = []
+                    for r2 in replicas_obj:
+                        if (r1.d1_param == r2.d1_param):
+                            current_group.append(r2)
+                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list.append(exchange_pair)
 
     #---------------------------------------------------------------------------
     # writing to file

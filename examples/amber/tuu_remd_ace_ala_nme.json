@@ -4,7 +4,7 @@
         "number_of_cycles": "2",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
-        "amber_input": "ace_ala_nme.mdin",
+        "amber_input": "ace_ala_nme_no_rstr.mdin",
         "amber_parameters": "ace_ala_nme.parm7",
         "amber_coordinates_folder": "ace_ala_nme_coors",
         "same_coordinates": "True",
@@ -18,22 +18,16 @@
         },
     "dim.input": {
         "d2": {
-            "type" : "salt",
-            "number_of_replicas": "2",
-            "min_salt": "0.0",
-            "max_salt": "1.0"
-            },
-        "d1": {
             "type" : "temperature",
             "number_of_replicas": "2",
             "min_temperature": "300",
             "max_temperature": "600"
             },
-        "d3": {
-            "type" : "umbrella",
+        "d1": {
+            "type" : "salt",
             "number_of_replicas": "2",
-            "us_start_param": "0",
-            "us_end_param": "360"
+            "min_salt": "0.0",
+            "max_salt": "1.0"
             }    
     }
 }

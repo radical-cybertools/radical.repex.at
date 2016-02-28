@@ -22,27 +22,27 @@ from os import listdir
 from os.path import isfile, join
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
-import amber_kernel.remote_calculator_temp_ex_mpi
-import amber_kernel.remote_calculator_us_ex_mpi
-import amber_kernel.matrix_calculator_temp_ex
-import amber_kernel.matrix_calculator_us_ex
+from replicas.replica import Replica
+
 import amber_kernel.input_file_builder
-import amber_kernel.global_ex_calculator_gr
-import amber_kernel.global_ex_calculator
 import amber_kernel.salt_conc_pre_exec
 import amber_kernel.salt_conc_post_exec
-from replicas.replica import Replica3d
+import amber_kernel.global_ex_calculator
+import amber_kernel.global_ex_calculator_gr
+import amber_kernel.matrix_calculator_us_ex
+import amber_kernel.matrix_calculator_temp_ex
+import amber_kernel.remote_calculator_us_ex_mpi
+import amber_kernel.remote_calculator_temp_ex_mpi
 
 #-------------------------------------------------------------------------------
 #
 class KernelPatternS(object):
 
     def __init__(self, inp_file, rconfig, work_dir_local):
-        """Constructor.
-
+        """
         Arguments:
-        inp_file - package input file with Pilot and NAMD related parameters as 
-        specified by user 
+        inp_file - simulation input file with parameters specified by user 
+        rconfig - resource configuration file
         work_dir_local - directory from which main simulation script was invoked
         """
 
@@ -200,16 +200,13 @@ class KernelPatternS(object):
     #
     def initialize_replicas(self):
         
-        #-----------------------------------------------------------------------
         # parse coor file
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         coor_list  = listdir(coor_path)
         base = coor_list[0]
         self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
 
-        #-----------------------------------------------------------------------
         replicas = []
-
         dim_params = {}
         for k in self.dims:
             N = self.dims[k]['replicas']
@@ -250,16 +247,17 @@ class KernelPatternS(object):
                         else:
                             coor_file = self.coor_basename + ".0.0.0"
 
-                        r = Replica3d(rid, \
-                                      new_restraints=r, \
-                                      cores=1, \
-                                      coor=coor_file,
-                                      d1_param=float(dim_params['d1'][i]), \
-                                      d2_param=float(dim_params['d2'][j]), \
-                                      d3_param=float(dim_params['d3'][k]), \
-                                      d1_type = self.dims['d1']['type'], \
-                                      d2_type = self.dims['d2']['type'], \
-                                      d3_type = self.dims['d3']['type'])
+                        r = Replica(rid, \
+                                    new_restraints=r, \
+                                    cores=1, \
+                                    coor=coor_file,
+                                    d1_param=float(dim_params['d1'][i]), \
+                                    d2_param=float(dim_params['d2'][j]), \
+                                    d3_param=float(dim_params['d3'][k]), \
+                                    d1_type = self.dims['d1']['type'], \
+                                    d2_type = self.dims['d2']['type'], \
+                                    d3_type = self.dims['d3']['type'], \
+                                    nr_dims = self.nr_dims)
                         replicas.append(r)
 
         if self.nr_dims == 2:
@@ -280,14 +278,15 @@ class KernelPatternS(object):
                     else:
                         coor_file = self.coor_basename + ".0.0"
 
-                    r = Replica2d(rid, \
-                                  new_restraints=r, \
-                                  cores=1, \
-                                  coor=coor_file,
-                                  d1_param=float(dim_params['d1'][i]), \
-                                  d2_param=float(dim_params['d2'][j]), \
-                                  d1_type = self.dims['d1']['type'], \
-                                  d2_type = self.dims['d2']['type'], )
+                    r = Replica(rid, \
+                                new_restraints=r, \
+                                cores=1, \
+                                coor=coor_file,
+                                d1_param=float(dim_params['d1'][i]), \
+                                d2_param=float(dim_params['d2'][j]), \
+                                d1_type = self.dims['d1']['type'], \
+                                d2_type = self.dims['d2']['type'], \
+                                nr_dims = self.nr_dims)
                     replicas.append(r)
 
         if self.nr_dims == 1:
@@ -302,12 +301,13 @@ class KernelPatternS(object):
                 else:
                     coor_file = self.coor_basename + ".0"
 
-                r = Replica1d(rid, \
-                              new_restraints=r, \
-                              cores=1, \
-                              coor=coor_file,
-                              d1_param=float(dim_params['d1'][i]), \
-                              d1_type = self.dims['d1']['type'] )
+                r = Replica(rid, \
+                            new_restraints=r, \
+                            cores=1, \
+                            coor=coor_file,
+                            d1_param=float(dim_params['d1'][i]), \
+                            d1_type = self.dims['d1']['type'], \
+                            nr_dims = self.nr_dims)
                 replicas.append(r)
 
         #-----------------------------------------------------------------------
@@ -388,35 +388,35 @@ class KernelPatternS(object):
 
         #-----------------------------------------------------------------------
         # for group exec only, check
-        calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.remote_calculator_temp_ex_mpi.__file__)
+        calc_temp_ex = os.path.dirname(amber_kernel.remote_calculator_temp_ex_mpi.__file__)
         calc_temp_ex_path_gr = calc_temp_ex + "/remote_calculator_temp_ex_mpi.py"
 
-        calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.remote_calculator_us_ex_mpi.__file__)
+        calc_us_ex = os.path.dirname(amber_kernel.remote_calculator_us_ex_mpi.__file__)
         calc_us_ex_path_gr = calc_us_ex + "/remote_calculator_us_ex_mpi.py"
 
-        global_calc = os.path.dirname(amber_kernels_3d_tuu.global_ex_calculator_gr.__file__)
+        global_calc = os.path.dirname(amber_kernel.global_ex_calculator_gr.__file__)
         global_calc_path_gr = global_calc + "/global_ex_calculator_gr.py"
         #
         #-----------------------------------------------------------------------
 
-        calc_temp_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_temp_ex.__file__)
+        calc_temp_ex = os.path.dirname(amber_kernel.matrix_calculator_temp_ex.__file__)
         calc_temp_ex_path = calc_temp_ex + "/matrix_calculator_temp_ex.py"
 
-        calc_us_ex = os.path.dirname(amber_kernels_3d_tuu.matrix_calculator_us_ex.__file__)
+        calc_us_ex = os.path.dirname(amber_kernel.matrix_calculator_us_ex.__file__)
         calc_us_ex_path = calc_us_ex + "/matrix_calculator_us_ex.py"
 
-        global_calc = os.path.dirname(amber_kernels_3d_tuu.global_ex_calculator.__file__)
+        global_calc = os.path.dirname(amber_kernel.global_ex_calculator.__file__)
         global_calc_path = global_calc + "/global_ex_calculator.py"
 
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
-        build_inp = os.path.dirname(amber_kernels_3d_tuu.input_file_builder.__file__)
+        build_inp = os.path.dirname(amber_kernel.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
-        salt_pre_exec  = os.path.dirname(amber_kernels_3d_tuu.salt_conc_pre_exec.__file__)
+        salt_pre_exec  = os.path.dirname(amber_kernel.salt_conc_pre_exec.__file__)
         salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
 
-        salt_post_exec  = os.path.dirname(amber_kernels_3d_tuu.salt_conc_post_exec.__file__)
+        salt_post_exec  = os.path.dirname(amber_kernel.salt_conc_post_exec.__file__)
         salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
 
         #-----------------------------------------------------------------------
@@ -498,7 +498,12 @@ class KernelPatternS(object):
 
     #---------------------------------------------------------------------------
     #                         
-    def prepare_replica_for_md(self, dim_int, dim_str, replicas, replica, sd_shared_list):
+    def prepare_replica_for_md(self, 
+                               dim_int, 
+                               dim_str, 
+                               replicas, 
+                               replica, 
+                               sd_shared_list):
        
         stage_out = []
         stage_in = []
@@ -585,20 +590,36 @@ class KernelPatternS(object):
 
         #-----------------------------------------------------------------------
         # for all
-        data = {
-            "p1" : str(replica.dims['d1']['par']),
-            "p2" : str(replica.dims['d2']['par']),
-            "p3" : str(replica.dims['d3']['par']),
-            "t1" : str(replica.dims['d1']['type']),
-            "t2" : str(replica.dims['d2']['type']),
-            "t3" : str(replica.dims['d3']['type']),
-            "cycle_steps": str(self.cycle_steps),
-            "new_restraints" : str(replica.new_restraints),
-            "amber_input" : str(self.amber_input),
-            "new_input_file" : str(new_input_file),
-            "us_template": str(self.us_template),
-            "cycle" : str(replica.cycle)
-            }
+        if self.nr_dims == 3:
+            data = {
+                "p1" : str(replica.dims['d1']['par']),
+                "p2" : str(replica.dims['d2']['par']),
+                "p3" : str(replica.dims['d3']['par']),
+                "t1" : str(replica.dims['d1']['type']),
+                "t2" : str(replica.dims['d2']['type']),
+                "t3" : str(replica.dims['d3']['type']),
+                "cycle_steps": str(self.cycle_steps),
+                "new_restraints" : str(replica.new_restraints),
+                "amber_input" : str(self.amber_input),
+                "new_input_file" : str(new_input_file),
+                "us_template": str(self.us_template),
+                "cycle" : str(replica.cycle),
+                "nr_dims": str(self.nr_dims)
+                }
+        elif self.nr_dims == 2:
+            data = {
+                "p1" : str(replica.dims['d1']['par']),
+                "p2" : str(replica.dims['d2']['par']),
+                "t1" : str(replica.dims['d1']['type']),
+                "t2" : str(replica.dims['d2']['type']),
+                "cycle_steps": str(self.cycle_steps),
+                "new_restraints" : str(replica.new_restraints),
+                "amber_input" : str(self.amber_input),
+                "new_input_file" : str(new_input_file),
+                "us_template": str(self.us_template),
+                "cycle" : str(replica.cycle),
+                "nr_dims": str(self.nr_dims)
+                }
         dump_data = json.dumps(data)
         json_pre_data_bash = dump_data.replace("\\", "")
         json_pre_data_sh   = dump_data.replace("\"", "\\\\\"")
@@ -673,7 +694,22 @@ class KernelPatternS(object):
 
         #-----------------------------------------------------------------------
 
+        if (self.replica_gpu == True):
+            amber_str = self.amber_path_gpu
+        else:
+            amber_str = self.amber_path
+
+        if self.dims[dim_str]['type'] == 'temperature':
+            # matrix_calculator_temp_ex.py
+            stage_in.append(sd_shared_list[2])
+        if self.dims[dim_str]['type'] == 'umbrella':    
+            # matrix_calculator_us_ex.py
+            stage_in.append(sd_shared_list[3])
+
         cu = radical.pilot.ComputeUnitDescription()
+        cu.pre_exec = self.pre_exec
+        cu.cores = self.replica_cores    
+        cu.mpi = self.replica_mpi
 
         if KERNELS[self.resource]["shell"] == "bash":
             cu.executable = '/bin/bash'
@@ -691,15 +727,13 @@ class KernelPatternS(object):
                 post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_sh + "\'"
 
         if replica.cycle == 1:
-
-            if (self.replica_gpu == True):
-                amber_str = self.amber_path_gpu
-            else:
-                amber_str = self.amber_path    
-
-            argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
-                           " -p " +  self.amber_parameters + " -c " + replica.coor_file + \
-                           " -r " + new_coor + " -x " + new_traj + " -inf " + new_info  
+            argument_str = " -O " + " -i " + new_input_file + \
+                           " -o " + output_file + \
+                           " -p " +  self.amber_parameters + \
+                           " -c " + replica.coor_file + \
+                           " -r " + new_coor + \
+                           " -x " + new_traj + \
+                        " -inf " + new_info  
 
             restraints_out = replica.new_restraints
             restraints_out_st = {
@@ -713,44 +747,41 @@ class KernelPatternS(object):
             # files needed to be staged in replica dir
             for i in range(2):
                 stage_in.append(sd_shared_list[i])
-
             #-------------------------------------------------------------------            
             # replica coor
             repl_coor = replica.coor_file
             # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 
             stage_in.append(sd_shared_list[c_index])
-
             #-------------------------------------------------------------------
             # input_file_builder.py
             stage_in.append(sd_shared_list[4])
-
             # restraint template file: ace_ala_nme_us.RST
             stage_in.append(sd_shared_list[6])
 
-            if self.dims[dim_str]['type'] == 'temperature':
-                # matrix_calculator_temp_ex.py
-                stage_in.append(sd_shared_list[2])
-            if self.dims[dim_str]['type'] == 'umbrella':    
-                # matrix_calculator_us_ex.py
-                stage_in.append(sd_shared_list[3])
+            if self.dims[dim_str]['type'] != 'salt':
+                cu.arguments = ["-c", pre_exec_str + \
+                                "; wait; " + \
+                                amber_str + \
+                                argument_str + \
+                                "; wait; " + \
+                                post_exec_str]
+            else:
+                cu.arguments = ["-c", pre_exec_str + \
+                                "; wait; " + \
+                                amber_str + \
+                                argument_str]
 
-            cu.arguments = ['-c', pre_exec_str + "; wait; " + amber_str + argument_str + "; wait; " + post_exec_str] 
-            cu.pre_exec = self.pre_exec
-            cu.cores = self.replica_cores
             cu.input_staging = stage_in
             cu.output_staging = stage_out
-            cu.mpi = self.replica_mpi
-
         else:
-            if (self.replica_gpu == True):
-                amber_str = self.amber_path_gpu
-            else:
-                amber_str = self.amber_path 
-
-            argument_str = " -O " + " -i " + new_input_file + " -o " + output_file + \
-                           " -p " +  self.amber_parameters + " -c " + old_coor + \
-                           " -r " + new_coor + " -x " + new_traj + " -inf " + new_info
+            argument_str = " -O " + " -i " + new_input_file + \
+                           " -o " + output_file + \
+                           " -p " +  self.amber_parameters + \
+                           " -c " + old_coor + \
+                           " -r " + new_coor + \
+                           " -x " + new_traj + \
+                           " -inf " + new_info
 
             # parameters file
             stage_in.append(sd_shared_list[0])
@@ -775,30 +806,28 @@ class KernelPatternS(object):
             stage_in.append(old_coor_st)
 
             #-------------------------------------------------------------------
-            if self.dims[dim_str]['type'] == 'temperature':
-                # matrix_calculator_temp_ex.py
-                stage_in.append(sd_shared_list[2])
-            if self.dims[dim_str]['type'] == 'umbrella':    
-                # matrix_calculator_us_ex.py
-                stage_in.append(sd_shared_list[3])
-
-                new_coor_out = {
-                    'source': new_coor,
-                    'target': 'staging:///%s' % (replica_path + new_coor),
-                    'action': radical.pilot.COPY
-                }
-                stage_out.append(new_coor_out)
+            new_coor_out = {
+                'source': new_coor,
+                'target': 'staging:///%s' % (replica_path + new_coor),
+                'action': radical.pilot.COPY
+            }
+            stage_out.append(new_coor_out)
                
             if self.dims[dim_str]['type'] != 'salt':
-                cu.arguments = ['-c', pre_exec_str + "; wait; " + amber_str + argument_str + "; wait; " + post_exec_str]
+                cu.arguments = ["-c", pre_exec_str + \
+                                "; wait; " + \
+                                amber_str + \
+                                argument_str + \
+                                "; wait; " + \
+                                post_exec_str]
             else:
-                cu.arguments = ['-c', pre_exec_str + "; wait; " + amber_str + argument_str]
-            cu.pre_exec = self.pre_exec
+                cu.arguments = ["-c", pre_exec_str + \
+                                "; wait; " + \
+                                amber_str + \
+                                argument_str]
             cu.input_staging = stage_in
             cu.output_staging = stage_out
-            cu.cores = self.replica_cores
-            cu.mpi = self.replica_mpi
-                   
+                
         return cu
 
     #---------------------------------------------------------------------------
@@ -1097,8 +1126,8 @@ class KernelPatternS(object):
         in_list = []
         in_list.append(sd_shared_list[0])
         in_list.append(sd_shared_list[1])
-        in_list.append(sd_shared_list[4])
-        in_list.append(sd_shared_list[5])
+        in_list.append(sd_shared_list[7])
+        in_list.append(sd_shared_list[8])
 
         # copying .RST files from staging area to replica folder
         rst_group = []
@@ -1192,15 +1221,26 @@ class KernelPatternS(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_global_ex_calc(self, GL, current_cycle, dim_int, dim_str, replicas, sd_shared_list):
+    def prepare_global_ex_calc(self, 
+                               GL, 
+                               current_cycle, 
+                               dim_int, 
+                               dim_str, 
+                               replicas, 
+                               sd_shared_list):
 
         stage_out = []
         stage_in = []
 
-        d1_type = self.dims['d1']['type']
-        d2_type = self.dims['d2']['type']
-        d3_type = self.dims['d3']['type']
-        dims_string = d1_type + ' ' + d2_type + ' ' + d3_type
+        if self.nr_dims == 3:
+            d1_type = self.dims['d1']['type']
+            d2_type = self.dims['d2']['type']
+            d3_type = self.dims['d3']['type']
+            dims_string = d1_type + ' ' + d2_type + ' ' + d3_type
+        elif self.nr_dims == 2:
+            d1_type = self.dims['d1']['type']
+            d2_type = self.dims['d2']['type']
+            dims_string = d1_type + ' ' + d2_type
 
         group_nr = self.groups_numbers[dim_int-1]
 
@@ -1224,9 +1264,19 @@ class KernelPatternS(object):
         cu.executable = "python"
         cu.input_staging  = stage_in
         if self.group_exec == True:
-            cu.arguments = ["global_ex_calculator_gr.py", str(self.replicas), str(cycle), str(dim_int), str(group_nr), dims_string]
+            cu.arguments = ["global_ex_calculator_gr.py", 
+                            str(self.replicas), 
+                            str(cycle), 
+                            str(dim_int), 
+                            str(group_nr), 
+                            dims_string]
         else:
-            cu.arguments = ["global_ex_calculator.py", str(self.replicas), str(cycle), str(dim_int), str(group_nr), dims_string]
+            cu.arguments = ["global_ex_calculator.py", 
+                            str(self.replicas), 
+                            str(cycle), 
+                            str(dim_int), 
+                            str(group_nr), 
+                            dims_string]
         cu.cores = 1
         cu.mpi = False            
         cu.output_staging = stage_out
@@ -1289,24 +1339,39 @@ class KernelPatternS(object):
     def get_current_group_ids(self, dim_int, replicas, replica):
 
         current_group = []
-        for r1 in replicas:
-            if dim_int == 1:
-                r1_pair = [r1.dims['d2']['par'], r1.dims['d3']['par']]
-                my_pair = [replica.dims['d2']['par'], replica.dims['d3']['par']]  
-                if r1_pair == my_pair:
-                    current_group.append(str(r1.id))
 
-            elif dim_int == 2:
-                r1_pair = [r1.dims['d1']['par'], r1.dims['d3']['par']]
-                my_pair = [replica.dims['d1']['par'], replica.dims['d3']['par']]
-                if r1_pair == my_pair:
-                    current_group.append(str(r1.id))
+        if self.nr_dims == 3:
+            for r1 in replicas:
+                if dim_int == 1:
+                    r1_pair = [r1.dims['d2']['par'], r1.dims['d3']['par']]
+                    my_pair = [replica.dims['d2']['par'], replica.dims['d3']['par']]  
+                    if r1_pair == my_pair:
+                        current_group.append(str(r1.id))
 
-            elif dim_int == 3:
-                r1_pair = [r1.dims['d1']['par'], r1.dims['d2']['par']]
-                my_pair = [replica.dims['d1']['par'], replica.dims['d2']['par']]
-                if r1_pair == my_pair:
-                    current_group.append(str(r1.id))
+                elif dim_int == 2:
+                    r1_pair = [r1.dims['d1']['par'], r1.dims['d3']['par']]
+                    my_pair = [replica.dims['d1']['par'], replica.dims['d3']['par']]
+                    if r1_pair == my_pair:
+                        current_group.append(str(r1.id))
+
+                elif dim_int == 3:
+                    r1_pair = [r1.dims['d1']['par'], r1.dims['d2']['par']]
+                    my_pair = [replica.dims['d1']['par'], replica.dims['d2']['par']]
+                    if r1_pair == my_pair:
+                        current_group.append(str(r1.id))
+        elif self.nr_dims == 2:
+            for r1 in replicas:
+                if dim_int == 1:
+                    r1_par = r1.dims['d2']['par']
+                    my_par = replica.dims['d2']['par'] 
+                    if r1_par == my_par:
+                        current_group.append(str(r1.id))
+
+                elif dim_int == 2:
+                    r1_par = r1.dims['d1']['par']
+                    my_par = replica.dims['d1']['par']
+                    if r1_par == my_par:
+                        current_group.append(str(r1.id))
 
         return current_group
 

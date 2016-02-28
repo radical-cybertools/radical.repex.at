@@ -22,8 +22,13 @@ if __name__ == '__main__':
     new_input_file  = data["new_input_file"]
     us_template     = data["us_template"]
     replica_cycle   = int(data["cycle"])
+    nr_dims         = int(data["nr_dims"])
 
-    dim_str = ['1', '2', '3']
+    if nr_dims == 3:
+        dim_str = ['1', '2', '3']
+    elif nr_dims == 2:
+        dim_str = ['1', '2']
+
     dims = []
     for d in dim_str:
         par = float(data[('p'+d)])
@@ -51,8 +56,10 @@ if __name__ == '__main__':
     tbuffer = r_file.read()
     r_file.close()
 
+    if (umbrellas > 0):
+        tbuffer = tbuffer.replace("@disang@",new_restraints)
+
     tbuffer = tbuffer.replace("@nstlim@",cycle_steps)
-    tbuffer = tbuffer.replace("@disang@",new_restraints)
     tbuffer = tbuffer.replace("@temp@", str(new_temperature))
 
     if replica_cycle == 1:
@@ -70,8 +77,8 @@ if __name__ == '__main__':
         print "Warning: unable to access file: {0}".format(new_input_file)
 
     #---------------------------------------------------------------------------
-    # this is for first cycle only
-    if replica_cycle == 1:
+    # this is for first cycle only, if we have umbrella dimension
+    if (replica_cycle == 1) and (umbrellas > 0):
         try:
             r_file = open(us_template, "r")
             tbuffer = r_file.read()

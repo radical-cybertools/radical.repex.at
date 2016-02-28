@@ -240,7 +240,6 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                     batch = []
                     r_cores = md_kernel.dims[dim_str[dim_int]]['replicas']
-                    print "r_cores: {0}".format( r_cores )
                     for group in all_groups:
                         if ( (len(batch)+len(group))*r_cores ) <= self.cores:
                             batch += group
