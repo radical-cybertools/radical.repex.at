@@ -98,15 +98,12 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
 
         do_profile = os.getenv('REPEX_PROFILING', '0')
 
-        md_kernel.init_matrices(replicas)
+        #md_kernel.init_matrices(replicas)
 
         stagein_end = datetime.datetime.utcnow()
 
         start = datetime.datetime.utcnow()
         #-----------------------------------------------------------------------
-        # global_calc_after = 0: submit global calculator before
-        # global_calc_after = 1: submit global calculator after
-        global_calc_after = 1
         # bulk_submission = 0: do sequential submission
         # bulk_submission = 1: do bulk_submission submission
         bulk_submission = 1
@@ -186,20 +183,19 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
                 hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["md_run"] = md_exec_timing
 
                 #---------------------------------------------------------------
-                if global_calc_after:
-                    t1 = datetime.datetime.utcnow()
-                    ex_calculator = md_kernel.prepare_global_ex_calc(global_calc_after, current_cycle, dim_int, dim_str[dim_int], replicas, self.sd_shared_list)
-                    t2 = datetime.datetime.utcnow()
+                t1 = datetime.datetime.utcnow()
+                ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, dim_int, dim_str[dim_int], replicas, self.sd_shared_list)
+                t2 = datetime.datetime.utcnow()
 
-                    t_1 = datetime.datetime.utcnow()
-                    global_ex_cu = unit_manager.submit_units(ex_calculator)
-                    t_2 = datetime.datetime.utcnow()
+                t_1 = datetime.datetime.utcnow()
+                global_ex_cu = unit_manager.submit_units(ex_calculator)
+                t_2 = datetime.datetime.utcnow()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_prep"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_prep"] = (t2-t1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_prep"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_prep"] = (t2-t1).total_seconds()
 
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_sub"] = {}
-                    hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_sub"] = (t_2-t_1).total_seconds()
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_sub"] = {}
+                hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_sub"] = (t_2-t_1).total_seconds()
                 #-----------------------------------------------------------
 
                 t1 = datetime.datetime.utcnow()
