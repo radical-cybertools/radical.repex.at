@@ -90,7 +90,7 @@ if __name__ == '__main__':
             temperatures[int(j)] = float(init_temp)
             energies[int(j)] = rj_energy
         except:
-             raise
+            raise
 
     swap_column = [0.0]*replicas
     for j in current_group_tsu.keys():       

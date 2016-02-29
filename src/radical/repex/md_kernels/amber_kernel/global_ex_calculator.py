@@ -47,7 +47,7 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
                   swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
         j += 1
         
-    ######################################
+    #---------------------------------------------------------------------------
     new_ps = []
     for item in ps:
         if item > math.log(sys.float_info.max): new_item=sys.float_info.max
@@ -67,10 +67,9 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
         #print "...gibbs exchnage warning: j was None..."
     # actual replica
     r_j = replicas[j]
-    ######################################
+    #---------------------------------------------------------------------------
 
     return r_j
-
 
 #-------------------------------------------------------------------------------
 #
@@ -141,6 +140,11 @@ if __name__ == '__main__':
     replica_dict = {}
     replicas_obj = []
 
+    umbrella = False
+    for d_type in dim_types:
+        if d_type == 'umbrella':
+            umbrella = True
+
     base_name = "matrix_column"
 
     # init matrix
@@ -162,34 +166,35 @@ if __name__ == '__main__':
                     swap_matrix[i][int(rid)] = float(data[i])
                 # populating replica dict
                 data = lines[1].split()
-                replica_dict[data[0]] = [data[1], data[2], data[3]]
+                replica_dict[data[0]] = [data[1], data[2], data[3], data[4]]
                 # updating rstr_val's for a given replica
                 rid = data[0]
    
-                current_rstr = replica_dict[rid][1]
-                try:
-                    r_file = open(("../staging_area/" + current_rstr), "r")
-                except IOError:
-                    print "Warning: unable to access template file: {0}".format(current_rstr)
+                if (umbrella == True):
+                    current_rstr = replica_dict[rid][1]
+                    try:
+                        r_file = open(("../staging_area/" + current_rstr), "r")
+                    except IOError:
+                        print "Warning: unable to access template file: {0}".format(current_rstr)
 
-                tbuffer = r_file.read()
-                r_file.close()
-                tbuffer = tbuffer.split()
+                    tbuffer = r_file.read()
+                    r_file.close()
+                    tbuffer = tbuffer.split()
 
-                line = 2
-                rstr_val_2 = -1.0
-                rstr_vals = []
-                for word in tbuffer:
-                    if word == '/':
-                        line = 3
-                    if word.startswith("r2=") and line == 2:
-                        num_list = word.split('=')
-                        rstr_val_1 = float(num_list[1])
-                        rstr_vals.append( rstr_val_1 )
-                    if word.startswith("r2=") and line == 3:
-                        num_list = word.split('=')
-                        rstr_val_2 = float(num_list[1])
-                        rstr_vals.append( rstr_val_2 )
+                    line = 2
+                    rstr_val_2 = -1.0
+                    rstr_vals = []
+                    for word in tbuffer:
+                        if word == '/':
+                            line = 3
+                        if word.startswith("r2=") and line == 2:
+                            num_list = word.split('=')
+                            rstr_val_1 = float(num_list[1])
+                            rstr_vals.append( rstr_val_1 )
+                        if word.startswith("r2=") and line == 3:
+                            num_list = word.split('=')
+                            rstr_val_2 = float(num_list[1])
+                            rstr_vals.append( rstr_val_2 )
 
                 params = [0.0]*4
                 for i in range(len(dim_types)):
@@ -197,6 +202,9 @@ if __name__ == '__main__':
                         params[i] = replica_dict[rid][2]
                     elif dim_types[i] == 'umbrella':
                         params[i] = rstr_vals.pop(0)
+                    elif dim_types[i] == 'salt':
+                        params[i] = replica_dict[rid][3]
+
                 if nr_dims == 3:
                     r = Replica(rid, 
                                 d1_param = params[1], 
@@ -212,6 +220,11 @@ if __name__ == '__main__':
                                 d2_param = params[2], 
                                 d1_type = dim_types[1], 
                                 d2_type = dim_types[2], 
+                                new_restraints=replica_dict[rid][1])
+                elif nr_dims == 1:
+                    r = Replica(rid, 
+                                d1_param = params[1], 
+                                d1_type = dim_types[1], 
                                 new_restraints=replica_dict[rid][1])
 
                 replicas_obj.append(r)
@@ -286,6 +299,14 @@ if __name__ == '__main__':
                             current_group.append(r2)
                     exchange_pair = do_exchange(dimension, current_group, swap_matrix)
                     exchange_list.append(exchange_pair)
+    elif nr_dims == 1:
+        for r_i in replicas_obj:
+            r_j = gibbs_exchange(r_i, replicas_obj, swap_matrix)
+            if (r_j != r_i):
+                exchange_pair = []
+                exchange_pair.append(r_i.id)
+                exchange_pair.append(r_j.id)
+                exchange_list.append(exchange_pair)
 
     #---------------------------------------------------------------------------
     # writing to file

@@ -53,6 +53,7 @@ class KernelPatternS(object):
         self.inp_basename     = inp_file['remd.input'].get('input_file_basename')
         self.input_folder     = inp_file['remd.input'].get('input_folder')
         self.us_template      = inp_file['remd.input'].get('us_template', '') 
+        self.init_temp        = float(inp_file['remd.input'].get('init_temp', '-1.0') )
         self.amber_parameters = inp_file['remd.input'].get('amber_parameters')
         self.amber_input      = inp_file['remd.input'].get('amber_input')
         self.work_dir_local   = work_dir_local
@@ -62,6 +63,7 @@ class KernelPatternS(object):
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
+        self.nr_ex_neighbors = int(inp_file['remd.input'].get('nr_exchange_neighbors', '1'))
 
         self.group_exec = inp_file['remd.input'].get('group_exec', 'False')
         if self.group_exec == 'True':
@@ -161,8 +163,8 @@ class KernelPatternS(object):
  
         for k in self.dims:
             if self.dims[k]['type'] == 'umbrella':
-                self.dims[k]['us_start'] = float(inp_file['dim.input'][k].get('us_start_param'))
-                self.dims[k]['us_end'] = float(inp_file['dim.input'][k].get('us_end_param'))
+                self.dims[k]['us_start'] = float(inp_file['dim.input'][k].get('min_us_param'))
+                self.dims[k]['us_end'] = float(inp_file['dim.input'][k].get('max_us_param'))
             if self.dims[k]['type'] == 'temperature':
                 self.dims[k]['temp_start'] = float(inp_file['dim.input'][k].get('min_temperature'))
                 self.dims[k]['temp_end'] = float(inp_file['dim.input'][k].get('max_temperature'))
@@ -373,6 +375,11 @@ class KernelPatternS(object):
                     r.group_idx[1] = len(g_d2) - 1
 
             self.groups_numbers = [len(g_d1), len(g_d2)] 
+
+        if self.nr_dims == 1:
+            for r in replicas:
+                r.group_idx[0] = 0
+            self.groups_numbers = [1] 
  
         self.salt_str = ''
         self.temperature_str = ''
@@ -571,7 +578,6 @@ class KernelPatternS(object):
         stage_out.append(new_coor_out)
 
         if (self.umbrella == True) and (self.us_template != ''):
-            print "foo 1"
             out_string = "_%d.out" % (replica.cycle-1)
             rstr_out = {
                 'source': (replica.new_restraints + '.out'),
@@ -616,7 +622,8 @@ class KernelPatternS(object):
                 "new_input_file" : str(new_input_file),
                 "us_template": str(self.us_template),
                 "cycle" : str(replica.cycle),
-                "nr_dims": str(self.nr_dims)
+                "nr_dims": str(self.nr_dims),
+                "init_temp": str(self.init_temp)
                 }
         elif self.nr_dims == 2:
             data = {
@@ -630,8 +637,23 @@ class KernelPatternS(object):
                 "new_input_file" : str(new_input_file),
                 "us_template": str(self.us_template),
                 "cycle" : str(replica.cycle),
-                "nr_dims": str(self.nr_dims)
+                "nr_dims": str(self.nr_dims),
+                "init_temp": str(self.init_temp)
                 }
+        elif self.nr_dims == 1:
+            data = {
+                "p1" : str(replica.dims['d1']['par']),
+                "t1" : str(replica.dims['d1']['type']),
+                "cycle_steps": str(self.cycle_steps),
+                "new_restraints" : str(replica.new_restraints),
+                "amber_input" : str(self.amber_input),
+                "new_input_file" : str(new_input_file),
+                "us_template": str(self.us_template),
+                "cycle" : str(replica.cycle),
+                "nr_dims": str(self.nr_dims),
+                "init_temp": str(self.init_temp)
+                }
+
         dump_data = json.dumps(data)
         json_pre_data_bash = dump_data.replace("\\", "")
         json_pre_data_sh   = dump_data.replace("\"", "\\\\\"")
@@ -683,8 +705,13 @@ class KernelPatternS(object):
             current_group_tsu = {}
             for repl in replicas:
                 if str(repl.id) in current_group:
+                    # no temperature exchange
+                    if self.temperature_str == '':
+                        temp_str = str(self.init_temp)
+                    else:
+                        temp_str = str(repl.dims[self.temperature_str]['par'])
                     current_group_tsu[str(repl.id)] = \
-                        [str(repl.dims[self.temperature_str]['par']), \
+                        [temp_str, \
                          str(repl.dims[dim_str]['par']), \
                          str(repl.new_restraints)]
 
@@ -818,13 +845,14 @@ class KernelPatternS(object):
 
             # input_file_builder.py
             stage_in.append(sd_shared_list[4])
-            
-            # restraint file
-            restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
-                                'target': replica.new_restraints,
-                                'action': radical.pilot.COPY
-            }
-            stage_in.append(restraints_in_st)
+
+            if (self.umbrella == True) and (self.us_template != ''):
+                # restraint file
+                restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
+                                    'target': replica.new_restraints,
+                                    'action': radical.pilot.COPY
+                }
+                stage_in.append(restraints_in_st)
 
             old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
                            'target': (old_coor),
@@ -1119,17 +1147,27 @@ class KernelPatternS(object):
         current_group_tsu = {}
         for repl in replicas:
             if str(repl.id) in current_group:
+                # no temperature exchange
+                if self.temperature_str == '':
+                    temp_str = str(self.init_temp)
+                else:
+                    temp_str = str(repl.dims[self.temperature_str]['par'])
                 current_group_tsu[str(repl.id)] = \
-                    [str(repl.dims[self.temperature_str]['par']), \
+                    [temp_str, \
                     str(repl.dims[dim_str]['par']), \
                     str(repl.new_restraints)]
 
+        # no temperature exchange
+        if self.temperature_str == '':
+            temp_str = str(self.init_temp)
+        else:
+            temp_str = str(replica.dims[self.temperature_str]['par'])
         data = {
             "rid": str(replica.id),
             "replica_cycle" : str(replica.cycle-1),
             "replicas" : str(self.replicas),
             "base_name" : str(basename),
-            "init_temp" : str(replica.dims[self.temperature_str]['par']),
+            "init_temp" : temp_str,
             "init_salt" : str(replica.dims[self.salt_str]['par']),
             "new_restraints" : str(replica.new_restraints),
             "amber_path" : str(self.amber_path),
@@ -1197,11 +1235,6 @@ class KernelPatternS(object):
     #
     def exchange_params(self, dim_str, replica_1, replica_2):
         
-        if (self.dims[dim_str]['type'] == 'temperature'):
-            temp = replica_2.dims[dim_str]['par']
-            replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
-            replica_1.dims[dim_str]['par'] = temp
-
         if (self.dims[dim_str]['type'] == 'umbrella'):
             rstr = replica_2.dims[dim_str]['par']
             replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
@@ -1210,6 +1243,10 @@ class KernelPatternS(object):
             rstr = replica_2.new_restraints
             replica_2.new_restraints = replica_1.new_restraints
             replica_1.new_restraints = rstr
+        else:
+            temp = replica_2.dims[dim_str]['par']
+            replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
+            replica_1.dims[dim_str]['par'] = temp
 
     #---------------------------------------------------------------------------
     #
@@ -1272,6 +1309,9 @@ class KernelPatternS(object):
             d1_type = self.dims['d1']['type']
             d2_type = self.dims['d2']['type']
             dims_string = d1_type + ' ' + d2_type
+        elif self.nr_dims == 1:
+            d1_type = self.dims['d1']['type']
+            dims_string = d1_type
 
         group_nr = self.groups_numbers[dim_int-1]
         cycle = replicas[0].cycle-1

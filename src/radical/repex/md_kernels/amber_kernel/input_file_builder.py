@@ -23,11 +23,14 @@ if __name__ == '__main__':
     us_template     = data["us_template"]
     replica_cycle   = int(data["cycle"])
     nr_dims         = int(data["nr_dims"])
+    init_temp       = float(data["init_temp"])
 
     if nr_dims == 3:
         dim_str = ['1', '2', '3']
     elif nr_dims == 2:
         dim_str = ['1', '2']
+    elif nr_dims == 1:
+        dim_str = ['1']
 
     dims = []
     for d in dim_str:
@@ -36,6 +39,7 @@ if __name__ == '__main__':
         dims.append( [typ, par] )
 
     umbrellas = 0
+    new_temperature = -1.0
     for pair in dims:
         if pair[0] == 'temperature':
             new_temperature = pair[1]
@@ -46,6 +50,8 @@ if __name__ == '__main__':
             if umbrellas == 2:
                 rstr_val_2 = pair[1]
                     
+    if new_temperature == -1.0:
+        new_temperature = init_temp
     #---------------------------------------------------------------------------
     # this is for every cycle
     try:

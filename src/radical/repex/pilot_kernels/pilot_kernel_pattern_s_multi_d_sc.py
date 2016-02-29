@@ -241,6 +241,10 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         if ( (len(batch)+len(group))*r_cores ) <= self.cores:
                             batch += group
                         else:
+                            if len(batch) == 0:
+                                self.logger.error('ERROR: batch is empty, no replicas to prepare!')
+                                sys.exit(1)
+
                             t1 = datetime.datetime.utcnow()
                             e_replicas = []
                             for replica in batch:

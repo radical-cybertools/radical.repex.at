@@ -204,7 +204,7 @@ if __name__ == '__main__':
                     row_str = str(item)
             f.write(row_str)
             f.write('\n')
-            row_str = replica_id + " " + replica_cycle + " " + new_restraints + " " + init_temp
+            row_str = replica_id + " " + replica_cycle + " " + new_restraints + " " + init_temp + " _"
             f.write(row_str)
         f.close()
 
