@@ -1,10 +1,9 @@
 {
     "target": {
         "resource": "xsede.comet",
-        "username" : "chen1990",
-        "project" : "TG-MCB110101",
-        "queue" : "compute",
-        "runtime" : "30",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
+        "runtime" : "60",
         "cleanup" : "False",
         "cores" : "48"
     }

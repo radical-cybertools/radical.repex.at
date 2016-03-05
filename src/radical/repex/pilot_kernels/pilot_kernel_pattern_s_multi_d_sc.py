@@ -357,6 +357,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 md_prep_timing += (t2-t1).total_seconds()
 
                 batch = []
+                submitted_batch = []
                 r_cores = md_kernel.replica_cores
                 for group in all_groups:
                     # assumes uniform distribution of cores
