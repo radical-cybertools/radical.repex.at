@@ -211,6 +211,7 @@ class KernelPatternS3dTUU(object):
                     #-----------------------------------------------------------
                     if self.same_coordinates == False:
                         coor_file = self.coor_basename + "." + str(i) + "." + str(k)
+                        print "coor file: {0}".format( coor_file )
                     else:
                         coor_file = self.coor_basename + ".0.0"
                     r = Replica3d(rid, \

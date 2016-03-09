@@ -1,0 +1,11 @@
+{
+    "target": {
+        "resource": "xsede.supermic",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
+        "queue" : "workq",
+        "runtime" : "960",
+        "cleanup" : "False",
+        "cores" : "1300"
+    }
+}
