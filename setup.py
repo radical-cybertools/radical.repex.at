@@ -130,7 +130,7 @@ setup(
     scripts=['bin/repex-version', 'bin/repex-amber'],
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Package',
-    install_requires=['radical.pilot'],
+    install_requires=['radical.pilot', 'mpi4py'],
     download_url = 'https://github.com/AntonsT/radical.repex/tarball/0.2',
     url = 'https://github.com/radical-cybertools/radical.repex.git',
     data_files=makeDataFiles('share/radical.repex/examples/', 'examples'),
