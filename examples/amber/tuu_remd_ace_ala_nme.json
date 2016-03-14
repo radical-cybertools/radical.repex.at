@@ -5,7 +5,7 @@
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
-        "us_template": "ace_ala_nme_single.RST",
+        "us_template": "ace_ala_nme_double.RST",
         "amber_parameters": "ace_ala_nme.parm7",
         "amber_coordinates_folder": "ace_ala_nme_coors",
         "same_coordinates": "True",
