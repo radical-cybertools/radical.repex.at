@@ -197,10 +197,8 @@ if __name__ == '__main__':
     replicas = int(data["replicas"])
     base_name = data["base_name"]
     new_restraints = data["new_restraints"]
-
     prmtop_name = data["amber_parameters"]
     mdin_name = data["amber_input"]
-
     init_temp = float(data["init_temp"])
     current_group_rst = data["current_group_rst"]
    
@@ -209,8 +207,6 @@ if __name__ == '__main__':
 
     pwd = os.getcwd()
     matrix_col = "matrix_column_%d_%d.dat" % ( replica_id, replica_cycle ) 
-
-    # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     replica_path = "/replica_%d/" % (replica_id)
 
@@ -257,7 +253,6 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    #if replica_cycle != 0:
     for j in current_group_rst.keys():
         success = 0     
         attempts = 0   
@@ -281,7 +276,6 @@ if __name__ == '__main__':
                     us_energy += r.energy
                 energies[int(j)] = replica_energy + us_energy
                 temperatures[int(j)] = float(init_temp)
-
                 success = 1
                 print "Success processing replica: %s" % j
             except:
@@ -297,13 +291,11 @@ if __name__ == '__main__':
                     print "Replica %d failed, initialized temperatures[j] and energies[j] to -1.0" % j
                 pass
 
-    #for j in range(replicas):
     for j in current_group_rst.keys():      
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 
     #---------------------------------------------------------------------------
     # writing to file
-
     try:
         outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
         with open(outfile, 'w+') as f:
@@ -317,7 +309,6 @@ if __name__ == '__main__':
             f.write('\n')
             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
             f.write(row_str)
-
         f.close()
 
     except IOError:
