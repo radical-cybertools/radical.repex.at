@@ -80,12 +80,9 @@ def get_historical_data(replica_path, history_name):
     
     return temp, eptot, path_to_replica_folder
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """This module calculates one swap matrix column for replica and writes this column to 
-    matrix_column_x_x.dat file. 
-    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -104,13 +101,11 @@ if __name__ == '__main__':
     for i in temp_group:
         current_group.append(int(i))
      
-    # getting history data for self
     history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
 
-    # init swap column
     swap_column = [0.0]*replicas
 
-    #----------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # copy history_name to staging_area/replica_x 
     pwd = os.getcwd()
     replica_path = "/replica_%s/" % (replica_id)
@@ -133,7 +128,7 @@ if __name__ == '__main__':
         print "Fail copying history_name to staging_area..."
         pass
 
-    #----------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     success = 0
     attempts = 0
     while (success == 0):
@@ -145,29 +140,26 @@ if __name__ == '__main__':
             print "Waiting for self (history file)"
             time.sleep(1)
             attempts += 1
-            if attempts >= 12:
-                #---------------------------------------------------------------------------------------------------
-                # writing to file
+            if attempts > 5:
                 try:
                     outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
                     with open(outfile, 'w+') as f:
                         row_str = ""
                         for item in swap_column:
                             if len(row_str) != 0:
-                                row_str = row_str + " " + str(item)
+                                row_str = row_str + " " + str(-1.0)
                             else:
-                                row_str = str(item)
+                                row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
                             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
                             f.write(row_str)
-
                         f.close()
 
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-                #---------------------------------------------------------------------------------------------------
-                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+                
+                print "MD run failed for replica {0}, matrix_swap_column_x_x.dat populated with zeros".format(replica_id)
             pass
 
     # getting history data for all replicas
@@ -202,23 +194,22 @@ if __name__ == '__main__':
                     attempts += 1
                     # some of the replicas in current group failed
                     # set temperature and energy for this replicas as -1.0
-                    if attempts >= 50:
+                    if attempts > 5:
                         temperatures[j] = -1.0
                         energies[j] = -1.0
                         success = 1
                         print "Replica %d failed, initialized temperatures[j] and energies[j] to -1.0" % j
                     pass
 
-    print "got history data for other replicas in current group!"
+    print "Got history data for other replicas in current group!"
 
-    # init swap column
     swap_column = [0.0]*replicas
 
     #for j in range(replicas):  
     for j in current_group:      
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 
-    #----------------------------------------------------------------
+    #---------------------------------------------------------------------------
     # writing to file
     
     try:

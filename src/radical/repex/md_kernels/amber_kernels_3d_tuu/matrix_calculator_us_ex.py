@@ -153,21 +153,12 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path=None, history_name=None):
-    """Retrieves temperature and potential energy from simulation output file .history file.
-    This file is generated after each simulation run. The function searches for directory 
-    where .history file recides by checking all computeUnit directories on target resource.
-
+    """
     Arguments:
     history_name - name of .history file for a given replica. 
 
-    Returns:
-    data[0] - temperature obtained from .history file
-    data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
-    input/output files for a given replica recide.
-       Get temperature and potential energy from mdinfo file.
-
-    ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED FROM THE PROPERTY OF THE REPLICA OBJECT.
+    ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED 
+    FROM THE PROPERTY OF THE REPLICA OBJECT.
     """
 
     home_dir = os.getcwd()
@@ -197,8 +188,6 @@ def get_historical_data(replica_path=None, history_name=None):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """ 
-    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -211,9 +200,8 @@ if __name__ == '__main__':
 
     prmtop_name = data["amber_parameters"]
     mdin_name = data["amber_input"]
-    # INITIAL REPLICA TEMPERATURE:
-    init_temp = float(data["init_temp"])
 
+    init_temp = float(data["init_temp"])
     current_group_rst = data["current_group_rst"]
    
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
@@ -226,7 +214,6 @@ if __name__ == '__main__':
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     replica_path = "/replica_%d/" % (replica_id)
 
-    # init swap column
     swap_column = [0.0]*replicas
 
     success = 0
@@ -242,7 +229,7 @@ if __name__ == '__main__':
             attempts += 1
             # most likely amber run failed
             # so we write zeros to matrix column file
-            if attempts >= 12:
+            if attempts > 5:
                 #---------------------------------------------------------------
                 # writing to file
                 try:
@@ -251,20 +238,19 @@ if __name__ == '__main__':
                         row_str = ""
                         for item in swap_column:
                             if len(row_str) != 0:
-                                row_str = row_str + " " + str(item)
+                                row_str = row_str + " " + str(-1.0)
                             else:
-                                row_str = str(item)
+                                row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
                             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
                             f.write(row_str)
-
                         f.close()
 
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-                #---------------------------------------------------------------
-                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+                
+                print "MD run failed for replica {0}, matrix_swap_column_x_x.dat populated with zeros".format(replica_id)
             pass
 
     # getting history data for all replicas
@@ -275,7 +261,8 @@ if __name__ == '__main__':
 
     #if replica_cycle != 0:
     for j in current_group_rst.keys():
-        success = 0        
+        success = 0     
+        attempts = 0   
         current_rstr = current_group_rst[j]
         while (success == 0):
             try:
@@ -291,7 +278,8 @@ if __name__ == '__main__':
                 r = Restraint()
                 r.set_crd(new_coor)
                 for rstr_entry in rstr_entries:
-                    r.set_rstr(rstr_entry); r.calc_energy()
+                    r.set_rstr(rstr_entry)
+                    r.calc_energy()
                     us_energy += r.energy
                 energies[int(j)] = replica_energy + us_energy
                 temperatures[int(j)] = float(init_temp)
@@ -301,6 +289,14 @@ if __name__ == '__main__':
             except:
                 print "Waiting for replica: %s" % j
                 time.sleep(1)
+                attempts += 1
+                # some of the replicas in current group failed
+                # set temperature and energy for this replicas as -1.0
+                if attempts > 5:
+                    energies[int(j)]     = -1.0
+                    temperatures[int(j)] = -1.0
+                    success = 1
+                    print "Replica %d failed, initialized temperatures[j] and energies[j] to -1.0" % j
                 pass
 
     #for j in range(replicas):

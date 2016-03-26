@@ -75,8 +75,6 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 #-------------------------------------------------------------------------------
 #
 def do_exchange(dimension, replicas, swap_matrix):
-    """
-    """
 
     exchanged = []
     for r_i in replicas:
@@ -133,8 +131,6 @@ class Replica3d(object):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """
-    """
 
     argument_list = str(sys.argv)
     replicas = int(sys.argv[1])
@@ -142,16 +138,15 @@ if __name__ == '__main__':
     dimension = int(sys.argv[3])
 
     replica_dict = {}
-
     replicas_obj = []
 
     base_name = "matrix_column"
 
-    # init matrix
     swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
 
     for rid in range(replicas):
-        success = 0
+        success  = 0
+        attempts = 0
         column_file = base_name + "_" + str(rid) + "_" + str(current_cycle) + ".dat" 
         path = "../staging_area/" + column_file     
         while (success == 0):
@@ -160,16 +155,15 @@ if __name__ == '__main__':
                 lines = f.readlines()
                 f.close()
                 
-                #--------------------------------------------------
                 # populating matrix column
                 data = lines[0].split()
                 for i in range(replicas):
                     swap_matrix[i][int(rid)] = float(data[i])
-                #--------------------------------------------------
+
                 # populating replica dict
                 data = lines[1].split()
                 replica_dict[data[0]] = [data[1], data[2], data[3]]
-                #---------------------------------------------------
+
                 # updating rstr_val's for a given replica
                 rid = data[0]
    
@@ -194,16 +188,19 @@ if __name__ == '__main__':
                         num_list = word.split('=')
                         rstr_val_2 = float(num_list[1])
 
-                # creating replica
+                # creating replica object
                 r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1, rstr_val_2=rstr_val_2)
                 replicas_obj.append(r)
 
                 success = 1
                 print "Success processing replica: %s" % rid
-
             except:
                 print "Waiting for replica: %s" % rid
                 time.sleep(1)
+                attempts += 1
+                if attempts > 5:
+                    print "Can't access matrix column for replica: {0}".format(rid)
+                    success = 1
                 pass
 
     #---------------------------------------------------------------------------
