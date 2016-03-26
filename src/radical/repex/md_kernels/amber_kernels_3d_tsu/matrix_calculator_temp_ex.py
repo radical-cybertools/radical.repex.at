@@ -200,7 +200,7 @@ if __name__ == '__main__':
                         temperatures[j] = -1.0
                         energies[j] = -1.0
                         success = 1
-                        print "Replica %d failed, initialized temperatures[j] and energies[j] to -1.0" % j
+                        print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
                     pass
 
     print "got history data for other replicas in current group!"

@@ -77,9 +77,6 @@ def get_historical_data(history_name, data_path=os.getcwd()):
 #-------------------------------------------------------------------------------
 #
 if __name__ == '__main__':
-    """This module calculates one swap matrix column for replica and writes this column to 
-    matrix_column_x_x.dat file. 
-    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -98,11 +95,8 @@ if __name__ == '__main__':
 
     # AMBER PATH ON THIS RESOURCE:
     amber_path = data["amber_path"]
-
     current_group_tsu = data["current_group_tsu"]
-
     r_old_path = data["r_old_path"]
-
     pwd = os.getcwd()
 
     #---------------------------------------------------------------------------
@@ -110,20 +104,29 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas  
     energies = [0.0]*replicas
 
-    #for j in range(replicas):
     for j in current_group_tsu.keys():
-        energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
-        try:
-            rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
-            temperatures[int(j)] = float(init_temp)
-            energies[int(j)] = rj_energy
-        except:
-             raise
+        success = 0
+        attempts = 0
+        while (success == 0):
+            energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
+            try:
+                rj_energy, path_to_replica_folder = get_historical_data(energy_history_name)
+                temperatures[int(j)] = float(init_temp)
+                energies[int(j)] = rj_energy
+                success = 1
+            except:
+                attempts += 1
+                print "Waiting for replica: %s" % j
+                time.sleep(1)
+                if attempts > 5:
+                    temperatures[int(j)] = -1.0
+                    energies[int(j)] = -1.0
+                    path_to_replica_folder = '/'
+                    success = 1
+                    print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
+                pass
 
-    # init swap column
     swap_column = [0.0]*replicas
-
-    #for j in range(replicas):
     for j in current_group_tsu.keys():       
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 

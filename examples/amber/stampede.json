@@ -1,11 +1,10 @@
 {
     "target": {
         "resource": "xsede.stampede",
-        "username" : "octocat",
-        "project" : "TG-123456",
-        "queue" : "development",
+        "username" : "antontre",
+        "project" : "TG-CCR140028",
         "runtime" : "60",
         "cleanup" : "False",
-        "cores" : "16"
+        "cores" : "32"
     }
 }

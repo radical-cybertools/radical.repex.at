@@ -147,8 +147,8 @@ if __name__ == '__main__':
     swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
 
     for rid in range(replicas):
-        success = 0
-        attempts += 1
+        success  = 0
+        attempts = 0
         column_file = base_name + "_" + str(rid) + "_" + str(current_cycle) + ".dat" 
         path = "../staging_area/" + column_file     
         while (success == 0):

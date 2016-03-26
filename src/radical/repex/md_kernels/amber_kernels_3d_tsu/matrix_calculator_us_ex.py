@@ -300,7 +300,7 @@ if __name__ == '__main__':
                     energies[int(j)]     = -1.0
                     temperatures[int(j)] = -1.0
                     success = 1
-                    print "Replica %d failed, initialized temperatures[j] and energies[j] to -1.0" % j
+                    print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
                 pass
 
     for j in current_group_rst.keys():      
