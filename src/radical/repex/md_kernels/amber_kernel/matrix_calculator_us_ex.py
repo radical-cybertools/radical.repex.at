@@ -200,7 +200,6 @@ if __name__ == '__main__':
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     replica_path = "/replica_%d/" % (replica_id)
 
-    # init swap column
     swap_column = [0.0]*replicas
 
     success = 0
@@ -216,7 +215,7 @@ if __name__ == '__main__':
             attempts += 1
             # most likely amber run failed
             # so we write zeros to matrix column file
-            if attempts >= 5:
+            if attempts > 5:
                 #---------------------------------------------------------------
                 # writing to file
                 try:
@@ -225,20 +224,19 @@ if __name__ == '__main__':
                         row_str = ""
                         for item in swap_column:
                             if len(row_str) != 0:
-                                row_str = row_str + " " + str(item)
+                                row_str = row_str + " " + str(-1.0)
                             else:
-                                row_str = str(item)
+                                row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
                             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
                             f.write(row_str)
-
                         f.close()
-
+                    success = 1
                 except IOError:
-                    print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-                #---------------------------------------------------------------
-                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+                    print "Error: unable to create column file {0} for replica {1}".format(outfile, replica_id)
+
+                print "MD run failed for replica {0}, matrix_swap_column_x_x.dat populated with -1.0".format(replica_id)
             pass
 
     # getting history data for all replicas
@@ -248,7 +246,8 @@ if __name__ == '__main__':
     energies = [0.0]*replicas
 
     for j in current_group_rst.keys():
-        success = 0        
+        success  = 0     
+        attempts = 0   
         current_rstr = current_group_rst[j]
         while (success == 0):
             try:
@@ -274,6 +273,12 @@ if __name__ == '__main__':
             except:
                 print "Waiting for replica: %s" % j
                 time.sleep(1)
+                attempts += 1
+                if attempts > 5:
+                    energies[int(j)]     = -1.0
+                    temperatures[int(j)] = -1.0
+                    print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
+                    success = 1
                 pass
 
     for j in current_group_rst.keys():      

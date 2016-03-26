@@ -324,28 +324,26 @@ if __name__ == '__main__':
             time.sleep(1)
             attempts += 1
             # most likely amber run failed, we write zeros to matrix column file
-            if attempts >= 5:
-                #---------------------------------------------------------------
-                # writing to file
+            if attempts > 5:
                 try:
                     outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=cycle, replica=rid )
                     with open(outfile, 'w+') as f:
                         row_str = ""
                         for item in swap_column:
                             if len(row_str) != 0:
-                                row_str = row_str + " " + str(item)
+                                row_str = row_str + " " + str(-1.0)
                             else:
-                                row_str = str(item)
+                                row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
                             row_str = rid + " " + cycle + " " + new_restraints + " " + new_temperature
                             f.write(row_str)
                         f.close()
-
+                    success = 1
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, rid)
-                #---------------------------------------------------------------
-                #sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+
+                print "MD run failed for replica {0}, matrix_swap_column_x_x.dat populated with -1.0".format(replica_id)
             pass
 
     # getting history data for all replicas
@@ -375,7 +373,8 @@ if __name__ == '__main__':
             pass
             
     for item in rstr_entr_list_final:
-        success = 0        
+        success = 0      
+        attempts = 0  
         while (success == 0):
             try:
                 us_energy = 0.0
@@ -394,6 +393,12 @@ if __name__ == '__main__':
             except:
                 print "Waiting for replica: %s" % j
                 time.sleep(1)
+                attempts += 1
+                if attempts > 5:
+                    energies[int(j)] = -1.0
+                    temperatures[int(j)] = -1.0
+                    print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
+                    success = 1
                 pass
 
     if rank ==0:

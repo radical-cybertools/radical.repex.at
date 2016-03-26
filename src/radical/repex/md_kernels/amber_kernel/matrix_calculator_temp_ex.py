@@ -120,7 +120,7 @@ if __name__ == '__main__':
             print "Waiting for self (history file)"
             time.sleep(1)
             attempts += 1
-            if attempts >= 5:
+            if attempts > 5:
                 #---------------------------------------------------------------
                 # writing to file
                 try:
@@ -129,19 +129,18 @@ if __name__ == '__main__':
                         row_str = ""
                         for item in swap_column:
                             if len(row_str) != 0:
-                                row_str = row_str + " " + str(item)
+                                row_str = row_str + " " + str(-1.0)
                             else:
-                                row_str = str(item)
+                                row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
                             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
                             f.write(row_str)
-
                         f.close()
-
+                    success = 1
                 except IOError:
-                    print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-                    sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+                    print "Error: unable to create column file {0} for replica {1}".format(outfile, replica_id)
+                print "MD run failed for replica {0}, matrix_swap_column_x_x.dat populated with zeros".format(replica_id)
             pass
 
     # getting history data for all replicas
@@ -166,7 +165,6 @@ if __name__ == '__main__':
                     rj_temp, rj_energy, temp = get_historical_data(replica_path, history_name)
                     temperatures[j] = rj_temp
                     energies[j] = rj_energy
-
                     success = 1
                     print "Success processing replica: %s" % j
                 except:
@@ -175,19 +173,16 @@ if __name__ == '__main__':
                     attempts += 1
                     # some of the replicas in current group failed
                     # set temperature and energy for this replicas as -1.0
-                    if attempts >= 50:
+                    if attempts > 5:
                         temperatures[j] = -1.0
                         energies[j] = -1.0
                         success = 1
-                        print "Replica %d failed, initialized temperatures[j] and energies[j] to -1.0" % j
+                        print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
                     pass
 
-    print "got history data for other replicas in current group!"
+    print "Got history data for other replicas in current group!"
 
-    # init swap column
-    swap_column = [0.0]*replicas
-
-    #for j in range(replicas):  
+    swap_column = [0.0]*replicas 
     for j in current_group:      
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
 

@@ -224,7 +224,6 @@ if __name__ == '__main__':
     while (success == 0):
         try:
             history_name = basename + "_" + rid + "_" + cycle + ".mdinfo"
-            
             replica_temp, replica_energy, path_to_replica_folder = get_historical_data(None, history_name)
             print "Got history data for self!"
             success = 1
@@ -233,29 +232,26 @@ if __name__ == '__main__':
             time.sleep(1)
             attempts += 1
             # most likely amber run failed, we write zeros to matrix column file
-            if attempts >= 5:
-
-                # writing to file
+            if attempts > 5:
                 try:
                     outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
                     with open(outfile, 'w+') as f:
                         row_str = ""
                         for item in swap_column:
                             if len(row_str) != 0:
-                                row_str = row_str + " " + str(item)
+                                row_str = row_str + " " + str(-1.0)
                             else:
-                                row_str = str(item)
+                                row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
                             row_str = str(replica_id) + " " + str(cycle) + " " + new_restraints + " " + str(new_temperature)
                             f.write(row_str)
-
                         f.close()
-
+                    success = 1
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-                #---------------------------------------------------------------------------------------------------
-                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+                
+                print "Amber run failed, matrix_swap_column_x_x.dat populated with zeros".format(replica_id)
             pass
 
     temperatures = [0.0]*replicas 
