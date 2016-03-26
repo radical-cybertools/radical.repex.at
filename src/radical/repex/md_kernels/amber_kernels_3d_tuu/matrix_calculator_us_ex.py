@@ -230,8 +230,6 @@ if __name__ == '__main__':
             # most likely amber run failed
             # so we write zeros to matrix column file
             if attempts > 5:
-                #---------------------------------------------------------------
-                # writing to file
                 try:
                     outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
                     with open(outfile, 'w+') as f:
@@ -246,7 +244,7 @@ if __name__ == '__main__':
                             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
                             f.write(row_str)
                         f.close()
-
+                    success = 1
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
                 

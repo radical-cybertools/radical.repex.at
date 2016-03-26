@@ -132,8 +132,6 @@ class Replica3d(object):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """
-    """
 
     argument_list = str(sys.argv)
     replicas = int(sys.argv[1])
@@ -141,7 +139,6 @@ if __name__ == '__main__':
     dimension = int(sys.argv[3])
 
     replica_dict = {}
-
     replicas_obj = []
 
     base_name = "matrix_column"
@@ -151,6 +148,7 @@ if __name__ == '__main__':
 
     for rid in range(replicas):
         success = 0
+        attempts += 1
         column_file = base_name + "_" + str(rid) + "_" + str(current_cycle) + ".dat" 
         path = "../staging_area/" + column_file     
         while (success == 0):
@@ -188,16 +186,17 @@ if __name__ == '__main__':
                         rstr_val_1 = float(num_list[1])
                         break
                     
-                # creating replica
                 r = Replica3d(rid, new_temperature=replica_dict[rid][2], new_salt=replica_dict[rid][3], new_restraints=replica_dict[rid][1], rstr_val_1=rstr_val_1)
                 replicas_obj.append(r)
-
                 success = 1
                 print "Success processing replica: %s" % rid
-
             except:
                 print "Waiting for replica: %s" % rid
                 time.sleep(1)
+                attempts += 1
+                if attempts > 5:
+                    print "Can't access matrix column for replica: {0}".format(rid)
+                    success = 1
                 pass
 
     #---------------------------------------------------------------------------

@@ -198,8 +198,6 @@ def get_historical_data(replica_path=None, history_name=None):
 #-------------------------------------------------------------------------------
 #
 if __name__ == '__main__':
-    """ TODO 
-    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -241,29 +239,27 @@ if __name__ == '__main__':
             attempts += 1
             # most likely amber run failed
             # so we write zeros to matrix column file
-            if attempts >= 12:
-                #---------------------------------------------------------------
-                # writing to file
+            if attempts > 5:
                 try:
                     outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
                     with open(outfile, 'w+') as f:
                         row_str = ""
                         for item in swap_column:
                             if len(row_str) != 0:
-                                row_str = row_str + " " + str(item)
+                                row_str = row_str + " " + str(-1.0)
                             else:
-                                row_str = str(item)
+                                row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
                             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp) + " " + str(init_salt)
                             f.write(row_str)
 
                         f.close()
-
+                    success = 1
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-                #---------------------------------------------------------------
-                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+
+                print "MD run failed for replica {0}, matrix_swap_column_x_x.dat populated with zeros".format(replica_id)
             pass
 
     # getting history data for all replicas
@@ -272,9 +268,9 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    #if replica_cycle != 0:
     for j in current_group_rst.keys():
-        success = 0        
+        success = 0
+        attempts = 0        
         current_rstr = current_group_rst[j]
         while (success == 0):
             try:
@@ -294,15 +290,19 @@ if __name__ == '__main__':
                     us_energy += r.energy
                 energies[int(j)] = replica_energy + us_energy
                 temperatures[int(j)] = float(init_temp)
-
                 success = 1
                 print "Success processing replica: %s" % j
             except:
                 print "Waiting for replica: %s" % j
                 time.sleep(1)
+                attempts += 1
+                if attempts > 5:
+                    energies[int(j)]     = -1.0
+                    temperatures[int(j)] = -1.0
+                    success = 1
+                    print "Replica %d failed, initialized temperatures[j] and energies[j] to -1.0" % j
                 pass
 
-    #for j in range(replicas):
     for j in current_group_rst.keys():      
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 

@@ -14,7 +14,7 @@ import math
 import time
 import shutil
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
@@ -33,7 +33,7 @@ def reduced_energy(temperature, potential):
         beta = 1. / kb     
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path, history_name):
     """Retrieves temperature and potential energy from simulation output file .history file.
@@ -155,7 +155,7 @@ if __name__ == '__main__':
                             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
                             f.write(row_str)
                         f.close()
-
+                    success = 1
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
                 
@@ -185,7 +185,6 @@ if __name__ == '__main__':
                     rj_temp, rj_energy, temp = get_historical_data(replica_path, history_name)
                     temperatures[j] = rj_temp
                     energies[j] = rj_energy
-
                     success = 1
                     print "Success processing replica: %s" % j
                 except:
