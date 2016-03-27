@@ -113,9 +113,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
         # GL = 0: submit global calculator before
         # GL = 1: submit global calculator after
         GL = 1
-        # bulk = 0: do sequential submission
-        # bulk = 1: do bulk submission
-        BULK = 1
 
         #DIM = 0
         #dimensions = md_kernel.dims
@@ -258,13 +255,13 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
             completeddd_cus = []
             completed = 0
-            while ( completed < (md_kernel.replicas / 2) ):
-                self.logger.info( "proceed when completed replicas >= {0}".format( md_kernel.replicas / 2 ) )
+            while ( completed < (sub_md_replicas / 2) ):
+                self.logger.info( "proceed when completed replicas >= {0}".format( sub_md_replicas / 2 ) )
                 completeddd_cus = []
                 for cu in sub_md_replicas:
                     if cu.state == 'Done':
                         completeddd_cus.append(cu)
-                time.sleep(2)
+                time.sleep(1)
                 completed = len(completeddd_cus)
                 c_end = datetime.datetime.utcnow()
                 simulation_time = (c_end - c_start).total_seconds()
@@ -273,10 +270,8 @@ class PilotKernelPatternAmultiD(PilotKernel):
             c_end = datetime.datetime.utcnow()
 
             simulation_time = (c_end - c_start).total_seconds()
-            #print "Simulation time: {0}".format( simulation_time )
             self.logger.info( "Simulation time: {0}".format( simulation_time ) )
 
-            #current_cycle += 1
             c += 1
             current_cycle = c / dim_count
 
