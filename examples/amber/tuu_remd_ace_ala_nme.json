@@ -25,12 +25,6 @@
             "max_us_param": "360.0"
             },
         "d2": {
-            "type" : "temperature",
-            "number_of_replicas": "2",
-            "min_temperature": "300.0",
-            "max_temperature": "600.0"
-            },
-        "d3": {
             "type" : "umbrella",
             "number_of_replicas": "2",
             "min_us_param": "0.0",

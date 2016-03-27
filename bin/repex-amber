@@ -8,8 +8,9 @@ import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_command_line
 
-from pilot_kernels.pilot_kernel_pattern_s_multi_d_sc import PilotKernelPatternSmultiDsc
+from pilot_kernels.pilot_kernel_pattern_s_multi_d_sc  import PilotKernelPatternSmultiDsc
 from pilot_kernels.pilot_kernel_pattern_s_multi_d_scg import PilotKernelPatternSmultiDscg
+from pilot_kernels.pilot_kernel_pattern_a_multi_d     import PilotKernelPatternAmultiD
 
 from amber_kernel.kernel_pattern_s import KernelPatternS
 
@@ -44,6 +45,15 @@ if __name__ == '__main__':
 		# initializing replicas
 		replicas = md_kernel.initialize_replicas()
 
+	if (inp_file['remd.input']['re_pattern'] == 'A') and (group_exec == 'False'):
+
+		# initializing kernels
+		md_kernel    = KernelPatternS( inp_file, rconfig, work_dir_local )
+		pilot_kernel = PilotKernelPatternAmultiD( inp_file, rconfig )
+
+		# initializing replicas
+		replicas = md_kernel.initialize_replicas()
+		
 	if (inp_file['remd.input']['re_pattern'] == 'S') and (group_exec == 'False'):
 
 		# initializing kernels

@@ -123,13 +123,18 @@ class Replica(object):
 
 if __name__ == '__main__':
 
-    argument_list = str(sys.argv)
-    replicas = int(sys.argv[1])
-    current_cycle = int(sys.argv[2])
-    dimension = int(sys.argv[3])
-    group_nr = int(sys.argv[4])
-    dim_string = sys.argv[5]
-    group_size = replicas / group_nr
+    json_data = sys.argv[1]
+    data=json.loads(json_data)
+
+    print "replicas: "
+    print data["replicas"]
+    replicas      = int(data["replicas"])
+    replica_ids   = data["replica_ids"]
+    current_cycle = int(data["current_cycle"])
+    dimension     = int(data["dimension"])
+    group_nr      = int(data["group_nr"])
+    dim_string    = data["dim_string"]
+    group_size    = replicas / group_nr
 
     dim_types = []
     dim_types.append('')
@@ -146,24 +151,23 @@ if __name__ == '__main__':
             umbrella = True
 
     base_name = "matrix_column"
-
-    # init matrix
     swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
 
-    for rid in range(replicas):
+    for r_id in replica_ids:
         success = 0
-        column_file = base_name + "_" + str(rid) + "_" + str(current_cycle) + ".dat" 
+        attempts = 0
+        column_file = base_name + "_" + str(r_id) + "_" + str(current_cycle) + ".dat" 
         path = "../staging_area/" + column_file     
         while (success == 0):
             try:
                 f = open(path)
                 lines = f.readlines()
                 f.close()
-                
+                print "open OK"
                 # populating matrix column
                 data = lines[0].split()
                 for i in range(replicas):
-                    swap_matrix[i][int(rid)] = float(data[i])
+                    swap_matrix[i][int(r_id)] = float(data[i])
                 # populating replica dict
                 data = lines[1].split()
                 replica_dict[data[0]] = [data[1], data[2], data[3], data[4]]
@@ -229,11 +233,15 @@ if __name__ == '__main__':
 
                 replicas_obj.append(r)
                 success = 1
-                print "Success processing replica: %s" % rid
+                print "Success processing replica: %s" % r_id
             except:
-                print "Waiting for replica: %s" % rid
+                print "Waiting for replica: %s" % r_id
                 time.sleep(1)
-                raise
+                attempts += 1
+                if attempts > 10:
+                    print "Can't access matrix columns for replica: %s" % r_id
+                    success = 1
+                pass
 
     #---------------------------------------------------------------------------
 

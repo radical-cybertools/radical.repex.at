@@ -3,6 +3,7 @@
         "resource": "local.localhost",
         "username" : "antons",
         "runtime" : "30",
+        "cycletime" : "30",
         "cleanup" : "False",
         "cores" : "4"
     }

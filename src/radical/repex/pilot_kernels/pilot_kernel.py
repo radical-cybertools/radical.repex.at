@@ -46,6 +46,8 @@ class PilotKernel(object):
         self.dburl = rconfig['target'].get('mongo_url')
         self.access_schema = rconfig['target'].get('access_schema')
 
+        self.cycletime = float(rconfig['target'].get('cycletime', 10.0))
+
         if self.dburl is None:
             self.logger.info("Using default Mongo DB url")
             self.dburl = "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"

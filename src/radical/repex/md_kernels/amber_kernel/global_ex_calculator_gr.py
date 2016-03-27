@@ -122,13 +122,15 @@ class Replica3d(object):
 
 if __name__ == '__main__':
 
-    argument_list = str(sys.argv)
-    replicas = int(sys.argv[1])
-    current_cycle = int(sys.argv[2])
-    dimension = int(sys.argv[3])
-    group_nr = int(sys.argv[4])
-    dim_string = sys.argv[5]
-    group_size = replicas / group_nr
+    json_data = sys.argv[1]
+    data=json.loads(json_data)
+
+    replicas      = len(data["replicas"])
+    current_cycle = int(data["current_cycle"])
+    dimension     = int(data["dimension"])
+    group_nr      = int(data["group_nr"])
+    dim_string    = data["dim_string"]
+    group_size    = replicas / group_nr
 
     dim_types = []
     dim_types.append('')

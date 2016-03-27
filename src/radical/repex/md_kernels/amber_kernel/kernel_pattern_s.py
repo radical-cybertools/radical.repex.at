@@ -459,10 +459,14 @@ class KernelPatternS(object):
         if self.same_coordinates == False:
             for repl in replicas:
                 if repl.coor_file not in self.shared_files:
+                    print "coor file: "
+                    print repl.coor_file
                     self.shared_files.append(repl.coor_file)
         else:
             self.shared_files.append(replicas[0].coor_file)
 
+        print "shared files: "
+        print self.shared_files
         #-----------------------------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
@@ -503,7 +507,9 @@ class KernelPatternS(object):
         self.shared_urls.append(salt_post_exec_url)
 
         if self.same_coordinates == False:
-            for idx in range(7,len(self.shared_files)):
+            for idx in range(9,len(self.shared_files)):
+                print "appending: "
+                print self.shared_files[idx]
                 cf_path = join(coor_path,self.shared_files[idx])
                 coor_url = 'file://%s' % (cf_path)
                 self.shared_urls.append(coor_url)
@@ -664,7 +670,7 @@ class KernelPatternS(object):
                 "replica_cycle" : str(replica.cycle-1),
                 "base_name" : str(basename),
                 "current_group" : current_group,
-                "replicas" : str(len(replicas)),
+                "replicas" : str(self.replicas),
                 "amber_parameters": str(self.amber_parameters),
                 "new_restraints" : str(replica.new_restraints),
                 "init_temp" : str(replica.dims[dim_str]['par'])
@@ -1300,6 +1306,10 @@ class KernelPatternS(object):
         stage_out = []
         stage_in = []
 
+        replica_ids = []
+        for r in replicas:
+            replica_ids.append(r.id)
+
         if self.nr_dims == 3:
             d1_type = self.dims['d1']['type']
             d2_type = self.dims['d2']['type']
@@ -1315,6 +1325,16 @@ class KernelPatternS(object):
 
         group_nr = self.groups_numbers[dim_int-1]
         cycle = replicas[0].cycle-1
+
+        data = {"replicas" : str(self.replicas),
+                "replica_ids" : replica_ids,
+                "current_cycle" : str(cycle),
+                "dimension" : str(dim_int),
+                "group_nr" : str(group_nr),
+                "dim_string": dims_string
+        }
+        dump_data = json.dumps(data)
+        json_data_single = dump_data.replace("\\", "")
         
         if self.group_exec == True:
             # global_ex_calculator_gr.py file
@@ -1406,19 +1426,9 @@ class KernelPatternS(object):
             cu.executable = "python"
             cu.input_staging  = stage_in
             if self.group_exec == True:
-                cu.arguments = ["global_ex_calculator_gr.py", 
-                                str(self.replicas), 
-                                str(cycle), 
-                                str(dim_int), 
-                                str(group_nr), 
-                                dims_string]
+                cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
             else:
-                cu.arguments = ["global_ex_calculator.py", 
-                                str(self.replicas), 
-                                str(cycle), 
-                                str(dim_int), 
-                                str(group_nr), 
-                                dims_string]
+                cu.arguments = ["global_ex_calculator.py", json_data_single]                 
             cu.cores = 1
             cu.mpi = False            
             cu.output_staging = stage_out
