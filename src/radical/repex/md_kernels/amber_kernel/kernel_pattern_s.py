@@ -459,14 +459,10 @@ class KernelPatternS(object):
         if self.same_coordinates == False:
             for repl in replicas:
                 if repl.coor_file not in self.shared_files:
-                    print "coor file: "
-                    print repl.coor_file
                     self.shared_files.append(repl.coor_file)
         else:
             self.shared_files.append(replicas[0].coor_file)
 
-        print "shared files: "
-        print self.shared_files
         #-----------------------------------------------------------------------
 
         parm_url = 'file://%s' % (parm_path)
@@ -508,8 +504,6 @@ class KernelPatternS(object):
 
         if self.same_coordinates == False:
             for idx in range(9,len(self.shared_files)):
-                print "appending: "
-                print self.shared_files[idx]
                 cf_path = join(coor_path,self.shared_files[idx])
                 coor_url = 'file://%s' % (cf_path)
                 self.shared_urls.append(coor_url)
