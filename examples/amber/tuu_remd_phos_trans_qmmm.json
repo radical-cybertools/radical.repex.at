@@ -29,7 +29,7 @@
         "d2": {
             "type": "temperature",
             "number_of_replicas": "2",
-            "min_temperature": "273",
+            "min_temperature": "353",
             "max_temperature": "373",
             "exchange_replica_cores" : "1",
             "exchange_replica_mpi": "False"
