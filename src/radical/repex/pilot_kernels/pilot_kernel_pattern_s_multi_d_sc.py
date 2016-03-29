@@ -357,9 +357,6 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 t2 = datetime.datetime.utcnow()
                 md_prep_timing += (t2-t1).total_seconds()
 
-                #print "all_groups: "
-                #print all_groups
-
                 batch = []
                 first = 0
                 for group in all_groups:

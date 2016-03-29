@@ -4,6 +4,6 @@
         "username" : "antons",
         "runtime" : "30",
         "cleanup" : "False",
-        "cores" : "8"
+        "cores" : "4"
     }
 }

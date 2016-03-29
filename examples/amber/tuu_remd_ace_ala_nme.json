@@ -11,33 +11,30 @@
         "same_coordinates": "True",
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "True",
-        "replica_cores": "16",
-        "steps_per_cycle": "1000",
+        "replica_cores": "2",
+        "steps_per_cycle": "100",
         "download_mdinfo": "False",
         "download_mdout" : "False"
         },
     "dim.input": {
         "umbrella_sampling_1": {
+            "exchange_off": "False",
             "number_of_replicas": "2",
             "us_start_param": "0",
-            "us_end_param": "360",
-            "exchange_replica_cores" : "1",
-            "exchange_replica_mpi": "False"
+            "us_end_param": "360"
             },
         "temperature_2": {
+            "exchange_off": "True",
             "number_of_replicas": "2",
             "min_temperature": "300",
-            "max_temperature": "600",
-            "exchange_replica_cores" : "1",
-            "exchange_replica_mpi": "False"
+            "max_temperature": "600"
             },
        
         "umbrella_sampling_3": {
+            "exchange_off": "False",
             "number_of_replicas": "2",
             "us_start_param": "0",
-            "us_end_param": "360",
-            "exchange_replica_cores" : "1",
-            "exchange_replica_mpi": "False"
+            "us_end_param": "360"
             }    
     }
 }

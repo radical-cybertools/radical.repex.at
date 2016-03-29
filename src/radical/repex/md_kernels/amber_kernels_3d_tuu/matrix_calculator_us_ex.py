@@ -197,8 +197,6 @@ def get_historical_data(replica_path=None, history_name=None):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """ 
-    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -211,7 +209,6 @@ if __name__ == '__main__':
 
     prmtop_name = data["amber_parameters"]
     mdin_name = data["amber_input"]
-    # INITIAL REPLICA TEMPERATURE:
     init_temp = float(data["init_temp"])
 
     current_group_rst = data["current_group_rst"]
@@ -222,11 +219,8 @@ if __name__ == '__main__':
     pwd = os.getcwd()
     matrix_col = "matrix_column_%d_%d.dat" % ( replica_id, replica_cycle ) 
 
-    # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
     replica_path = "/replica_%d/" % (replica_id)
-
-    # init swap column
     swap_column = [0.0]*replicas
 
     success = 0
@@ -242,7 +236,7 @@ if __name__ == '__main__':
             attempts += 1
             # most likely amber run failed
             # so we write zeros to matrix column file
-            if attempts >= 12:
+            if attempts > 5:
                 #---------------------------------------------------------------
                 # writing to file
                 try:
@@ -251,20 +245,19 @@ if __name__ == '__main__':
                         row_str = ""
                         for item in swap_column:
                             if len(row_str) != 0:
-                                row_str = row_str + " " + str(item)
+                                row_str = row_str + " " + str(-1.0)
                             else:
-                                row_str = str(item)
+                                row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
                             row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
                             f.write(row_str)
-
                         f.close()
-
                 except IOError:
                     print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
                 #---------------------------------------------------------------
-                sys.exit("Amber run failed, matrix_swap_column_x_x.dat populated with zeros")
+                print "MD run failed for replica {0}, matrix_swap_column_x_x.dat populated with zeros".format(replica_id)
+                success = 1
             pass
 
     # getting history data for all replicas
@@ -273,9 +266,9 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas   #need to pass the replica temperature here
     energies = [0.0]*replicas
 
-    #if replica_cycle != 0:
     for j in current_group_rst.keys():
-        success = 0        
+        success = 0     
+        attempts = 0   
         current_rstr = current_group_rst[j]
         while (success == 0):
             try:
@@ -295,15 +288,19 @@ if __name__ == '__main__':
                     us_energy += r.energy
                 energies[int(j)] = replica_energy + us_energy
                 temperatures[int(j)] = float(init_temp)
-
                 success = 1
                 print "Success processing replica: %s" % j
             except:
                 print "Waiting for replica: %s" % j
                 time.sleep(1)
+                attempts += 1
+                if attempts > 5:
+                    temperatures[int(j)] = -1.0
+                    energies[int(j)] = -1.0
+                    success = 1
+                    print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
                 pass
 
-    #for j in range(replicas):
     for j in current_group_rst.keys():      
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 

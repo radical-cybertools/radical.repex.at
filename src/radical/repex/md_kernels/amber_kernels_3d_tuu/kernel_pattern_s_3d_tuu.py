@@ -83,10 +83,21 @@ class KernelPatternS3dTUU(object):
         else:
             self.replica_mpi = False  
 
-        if inp_file['remd.input'].get('exchange_off') == "True":
-            self.exchange_off = True
+        self.exchange_off = []
+        if (inp_file['dim.input']['umbrella_sampling_1'].get("exchange_off", "False")) == "True":
+            self.exchange_off.append(True)
         else:
-            self.exchange_off = False  
+            self.exchange_off.append(False)
+
+        if (inp_file['dim.input']['temperature_2'].get("exchange_off", "False")) == "True":
+            self.exchange_off.append(True)
+        else:
+            self.exchange_off.append(False)
+        
+        if (inp_file['dim.input']['umbrella_sampling_3'].get("exchange_off", "False")) == "True":
+            self.exchange_off.append(True)
+        else:
+            self.exchange_off.append(False)
     
         #-----------------------------------------------------------------------
         # hardcoded 
@@ -211,7 +222,7 @@ class KernelPatternS3dTUU(object):
                     #-----------------------------------------------------------
                     if self.same_coordinates == False:
                         coor_file = self.coor_basename + "." + str(i) + "." + str(k)
-                        print "coor file: {0}".format( coor_file )
+                        #print "coor file: {0}".format( coor_file )
                     else:
                         coor_file = self.coor_basename + ".0.0"
                     r = Replica3d(rid, \
@@ -610,8 +621,6 @@ class KernelPatternS3dTUU(object):
     #---------------------------------------------------------------------------
     #
     def exchange_params(self, dimension, replica_1, replica_2):
-        """
-        """
         
         if dimension == 2:
             self.logger.debug("[exchange_params] before: r1: {0} r2: {1}".format(replica_1.new_temperature, replica_2.new_temperature) )
@@ -643,8 +652,6 @@ class KernelPatternS3dTUU(object):
     #---------------------------------------------------------------------------
     #
     def do_exchange(self, current_cycle, dimension, replicas):
-        """
-        """
 
         r1 = None
         r2 = None
@@ -675,12 +682,15 @@ class KernelPatternS3dTUU(object):
                     rid = random.randint(0,(len(replicas)-1))
                     r2 = replicas[rid]
                 #---------------------------------------------------------------
-
                 # swap parameters
-                if self.exchange_off == False:
+                print "dim: {0}".format(dimension)
+                if self.exchange_off[dimension-1] == False:
+                    print "exchange on"
                     self.exchange_params(dimension, r1, r2)
                     r1.swap = 1
                     r2.swap = 1
+                else:
+                    print "exchange off"
         except:
             raise
 
