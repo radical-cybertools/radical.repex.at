@@ -103,12 +103,7 @@ class KernelPatternS(object):
         if inp_file['remd.input'].get('replica_mpi') == "True":
             self.replica_mpi = True
         else:
-            self.replica_mpi = False  
-
-        if inp_file['remd.input'].get('exchange_off') == "True":
-            self.exchange_off = True
-        else:
-            self.exchange_off = False  
+            self.replica_mpi = False   
     
         self.dims = {}
         self.dims['d1'] = {'replicas' : None, 'type' : None} 
@@ -143,6 +138,14 @@ class KernelPatternS(object):
         if self.nr_dims == 0:
             self.logger.info("Number of dimensions must be greater than 0, exiting...")
             sys.exit(1)
+
+        self.exchange_off = []
+        for d in len(self.nr_dims):
+            d_str = 'd' + str(d+1) 
+            if (inp_file['dim.input'][d_str].get("exchange_off", "False")) == "True":
+                self.exchange_off.append(True)
+            else:
+                self.exchange_off.append(False)
 
         if self.nr_dims == 1:
             self.replicas = self.dims['d1']['replicas']
@@ -1281,7 +1284,7 @@ class KernelPatternS(object):
                     r2 = replicas[rid]
                 #---------------------------------------------------------------
                 # swap parameters
-                if self.exchange_off == False:
+                if self.exchange_off[dim_int-1] == False:
                     self.exchange_params(dim_str, r1, r2)
                     r1.swap = 1
                     r2.swap = 1
