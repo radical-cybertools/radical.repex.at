@@ -24,8 +24,7 @@ class Replica(object):
                  d2_type = None, 
                  d3_type = None, 
                  new_restraints=None, 
-                 coor=None, 
-                 cores=1,
+                 coor=None,
                  nr_dims = 1):
     
         self.id = int(my_id)
@@ -67,5 +66,4 @@ class Replica(object):
         self.old_path = ""
         self.first_path = ""
         self.swap = 0
-        self.cores = cores
 

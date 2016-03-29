@@ -260,7 +260,6 @@ class KernelPatternS(object):
 
                         r = Replica(rid, \
                                     new_restraints=r, \
-                                    cores=1, \
                                     coor=coor_file,
                                     d1_param=float(dim_params['d1'][i]), \
                                     d2_param=float(dim_params['d2'][j]), \
@@ -291,7 +290,6 @@ class KernelPatternS(object):
 
                     r = Replica(rid, \
                                 new_restraints=r, \
-                                cores=1, \
                                 coor=coor_file,
                                 d1_param=float(dim_params['d1'][i]), \
                                 d2_param=float(dim_params['d2'][j]), \
@@ -314,7 +312,6 @@ class KernelPatternS(object):
 
                 r = Replica(rid, \
                             new_restraints=r, \
-                            cores=1, \
                             coor=coor_file,
                             d1_param=float(dim_params['d1'][i]), \
                             d1_type = self.dims['d1']['type'], \
