@@ -68,11 +68,22 @@ class KernelPatternS3dTSU(object):
             self.same_coordinates = True
         else:
             self.same_coordinates = False
-        
-        if inp_file['remd.input'].get('exchange_off') == "True":
-            self.exchange_off = True
+
+        self.exchange_off = []
+        if (inp_file['dim.input']['temperature_1'].get("exchange_off", "False")) == "True":
+            self.exchange_off.append(True)
         else:
-            self.exchange_off = False  
+            self.exchange_off.append(False)
+
+        if (inp_file['dim.input']['salt_concentration_2'].get("exchange_off", "False")) == "True":
+            self.exchange_off.append(True)
+        else:
+            self.exchange_off.append(False)
+        
+        if (inp_file['dim.input']['umbrella_sampling_3'].get("exchange_off", "False")) == "True":
+            self.exchange_off.append(True)
+        else:
+            self.exchange_off.append(False)
 
         if inp_file['remd.input'].get('download_mdinfo') == 'True':
             self.down_mdinfo = True
@@ -493,14 +504,14 @@ class KernelPatternS3dTSU(object):
 
         cu = radical.pilot.ComputeUnitDescription()
         if KERNELS[self.resource]["shell"] == "bash":
-            cu.executable = '/bin/bash'
+            #cu.executable = '/bin/bash'
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_bash + "\'" 
             post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_bash + "\'"
             post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_bash + "\'"
             pre_exec_str_salt = "python salt_conc_pre_exec.py " + "\'" + json_data_salt_bash + "\'"
             post_exec_str_salt = "python salt_conc_post_exec.py " + "\'" + json_data_salt_bash + "\'"
         elif KERNELS[self.resource]["shell"] == "bourne":
-            cu.executable = '/bin/sh'
+            #cu.executable = '/bin/sh'
             pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data_sh + "\'" 
             post_exec_str_temp = "python matrix_calculator_temp_ex.py " + "\'" + json_post_data_temp_sh + "\'"
             post_exec_str_us = "python matrix_calculator_us_ex.py " + "\'" + json_post_data_us_sh + "\'"
@@ -509,8 +520,10 @@ class KernelPatternS3dTSU(object):
         #-----------------------------------------------------------------------
 
         if replica.cycle == 1:
-
-            amber_str = self.amber_path
+            if (self.replica_mpi == True):
+                amber_str = self.amber_path_mpi
+            else:
+                amber_str = self.amber_path
             argument_str = " -O " + " -i " + new_input_file + \
                            " -o " + output_file + \
                            " -p " +  self.amber_parameters + \
@@ -549,9 +562,10 @@ class KernelPatternS3dTSU(object):
             if dimension == 1:
                 # copying matrix_calculator_temp_ex.py from staging area to cu folder
                 stage_in.append(sd_shared_list[2])
-                
-                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
-                cu.pre_exec = self.pre_exec
+                cu.executable = amber_str + argument_str
+                #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
+                cu.pre_exec = self.pre_exec + [pre_exec_str]
+                cu.post_exec = [post_exec_str_temp]
                 cu.cores = self.replica_cores
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
@@ -596,33 +610,33 @@ class KernelPatternS3dTSU(object):
                 #---------------------------------------------------------------
                 # matrix_calculator_temp_ex.py file
                 stage_in.append(sd_shared_list[2])
-               
-                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
-                cu.pre_exec = self.pre_exec
+                cu.executable = amber_str + argument_str
+                #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_temp] 
+                cu.pre_exec = self.pre_exec + [pre_exec_str]
+                cu.post_exec = [post_exec_str_temp]
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.cores = self.replica_cores
                 cu.mpi = self.replica_mpi
             elif dimension == 2:
                 # salt concentration
-
                 # copying amber_input from staging area to cu folder
                 stage_in.append(sd_shared_list[1])
-                      
-                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
+                cu.executable = amber_str + argument_str
+                #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str]   
                 cu.cores = self.replica_cores
-                cu.pre_exec = self.pre_exec     
+                cu.pre_exec = self.pre_exec + [pre_exec_str]  
                 cu.mpi = self.replica_mpi
                 cu.output_staging = stage_out 
                 cu.input_staging = stage_in
             else:
                 # us exchange
-
                 # copying calculator from staging area to cu folder
                 stage_in.append(sd_shared_list[3])                
-                
-                cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us] 
-                cu.pre_exec = self.pre_exec
+                cu.executable = amber_str + argument_str
+                #cu.arguments = ['-c', pre_exec_str + "; " + amber_str + argument_str + "; " + post_exec_str_us] 
+                cu.pre_exec = self.pre_exec + [pre_exec_str]
+                cu.post_exec = [post_exec_str_us]
                 cu.input_staging = stage_in
                 cu.output_staging = stage_out
                 cu.cores = self.replica_cores
@@ -795,12 +809,16 @@ class KernelPatternS3dTSU(object):
                     else:
                         r1 = r2
                 #---------------------------------------------------------------
-
                 # swap parameters
-                if self.exchange_off == False:
+                print "dim: {0}".format(dimension)
+                if self.exchange_off[dimension-1] == False:
+                    print "exchange on"
                     self.exchange_params(dimension, r1, r2)
                     r1.swap = 1
                     r2.swap = 1
+                else:
+                    print "exchange off"
+
         except:
             raise
 

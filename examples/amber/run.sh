@@ -3,7 +3,7 @@ export RADICAL_PILOT_VERBOSE=info;
 export REPEX_PROFILING=1;
 #unset RADICAL_PILOT_VERBOSE;
 
-repex-amber --input='tuu_remd_ace_ala_nme.json' --rconfig='local.json'
+repex-amber --input='tsu_remd_ace_ala_nme.json' --rconfig='local.json'
 
 #nohup repex-amber --input='tuu_remd_ace_ala_nme_real.json' --rconfig='smic.json' 2> smic.512.log &
 

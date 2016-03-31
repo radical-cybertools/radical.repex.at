@@ -102,7 +102,6 @@ if __name__ == '__main__':
     current_group_tsu = data["current_group_tsu"]
 
     r_old_path = data["r_old_path"]
-
     pwd = os.getcwd()
 
     #---------------------------------------------------------------------------
@@ -110,20 +109,28 @@ if __name__ == '__main__':
     temperatures = [0.0]*replicas  
     energies = [0.0]*replicas
 
-    #for j in range(replicas):
     for j in current_group_tsu.keys():
+        success = 0     
+        attempts = 0
         energy_history_name = base_name + "_" + str(j) + "_" + str(replica_cycle) + "_energy.mdinfo"
-        try:
-            rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
-            temperatures[int(j)] = float(init_temp)
-            energies[int(j)] = rj_energy
-        except:
-             raise
+        while (success == 0):
+            try:
+                rj_energy, path_to_replica_folder = get_historical_data( energy_history_name )
+                temperatures[int(j)] = float(init_temp)
+                energies[int(j)] = rj_energy
+                success = 1 
+            except:
+                attempts += 1
+                time.sleep(1)
+                if attempts > 5:
+                    temperatures[int(j)] = -1.0
+                    energies[int(j)] = -1.0
+                    success = 1
+                    print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
+                pass
 
-    # init swap column
     swap_column = [0.0]*replicas
 
-    #for j in range(replicas):
     for j in current_group_tsu.keys():       
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
 
