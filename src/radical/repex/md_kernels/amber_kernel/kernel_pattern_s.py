@@ -140,7 +140,7 @@ class KernelPatternS(object):
             sys.exit(1)
 
         self.exchange_off = []
-        for d in len(self.nr_dims):
+        for d in range(self.nr_dims):
             d_str = 'd' + str(d+1) 
             if (inp_file['dim.input'][d_str].get("exchange_off", "False")) == "True":
                 self.exchange_off.append(True)
