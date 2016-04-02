@@ -113,9 +113,6 @@ class PilotKernelPatternA(PilotKernel):
         # GL = 0: submit global calculator before
         # GL = 1: submit global calculator after
         GL = 1
-        # bulk = 0: do sequential submission
-        # bulk = 1: do bulk submission
-        BULK = 1
 
         #-----------------------------------------------------------------------
         # async loop

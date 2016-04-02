@@ -140,17 +140,16 @@ class PilotKernelPatternAmultiD(PilotKernel):
         replicas_for_exchange = []
         replicas_for_md = []
 
-        #print "cycle_time: {0}".format( self.cycletime )
         self.logger.info("cycle_time: {0}".format( self.cycletime) )
+        c_start = datetime.datetime.utcnow()
+
         while (simulation_time < self.runtime*60.0 ):
 
             if dim_int < dim_count:
                 dim_int = dim_int + 1
             else:
                 dim_int = 1
-            #current_cycle = c / dim_count
             
-            c_start = datetime.datetime.utcnow()
             if (simulation_time < (self.runtime*60.0 - self.cycletime) ):
                 replicas_for_md = []
                 for r in replicas:
@@ -161,10 +160,11 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
                 if (len(replicas_for_md) != 0):
                     c_replicas = []
-
                     for replica in replicas_for_md:
+                        cu_name = str(replica.id) + '_' + str(replica.group_idx[dim_int-1])
+                        self.logger.info( "cu_name: {0}".format(cu_name) )
                         compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], replicas_for_md, replica, self.sd_shared_list)
-                        compute_replica.name = str(replica.id)
+                        compute_replica.name = cu_name
                         c_replicas.append( compute_replica )
                         
                     sub_replicas = unit_manager.submit_units(c_replicas)
@@ -173,6 +173,8 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     for r in replicas_for_md:
                         r.state = 'R'
                     running_replicas += replicas_for_md
+
+                print "sub_md_replicas: {0}".format( len(sub_md_replicas) )
 
                 if (len(replicas_for_exchange) != 0):
                     sub_global_repl.append( replicas_for_exchange ) 
@@ -240,8 +242,10 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     if (len(replicas_for_md) != 0):
                         c_replicas = []
                         for replica in replicas_for_md:
+                            cu_name = str(replica.id) + '_' + str(replica.group_idx[dim_int-1])
+                            self.logger.info( "cu_name: {0}".format(cu_name) )
                             compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], replicas_for_md, replica, self.sd_shared_list)
-                            compute_replica.name = str(replica.id)
+                            compute_replica.name = cu_name
                             c_replicas.append( compute_replica )
                             
                         sub_replicas = unit_manager.submit_units(c_replicas)
@@ -255,8 +259,9 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
             completeddd_cus = []
             completed = 0
-            while ( completed < (sub_md_replicas / 2) ):
-                self.logger.info( "proceed when completed replicas >= {0}".format( sub_md_replicas / 2 ) )
+            # fist wait
+            while ( completed < (len(sub_md_replicas) / 2) ):
+                self.logger.info( "proceed when completed replicas >= {0}".format( len(sub_md_replicas) / 2 ) )
                 completeddd_cus = []
                 for cu in sub_md_replicas:
                     if cu.state == 'Done':
@@ -267,8 +272,51 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 simulation_time = (c_end - c_start).total_seconds()
                 if (simulation_time > self.runtime*60.0):
                     completed = md_kernel.replicas
-            c_end = datetime.datetime.utcnow()
+                   
+            # second wait
+            no_partner = 1
+            while(no_partner == 1):
+                all_gr_list = []
+                processed_cus = []
+                for cu in completeddd_cus:
+                    if cu.name not in processed_cus:
+                        self.logger.info( "cu_name_2: {0}".format( cu.name ) )
+                        r_tuple = cu.name.split('_')
+                        self.logger.info( "r_tuple: " )
+                        self.logger.info( r_tuple )
+                        cu_gr_id = r_tuple[1]
+                        gr_list = []
+                        gr_list.append(cu.name)
+                        processed_cus.append(cu.name)
+                        for cu1 in completeddd_cus:
+                            if cu.name != cu1.name:
+                                self.logger.info( "cu1_name_2: {0}".format( cu1.name ) )
+                                r1_tuple = cu1.name.split('_')
+                                self.logger.info( "r1_tuple: " )
+                                self.logger.info( r1_tuple )
+                                cu1_gr_id = r1_tuple[1]
+                                if cu_gr_id == cu1_gr_id:
+                                    gr_list.append(cu1.name)
+                                    processed_cus.append(cu1.name)
+                        all_gr_list.append(gr_list)
+                print "all_gr_list: "
+                print all_gr_list
+                all_gr_list_sizes = []
+                for gr_list in all_gr_list:
+                    all_gr_list_sizes.append( len(gr_list) )
+                self.logger.info( "all_gr_list_sizes: " )
+                self.logger.info( all_gr_list_sizes )
+                # some replica does not have a partner
+                if 1 in all_gr_list_sizes:
+                    time.sleep(1)
+                    completeddd_cus = []
+                    for cu in sub_md_replicas:
+                        if cu.state == 'Done':
+                            completeddd_cus.append(cu)
+                else:
+                    no_partner = 0
 
+            c_end = datetime.datetime.utcnow()
             simulation_time = (c_end - c_start).total_seconds()
             self.logger.info( "Simulation time: {0}".format( simulation_time ) )
 
@@ -280,9 +328,10 @@ class PilotKernelPatternAmultiD(PilotKernel):
             for cu in sub_md_replicas:
                 #print "state is: {0}".format( cu.state )
                 if cu.state == 'Done':
-                    #print "ok md"
+                    print "ok md"
                     for r in running_replicas:
-                        if str(r.id) == cu.name:
+                        r_name = str(r.id) + '_' + str(r.group_idx[dim_int-1])
+                        if r_name == cu.name:
                             #print "Replica {0} finished MD".format( r.id )
                             self.logger.info( "Replica {0} finished MD".format( r.id ) )
                             replicas_for_exchange.append(r)
