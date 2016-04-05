@@ -185,6 +185,7 @@ class KernelPatternS(object):
             self.logger.info("Using default Amber path for: {0}".format(rconfig['target'].get('resource')))
             self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
             self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
+            self.amber_path_gpu = KERNELS[self.resource]["kernels"]["amber"].get("executable_gpu")
         if self.amber_path == None:
             self.logger.info("Amber (sander) path can't be found, looking for sander.MPI")
             if self.amber_path_mpi == None:
@@ -736,6 +737,8 @@ class KernelPatternS(object):
 
         if (self.replica_gpu == True):
             amber_str = self.amber_path_gpu
+        elif (self.replica_mpi == True):
+            amber_str = self.amber_path_mpi
         else:
             amber_str = self.amber_path
 
@@ -747,36 +750,29 @@ class KernelPatternS(object):
             stage_in.append(sd_shared_list[3])
 
         cu = radical.pilot.ComputeUnitDescription()
-        cu.pre_exec = self.pre_exec
         cu.cores = self.replica_cores    
         cu.mpi = self.replica_mpi
 
         if KERNELS[self.resource]["shell"] == "bash":
             cu.executable = '/bin/bash'
-            pre_exec_str = "python input_file_builder.py " + \
-                           "\'" + \
+            pre_exec_str = "python input_file_builder.py " + "\'" + \
                            json_pre_data_bash + "\'"
             if self.dims[dim_str]['type'] == 'temperature':
-                post_exec_str = "python matrix_calculator_temp_ex.py " + \
-                                "\'" + \
+                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
                                 json_post_data_bash + "\'"
             if self.dims[dim_str]['type'] == 'umbrella':
-                post_exec_str = "python matrix_calculator_us_ex.py " + \
-                                "\'" + \
+                post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
                                 json_post_data_bash + "\'"
         elif KERNELS[self.resource]["shell"] == "bourne":
             cu.executable = '/bin/sh'
-            pre_exec_str = "python input_file_builder.py " + \
-                           "\'" + \
+            pre_exec_str = "python input_file_builder.py " + "\'" + \
                            json_pre_data_sh + "\'"
             if self.dims[dim_str]['type'] == 'temperature':
-                post_exec_str = "python matrix_calculator_temp_ex.py " + \
-                                "\'" + \
+                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
                                 json_post_data_sh + "\'"
             if self.dims[dim_str]['type'] == 'umbrella':
-                post_exec_str_us = "python matrix_calculator_us_ex.py " + \
-                                   "\'" + \
-                                   json_post_data_sh + "\'"
+                post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
+                                json_post_data_sh + "\'"
 
         if replica.cycle == 1:
             argument_str = " -O " + " -i " + new_input_file + \
@@ -809,25 +805,34 @@ class KernelPatternS(object):
             # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 
             stage_in.append(sd_shared_list[c_index])
-            #-------------------------------------------------------------------
             # input_file_builder.py
             stage_in.append(sd_shared_list[4])
-            
-            if self.dims[dim_str]['type'] != 'salt':
-                cu.arguments = ["-c", pre_exec_str + \
-                                "; wait; " + \
-                                amber_str + \
-                                argument_str + \
-                                "; wait; " + \
-                                post_exec_str]
-            else:
-                cu.arguments = ["-c", pre_exec_str + \
-                                "; wait; " + \
-                                amber_str + \
-                                argument_str]
 
+            #-------------------------------------------------------------------
+            if (self.replica_mpi == False) and (self.replica_gpu == False):
+                cu.pre_exec = self.pre_exec
+                if self.dims[dim_str]['type'] != 'salt':
+                    cu.arguments = ["-c", pre_exec_str + \
+                                    "; wait; " + \
+                                    amber_str + \
+                                    argument_str + \
+                                    "; wait; " + \
+                                    post_exec_str]
+                else:
+                    cu.arguments = ["-c", pre_exec_str + \
+                                    "; wait; " + \
+                                    amber_str + \
+                                    argument_str]
+            else:
+                cu.executable = amber_str + argument_str
+                if self.dims[dim_str]['type'] != 'salt':
+                    cu.pre_exec = self.pre_exec + [pre_exec_str]
+                    cu.post_exec = [post_exec_str]
+                else:
+                    cu.pre_exec = self.pre_exec + [pre_exec_str]
             cu.input_staging = stage_in
             cu.output_staging = stage_out
+
         else:
             argument_str = " -O " + " -i " + new_input_file + \
                            " -o " + output_file + \
@@ -868,18 +873,26 @@ class KernelPatternS(object):
             }
             stage_out.append(new_coor_out)
                
-            if self.dims[dim_str]['type'] != 'salt':
-                cu.arguments = ["-c", pre_exec_str + \
-                                "; wait; " + \
-                                amber_str + \
-                                argument_str + \
-                                "; wait; " + \
-                                post_exec_str]
+            if (self.replica_mpi == False) and (self.replica_gpu == False):
+                if self.dims[dim_str]['type'] != 'salt':
+                    cu.arguments = ["-c", pre_exec_str + \
+                                    "; wait; " + \
+                                    amber_str + \
+                                    argument_str + \
+                                    "; wait; " + \
+                                    post_exec_str]
+                else:
+                    cu.arguments = ["-c", pre_exec_str + \
+                                    "; wait; " + \
+                                    amber_str + \
+                                    argument_str]
             else:
-                cu.arguments = ["-c", pre_exec_str + \
-                                "; wait; " + \
-                                amber_str + \
-                                argument_str]
+                cu.executable = amber_str + argument_str
+                if self.dims[dim_str]['type'] != 'salt':
+                    cu.pre_exec = self.pre_exec + [pre_exec_str]
+                    cu.post_exec = [post_exec_str]
+                else:
+                    cu.pre_exec = self.pre_exec + [pre_exec_str]
             cu.input_staging = stage_in
             cu.output_staging = stage_out
                 

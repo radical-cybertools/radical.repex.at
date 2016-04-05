@@ -14,7 +14,8 @@ KERNELS = {
                 "environment" : {},
                 "pre_execution" : ["module restore", "module load intel/13.0.2.146", "module load amber", "module load python"],
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander",
-                "executable_mpi" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI"
+                "executable_mpi" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI",
+                "executable_gpu" : "pmemd.CUDA"
 
             },
             "namd": {
