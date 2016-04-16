@@ -14,6 +14,7 @@ import math
 import json
 import random
 import shutil
+import pickle
 import tarfile
 import datetime
 from os import path
@@ -33,6 +34,14 @@ import amber_kernel.matrix_calculator_us_ex
 import amber_kernel.matrix_calculator_temp_ex
 import amber_kernel.matrix_calculator_us_ex_mpi
 import amber_kernel.matrix_calculator_temp_ex_mpi
+
+#-------------------------------------------------------------------------------
+
+class Restart(object):
+    def __init__(self, dimension=None, new_sandbox=None):
+        self.new_sandbox = new_sandbox
+        self.dimension = dimension
+        self.groups_numbers = None
 
 #-------------------------------------------------------------------------------
 #
@@ -58,6 +67,14 @@ class KernelPatternS(object):
         self.amber_input      = inp_file['remd.input'].get('amber_input')
         self.work_dir_local   = work_dir_local
         self.current_cycle    = -1
+
+        # for restart
+        self.restart           = inp_file['remd.input'].get('restart', 'False')
+        self.restart_file      = inp_file['remd.input'].get('restart_file', '')
+        if self.restart == 'True':
+            self.restart_done = False
+        else:
+            self.restart_done = True
 
         self.cores         = int(rconfig['target'].get('cores', '1'))
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
@@ -195,6 +212,17 @@ class KernelPatternS(object):
         self.shared_urls = []
         self.shared_files = []     
 
+        self.salt_str = ''
+        self.temperature_str = ''
+        self.umbrella = False
+        for d_str in self.dims:
+            if self.dims[d_str]['type'] == 'temperature':
+                self.temperature_str = d_str
+            if self.dims[d_str]['type'] == 'salt':
+                self.salt_str = d_str
+            if self.dims[d_str]['type'] == 'umbrella':
+                self.umbrella = True
+
     #---------------------------------------------------------------------------
     #
     def get_rstr_id(self, restraint):
@@ -212,6 +240,8 @@ class KernelPatternS(object):
     #
     def initialize_replicas(self):
         
+        self.restart_object = Restart()
+
         # parse coor file
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         coor_list  = listdir(coor_path)
@@ -319,8 +349,13 @@ class KernelPatternS(object):
                             nr_dims = self.nr_dims)
                 replicas.append(r)
 
-        #-----------------------------------------------------------------------
-        # assigning group idx
+        self.assign_group_idx(replicas)
+
+        return replicas
+
+    #---------------------------------------------------------------------------
+    #
+    def assign_group_idx(self, replicas):
 
         if self.nr_dims == 3:
             g_d1 = []
@@ -381,18 +416,40 @@ class KernelPatternS(object):
             for r in replicas:
                 r.group_idx[0] = 0
             self.groups_numbers = [1] 
- 
-        self.salt_str = ''
-        self.temperature_str = ''
-        self.umbrella = False
-        for d_str in self.dims:
-            if self.dims[d_str]['type'] == 'temperature':
-                self.temperature_str = d_str
-            if self.dims[d_str]['type'] == 'salt':
-                self.salt_str = d_str
-            if self.dims[d_str]['type'] == 'umbrella':
-                self.umbrella = True
 
+        self.restart_object.groups_numbers = self.groups_numbers
+ 
+    #---------------------------------------------------------------------------
+    #
+    def set_sandbox_name(self, sim_name):
+        self.restart_object.new_sandbox = sim_name
+               
+    #---------------------------------------------------------------------------
+    #
+    def save_replicas(self, current_cycle, dim_int, dim_str, replicas):
+        self.restart_object.dimension   = dim_int
+        self.restart_object.old_sandbox = self.restart_object.new_sandbox
+
+        self.logger.info( "current dimension: {0}".format( dim_int ) )
+
+        self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( current_cycle, dim_int )
+        with open(self.restart_file, 'wb') as output:
+            for replica in replicas:
+                pickle.dump(replica, output, pickle.HIGHEST_PROTOCOL)
+
+            pickle.dump(self.restart_object, output, pickle.HIGHEST_PROTOCOL)
+
+    #---------------------------------------------------------------------------
+    #
+    def recover_replicas(self):
+
+        replicas = []
+        with open(self.restart_file, 'rb') as input:
+            for i in range(self.replicas):
+                r_temp = pickle.load(input)
+                replicas.append( r_temp )
+            self.restart_object = pickle.load(input)
+            self.groups_numbers = self.restart_object.groups_numbers
         return replicas
 
     #---------------------------------------------------------------------------
@@ -521,7 +578,7 @@ class KernelPatternS(object):
                                replicas, 
                                replica, 
                                sd_shared_list):
-       
+
         stage_out = []
         stage_in = []
         basename = self.inp_basename
@@ -774,7 +831,7 @@ class KernelPatternS(object):
                 post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
                                 json_post_data_sh + "\'"
 
-        if replica.cycle == 1:
+        if replica.cycle == 1 or self.restart_done == False:
             argument_str = " -O " + " -i " + new_input_file + \
                            " -o " + output_file + \
                            " -p " +  self.amber_parameters + \
@@ -784,6 +841,17 @@ class KernelPatternS(object):
                         " -inf " + new_info  
 
             if (self.umbrella == True) and (self.us_template != ''):
+                if self.restart_done == False:
+
+                    old_path = self.restart_object.old_sandbox + '/staging_area/' + replica.new_restraints
+                    self.logger.info( "restart_path: {0}".format( old_path ) )
+                    # restraint file
+                    restraints_in_st = {'source': 'staging:///%s' % old_path,
+                                        'target': replica.new_restraints,
+                                        'action': radical.pilot.COPY
+                    }
+                    stage_in.append(restraints_in_st)
+                
                 restraints_out = replica.new_restraints
                 restraints_out_st = {
                     'source': (replica.new_restraints),
@@ -794,6 +862,14 @@ class KernelPatternS(object):
 
                 # restraint template file: ace_ala_nme_us.RST
                 stage_in.append(sd_shared_list[6])
+
+            if self.restart_done == False:
+                old_path = self.restart_object.old_sandbox + '/staging_area/' + replica_path + old_coor
+                old_coor_st = {'source': 'staging:///%s' % old_path,
+                               'target': (old_coor),
+                               'action': radical.pilot.COPY
+                }
+                stage_in.append(old_coor_st)
 
             #-------------------------------------------------------------------
             # files needed to be staged in replica dir
@@ -851,14 +927,18 @@ class KernelPatternS(object):
             # input_file_builder.py
             stage_in.append(sd_shared_list[4])
 
+            # BOTH BELOW
             if (self.umbrella == True) and (self.us_template != ''):
+                
+                self.logger.info("stage_in replica.new_restraints: {0}".format( replica.new_restraints ) )
                 # restraint file
                 restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
                                     'target': replica.new_restraints,
                                     'action': radical.pilot.COPY
                 }
                 stage_in.append(restraints_in_st)
-
+            
+            self.logger.info( "stage_in old_coors: {0}".format( replica_path + old_coor ) )
             old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
                            'target': (old_coor),
                            'action': radical.pilot.LINK
@@ -895,6 +975,8 @@ class KernelPatternS(object):
                     cu.pre_exec = self.pre_exec + [pre_exec_str]
             cu.input_staging = stage_in
             cu.output_staging = stage_out
+
+            self.restart_done = True
                 
         return cu
 

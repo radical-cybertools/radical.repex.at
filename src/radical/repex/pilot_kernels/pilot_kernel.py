@@ -58,6 +58,10 @@ class PilotKernel(object):
         else:
             self.cleanup = False 
 
+        self.session = None
+        self.pilot_manager = None
+        self.pilot_object = None
+
     # --------------------------------------------------------------------------
     #
     def launch_pilot(self):
@@ -74,23 +78,19 @@ class PilotKernel(object):
                     self.logger.error("RepEx execution FAILED.")
                     sys.exit(1)
         #-----------------------------------------------------------------------
-        
-        session = None
-        pilot_manager = None
-        pilot_object = None
    
-        session = radical.pilot.Session(database_url=self.dburl)
-        self.logger.info("Session ID: {0}".format(session.uid) )
+        self.session = radical.pilot.Session(database_url=self.dburl)
+        self.logger.info("Session ID: {0}".format(self.session.uid) )
 
         try:
             # Add an ssh identity to the session.
             if self.user:
                 cred = radical.pilot.Context('ssh')
                 cred.user_id = self.user
-                session.add_context(cred)
+                self.session.add_context(cred)
 
-            pilot_manager = radical.pilot.PilotManager(session=session)
-            pilot_manager.register_callback(pilot_state_cb)
+            self.pilot_manager = radical.pilot.PilotManager(session=self.session)
+            self.pilot_manager.register_callback(pilot_state_cb)
 
             pilot_description = radical.pilot.ComputePilotDescription()
             if self.access_schema == "gsissh":
@@ -114,15 +114,13 @@ class PilotKernel(object):
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
 
-            pilot_object = pilot_manager.submit_pilots(pilot_description)
+            self.pilot_object = self.pilot_manager.submit_pilots(pilot_description)
             
             # we wait for the pilot to start running on resource
-            self.logger.info("Pilot ID: {0}".format(pilot_object.uid) )
-            pilot_manager.wait_pilots(pilot_object.uid,'Active') 
+            self.logger.info("Pilot ID: {0}".format(self.pilot_object.uid) )
+            self.pilot_manager.wait_pilots(self.pilot_object.uid,'Active') 
 
         except radical.pilot.PilotException, ex:
             self.logger.error("Error: {0}".format(ex))
-            session.close (cleanup=True, terminate=True) 
-
-        return pilot_manager, pilot_object, session
+            self.session.close (cleanup=True, terminate=True) 
 

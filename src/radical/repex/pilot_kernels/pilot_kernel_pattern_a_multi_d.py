@@ -38,14 +38,11 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
     #---------------------------------------------------------------------------
     #
-    def run_simulation(self, replicas, pilot_object, session,  md_kernel ):
+    def run_simulation(self, replicas, md_kernel ):
         """This function runs the main loop of RE simulation for RE scheme 2a.
 
         Arguments:
         replicas - list of Replica objects
-        pilot_object - radical.pilot.ComputePilot object
-        session - radical.pilot.session object, the *root* object for all other 
-        RADICAL-Pilot objects 
         md_kernel - an instance of NamdKernelScheme2a class
         """
         # ----------------------------------------------------------------------
@@ -66,9 +63,9 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
         do_profile = os.getenv('REPEX_PROFILING', '0')
        
-        unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+        unit_manager = radical.pilot.UnitManager(self.session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
-        unit_manager.add_pilots(pilot_object)
+        unit_manager.add_pilots(self.pilot_object)
 
         stagein_start = datetime.datetime.utcnow()
 
@@ -90,7 +87,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         'action': radical.pilot.TRANSFER
             }
 
-            pilot_object.stage_in(sd_pilot)
+            self.pilot_object.stage_in(sd_pilot)
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],

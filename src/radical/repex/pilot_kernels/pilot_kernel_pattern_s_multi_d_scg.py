@@ -38,14 +38,11 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
 
 #-------------------------------------------------------------------------------
 
-    def run_simulation(self, replicas, pilot_object, session,  md_kernel):
+    def run_simulation(self, replicas, md_kernel):
         """This function runs the main loop of RE simulation for RE pattern B.
 
         Arguments:
         replicas - list of Replica objects
-        pilot_object - radical.pilot.ComputePilot object
-        session - radical.pilot.session object, the *root* object for all other 
-        RADICAL-Pilot objects 
         md_kernel - an instance of NamdKernelScheme2a class
         """
 
@@ -65,9 +62,9 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
         #-----------------------------------------------------------------------
         cycles = md_kernel.nr_cycles + 1
                 
-        unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_DIRECT_SUBMISSION)
+        unit_manager = radical.pilot.UnitManager(self.session, scheduler=radical.pilot.SCHED_DIRECT_SUBMISSION)
         unit_manager.register_callback(unit_state_change_cb)
-        unit_manager.add_pilots(pilot_object)
+        unit_manager.add_pilots(self.pilot_object)
 
         stagein_start = datetime.datetime.utcnow()
 
@@ -84,7 +81,7 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
                         'action': radical.pilot.TRANSFER
             }
 
-            pilot_object.stage_in(sd_pilot)
+            self.pilot_object.stage_in(sd_pilot)
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],
@@ -239,7 +236,7 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
             #-------------------------------------------------------------------
             # performance data
             if do_profile == '1':
-                outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
+                outfile = "execution_profile_{mysession}.csv".format(mysession=self.session.uid)
                 with open(outfile, 'a') as f:
                     
                     #---------------------------------------------------------------
@@ -299,7 +296,7 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
         #-----------------------------------------------------------------------
         # end of loop
         if do_profile == '1':
-            outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
+            outfile = "execution_profile_{mysession}.csv".format(mysession=self.session.uid)
             with open(outfile, 'a') as f:
                 # RAW SIMULATION TIME
                 end = datetime.datetime.utcnow()

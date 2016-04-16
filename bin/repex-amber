@@ -61,15 +61,17 @@ if __name__ == '__main__':
 		pilot_kernel = PilotKernelPatternSmultiDsc( inp_file, rconfig )
 
 		# initializing replicas
-		replicas = md_kernel.initialize_replicas()
+		if md_kernel.restart == False:
+			replicas = md_kernel.initialize_replicas()
+		else:
+			replicas = md_kernel.recover_replicas()
 
 	#---------------------------------------------------------------------------
 	# the same for all cases
 	try:
-		pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
-
+		pilot_kernel.launch_pilot()
 		# now we can run RE simulation
-		pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+		pilot_kernel.run_simulation( replicas, md_kernel )
 
 	except:
 		raise
@@ -84,5 +86,5 @@ if __name__ == '__main__':
 		raise 
 	finally :
 		logger.info("Closing session.")
-		session.close (cleanup=True, terminate=True)  
+		pilot_kernel.session.close (cleanup=True, terminate=True)  
 

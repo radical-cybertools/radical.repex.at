@@ -1,7 +1,7 @@
 {
     "remd.input": {
         "re_pattern": "S",
-        "number_of_cycles": "2",
+        "number_of_cycles": "1",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -15,7 +15,9 @@
         "replica_cores": "1",
         "steps_per_cycle": "100",
         "download_mdinfo": "False",
-        "download_mdout" : "False"
+        "download_mdout" : "False",
+        "restart": "True",
+        "restart_file": "simulation_objects_1_3.pkl"
         },
     "dim.input": {
         "d1": {

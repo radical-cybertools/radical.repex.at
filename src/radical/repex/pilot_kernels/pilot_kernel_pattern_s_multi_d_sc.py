@@ -23,8 +23,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
     """
     """
     def __init__(self, inp_file, rconfig):
-        """Constructor.
-
+        """
         Arguments:
         inp_file - json input file with Pilot and NAMD related parameters as 
         specified by user 
@@ -38,14 +37,11 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
 #-------------------------------------------------------------------------------
 
-    def run_simulation(self, replicas, pilot_object, session,  md_kernel):
+    def run_simulation(self, replicas, md_kernel):
         """This function runs the main loop of RE simulation for RE pattern B.
 
         Arguments:
         replicas - list of Replica objects
-        pilot_object - radical.pilot.ComputePilot object
-        session - radical.pilot.session object, the *root* object for all other 
-        RADICAL-Pilot objects 
         md_kernel - an instance of NamdKernelScheme2a class
         """
 
@@ -65,9 +61,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
         #-----------------------------------------------------------------------
         cycles = md_kernel.nr_cycles + 1
                 
-        unit_manager = radical.pilot.UnitManager(session, scheduler=radical.pilot.SCHED_DIRECT_SUBMISSION)
+        unit_manager = radical.pilot.UnitManager(self.session, scheduler=radical.pilot.SCHED_DIRECT_SUBMISSION)
         unit_manager.register_callback(unit_state_change_cb)
-        unit_manager.add_pilots(pilot_object)
+        unit_manager.add_pilots(self.pilot_object)
 
         stagein_start = datetime.datetime.utcnow()
 
@@ -84,7 +80,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         'action': radical.pilot.TRANSFER
             }
 
-            pilot_object.stage_in(sd_pilot)
+            self.pilot_object.stage_in(sd_pilot)
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],
@@ -102,13 +98,21 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
         stagein_end = datetime.datetime.utcnow()
 
+        sim_name = self.session.uid + '-' + self.pilot_object.uid
+        self.logger.info( 'sim_name: {0}'.format( sim_name ) )
+        md_kernel.set_sandbox_name( sim_name )
+
         start = datetime.datetime.utcnow()
         #-----------------------------------------------------------------------
         # bulk_submission = 0: do sequential submission
         # bulk_submission = 1: do bulk_submission submission
         bulk_submission = 1
 
-        dim_int = 0
+        if md_kernel.restart == True:
+            dim_int = md_kernel.restart_object.dimension
+        else:
+            dim_int = 0
+
         dim_count = md_kernel.nr_dims
         dim_str = []
         dim_str.append('')
@@ -376,10 +380,13 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["post_proc"] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["post_proc"] = (t2-t1).total_seconds()
             
+            #write replica objects out
+            md_kernel.save_replicas(current_cycle, dim_int, dim_str[dim_int], replicas)
+
             #-------------------------------------------------------------------
             # performance data
             if do_profile == '1':
-                outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
+                outfile = "execution_profile_{mysession}.csv".format(mysession=self.session.uid)
                 with open(outfile, 'a') as f:
                     
                     #-----------------------------------------------------------
@@ -439,7 +446,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
         #-----------------------------------------------------------------------
         # end of loop
         if do_profile == '1':
-            outfile = "execution_profile_{mysession}.csv".format(mysession=session.uid)
+            outfile = "execution_profile_{mysession}.csv".format(mysession=self.session.uid)
             with open(outfile, 'a') as f:
                 end = datetime.datetime.utcnow()
                 stagein_time = (stagein_end-stagein_start).total_seconds()
