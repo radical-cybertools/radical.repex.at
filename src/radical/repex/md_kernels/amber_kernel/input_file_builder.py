@@ -39,10 +39,14 @@ if __name__ == '__main__':
         dims.append( [typ, par] )
 
     umbrellas = 0
-    new_temperature = -1.0
+    new_temperature = None
+
+    new_salt = None
     for pair in dims:
         if pair[0] == 'temperature':
             new_temperature = pair[1]
+        if pair[0] == 'salt':
+            new_salt = pair[1]
         if pair[0] == 'umbrella':
             umbrellas += 1
             if umbrellas == 1:
@@ -50,7 +54,7 @@ if __name__ == '__main__':
             if umbrellas == 2:
                 rstr_val_2 = pair[1]
                     
-    if new_temperature == -1.0:
+    if new_temperature == None:
         new_temperature = init_temp
     #---------------------------------------------------------------------------
     # this is for every cycle
@@ -74,7 +78,8 @@ if __name__ == '__main__':
     else:
         tbuffer = tbuffer.replace("@irest@","1")
         tbuffer = tbuffer.replace("@ntx@","5")
-
+    if new_salt != None:
+        tbuffer = tbuffer.replace("@salt@",str(new_salt) )
     try:
         w_file = open(new_input_file, "w")
         w_file.write(tbuffer)
