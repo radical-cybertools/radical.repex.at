@@ -1,11 +1,11 @@
 {
     "target": {
         "resource": "xsede.stampede",
-        "username" : "octocat",
-        "project" : "TG-123456",
-        "queue" : "development",
-        "runtime" : "60",
+        "username" : "antontre",
+        "project" : "TG-MCB090174",
+        "queue" : "gpudev",
+        "runtime" : "80",
         "cleanup" : "False",
-        "cores" : "16"
+        "cores" : "64"
     }
 }
