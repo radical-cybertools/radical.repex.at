@@ -61,7 +61,7 @@ if __name__ == '__main__':
 		pilot_kernel = PilotKernelPatternSmultiDsc( inp_file, rconfig )
 
 		# initializing replicas
-		if md_kernel.restart == False:
+		if md_kernel.restart_done == True:
 			replicas = md_kernel.initialize_replicas()
 		else:
 			replicas = md_kernel.recover_replicas()

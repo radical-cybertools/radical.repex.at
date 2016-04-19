@@ -418,11 +418,6 @@ class KernelPatternS(object):
             self.groups_numbers = [1] 
 
         self.restart_object.groups_numbers = self.groups_numbers
- 
-    #---------------------------------------------------------------------------
-    #
-    def set_sandbox_name(self, sim_name):
-        self.restart_object.new_sandbox = sim_name
                
     #---------------------------------------------------------------------------
     #
@@ -846,7 +841,7 @@ class KernelPatternS(object):
                     old_path = self.restart_object.old_sandbox + '/staging_area/' + replica.new_restraints
                     self.logger.info( "restart_path: {0}".format( old_path ) )
                     # restraint file
-                    restraints_in_st = {'source': 'staging:///%s' % old_path,
+                    restraints_in_st = {'source': old_path,
                                         'target': replica.new_restraints,
                                         'action': radical.pilot.COPY
                     }
@@ -865,7 +860,7 @@ class KernelPatternS(object):
 
             if self.restart_done == False:
                 old_path = self.restart_object.old_sandbox + '/staging_area/' + replica_path + old_coor
-                old_coor_st = {'source': 'staging:///%s' % old_path,
+                old_coor_st = {'source': old_path,
                                'target': (old_coor),
                                'action': radical.pilot.COPY
                 }
@@ -1359,27 +1354,34 @@ class KernelPatternS(object):
             f.close()
             for l in lines:
                 pair = l.split()
-                r1_id = int(pair[0])
-                r2_id = int(pair[1])
-                for r in replicas:
-                    if r.id == r1_id:
-                        r1 = r
-                    if r.id == r2_id:
-                        r2 = r
-                #---------------------------------------------------------------
-                # guard
-                if r1 == None:
-                    rid = random.randint(0,(len(replicas)-1))
-                    r1 = replicas[rid]
-                if r2 == None:
-                    rid = random.randint(0,(len(replicas)-1))
-                    r2 = replicas[rid]
-                #---------------------------------------------------------------
-                # swap parameters
-                if self.exchange_off[dim_int-1] == False:
-                    self.exchange_params(dim_str, r1, r2)
-                    r1.swap = 1
-                    r2.swap = 1
+                if pair[0].isdigit() and pair[0].isdigit():
+                    r1_id = int(pair[0])
+                    r2_id = int(pair[1])
+                    for r in replicas:
+                        if r.id == r1_id:
+                            r1 = r
+                        if r.id == r2_id:
+                            r2 = r
+                    #-----------------------------------------------------------
+                    # guard
+                    if r1 == None:
+                        rid = random.randint(0,(len(replicas)-1))
+                        r1 = replicas[rid]
+                    if r2 == None:
+                        rid = random.randint(0,(len(replicas)-1))
+                        r2 = replicas[rid]
+                    #-----------------------------------------------------------
+                    # swap parameters
+                    if self.exchange_off[dim_int-1] == False:
+                        self.exchange_params(dim_str, r1, r2)
+                        r1.swap = 1
+                        r2.swap = 1
+                else:
+                    i = l[-1]
+                    while i != '/':
+                        l = l[:-1]
+                        i = l[-1]
+                    self.restart_object.new_sandbox = l
         except:
             raise
 

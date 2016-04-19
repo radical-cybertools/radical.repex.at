@@ -98,10 +98,6 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
         stagein_end = datetime.datetime.utcnow()
 
-        sim_name = self.session.uid + '-' + self.pilot_object.uid
-        self.logger.info( 'sim_name: {0}'.format( sim_name ) )
-        md_kernel.set_sandbox_name( sim_name )
-
         start = datetime.datetime.utcnow()
         #-----------------------------------------------------------------------
         # bulk_submission = 0: do sequential submission
