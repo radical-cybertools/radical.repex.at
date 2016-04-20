@@ -3,9 +3,9 @@
         "resource": "xsede.stampede",
         "username" : "antontre",
         "project" : "TG-MCB090174",
-        "queue" : "gpudev",
+        "queue" : "development",
         "runtime" : "80",
         "cleanup" : "False",
-        "cores" : "64"
+        "cores" : "128"
     }
 }

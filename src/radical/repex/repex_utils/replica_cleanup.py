@@ -18,7 +18,7 @@ def move_output_files(work_dir_local, md_kernel, replicas):
     #---------------------------------------------------------------------------
     # moving shared files
 
-    dir_path = "%s/shared_files" % (work_dir_local)
+    dir_path = "%s/simulation_output" % (work_dir_local)
     if not os.path.exists(dir_path):
         try:
             os.makedirs(dir_path)
@@ -26,10 +26,12 @@ def move_output_files(work_dir_local, md_kernel, replicas):
             raise
 
     pairs_name = "pairs_for_exchange_"
+    obj_name   = "simulation_objects_"
+    exec_name  = "execution_profile_"
     files = os.listdir( work_dir_local )
 
     for item in files:
-        if (item.startswith(pairs_name)):
+        if (item.startswith(pairs_name) or item.startswith(obj_name) or item.startswith(exec_name)):
             source =  work_dir_local + "/" + str(item)
             destination = dir_path + "/"
             d_file = destination + str(item)

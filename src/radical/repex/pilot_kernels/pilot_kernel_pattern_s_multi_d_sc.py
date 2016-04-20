@@ -183,7 +183,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         for item in submitted_batch:
                             unit_ids.append( item.uid )
                         t1 = datetime.datetime.utcnow()
+                        self.logger.info('BEFORE(1) unit_manager.wait_units() call for MD phase...')
                         unit_manager.wait_units( unit_ids=unit_ids)
+                        self.logger.info('AFTER(1) unit_manager.wait_units() call for MD phase...')
                         t2 = datetime.datetime.utcnow()
                         md_exec_timing += (t2-t1).total_seconds()
                         batch = []
@@ -207,7 +209,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     for item in submitted_batch:
                         unit_ids.append( item.uid )    
                     t1 = datetime.datetime.utcnow()
+                    self.logger.info('BEFORE(2) unit_manager.wait_units() call for MD phase...')
                     unit_manager.wait_units( unit_ids=unit_ids)
+                    self.logger.info('AFTER(2) unit_manager.wait_units() call for MD phase...')
                     t2 = datetime.datetime.utcnow()
                     md_exec_timing += (t2-t1).total_seconds()
 
@@ -335,7 +339,9 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     #-----------------------------------------------------------
 
                     t1 = datetime.datetime.utcnow()
+                    self.logger.info('BEFORE(1) unit_manager.wait_units() call for Exchange phase...')
                     unit_manager.wait_units( unit_ids=global_ex_cu.uid )
+                    self.logger.info('AFTER(1) unit_manager.wait_units() call for Exchange phase...')
                     t2 = datetime.datetime.utcnow()
 
                     hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["ex_run"] = {}
