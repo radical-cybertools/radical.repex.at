@@ -355,19 +355,23 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)]["global_ex_run"]["cu.uid_{0}".format(global_ex_cu.uid)] = global_ex_cu
 
             #-------------------------------------------------------------------
-            #               
+            # 
+            failed_cus = []              
             t1 = datetime.datetime.utcnow()
             for r in submitted_replicas:
                 if r.state != radical.pilot.DONE:
                     self.logger.error('ERROR: In D%d MD-step failed for unit:  %s' % (dim_int, r.uid))
+                    failed_cus.append( r.uid )
 
             if len(exchange_replicas) > 0:
                 for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
                         self.logger.error('ERROR: In D%d Exchange-step failed for unit:  %s' % (dim_int, r.uid))
+                        failed_cus.append( r.uid )
 
             if global_ex_cu.state != radical.pilot.DONE:
                 self.logger.error('ERROR: In D%d Global-Exchange-step failed for unit:  %s' % (dim_int, global_ex_cu.uid))
+                failed_cus.append( global_ex_cu.uid )
 
             # do exchange of parameters                     
             md_kernel.do_exchange(current_cycle, dim_int, dim_str[dim_int], replicas)
@@ -411,31 +415,25 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     for run in cu_performance_data[hl_cycle][hl_dim].keys():
                         for cid in cu_performance_data[hl_cycle][hl_dim][run].keys():
                             cu = cu_performance_data[hl_cycle][hl_dim][run][cid]
-                            st_data = {}
-                            for st in cu.state_history:
-                                st_dict = st.as_dict()
-                                st_data["{0}".format( st_dict["state"] )] = {}
-                                st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
-                           
-                            row = "{uid}; {Scheduling}; {StagingInput}; {AgentStagingInput}; {Allocating}; {Executing}; {StagingOutput}; {Done}; {Cycle}; {dim_int}; {Run}".format(
-                                uid=cu.uid,
-                                #Unscheduled=st_data['Unscheduled'],
-                                Scheduling=st_data['Scheduling'],
-                                #PendingInputStaging = st_data['PendingInputStaging'],
-                                StagingInput=st_data['StagingInput'],
-                                #PendingAgentInputStaging=st_data['PendingAgentInputStaging'],
-                                AgentStagingInput=st_data['AgentStagingInput'],
-                                #PendingExecution=st_data['PendingExecution'],
-                                Allocating=st_data['Allocating'],
-                                Executing=st_data['Executing'],
-                                #PendingAgentOutputStaging=st_data['PendingAgentOutputStaging'],
-                                #AgentStagingOutput=st_data['AgentStagingOutput'],
-                                #PendingOutputStaging=st_data['PendingOutputStaging'],
-                                StagingOutput=st_data['StagingOutput'],
-                                Done=st_data['Done'],
-                                Cycle=hl_cycle,
-                                dim_int=hl_dim,
-                                Run=run)
+                            if cu.uid not in failed_cus:
+                                st_data = {}
+                                for st in cu.state_history:
+                                    st_dict = st.as_dict()
+                                    st_data["{0}".format( st_dict["state"] )] = {}
+                                    st_data["{0}".format( st_dict["state"] )] = st_dict["timestamp"]
+                               
+                                row = "{uid}; {Scheduling}; {StagingInput}; {AgentStagingInput}; {Allocating}; {Executing}; {StagingOutput}; {Done}; {Cycle}; {dim_int}; {Run}".format(
+                                    uid=cu.uid,
+                                    Scheduling=st_data['Scheduling'],
+                                    StagingInput=st_data['StagingInput'],
+                                    AgentStagingInput=st_data['AgentStagingInput'],
+                                    Allocating=st_data['Allocating'],
+                                    Executing=st_data['Executing'],
+                                    StagingOutput=st_data['StagingOutput'],
+                                    Done=st_data['Done'],
+                                    Cycle=hl_cycle,
+                                    dim_int=hl_dim,
+                                    Run=run)
 
                             f.write("{r}\n".format(r=row))
             
