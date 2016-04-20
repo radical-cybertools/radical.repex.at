@@ -4,7 +4,6 @@
         "username" : "antons",
         "runtime" : "30",
         "cleanup" : "False",
-        "amber_path" : "/home/antons/amber/amber14-single/bin/sander",
         "cores" : "4"
     }
 }
