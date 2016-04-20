@@ -1,6 +1,6 @@
 modified sample input from amber tutorial A7
  &cntrl
-  irest = 0, ntx = 1,
+  ntx = 1,
   nstlim = @nstlim@, dt = 0.001,
   irest = 0, ntt = 3, gamma_ln = 1.0,
   temp0 = @temp@, ig = -1,
