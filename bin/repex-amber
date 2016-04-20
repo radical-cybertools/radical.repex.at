@@ -72,19 +72,24 @@ if __name__ == '__main__':
 		pilot_kernel.launch_pilot()
 		# now we can run RE simulation
 		pilot_kernel.run_simulation( replicas, md_kernel )
-
+	except (KeyboardInterrupt, SystemExit) as e:
+		logger.info("Exit requested...")
+		pilot_kernel.session.close (cleanup=True, terminate=True)
+		sys.exit(1)
 	except:
-		raise
+		logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+		pilot_kernel.session.close (cleanup=True, terminate=True)
+		sys.exit(1)
 	try:
 		# finally we are moving all files to individual replica directories
 		move_output_files(work_dir_local, md_kernel, replicas ) 
-
 		logger.info("Simulation successfully finished!")
 		logger.info("Please check output files in replica_x directories.")
 	except:
 		logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
-		raise 
+		pilot_kernel.session.close (cleanup=True, terminate=True)
+		sys.exit(1)
 	finally :
 		logger.info("Closing session.")
-		pilot_kernel.session.close (cleanup=True, terminate=True)  
-
+		pilot_kernel.session.close (cleanup=True, terminate=True)
+		
