@@ -22,8 +22,7 @@ import radical.utils.logger as rul
 #-------------------------------------------------------------------------------
 
 class PilotKernel(object):
-    """
-    """
+    
     def __init__(self, inp_file, rconfig):
         """Constructor.
 
@@ -31,7 +30,7 @@ class PilotKernel(object):
         inp_file - json input file with Pilot and NAMD related parameters as specified by user 
         """
 
-        self.name = 'exec'
+        self.name = 'pk'
         self.logger  = rul.getLogger ('radical.repex', self.name)
         
         # pilot parameters
