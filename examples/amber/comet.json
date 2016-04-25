@@ -2,7 +2,7 @@
     "target": {
         "resource": "xsede.comet",
         "username" : "antontre",
-        "project" : "unc101",
+        "project" : "project",
         "queue" : "compute",
         "runtime" : "60",
         "cleanup" : "False",
