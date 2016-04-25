@@ -14,9 +14,7 @@
         "replica_gpu": "True",
         "steps_per_cycle": "1000",
         "download_mdinfo": "False",
-        "download_mdout" : "False",
-        "restart": "True",
-        "restart_file": "simulation_objects_1_3.pkl"
+        "download_mdout" : "False"
         },
     "dim.input": {
         "d1": {
