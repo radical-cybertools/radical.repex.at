@@ -11,7 +11,7 @@
         "same_coordinates": "True",
         "group_exec": "False",
         "init_temp": "300.0",
-        "replica_gpu": "True",
+        "replica_gpu": "False",
         "steps_per_cycle": "1000",
         "download_mdinfo": "False",
         "download_mdout" : "False",
