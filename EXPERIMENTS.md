@@ -1,6 +1,5 @@
-#################################
-# single-core replica experiments
-#################################
+
+#### single-core replica experiments
 
 ```
 virtualenv $HOME/ve; source $HOME/ve/bin/activate
@@ -15,7 +14,7 @@ cd radical.repex; git checkout devel; python setup.py install
 cd examples/amber
 ```
 
-# to run on Stampede modify 'username', 'project, etc. in stampede.json:
+###### to run on Stampede modify 'username', 'project, etc. in stampede.json:
 
 ```
 {
@@ -31,7 +30,7 @@ cd examples/amber
 }
 ```
 
-# to run on SuperMIC modify 'username', 'project, etc. in supermic.json:
+###### to run on SuperMIC modify 'username', 'project, etc. in supermic.json:
 
 ```
 {
@@ -46,7 +45,7 @@ cd examples/amber
 }
 ```
 
-# to run TUU-REMD experiments modify tuu_remd_ace_ala_nme.json:
+###### to run TUU-REMD experiments modify tuu_remd_ace_ala_nme.json:
 
 ```
 {
@@ -94,7 +93,7 @@ cd examples/amber
 }
 ```
 
-# to run TSU-REMD experiments modify tsu_remd_ace_ala_nme.json:
+###### to run TSU-REMD experiments modify tsu_remd_ace_ala_nme.json:
 
 ```
 {
@@ -137,15 +136,13 @@ cd examples/amber
 }
 ```
 
-# to run T-REMD experiments modify t_remd_ace_ala_nme.json,
-# to run S-REMD experiments modify s_remd_ace_ala_nme.json,
-# to run U-REMD experiments modify u_remd_ace_ala_nme.json.
+###### to run T-REMD experiments modify t_remd_ace_ala_nme.json,
+###### to run S-REMD experiments modify s_remd_ace_ala_nme.json,
+###### to run U-REMD experiments modify u_remd_ace_ala_nme.json.
 
-# more info at: http://repex.readthedocs.org/en/master/
+###### more info at: http://repex.readthedocs.org/en/master/
 
-#################################
-# multi-core replica experiments
-#################################
+###### multi-core replica experiments
 
 ```
 virtualenv $HOME/ve; source $HOME/ve/bin/activate
@@ -160,7 +157,7 @@ cd radical.repex; git checkout feature/experiments; python setup.py install
 cd examples/amber
 ```
 
-# to run on Stampede modify 'username', 'project, etc. in stampede.json:
+###### to run on Stampede modify 'username', 'project, etc. in stampede.json:
 
 ```
 {
@@ -176,7 +173,7 @@ cd examples/amber
 }
 ```
 
-# to run on SuperMIC modify 'username', 'project, etc. in supermic.json:
+###### to run on SuperMIC modify 'username', 'project, etc. in supermic.json:
 
 ```
 {
@@ -191,7 +188,7 @@ cd examples/amber
 }
 ```
 
-# to run TUU-REMD experiments modify tuu_remd_ace_ala_nme.json:
+###### to run TUU-REMD experiments modify tuu_remd_ace_ala_nme.json:
 
 ```
 {
@@ -239,7 +236,7 @@ cd examples/amber
 }
 ```
 
-# to run T-REMD experiments modify t_remd_ace_ala_nme.json:
+###### to run T-REMD experiments modify t_remd_ace_ala_nme.json:
 
 ```
 {
@@ -265,7 +262,7 @@ cd examples/amber
 }
 ```
 
-# more info at: http://repex.readthedocs.org/en/master/
+###### more info at: http://repex.readthedocs.org/en/master/
 
 
  
