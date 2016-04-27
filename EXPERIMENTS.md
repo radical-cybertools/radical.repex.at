@@ -17,6 +17,7 @@ cd examples/amber
 
 # to run on Stampede modify 'username', 'project, etc. in stampede.json:
 
+```
 {
     "target": {
         "resource": "xsede.stampede",
@@ -28,9 +29,11 @@ cd examples/amber
         "cores" : "16"
     }
 }
+```
 
 # to run on SuperMIC modify 'username', 'project, etc. in supermic.json:
 
+```
 {
     "target": {
         "resource": "xsede.supermic",
@@ -41,9 +44,11 @@ cd examples/amber
         "cores" : "20"
     }
 }
+```
 
 # to run TUU-REMD experiments modify tuu_remd_ace_ala_nme.json:
 
+```
 {
     "remd.input": {
         "re_pattern": "S",
@@ -87,9 +92,11 @@ cd examples/amber
             }    
     }
 }
+```
 
 # to run TSU-REMD experiments modify tsu_remd_ace_ala_nme.json:
 
+```
 {
     "remd.input": {
         "re_pattern": "S",
@@ -128,6 +135,7 @@ cd examples/amber
             }    
     }
 }
+```
 
 # to run T-REMD experiments modify t_remd_ace_ala_nme.json,
 # to run S-REMD experiments modify s_remd_ace_ala_nme.json,
@@ -139,6 +147,7 @@ cd examples/amber
 # multi-core replica experiments
 #################################
 
+```
 virtualenv $HOME/ve; source $HOME/ve/bin/activate
 
 mkdir repex-exp; cd repex-exp
@@ -149,9 +158,11 @@ cd ..
 git clone https://github.com/radical-cybertools/radical.repex.git
 cd radical.repex; git checkout feature/experiments; python setup.py install
 cd examples/amber
+```
 
 # to run on Stampede modify 'username', 'project, etc. in stampede.json:
 
+```
 {
     "target": {
         "resource": "xsede.stampede",
@@ -163,9 +174,11 @@ cd examples/amber
         "cores" : "16"
     }
 }
+```
 
 # to run on SuperMIC modify 'username', 'project, etc. in supermic.json:
 
+```
 {
     "target": {
         "resource": "xsede.supermic",
@@ -176,9 +189,11 @@ cd examples/amber
         "cores" : "20"
     }
 }
+```
 
 # to run TUU-REMD experiments modify tuu_remd_ace_ala_nme.json:
 
+```
 {
     "remd.input": {
         "re_pattern": "S",
@@ -222,9 +237,11 @@ cd examples/amber
             }    
     }
 }
+```
 
 # to run T-REMD experiments modify t_remd_ace_ala_nme.json:
 
+```
 {
     "remd.input": {
         "re_pattern": "S",
@@ -246,6 +263,7 @@ cd examples/amber
         "download_mdout" : "False"
     }
 }
+```
 
 # more info at: http://repex.readthedocs.org/en/master/
 
