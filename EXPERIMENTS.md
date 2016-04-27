@@ -2,6 +2,7 @@
 # single-core replica experiments
 #################################
 
+```
 virtualenv $HOME/ve; source $HOME/ve/bin/activate
 
 mkdir repex-exp; cd repex-exp
@@ -12,6 +13,7 @@ cd ..
 git clone https://github.com/radical-cybertools/radical.repex.git
 cd radical.repex; git checkout devel; python setup.py install
 cd examples/amber
+```
 
 # to run on Stampede modify 'username', 'project, etc. in stampede.json:
 
