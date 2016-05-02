@@ -223,6 +223,8 @@ class KernelPatternS(object):
             if self.dims[d_str]['type'] == 'umbrella':
                 self.umbrella = True
 
+        self.groups_numbers = [0, 0, 0] 
+
     #---------------------------------------------------------------------------
     #
     def get_rstr_id(self, restraint):
@@ -301,6 +303,10 @@ class KernelPatternS(object):
                                     nr_dims = self.nr_dims)
                         replicas.append(r)
 
+            self.assign_group_idx(replicas, 1)
+            self.assign_group_idx(replicas, 2)
+            self.assign_group_idx(replicas, 3)
+
         if self.nr_dims == 2:
             for i in range(self.dims['d1']['replicas']):
                 for j in range(self.dims['d2']['replicas']):
@@ -329,6 +335,9 @@ class KernelPatternS(object):
                                 nr_dims = self.nr_dims)
                     replicas.append(r)
 
+            self.assign_group_idx(replicas, 1)
+            self.assign_group_idx(replicas, 2)
+
         if self.nr_dims == 1:
             for i in range(self.dims['d1']['replicas']):
                 rid = i
@@ -349,68 +358,115 @@ class KernelPatternS(object):
                             nr_dims = self.nr_dims)
                 replicas.append(r)
 
-        self.assign_group_idx(replicas)
+            self.assign_group_idx(replicas, 1)
 
         return replicas
 
     #---------------------------------------------------------------------------
     #
-    def assign_group_idx(self, replicas):
+    def assign_group_idx(self, replicas, dim_int):
 
         if self.nr_dims == 3:
-            g_d1 = []
-            g_d2 = []
-            g_d3 = []
-            for r in replicas:
-                if len(g_d1) == 0:
-                    g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']]) 
-                    g_d2.append([r.dims['d1']['par'], r.dims['d3']['par']]) 
-                    g_d3.append([r.dims['d1']['par'], r.dims['d2']['par']])
-                for i in range(len(g_d1)):
-                    if (g_d1[i][0] == r.dims['d2']['par']) and (g_d1[i][1] == r.dims['d3']['par']):
-                        r.group_idx[0] = i
-                if r.group_idx[0] == None:
-                    g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']])
-                    r.group_idx[0] = len(g_d1) - 1
-                        
-                for i in range(len(g_d2)):
-                    if (g_d2[i][0] == r.dims['d1']['par']) and (g_d2[i][1] == r.dims['d3']['par']):
-                        r.group_idx[1] = i
-                if r.group_idx[1] == None:
-                    g_d2.append([r.dims['d1']['par'], r.dims['d3']['par']])
-                    r.group_idx[1] = len(g_d2) - 1
 
-                for i in range(len(g_d3)):
-                    if (g_d3[i][0] == r.dims['d1']['par']) and (g_d3[i][1] == r.dims['d2']['par']):
-                        r.group_idx[2] = i
-                if r.group_idx[2] == None:
-                    g_d3.append([r.dims['d1']['par'], r.dims['d2']['par']])
-                    r.group_idx[2] = len(g_d3) - 1
-            self.groups_numbers = [len(g_d1), len(g_d2), len(g_d3)] 
+            if dim_int == 1:
+                g_d1 = []
+                for r in replicas:
+                    updated = False
+                    if len(g_d1) == 0:
+                        g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']]) 
+
+                    for i in range(len(g_d1)):
+                        if (g_d1[i][0] == r.dims['d2']['par']) and (g_d1[i][1] == r.dims['d3']['par']):
+                            r.group_idx[0] = i
+                            updated = True
+                    if updated == False:
+                        g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']])
+                        r.group_idx[0] = len(g_d1) - 1
+                    self.logger.info( "d1, repl group idx: {0}".format(r.group_idx[0]) )
+
+                self.groups_numbers[0] = len(g_d1)
+
+            if dim_int == 2:
+                g_d2 = []
+                for r in replicas:
+                    updated = False
+                    if len(g_d2) == 0:
+                        g_d2.append([r.dims['d1']['par'], r.dims['d3']['par']]) 
+                    
+                    for i in range(len(g_d2)):
+                        if (g_d2[i][0] == r.dims['d1']['par']) and (g_d2[i][1] == r.dims['d3']['par']):
+                            r.group_idx[1] = i
+                            updated = True
+                    if updated == False:
+                        g_d2.append([r.dims['d1']['par'], r.dims['d3']['par']])
+                        r.group_idx[1] = len(g_d2) - 1
+                    self.logger.info( "d2, repl group idx: {0}".format(r.group_idx[1]) )
+
+                self.groups_numbers[1] = len(g_d2)
+
+            if dim_int == 3:
+                g_d3 = []
+                for r in replicas:
+                    updated = False
+                    if len(g_d3) == 0:
+                        g_d3.append([r.dims['d1']['par'], r.dims['d2']['par']])
+                    
+                    for i in range(len(g_d3)):
+                        if (g_d3[i][0] == r.dims['d1']['par']) and (g_d3[i][1] == r.dims['d2']['par']):
+                            r.group_idx[2] = i
+                            updated = True
+                    if updated == False:
+                        g_d3.append([r.dims['d1']['par'], r.dims['d2']['par']])
+                        r.group_idx[2] = len(g_d3) - 1
+                    self.logger.info( "d3, repl group idx: {0}".format(r.group_idx[2]) )
+
+                self.groups_numbers[2] = len(g_d3)
+
+            self.logger.info( "repl group idx: {0} {1} {2}".format(r.group_idx[0], r.group_idx[1],  r.group_idx[2]) )
+
+        #self.logger.info("self group numbers: ")
+        #self.logger.info(self.groups_numbers)
+        #for r in replicas:
+        #    self.logger.info("rid: {0} dim: {1} gid: {2} d2_par: {3} d3_par{4} ".format(r.id, 1, r.group_idx[0],  r.dims['d2']['par'], r.dims['d3']['par']) )
+        #    self.logger.info("rid: {0} dim: {1} gid: {2} d1_par: {3} d3_par{4} ".format(r.id, 2, r.group_idx[1],  r.dims['d1']['par'], r.dims['d3']['par']) )
+        #    self.logger.info("rid: {0} dim: {1} gid: {2} d1_par: {3} d2_par{4} ".format(r.id, 3, r.group_idx[2],  r.dims['d1']['par'], r.dims['d2']['par']) )
+        #    self.logger.info("--------------------------------------------")
 
         if self.nr_dims == 2:
-            g_d1 = []
-            g_d2 = []
 
-            for r in replicas:
-                if len(g_d1) == 0:
-                    g_d1.append(r.dims['d2']['par']) 
-                    g_d2.append(r.dims['d1']['par']) 
-                for i in range(len(g_d1)):
-                    if (g_d1[i] == r.dims['d2']['par']):
-                        r.group_idx[0] = i
-                if r.group_idx[0] == None:
-                    g_d1.append(r.dims['d2']['par'])
-                    r.group_idx[0] = len(g_d1) - 1
-                        
-                for i in range(len(g_d2)):
-                    if (g_d2[i] == r.dims['d1']['par']):
-                        r.group_idx[1] = i
-                if r.group_idx[1] == None:
-                    g_d2.append(r.dims['d1']['par'])
-                    r.group_idx[1] = len(g_d2) - 1
+            if dim_int == 1:
+                g_d1 = []
 
-            self.groups_numbers = [len(g_d1), len(g_d2)] 
+                for r in replicas:
+                    updated = False
+                    if len(g_d1) == 0:
+                        g_d1.append(r.dims['d2']['par']) 
+                    for i in range(len(g_d1)):
+                        if (g_d1[i] == r.dims['d2']['par']):
+                            r.group_idx[0] = i
+                            updated = True
+                    if updated == False:
+                        g_d1.append(r.dims['d2']['par'])
+                        r.group_idx[0] = len(g_d1) - 1
+
+                self.groups_numbers[0] = len(g_d1) 
+
+            if dim_int == 2:
+                g_d2 = []
+                for r in replicas:
+                    updated = False
+                    if len(g_d2) == 0:
+                        g_d1.append(r.dims['d2']['par']) 
+                            
+                    for i in range(len(g_d2)):
+                        if (g_d2[i] == r.dims['d1']['par']):
+                            r.group_idx[1] = i
+                            updated = True
+                    if updated == False:
+                        g_d2.append(r.dims['d1']['par'])
+                        r.group_idx[1] = len(g_d2) - 1
+
+                self.groups_numbers[1] = len(g_d2) 
 
         if self.nr_dims == 1:
             for r in replicas:
@@ -570,7 +626,7 @@ class KernelPatternS(object):
     def prepare_replica_for_md(self, 
                                dim_int, 
                                dim_str, 
-                               replicas, 
+                               group, 
                                replica, 
                                sd_shared_list):
 
@@ -657,7 +713,10 @@ class KernelPatternS(object):
             }
         stage_out.append(info_out)
 
-        current_group = self.get_current_group_ids(dim_int, replicas, replica)
+        current_group = []
+        for repl in group:
+            current_group.append(repl.id)
+        #current_group = self.get_current_group_ids(dim_int, replicas, replica)
 
         #-----------------------------------------------------------------------
         # for all
@@ -728,13 +787,16 @@ class KernelPatternS(object):
             json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
+        self.logger.info( "current group: " )
+        self.logger.info( current_group )
 
         if self.dims[dim_str]['type'] == 'umbrella':
-            # IMPROVE!!!!!!!!!!!!!!!!!!
+            # 
             current_group_rst = {}
-            for repl in replicas:
-                if str(repl.id) in current_group:
-                    current_group_rst[str(repl.id)] = str(repl.new_restraints)
+            for repl in group:
+                #if str(repl.id) in current_group:
+                current_group_rst[str(repl.id)] = str(repl.new_restraints)
+                self.logger.info( "id: {0} temp: {1} salt: {2}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par']  ) )
 
             base_restraint = self.us_template + "."
 
@@ -754,19 +816,21 @@ class KernelPatternS(object):
             json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
 
         if self.dims[dim_str]['type'] == 'salt':
-            # IMPROVE!!!!!!!!!!!!!!!!!!
+            # 
             current_group_tsu = {}
-            for repl in replicas:
-                if str(repl.id) in current_group:
-                    # no temperature exchange
-                    if self.temperature_str == '':
-                        temp_str = str(self.init_temp)
-                    else:
-                        temp_str = str(repl.dims[self.temperature_str]['par'])
-                    current_group_tsu[str(repl.id)] = \
-                        [temp_str, \
-                         str(repl.dims[dim_str]['par']), \
-                         str(repl.new_restraints)]
+            for repl in group:
+                #if str(repl.id) in current_group:
+                # no temperature exchange
+                if self.temperature_str == '':
+                    temp_str = str(self.init_temp)
+                else:
+                    temp_str = str(repl.dims[self.temperature_str]['par'])
+                current_group_tsu[str(repl.id)] = \
+                    [temp_str, \
+                     str(repl.dims[dim_str]['par']), \
+                     str(repl.new_restraints)]
+
+                self.logger.info( "id: {0} temp: {1} umbrella: {2}".format( repl.id, repl.dims['d1']['par'], repl.dims['d3']['par']  ) )
 
             data = {
                 "rid": str(replica.id),
@@ -795,6 +859,7 @@ class KernelPatternS(object):
             amber_str = self.amber_path
 
         if self.dims[dim_str]['type'] == 'temperature':
+            self.logger.info( "id: {0} salt: {1} umbrella: {2}".format( repl.id, repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
             # matrix_calculator_temp_ex.py
             stage_in.append(sd_shared_list[2])
         if self.dims[dim_str]['type'] == 'umbrella':    
@@ -1220,7 +1285,7 @@ class KernelPatternS(object):
     def prepare_replica_for_exchange(self, 
                                      dim_int, 
                                      dim_str, 
-                                     replicas, 
+                                     group, 
                                      replica, 
                                      sd_shared_list):
         """
@@ -1230,22 +1295,27 @@ class KernelPatternS(object):
         basename = self.inp_basename
         matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), \
                                                   str(replica.cycle-1))
-        current_group = self.get_current_group_ids(dim_int, replicas, replica)
+
+        current_group = []
+        for repl in group:
+            current_group.append( repl.id )
+        
+        #current_group = self.get_current_group_ids(dim_int, replicas, replica)
 
         cu = radical.pilot.ComputeUnitDescription()
         
         current_group_tsu = {}
-        for repl in replicas:
-            if str(repl.id) in current_group:
-                # no temperature exchange
-                if self.temperature_str == '':
-                    temp_str = str(self.init_temp)
-                else:
-                    temp_str = str(repl.dims[self.temperature_str]['par'])
-                current_group_tsu[str(repl.id)] = \
-                    [temp_str, \
-                    str(repl.dims[dim_str]['par']), \
-                    str(repl.new_restraints)]
+        for repl in group:
+            #if str(repl.id) in current_group:
+            # no temperature exchange
+            if self.temperature_str == '':
+                temp_str = str(self.init_temp)
+            else:
+                temp_str = str(repl.dims[self.temperature_str]['par'])
+            current_group_tsu[str(repl.id)] = \
+                [temp_str, \
+                str(repl.dims[dim_str]['par']), \
+                str(repl.new_restraints)]
 
         # no temperature exchange
         if self.temperature_str == '':
@@ -1577,11 +1647,20 @@ class KernelPatternS(object):
     #
     def get_all_groups(self, dim_int, replicas):
 
+        try:
+            self.assign_group_idx(replicas, dim_int)
+        except:
+            raise
+
         dim = dim_int-1
+
+        self.logger.info( "dim: {0}".format(dim) )
         all_groups = []
         for i in range(self.groups_numbers[dim]):
             all_groups.append([None])
         for r in replicas:
+            self.logger.info( "repl group idx: " )
+            self.logger.info( r.group_idx )
             all_groups[r.group_idx[dim]].append(r)
 
         return all_groups
