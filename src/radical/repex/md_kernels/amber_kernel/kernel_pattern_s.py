@@ -799,7 +799,6 @@ class KernelPatternS(object):
             # 
             current_group_rst = {}
             for repl in group:
-                #if str(repl.id) in current_group:
                 current_group_rst[str(repl.id)] = str(repl.new_restraints)
                 self.logger.info( "id: {0} par1: {1} par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']   ) )
 
@@ -810,7 +809,7 @@ class KernelPatternS(object):
                 "replica_cycle" : str(replica.cycle-1),
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
-                "init_temp" : str(replica.dims[dim_str]['par']),
+                "temp_par" : str(replica.dims[self.temperature_str]['par']),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": str(self.amber_parameters),
                 "new_restraints" : str(replica.new_restraints),
@@ -864,7 +863,7 @@ class KernelPatternS(object):
             amber_str = self.amber_path
 
         if self.dims[dim_str]['type'] == 'temperature':
-            self.logger.info( "id: {0} salt: {1} umbrella: {2}".format( repl.id, repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
+            self.logger.info( "id: {0} par1: {1}  par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
             # matrix_calculator_temp_ex.py
             stage_in.append(sd_shared_list[2])
         if self.dims[dim_str]['type'] == 'umbrella':    

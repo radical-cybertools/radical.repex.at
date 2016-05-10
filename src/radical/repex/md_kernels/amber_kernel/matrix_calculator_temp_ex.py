@@ -165,7 +165,7 @@ if __name__ == '__main__':
             while (success == 0):
                 try:
                     rj_temp, rj_energy, temp = get_historical_data(replica_path, history_name)
-                    temperatures[j] = current_group_temp[str(j)]
+                    temperatures[j] = float(current_group_temp[str(j)])
                     energies[j] = rj_energy
                     success = 1
                     print "Success processing replica: %s" % j

@@ -186,7 +186,7 @@ if __name__ == '__main__':
     prmtop_name = data["amber_parameters"]
     mdin_name = data["amber_input"]
 
-    init_temp = float(data["init_temp"])
+    temp_par = float(data["temp_par"])
 
     current_group_rst = data["current_group_rst"]
    
@@ -229,7 +229,7 @@ if __name__ == '__main__':
                                 row_str = str(-1.0)
                             f.write(row_str)
                             f.write('\n')
-                            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp)
+                            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(temp_par)
                             f.write(row_str)
                         f.close()
                     success = 1
@@ -266,7 +266,7 @@ if __name__ == '__main__':
                     r.set_rstr(rstr_entry); r.calc_energy()
                     us_energy += r.energy
                 energies[int(j)] = replica_energy + us_energy
-                temperatures[int(j)] = float(init_temp)
+                temperatures[int(j)] = float(temp_par)
 
                 success = 1
                 print "Success processing replica: %s" % j
@@ -280,6 +280,9 @@ if __name__ == '__main__':
                     print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
                     success = 1
                 pass
+
+    print "temperatures: "
+    print temperatures
 
     for j in current_group_rst.keys():      
         swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
@@ -298,7 +301,7 @@ if __name__ == '__main__':
                     row_str = str(item)
             f.write(row_str)
             f.write('\n')
-            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(init_temp) + " _"
+            row_str = str(replica_id) + " " + str(replica_cycle) + " " + new_restraints + " " + str(temp_par) + " _"
             f.write(row_str)
 
         f.close()
