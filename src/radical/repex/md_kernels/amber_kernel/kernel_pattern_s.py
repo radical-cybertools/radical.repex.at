@@ -771,6 +771,10 @@ class KernelPatternS(object):
         json_pre_data_sh   = dump_data.replace("\"", "\\\\\"")
 
         if self.dims[dim_str]['type'] == 'temperature':
+            current_group_temp = {}
+            for repl in group:
+                current_group_temp[str(repl.id)] = repl.dims[dim_str]['par']
+
             data = {
                 "rid": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
@@ -779,7 +783,8 @@ class KernelPatternS(object):
                 "replicas" : str(self.replicas),
                 "amber_parameters": str(self.amber_parameters),
                 "new_restraints" : str(replica.new_restraints),
-                "init_temp" : str(replica.dims[dim_str]['par'])
+                "init_temp": str(self.init_temp),
+                "current_group_temp" : current_group_temp
                 }
 
             dump_data = json.dumps(data)
@@ -796,7 +801,7 @@ class KernelPatternS(object):
             for repl in group:
                 #if str(repl.id) in current_group:
                 current_group_rst[str(repl.id)] = str(repl.new_restraints)
-                self.logger.info( "id: {0} temp: {1} salt: {2}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par']  ) )
+                self.logger.info( "id: {0} par1: {1} par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']   ) )
 
             base_restraint = self.us_template + "."
 

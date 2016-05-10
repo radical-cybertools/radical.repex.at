@@ -74,6 +74,8 @@ if __name__ == '__main__':
     init_temp = data["init_temp"]
     temp_group = data["current_group"]
 
+    current_group_temp = data["current_group_temp"]
+
     current_group = []
     for i in temp_group:
         current_group.append(int(i))
@@ -150,7 +152,7 @@ if __name__ == '__main__':
     energies = [0.0]*replicas
 
     # for self
-    temperatures[int(replica_id)] = replica_temp
+    temperatures[int(replica_id)] = float(current_group_temp[replica_id])
     energies[int(replica_id)] = replica_energy
 
     for j in current_group:
@@ -163,7 +165,7 @@ if __name__ == '__main__':
             while (success == 0):
                 try:
                     rj_temp, rj_energy, temp = get_historical_data(replica_path, history_name)
-                    temperatures[j] = rj_temp
+                    temperatures[j] = current_group_temp[str(j)]
                     energies[j] = rj_energy
                     success = 1
                     print "Success processing replica: %s" % j

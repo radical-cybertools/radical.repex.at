@@ -147,22 +147,14 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 md_exec_timing = 0.0
                 t1 = datetime.datetime.utcnow()
 
-                self.logger.info("foo1")
-                try:
-                    all_groups = md_kernel.get_all_groups(dim_int, replicas)
-                except:
-                    raise
-                self.logger.info("foo2")
+                all_groups = md_kernel.get_all_groups(dim_int, replicas)
 
                 for group in all_groups:
                     group.pop(0)
 
-                self.logger.info("foo3")
-
                 for group in all_groups:
-                    self.logger.info( "d{0} group: ".format( dim_int ) )
                     for r in group:
-                        self.logger.info( 'rid:{0} gid:{1}'.format( r.id, r.group_idx[dim_int-1] ) )
+                        self.logger.info( 'd{0} group: rid:{1} gid:{2}'.format( dim_int, r.id, r.group_idx[dim_int-1] ) )
 
                 t2 = datetime.datetime.utcnow()
                 md_prep_timing += (t2-t1).total_seconds()
