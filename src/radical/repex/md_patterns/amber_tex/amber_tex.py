@@ -22,12 +22,9 @@ from radical.ensemblemd.patterns.replica_exchange import ReplicaExchange
 #-------------------------------------------------------------------------------
 
 class AmberTex(ReplicaExchange):
-    """
-    TODO
-    """
-    def __init__(self, inp_file,  workdir_local):
-        """Constructor.
-
+    
+    def __init__(self, inp_file, rconfig, workdir_local):
+        """
         Arguments:
         inp_file - package input file with Pilot and NAMD related parameters as 
         specified by user 
@@ -36,34 +33,24 @@ class AmberTex(ReplicaExchange):
 
         self.replica_objects = None
 
-        self.inp_basename = inp_file['input.MD']['input_file_basename']
-        self.inp_folder = inp_file['input.MD']['input_folder']
-        self.replicas = int(inp_file['input.MD']['number_of_replicas'])
-        self.cores = int(inp_file['input.PILOT']['cores'])
-        self.cycle_steps = int(inp_file['input.MD']['steps_per_cycle'])
+        self.inp_basename = inp_file['remd.input']['input_file_basename']
+        self.inp_folder = inp_file['remd.input']['input_folder']
+        self.replicas = int(inp_file['remd.input']['number_of_replicas'])
+        self.cores = int(rconfig['target']['cores'])
+        self.cycle_steps = int(inp_file['remd.input']['steps_per_cycle'])
         self.workdir_local = workdir_local
-        self.nr_cycles = int(inp_file['input.MD']['number_of_cycles'])
+        self.nr_cycles = int(inp_file['remd.input']['number_of_cycles'])
        
-        try:
-            self.replica_mpi = inp_file['input.MD']['replica_mpi']
-        except:
-            self.replica_mpi = False
-        try:
-            self.replica_cores = inp_file['input.MD']['replica_cores']
-        except:
-            self.replica_cores = 1
+        self.replica_mpi = inp_file['remd.input'].get('replica_mpi', False)
+        self.replica_cores = inp_file['remd.input'].get('replica_cores', 1)
 
-        try:
-            self.amber_path = inp_file['input.MD']['amber_path']
-        except:
-            print "Using default Amber path for %s" % inp_file['input.PILOT']['resource']
-            self.amber_path = None
+        self.amber_path = inp_file['remd.input'].get('amber_path')
            
-        self.min_temp = float(inp_file['input.MD']['min_temperature'])
-        self.max_temp = float(inp_file['input.MD']['max_temperature'])
-        self.amber_restraints = str(inp_file['input.MD']['amber_restraints'])
-        self.amber_coordinates = inp_file['input.MD']['amber_coordinates']
-        self.amber_parameters = inp_file['input.MD']['amber_parameters']
+        self.min_temp = float(inp_file['remd.input']['min_temperature'])
+        self.max_temp = float(inp_file['remd.input']['max_temperature'])
+        self.amber_restraints = str(inp_file['remd.input']['amber_restraints'])
+        self.amber_coordinates = inp_file['remd.input']['amber_coordinates']
+        self.amber_parameters = inp_file['remd.input']['amber_parameters']
 
         self.shared_urls = []
         self.shared_files = []
