@@ -54,7 +54,7 @@ class PilotKernelPatternA(PilotKernel):
             if unit:
                 self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
-                if state == radical.pilot.states.FAILED:
+                if state == rp.states.FAILED:
                     self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
 
         #-----------------------------------------------------------------------
@@ -63,7 +63,7 @@ class PilotKernelPatternA(PilotKernel):
 
         do_profile = os.getenv('REPEX_PROFILING', '0')
        
-        unit_manager = radical.pilot.UnitManager(self.session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+        unit_manager = rp.UnitManager(self.session, scheduler=rp.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(self.pilot_object)
 
@@ -84,14 +84,14 @@ class PilotKernelPatternA(PilotKernel):
 
             sd_pilot = {'source': shared_input_file_urls[i],
                         'target': 'staging:///%s' % shared_input_files[i],
-                        'action': radical.pilot.TRANSFER
+                        'action': rp.TRANSFER
             }
 
             self.pilot_object.stage_in(sd_pilot)
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],
-                         'action': radical.pilot.COPY
+                         'action': rp.COPY
             }
             self.sd_shared_list.append(sd_shared)
 

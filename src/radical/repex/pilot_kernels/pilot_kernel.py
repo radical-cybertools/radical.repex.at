@@ -72,26 +72,26 @@ class PilotKernel(object):
             if pilot:
                 self.logger.info("ComputePilot '{0}' state changed to {1}.".format(pilot.uid, state) )
 
-                if state == radical.pilot.states.FAILED:
+                if state == rp.states.FAILED:
                     self.logger.error("Pilot error: {0}".format(pilot.log) )
                     self.logger.error("RepEx execution FAILED.")
                     sys.exit(1)
         #-----------------------------------------------------------------------
    
-        self.session = radical.pilot.Session(database_url=self.dburl)
+        self.session = rp.Session(database_url=self.dburl)
         self.logger.info("Session ID: {0}".format(self.session.uid) )
 
         try:
             # Add an ssh identity to the session.
             if self.user:
-                cred = radical.pilot.Context('ssh')
+                cred = rp.Context('ssh')
                 cred.user_id = self.user
                 self.session.add_context(cred)
 
-            self.pilot_manager = radical.pilot.PilotManager(session=self.session)
+            self.pilot_manager = rp.PilotManager(session=self.session)
             self.pilot_manager.register_callback(pilot_state_cb)
 
-            pilot_description = radical.pilot.ComputePilotDescription()
+            pilot_description = rp.ComputePilotDescription()
             if self.access_schema == "gsissh":
                 pilot_description.access_schema = "gsissh"
 
@@ -119,7 +119,7 @@ class PilotKernel(object):
             self.logger.info("Pilot ID: {0}".format(self.pilot_object.uid) )
             self.pilot_manager.wait_pilots(self.pilot_object.uid,'Active') 
 
-        except radical.pilot.PilotException, ex:
+        except rp.PilotException, ex:
             self.logger.error("Error: {0}".format(ex))
             self.session.close (cleanup=True, terminate=True) 
 

@@ -64,8 +64,6 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(self.pilot_object)
 
-        do_profile = os.getenv('REPEX_PROFILING', '0')
-
         self._prof = rp.utils.Profiler(self.name)
         self._prof.prof('start_run')
         self._prof.prof('stagein_start')
@@ -272,6 +270,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     
             #-------------------------------------------------------------------
             # 
+            self._prof.prof('local_exchange_start' + c_str )    
             failed_cus = []              
             for r in submitted_replicas:
                 if r.state != rp.DONE:
@@ -289,7 +288,6 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 failed_cus.append( global_ex_cu.uid )
 
             # do exchange of parameters   
-            self._prof.prof('local_exchange_start' + c_str )                  
             md_kernel.do_exchange(current_cycle, dim_int, dim_str[dim_int], replicas)
             self._prof.prof('local_exchange_end' + c_str )   
             
