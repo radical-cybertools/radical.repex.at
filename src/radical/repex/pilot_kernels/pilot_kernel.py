@@ -22,13 +22,11 @@ import radical.utils.logger as rul
 #-------------------------------------------------------------------------------
 
 class PilotKernel(object):
-    """
-    """
-    def __init__(self, inp_file, rconfig):
-        """Constructor.
 
+    def __init__(self, inp_file, rconfig):
+        """
         Arguments:
-        inp_file - json input file with Pilot and NAMD related parameters as specified by user 
+        inp_file - json input file with Pilot and MD related parameters as specified by user 
         """
 
         self.name = 'exec'
@@ -48,9 +46,14 @@ class PilotKernel(object):
 
         self.cycletime = float(rconfig['target'].get('cycletime', 10.0))
 
+        # check if was set in rconfig
         if self.dburl is None:
-            self.logger.info("Using default Mongo DB url")
-            self.dburl = "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"
+            # check if was set as environment variable
+            self.dburl = os.environ.get('RADICAL_PILOT_DBURL')
+            # use default dburl
+            if self.dburl is None:
+                self.logger.info("Using default Mongo DB url")
+                self.dburl = "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"
 
         cleanup = rconfig['target'].get('cleanup','False')
         if (cleanup == "True"):

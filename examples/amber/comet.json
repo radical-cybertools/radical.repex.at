@@ -1,11 +1,10 @@
 {
     "target": {
-        "resource": "xsede.comet",
+        "resource": "xsede.supermic",
         "username" : "antontre",
-        "project" : "project",
-        "queue" : "compute",
-        "runtime" : "60",
+        "project" : "TG-MCB090174",
+        "runtime" : "340",
         "cleanup" : "False",
-        "cores" : "48"
+        "cores" : "760"
     }
 }
