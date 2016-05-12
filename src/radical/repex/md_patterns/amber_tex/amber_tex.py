@@ -52,6 +52,16 @@ class AmberTex(ReplicaExchange):
         self.amber_coordinates = inp_file['remd.input']['amber_coordinates']
         self.amber_parameters = inp_file['remd.input']['amber_parameters']
 
+        if inp_file['remd.input'].get('download_mdinfo') == 'True':
+            self.down_mdinfo = True
+        else:
+            self.down_mdinfo = False
+     
+        if inp_file['remd.input'].get('download_mdout') == 'True':
+            self.down_mdout = True
+        else:
+            self.down_mdout = False
+
         self.shared_urls = []
         self.shared_files = []
         
@@ -225,12 +235,13 @@ class AmberTex(ReplicaExchange):
         matrix_col = "matrix_column_{rid}_{cycle}.dat"\
                      .format(cycle=replica.cycle-1, rid=replica.id )
 
-        if replica.cycle == 1:
+        download_list = []
+        if self.down_mdinfo == True:
+            download_list.append( new_info.encode('utf-8') )
+        if self.down_mdout == True:
+            download_list.append( output_file.encode('utf-8') )
 
-            # sed magic
-            #s1 = "sed -i \"s/{/'\{/\" run.sh;"
-            #s2 = "sed -i \"s/@/'/\" run.sh;"
-            #cu.executable = "chmod 755 run.sh;" + " " + s1 + " " + s2 + " ./run.sh"
+        if replica.cycle == 1:
             
             k = Kernel(name="md.amber")
             k.pre_exec  = ["python input_file_builder.py " + "\'" + \
@@ -252,11 +263,10 @@ class AmberTex(ReplicaExchange):
             k.copy_output_data     = [str(new_info), 
                                       str(new_coor), 
                                       str(self.amber_coordinates)]
+            k.download_output_data = download_list
             k.cores                = int(self.replica_cores)
         else:
-            #old_coor = replica.old_path + "/" + self.amber_coordinates
             old_coor = "../staging_area/" + self.amber_coordinates
-
             k = Kernel(name="md.amber")
             k.pre_exec  = ["python input_file_builder.py " + "\'" + \
                            json_pre_data + "\'"]
@@ -278,6 +288,7 @@ class AmberTex(ReplicaExchange):
             k.copy_output_data     = [str(new_info), 
                                       str(new_coor), 
                                       str(self.amber_coordinates)]
+            k.download_output_data = download_list
             k.cores                = int(self.replica_cores)
 
         return k
