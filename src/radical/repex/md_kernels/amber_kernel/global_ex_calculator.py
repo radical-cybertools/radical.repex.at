@@ -81,8 +81,7 @@ def do_exchange(dimension, replicas, swap_matrix):
         r_j = gibbs_exchange(r_i, replicas, swap_matrix)
        
         if (r_j.id != r_i.id) and (r_j.id not in exchanged) and (r_i.id not in exchanged):
-            exchanged.append(r_j.id)
-            exchanged.append(r_i.id)
+            exchanged.append( [r_j.id, r_i.id] )
             
     return  exchanged
 
@@ -257,8 +256,8 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d2_param == r2.d2_param) and (r1.d3_param == r2.d3_param):
                             current_group.append(r2)
-                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                    exchange_list.append(exchange_pair)
+                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list += exchange_pairs
 
             elif dimension == 2:
                 r_pair = [r1.d1_param, r1.d3_param]
@@ -268,8 +267,8 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d1_param == r2.d1_param) and (r1.d3_param == r2.d3_param):
                             current_group.append(r2)
-                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                    exchange_list.append(exchange_pair)
+                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list += exchange_pairs
 
             elif dimension == 3:
                 r_pair = [r1.d1_param, r1.d2_param]
@@ -279,8 +278,8 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d1_param == r2.d1_param) and (r1.d2_param == r2.d2_param):
                             current_group.append(r2)
-                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                    exchange_list.append(exchange_pair)
+                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list += exchange_pairs
     elif nr_dims == 2:
         for r1 in replicas_obj:
             if dimension == 1:
@@ -291,8 +290,8 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d2_param == r2.d2_param):
                             current_group.append(r2)
-                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                    exchange_list.append(exchange_pair)
+                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list += exchange_pairs
 
             elif dimension == 2:
                 r_par = r1.d1_param
@@ -302,8 +301,8 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d1_param == r2.d1_param):
                             current_group.append(r2)
-                    exchange_pair = do_exchange(dimension, current_group, swap_matrix)
-                    exchange_list.append(exchange_pair)
+                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_list += exchange_pairs
     elif nr_dims == 1:
         for r_i in replicas_obj:
             r_j = gibbs_exchange(r_i, replicas_obj, swap_matrix)
@@ -319,7 +318,6 @@ if __name__ == '__main__':
     try:
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
         with open(outfile, 'w+') as f:
-
             for pair in exchange_list:
                 if pair:
                     row_str = str(pair[0]) + " " + str(pair[1]) 
