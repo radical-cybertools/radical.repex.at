@@ -253,8 +253,9 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
         
     # guard for errors
     if j is None:
-        j = random.randint(0,(len(replicas)-1))
-        print "...gibbs exchnage warning: j was None..."
+        #j = random.randint(0,(len(replicas)-1))
+        #print "...gibbs exchnage warning: j was None..."
+        return r_i  #don't exchange if this error occurred
     # actual replica
     r_j = replicas[j]
     ######################################
