@@ -54,6 +54,17 @@ def dihedral(c1,c2,c3,c4):
     if det >= 0.0: return dih
     else: return 360.0-dih
 
+def calc(r,r1,r2,r3,r4,rk2,rk3):
+
+    #see page 414 in amber 14 manual
+    energy = 0.0
+    if r < r1: energy = rk2*(r1-r2)**2 - 2.0*rk2*(r1-r2)*(r-r1)
+    elif (r >= r1) and (r < r2): energy = rk2*(r-r2)**2
+    elif (r >= r2) and (r <= r3): energy = 0.0
+    elif (r > r3) and (r <= r4): energy = rk3*(r-r3)**2
+    elif r > r4: energy = rk3*(r4-r3)**2 - 2.0*rk3*(r4-r3)*(r-r4)
+    return energy
+
 class Restraint(object):
 
     def __init__(self):
@@ -123,12 +134,14 @@ class Restraint(object):
             rk2 = rk2 / (180.0/math.pi) / (180.0/math.pi)
             rk3 = rk3 / (180.0/math.pi) / (180.0/math.pi)
 
-        #see page 414 in amber 14 manual
-        if self.r < r1: self.energy = rk2*(r1-r2)**2 - 2.0*rk2*(r1-r2)*(self.r-r1)
-        elif (self.r >= r1) and (self.r < r2): self.energy = rk2*(self.r-r2)**2
-        elif (self.r >= r2) and (self.r <= r3): self.energy = 0.0
-        elif (self.r > r3) and (self.r <= r4): self.energy = rk3*(self.r-r3)**2
-        elif self.r > r4: self.energy = rk3*(r4-r3)**2 - 2.0*rk3*(r4-r3)*(self.r-r4)
+        if self.rstr_type == 'DIHEDRAL':
+            #assuming r2=r3, which is normally this case
+            if abs(self.r-360.0-r2) < abs(self.r-r2):
+                self.r -= 360.0
+            elif abs(self.r+360.0-r2) < abs(self.r-r2):
+                self.r += 360.0
+
+        self.energy = calc(self.r,r1,r2,r3,r4,rk2,rk3)
 
 #-------------------------------------------------------------------------------
 
