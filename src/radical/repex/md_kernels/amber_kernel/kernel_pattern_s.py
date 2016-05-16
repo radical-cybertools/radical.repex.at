@@ -1436,20 +1436,14 @@ class KernelPatternS(object):
                             r1 = r
                         if r.id == r2_id:
                             r2 = r
-                    #-----------------------------------------------------------
-                    # guard
-                    if r1 == None:
-                        rid = random.randint(0,(len(replicas)-1))
-                        r1 = replicas[rid]
-                    if r2 == None:
-                        rid = random.randint(0,(len(replicas)-1))
-                        r2 = replicas[rid]
+
                     #-----------------------------------------------------------
                     # swap parameters
-                    if self.exchange_off[dim_int-1] == False:
-                        self.exchange_params(dim_str, r1, r2)
-                        r1.swap = 1
-                        r2.swap = 1
+                    if r1 != None and r2 != None:
+                        if self.exchange_off[dim_int-1] == False:
+                            self.exchange_params(dim_str, r1, r2)
+                            r1.swap = 1
+                            r2.swap = 1
                 else:
                     i = l[-1]
                     while i != '/':
