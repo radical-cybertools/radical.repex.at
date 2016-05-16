@@ -262,33 +262,14 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 
     return r_j
 
-#-------------------------------------------------------------------------------
-#
-#def do_exchange(dimension, replicas, swap_matrix):
-#    """
-#    """
-#
-#    exchanged = []
-#    for r_i in replicas:
-#        # does this pick a correct one????
-#        r_j = gibbs_exchange(r_i, replicas, swap_matrix)
-#       
-#        if (r_j.id != r_i.id) and (r_j.id not in exchanged) and (r_i.id not in exchanged):
-#            exchanged.append(r_j.id)
-#            exchanged.append(r_i.id)
-#            
-#    return  exchanged
-
 def do_exchange(dimension, replicas, swap_matrix):
 
     exchanged_pairs = []
     exchanged_replicas = []
     for r_i in replicas:
-        if r_i not in exchanged_replicas:
-        # does this pick a correct one????
+        if r_i.id not in exchanged_replicas:
             r_j = gibbs_exchange(r_i, replicas, swap_matrix)
 
-        #if (r_j.id != r_i.id) and ([r_i.id,r_j.id] not in exchanged) and ([r_j.id,r_i.id] not in exchanged):
             if (r_j.id != r_i.id) and (r_j.id not in exchanged_replicas):
                 exchanged_pairs.append( [r_j.id, r_i.id] )
                 exchanged_replicas.append(r_j.id)
