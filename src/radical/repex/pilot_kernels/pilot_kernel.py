@@ -14,7 +14,7 @@ import time
 import random
 import datetime
 from os import path
-import radical.pilot
+import radical.pilot as rp
 from random import randint
 from kernels.kernels import KERNELS
 import radical.utils.logger as rul

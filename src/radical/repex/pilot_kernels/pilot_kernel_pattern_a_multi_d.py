@@ -67,12 +67,14 @@ class PilotKernelPatternAmultiD(PilotKernel):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(self.pilot_object)
 
-        stagein_start = datetime.datetime.utcnow()
+        self._prof = rp.utils.Profiler(self.name)
+        self._prof.prof('start_run')
+        self._prof.prof('stagein_start')
 
         # creating restraint files for US case 
-        if md_kernel.name == 'ak-patternB-us':
-            for r in replicas:
-                md_kernel.build_restraint_file(r)
+        #if md_kernel.name == 'ak-patternB-us':
+        #    for r in replicas:
+        #        md_kernel.build_restraint_file(r)
 
         # staging shared input data in
         md_kernel.prepare_shared_data(replicas)
@@ -95,24 +97,12 @@ class PilotKernelPatternAmultiD(PilotKernel):
             }
             self.sd_shared_list.append(sd_shared)
 
-        # make sure data is staged
-        time.sleep(3)
-        
-        stagein_end = datetime.datetime.utcnow()
-
-        # absolute simulation start time
-        start = datetime.datetime.utcnow()
-
-        hl_performance_data = {}
-        cu_performance_data = {}
+        self._prof.prof('stagein_end')
 
         #------------------------
         # GL = 0: submit global calculator before
         # GL = 1: submit global calculator after
         GL = 1
-
-        #DIM = 0
-        #dimensions = md_kernel.dims
 
         #-----------------------------------------------------------------------
         # async loop
@@ -140,6 +130,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
         self.logger.info("cycle_time: {0}".format( self.cycletime) )
         c_start = datetime.datetime.utcnow()
 
+        self._prof.prof('sim_loop_start')
         while (simulation_time < self.runtime*60.0 ):
 
             if dim_int < dim_count:
@@ -147,6 +138,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
             else:
                 dim_int = 1
             
+            c_str = '_c:' + str(current_cycle) + '_d:' + str(dim_int)
             if (simulation_time < (self.runtime*60.0 - self.cycletime) ):
                 replicas_for_md = []
                 for r in replicas:
@@ -157,28 +149,34 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
                 if (len(replicas_for_md) != 0):
                     c_replicas = []
+                    self._prof.prof('md_prep_start_1' + c_str )
                     for replica in replicas_for_md:
                         cu_name = str(replica.id) + '_' + str(replica.group_idx[dim_int-1])
                         self.logger.info( "cu_name: {0}".format(cu_name) )
                         compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], replicas_for_md, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
                         c_replicas.append( compute_replica )
-                        
+                    self._prof.prof('md_prep_end_1' + c_str )
+                    self._prof.prof('md_sub_start_1' + c_str )
                     sub_replicas = unit_manager.submit_units(c_replicas)
+                    self._prof.prof('md_sub_end_1' + c_str )
                     sub_md_replicas += sub_replicas
 
                     for r in replicas_for_md:
                         r.state = 'R'
                     running_replicas += replicas_for_md
 
-                print "sub_md_replicas: {0}".format( len(sub_md_replicas) )
+                self.logger.info( "sub_md_replicas: {0}".format( len(sub_md_replicas) ) )
 
                 if (len(replicas_for_exchange) != 0):
                     sub_global_repl.append( replicas_for_exchange ) 
 
-                    # current cycle???? how it is determined
+                    self._prof.prof('gl_ex_prep_start_1' + c_str )
                     ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, dim_int, dim_str[dim_int], replicas_for_exchange, self.sd_shared_list)   
+                    self._prof.prof('gl_ex_prep_end_1' + c_str )
+                    self._prof.prof('gl_ex_sub_start_1' + c_str )
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
+                    self._prof.prof('gl_ex_sub_end_1' + c_str )
                     sub_global_ex.append( global_ex_cu )
                     sub_global_cycles.append( current_cycle )
 
@@ -188,8 +186,10 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
                     # added below
                     #-----------------------------------------------------------
-
+                    self._prof.prof('gl_ex_wait_start_1' + c_str )
                     unit_manager.wait_units( unit_ids=global_ex_cu.uid )
+                    self._prof.prof('gl_ex_wait_end_1' + c_str )
+                    self._prof.prof('local_proc_start_1' + c_str )
                     gl_state = 'None'
                     while (gl_state != 'Done'):
                         self.logger.info( "Waiting for global calc to finish!" )
@@ -235,8 +235,10 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     for r in replicas:
                         if r.state == 'W':
                             replicas_for_md.append(r)
+                    self._prof.prof('local_proc_end_1' + c_str )
 
                     if (len(replicas_for_md) != 0):
+                        self._prof.prof('md_prep_start_2' + c_str )
                         c_replicas = []
                         for replica in replicas_for_md:
                             cu_name = str(replica.id) + '_' + str(replica.group_idx[dim_int-1])
@@ -244,16 +246,18 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], replicas_for_md, replica, self.sd_shared_list)
                             compute_replica.name = cu_name
                             c_replicas.append( compute_replica )
-                            
+                        self._prof.prof('md_prep_stop_2' + c_str )
+                        self._prof.prof('md_sub_start_2' + c_str )
                         sub_replicas = unit_manager.submit_units(c_replicas)
                         sub_md_replicas += sub_replicas
+                        self._prof.prof('md_sub_end_2' + c_str )
 
                         for r in replicas_for_md:
                             r.state = 'R'
                         running_replicas += replicas_for_md
 
                     #-----------------------------------------------------------
-
+            self._prof.prof('local_wait_start_1' + c_str )
             completeddd_cus = []
             completed = 0
             # fist wait
@@ -312,6 +316,9 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             completeddd_cus.append(cu)
                 else:
                     no_partner = 0
+ 
+            self._prof.prof('local_wait_end_1' + c_str )
+            self._prof.prof('local_proc_start_2' + c_str )
 
             c_end = datetime.datetime.utcnow()
             simulation_time = (c_end - c_start).total_seconds()
@@ -323,13 +330,11 @@ class PilotKernelPatternAmultiD(PilotKernel):
             replicas_for_exchange = []
             rm_cus = []
             for cu in sub_md_replicas:
-                #print "state is: {0}".format( cu.state )
                 if cu.state == 'Done':
                     print "ok md"
                     for r in running_replicas:
                         r_name = str(r.id) + '_' + str(r.group_idx[dim_int-1])
                         if r_name == cu.name:
-                            #print "Replica {0} finished MD".format( r.id )
                             self.logger.info( "Replica {0} finished MD".format( r.id ) )
                             replicas_for_exchange.append(r)
                             running_replicas.remove(r)
@@ -338,5 +343,11 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
             for cu in rm_cus:
                 sub_md_replicas.remove(cu)
+
+            self._prof.prof('local_proc_end_2' + c_str )
+
+        #-----------------------------------------------------------------------
+        #
+        self._prof.prof('sim_loop_end')
 
             

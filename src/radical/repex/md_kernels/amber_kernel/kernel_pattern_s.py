@@ -1189,29 +1189,31 @@ class KernelPatternS(object):
 
         if (self.dims[dim_str]['type'] == 'umbrella'):
             if KERNELS[self.resource]["shell"] == "bash":
-                cu.executable = "python remote_calculator_us_ex_mpi.py " + \
+                cu.executable = "python matrix_calculator_us_ex_mpi.py " + \
                                 "\'" + \
                                 json_data_bash + "\'"
             elif KERNELS[self.resource]["shell"] == "bourne":
-                cu.executable = "python remote_calculator_us_ex_mpi.py " + \
+                cu.executable = "python matrix_calculator_us_ex_mpi.py " + \
                                 "\'" + \
                                 json_data_sh + "\'"
 
         if (self.dims[dim_str]['type'] == 'temperature'):
             if KERNELS[self.resource]["shell"] == "bash":
-                cu.executable = "python remote_calculator_temp_ex_mpi.py " + \
+                cu.executable = "python matrix_calculator_temp_ex_mpi.py " + \
                                 "\'" + \
                                 json_data_bash + "\'"
             elif KERNELS[self.resource]["shell"] == "bourne":
-                cu.executable = "python remote_calculator_temp_ex_mpi.py " + \
+                cu.executable = "python matrix_calculator_temp_ex_mpi.py " + \
                                 "\'" + \
                                 json_data_sh + "\'"
 
         cu.pre_exec = self.pre_exec
         cu.input_staging = stage_in
         cu.output_staging = stage_out
-        cu.cores = self.replica_cores
-        cu.mpi = self.replica_mpi
+        # we set the number of cores equal to group size
+        cu.cores = len(group)
+        # we set mpi to true since this is group execution
+        cu.mpi = True
 
         return cu
 

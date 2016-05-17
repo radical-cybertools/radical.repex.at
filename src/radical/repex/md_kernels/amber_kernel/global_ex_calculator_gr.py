@@ -125,7 +125,7 @@ if __name__ == '__main__':
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
-    replicas      = len(data["replicas"])
+    replicas      = int(data["replicas"])
     current_cycle = int(data["current_cycle"])
     dimension     = int(data["dimension"])
     group_nr      = int(data["group_nr"])

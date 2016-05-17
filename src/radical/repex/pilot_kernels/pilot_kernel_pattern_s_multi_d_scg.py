@@ -136,13 +136,14 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
                 
                 self._prof.prof('get_groups_start' + c_str)
                 all_groups = md_kernel.get_all_groups(dim_int, replicas)
+                for group in all_groups:
+                    group.pop(0)
                 self._prof.prof('get_groups_end' + c_str)
 
                 gnr = -1
                 c_units = []
                 for group in all_groups:
                     gnr += 1
-
                     self._prof.prof('md_prep_start_g:' + str(gnr) + c_str )
                     compute_group = md_kernel.prepare_group_for_md(dim_int, dim_str[dim_int], group, self.sd_shared_list)
                     c_units.append(compute_group)

@@ -149,6 +149,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         c_replicas = []
                         for replica in batch:
                             compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], replicas, replica, self.sd_shared_list)
+                            compute_replica.name = 'r_' + str(replica.id) + c_str + '_md'
                             c_replicas.append(compute_replica)
                         self._prof.prof('md_prep_end_g:' + str(gnr) + c_str )
                         
@@ -174,6 +175,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     c_replicas = []
                     for replica in batch:
                         compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], replicas, replica, self.sd_shared_list)
+                        compute_replica.name = 'r_' + str(replica.id) + c_str + '_md'
                         c_replicas.append(compute_replica)
                     self._prof.prof('md_prep_end_g:' + str(gnr) + c_str )
 
@@ -218,6 +220,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                             e_replicas = []
                             for replica in batch:
                                 ex_replica = md_kernel.prepare_replica_for_exchange(dim_int, dim_str[dim_int], replicas, replica, self.sd_shared_list)
+                                ex_replica.name = 'r_' + str(replica.id) + c_str + '_ex'
                                 e_replicas.append(ex_replica)
                             self._prof.prof('salt_ex_prep_end_g:' + str(gnr) + c_str )
 
@@ -237,6 +240,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         e_replicas = []
                         for replica in batch:
                             ex_replica = md_kernel.prepare_replica_for_exchange(dim_int, dim_str[dim_int], replicas, replica, self.sd_shared_list)
+                            ex_replica.name = 'r_' + str(replica.id) + c_str + '_ex'
                             e_replicas.append(ex_replica)
                         self._prof.prof('salt_ex_prep_end_g:' + str(gnr) + c_str )
 
@@ -255,6 +259,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                     self._prof.prof('gl_calc_prep_start' + c_str )           
                     ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, dim_int, dim_str[dim_int], replicas, self.sd_shared_list)
+                    ex_calculator.name = 'gl_ex_' + c_str
                     self._prof.prof('gl_calc_prep_end' + c_str )
 
                     self._prof.prof('gl_calc_sub_start' + c_str )
@@ -298,6 +303,6 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
         #-----------------------------------------------------------------------
         # end of loop
-        self._prof.prof('end_run')
+        self._prof.prof('sim_loop_end')
 
         

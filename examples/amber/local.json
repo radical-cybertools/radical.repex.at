@@ -5,6 +5,7 @@
         "runtime" : "30",
         "cycletime" : "30",
         "cleanup" : "False",
-        "cores" : "4"
+        "cores" : "4",
+        "mongo_url" : "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"
     }
 }
