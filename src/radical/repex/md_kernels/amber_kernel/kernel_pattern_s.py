@@ -1680,8 +1680,5 @@ class KernelPatternS(object):
             if r.group_idx[dim] == replica.group_idx[dim]:
                 group.append(r)
 
-        self.logger.info( "replica group: " )
-        self.logger.info( group )
-
         return group
 

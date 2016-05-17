@@ -3,7 +3,7 @@
         "resource" : "xsede.stampede",
         "username" : "antontre",
         "project"  : "TG-MCB090174",
-        "runtime"  : "310",
+        "runtime"  : "340",
         "cleanup"  : "False",
         "cores" : "528",
         "db_url" : "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"

@@ -94,7 +94,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
         
         self._prof.prof('stagein_end')
 
-        #------------------------
+        #-----------------------------------------------------------------------
         # GL = 0: submit global calculator before
         # GL = 1: submit global calculator after
         GL = 1
@@ -183,10 +183,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     sub_global_ex.append( global_ex_cu )
                     sub_global_cycles.append( current_cycle )
 
-                    #for r in replicas_for_exchange:
-                    #    r.state = 'R'
-                    #running_replicas += replicas_for_exchange
-
                     # added below
                     #-----------------------------------------------------------
                     self._prof.prof('gl_ex_wait_start_1' + c_str )
@@ -210,9 +206,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     # exchange is a part of MD CU
                     for r in replicas_for_exchange:
                         r.state = 'E'
-
-                    #for cu in rm_cus:
-                    #    sub_ex_replicas.remove(cu)
                     
                     if (len(sub_global_ex) != 0):
                         if sub_global_ex[0].state == 'Done':
@@ -341,13 +334,13 @@ class PilotKernelPatternAmultiD(PilotKernel):
             replicas_for_exchange = []
             rm_cus = []
             for cu in sub_md_replicas:
-                #print "state is: {0}".format( cu.state )
                 if cu.state == 'Done':
                     self.logger.info( "ok md" )
                     for r in running_replicas:
-                        r_name = str(r.id) + '_' + str(r.group_idx[dim_int-1])
-                        if r_name == cu.name:
-                            #print "Replica {0} finished MD".format( r.id )
+                        cu_name = cu.name.split('_')
+                        self.logger.info("cu_name[0]: {0}".format( cu_name[0]) )
+
+                        if str(r.id) == cu_name[0]:
                             self.logger.info( "Replica {0} finished MD".format( r.id ) )
                             replicas_for_exchange.append(r)
                             running_replicas.remove(r)
