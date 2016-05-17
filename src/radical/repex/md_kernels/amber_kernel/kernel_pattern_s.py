@@ -1663,3 +1663,25 @@ class KernelPatternS(object):
 
         return all_groups
 
+    #---------------------------------------------------------------------------
+    #
+    def get_replica_group(self, dim_int, replicas, replica):
+
+        try:
+            self.assign_group_idx(replicas, dim_int)
+        except:
+            raise
+
+        dim = dim_int-1
+        self.logger.info( "dim: {0}".format(dim) )
+        group = []
+
+        for r in replicas:
+            if r.group_idx[dim] == replica.group_idx[dim]:
+                group.append(r)
+
+        self.logger.info( "replica group: " )
+        self.logger.info( group )
+
+        return group
+

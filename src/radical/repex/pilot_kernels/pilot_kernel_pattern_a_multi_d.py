@@ -13,7 +13,7 @@ import math
 import json
 import datetime
 from os import path
-import radical.pilot
+import radical.pilot as rp
 import radical.utils.logger as rul
 from pilot_kernels.pilot_kernel import *
 
@@ -54,7 +54,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
             if unit:
                 self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
-                if state == radical.pilot.states.FAILED:
+                if state == rp.states.FAILED:
                     self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
 
         #-----------------------------------------------------------------------
@@ -63,16 +63,13 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
         do_profile = os.getenv('REPEX_PROFILING', '0')
        
-        unit_manager = radical.pilot.UnitManager(self.session, scheduler=radical.pilot.SCHED_ROUND_ROBIN)
+        unit_manager = rp.UnitManager(self.session, scheduler=rp.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(self.pilot_object)
 
-        stagein_start = datetime.datetime.utcnow()
-
-        # creating restraint files for US case 
-        if md_kernel.name == 'ak-patternB-us':
-            for r in replicas:
-                md_kernel.build_restraint_file(r)
+        self._prof = rp.utils.Profiler(self.name)
+        self._prof.prof('start_run')
+        self._prof.prof('stagein_start')
 
         # staging shared input data in
         md_kernel.prepare_shared_data(replicas)
@@ -84,27 +81,18 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
             sd_pilot = {'source': shared_input_file_urls[i],
                         'target': 'staging:///%s' % shared_input_files[i],
-                        'action': radical.pilot.TRANSFER
+                        'action': rp.TRANSFER
             }
 
             self.pilot_object.stage_in(sd_pilot)
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],
-                         'action': radical.pilot.COPY
+                         'action': rp.COPY
             }
             self.sd_shared_list.append(sd_shared)
-
-        # make sure data is staged
-        time.sleep(3)
         
-        stagein_end = datetime.datetime.utcnow()
-
-        # absolute simulation start time
-        start = datetime.datetime.utcnow()
-
-        hl_performance_data = {}
-        cu_performance_data = {}
+        self._prof.prof('stagein_end')
 
         #------------------------
         # GL = 0: submit global calculator before
@@ -140,6 +128,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
         self.logger.info("cycle_time: {0}".format( self.cycletime) )
         c_start = datetime.datetime.utcnow()
 
+        self._prof.prof('sim_loop_start')
         while (simulation_time < self.runtime*60.0 ):
 
             if dim_int < dim_count:
@@ -147,6 +136,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
             else:
                 dim_int = 1
             
+            c_str = '_c:' + str(current_cycle) + '_d:' + str(dim_int)
             if (simulation_time < (self.runtime*60.0 - self.cycletime) ):
                 replicas_for_md = []
                 for r in replicas:
@@ -156,29 +146,40 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         replicas_for_md.append(r)
 
                 if (len(replicas_for_md) != 0):
+                    self._prof.prof('md_prep_start_1' + c_str )
                     c_replicas = []
                     for replica in replicas_for_md:
-                        cu_name = str(replica.id) + '_' + str(replica.group_idx[dim_int-1])
+                        group = md_kernel.get_replica_group(dim_int, replicas, replica)
+                        cu_name = str(replica.id) + '_' + str(replica.group_idx[dim_int-1]) + c_str
                         self.logger.info( "cu_name: {0}".format(cu_name) )
-                        compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], replicas_for_md, replica, self.sd_shared_list)
+                        compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
                         c_replicas.append( compute_replica )
+                    self._prof.prof('md_prep_end_1' + c_str )
                         
+                    self._prof.prof('md_sub_start_1' + c_str )
                     sub_replicas = unit_manager.submit_units(c_replicas)
+                    self._prof.prof('md_sub_end_1' + c_str )
                     sub_md_replicas += sub_replicas
+
 
                     for r in replicas_for_md:
                         r.state = 'R'
                     running_replicas += replicas_for_md
 
-                print "sub_md_replicas: {0}".format( len(sub_md_replicas) )
+                self.logger.info( "sub_md_replicas: {0}".format( len(sub_md_replicas) ) )
 
                 if (len(replicas_for_exchange) != 0):
                     sub_global_repl.append( replicas_for_exchange ) 
 
-                    # current cycle???? how it is determined
+                    cu_name = 'gl_ex_cu' + c_str
+                    self._prof.prof('gl_ex_prep_start_1' + c_str )
                     ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, dim_int, dim_str[dim_int], replicas_for_exchange, self.sd_shared_list)   
+                    ex_calculator.name = cu_name
+                    self._prof.prof('gl_ex_prep_end_1' + c_str )
+                    self._prof.prof('gl_ex_sub_start_1' + c_str )
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
+                    self._prof.prof('gl_ex_sub_end_1' + c_str )
                     sub_global_ex.append( global_ex_cu )
                     sub_global_cycles.append( current_cycle )
 
@@ -188,20 +189,24 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
                     # added below
                     #-----------------------------------------------------------
-
+                    self._prof.prof('gl_ex_wait_start_1' + c_str )
                     unit_manager.wait_units( unit_ids=global_ex_cu.uid )
+                    self._prof.prof('gl_ex_wait_end_1' + c_str )
+
                     gl_state = 'None'
+                    sleep = 0
                     while (gl_state != 'Done'):
                         self.logger.info( "Waiting for global calc to finish!" )
                         gl_state = global_ex_cu.state
-                        c_end = datetime.datetime.utcnow()
-                        simulation_time = (c_end - c_start).total_seconds()
                         time.sleep(1)
-                        if ( simulation_time > self.runtime*60.0 ):
+                        sleep += 1
+                        if ( sleep > 30 ):
+                            self.logger.info( "Warning: global calc never reached Done state..." )
                             gl_state = 'Done'
 
                     self.logger.info( "Global calc {0} finished!".format( global_ex_cu.uid ) )
 
+                    self._prof.prof('local_proc_start_1' + c_str )
                     # exchange is a part of MD CU
                     for r in replicas_for_exchange:
                         r.state = 'E'
@@ -212,7 +217,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     if (len(sub_global_ex) != 0):
                         if sub_global_ex[0].state == 'Done':
 
-                            #print "got exchange pairs!"
                             self.logger.info( "Got exchange pairs!" )
 
                             sub_global_ex.pop(0)
@@ -236,16 +240,23 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         if r.state == 'W':
                             replicas_for_md.append(r)
 
+                    self._prof.prof('local_proc_end_1' + c_str )
+
                     if (len(replicas_for_md) != 0):
+                        self._prof.prof('md_prep_start_2' + c_str )
                         c_replicas = []
                         for replica in replicas_for_md:
-                            cu_name = str(replica.id) + '_' + str(replica.group_idx[dim_int-1])
+                            group = md_kernel.get_replica_group(dim_int, replicas, replica)
+                            cu_name = str(replica.id) + '_' + str(replica.group_idx[dim_int-1]) + c_str
                             self.logger.info( "cu_name: {0}".format(cu_name) )
-                            compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], replicas_for_md, replica, self.sd_shared_list)
+                            compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                             compute_replica.name = cu_name
                             c_replicas.append( compute_replica )
+                        self._prof.prof('md_prep_end_2' + c_str )
                             
+                        self._prof.prof('md_sub_start_2' + c_str )
                         sub_replicas = unit_manager.submit_units(c_replicas)
+                        self._prof.prof('md_sub_end_2' + c_str )
                         sub_md_replicas += sub_replicas
 
                         for r in replicas_for_md:
@@ -256,9 +267,11 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
             completeddd_cus = []
             completed = 0
-            # fist wait
-            while ( completed < (len(sub_md_replicas) / 2) ):
-                self.logger.info( "proceed when completed replicas >= {0}".format( len(sub_md_replicas) / 2 ) )
+
+            self._prof.prof('local_wait_start_1' + c_str )
+            # first wait
+            while ( completed < (len(sub_md_replicas) / 8) ):
+                self.logger.info( "proceed when completed replicas >= {0}".format( len(sub_md_replicas) / 8 ) )
                 completeddd_cus = []
                 for cu in sub_md_replicas:
                     if cu.state == 'Done':
@@ -271,6 +284,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     completed = md_kernel.replicas
                    
             # second wait
+            """
             no_partner = 1
             while(no_partner == 1):
                 all_gr_list = []
@@ -296,8 +310,8 @@ class PilotKernelPatternAmultiD(PilotKernel):
                                     gr_list.append(cu1.name)
                                     processed_cus.append(cu1.name)
                         all_gr_list.append(gr_list)
-                print "all_gr_list: "
-                print all_gr_list
+                self.logger.info( "all_gr_list: " )
+                self.logger.info( all_gr_list )
                 all_gr_list_sizes = []
                 for gr_list in all_gr_list:
                     all_gr_list_sizes.append( len(gr_list) )
@@ -312,6 +326,10 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             completeddd_cus.append(cu)
                 else:
                     no_partner = 0
+            """
+
+            self._prof.prof('local_wait_end_1' + c_str )
+            self._prof.prof('local_proc_start_2' + c_str )
 
             c_end = datetime.datetime.utcnow()
             simulation_time = (c_end - c_start).total_seconds()
@@ -325,7 +343,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
             for cu in sub_md_replicas:
                 #print "state is: {0}".format( cu.state )
                 if cu.state == 'Done':
-                    print "ok md"
+                    self.logger.info( "ok md" )
                     for r in running_replicas:
                         r_name = str(r.id) + '_' + str(r.group_idx[dim_int-1])
                         if r_name == cu.name:
@@ -338,5 +356,11 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
             for cu in rm_cus:
                 sub_md_replicas.remove(cu)
+
+            self._prof.prof('local_proc_end_2' + c_str )
+
+        #-----------------------------------------------------------------------
+        # end of loop
+        self._prof.prof('sim_loop_end')
 
             
