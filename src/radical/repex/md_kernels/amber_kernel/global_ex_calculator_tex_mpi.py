@@ -289,7 +289,8 @@ if __name__ == '__main__':
         exchange_list = []
         for r_i in replicas_obj:
             r_j = gibbs_exchange(r_i, replicas_obj, swap_matrix)
-            if (r_j != r_i) and ([r_i.id,r_j.id] not in exchange_list) and ([r_j.id,r_i.id] not in exchange_list):
+            #if (r_j != r_i) and ([r_i.id,r_j.id] not in exchange_list) and ([r_j.id,r_i.id] not in exchange_list):
+            if r_j.id != r_i.id:
                 exchange_pair = []
                 exchange_pair.append(r_i.id)
                 exchange_pair.append(r_j.id)
