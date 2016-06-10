@@ -4,9 +4,9 @@ export REPEX_PROFILING=1;
 
 #nohup repex-amber --input='tuu_remd_ace_ala_nme_test.json' --rconfig='stampede.json' 2> stampede.log &
 
-nohup repex-amber --input='tuu_remd_phos_trans_qmmm.json' --rconfig='stampede.json' 2> 512-async-stamp-1000.log &
+#nohup repex-amber --input='tuu_remd_phos_trans_qmmm.json' --rconfig='stampede.json' 2> 512-async-stamp-1000.log &
 
-#repex-amber --input='tsu_remd_dna_new.json' --rconfig='local.json'
+repex-amber --input='t_remd_ace_ala_nme.json' --rconfig='smic.json'
 
 #repex-amber --input='tuu_remd_phos_trans_qmmm.json' --rconfig='local.json'
 

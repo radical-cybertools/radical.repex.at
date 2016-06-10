@@ -19,7 +19,7 @@ from amber_kernel.kernel_pattern_s import KernelPatternS
 if __name__ == '__main__':
 
 	name = 'amber'
-	logger  = rul.getLogger ('radical.repex', name)
+	logger  = rul.get_logger ('radical.repex', name)
 
 	work_dir_local = os.getcwd()
 	params = parse_command_line()

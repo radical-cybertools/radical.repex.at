@@ -56,7 +56,7 @@ class KernelPatternS(object):
         """
 
         self.name = 'amber-pattern-s-3d'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
+        self.logger  = rul.get_logger ('radical.repex', self.name)
 
         self.resource         = rconfig['target'].get('resource')
         self.inp_basename     = inp_file['remd.input'].get('input_file_basename')

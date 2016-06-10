@@ -30,7 +30,7 @@ class PilotKernel(object):
         """
 
         self.name = 'exec'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
+        self.logger  = rul.get_logger ('radical.repex', self.name)
         
         # pilot parameters
         self.resource = rconfig['target'].get('resource')

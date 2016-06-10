@@ -32,7 +32,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
         PilotKernel.__init__(self, inp_file, rconfig)
 
         self.name = 'exec-pattern-A'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
+        self.logger  = rul.get_logger ('radical.repex', self.name)
 
         self.sd_shared_list = []
 
