@@ -263,8 +263,9 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
             self._prof.prof('local_wait_start_1' + c_str )
             # first wait
-            while ( completed < (len(sub_md_replicas) / 8) ):
-                self.logger.info( "proceed when completed replicas >= {0}".format( len(sub_md_replicas) / 8 ) )
+            wait_size = len(sub_md_replicas) / 8
+            while ( completed < wait_size ):
+                self.logger.info( "proceed when completed replicas >= {0}".format( wait_size ) )
                 completeddd_cus = []
                 for cu in sub_md_replicas:
                     if cu.state == 'Done':

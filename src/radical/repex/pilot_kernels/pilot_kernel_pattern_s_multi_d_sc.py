@@ -146,7 +146,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 md_sub_timing  = 0.0
                 md_exec_timing = 0.0
                 t1 = datetime.datetime.utcnow()
-
+               
                 all_groups = md_kernel.get_all_groups(dim_int, replicas)
 
                 for group in all_groups:
@@ -172,8 +172,10 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                         t1 = datetime.datetime.utcnow()
                         c_replicas = []
+
                         for group in batch:
                             for replica in group:
+
                                 compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                                 c_replicas.append(compute_replica)
                         t2 = datetime.datetime.utcnow()
@@ -199,8 +201,10 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 if len(batch) != 0:
                     t1 = datetime.datetime.utcnow()
                     c_replicas = []
+
                     for group in batch:
                         for replica in group:
+
                             compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                             c_replicas.append(compute_replica)
                     t2 = datetime.datetime.utcnow()

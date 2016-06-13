@@ -800,7 +800,7 @@ class KernelPatternS(object):
             current_group_rst = {}
             for repl in group:
                 current_group_rst[str(repl.id)] = str(repl.new_restraints)
-                self.logger.info( "id: {0} par1: {1} par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']   ) )
+                #self.logger.info( "id: {0} par1: {1} par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']   ) )
 
             base_restraint = self.us_template + "."
 
@@ -818,7 +818,7 @@ class KernelPatternS(object):
             dump_data = json.dumps(data)
             json_post_data_bash = dump_data.replace("\\", "")
             json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
-
+        
         if self.dims[dim_str]['type'] == 'salt':
             # 
             current_group_tsu = {}
@@ -834,7 +834,7 @@ class KernelPatternS(object):
                      str(repl.dims[dim_str]['par']), \
                      str(repl.new_restraints)]
 
-                self.logger.info( "id: {0} temp: {1} umbrella: {2}".format( repl.id, repl.dims['d1']['par'], repl.dims['d3']['par']  ) )
+                #self.logger.info( "id: {0} temp: {1} umbrella: {2}".format( repl.id, repl.dims['d1']['par'], repl.dims['d3']['par']  ) )
 
             data = {
                 "rid": str(replica.id),
@@ -854,26 +854,26 @@ class KernelPatternS(object):
             json_data_salt_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
-
+        
         if (self.replica_gpu == True):
             amber_str = self.amber_path_gpu
         elif (self.replica_mpi == True):
             amber_str = self.amber_path_mpi
         else:
             amber_str = self.amber_path
-
+        
         if self.dims[dim_str]['type'] == 'temperature':
-            self.logger.info( "id: {0} par1: {1}  par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
+            #self.logger.info( "id: {0} par1: {1}  par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
             # matrix_calculator_temp_ex.py
             stage_in.append(sd_shared_list[2])
         if self.dims[dim_str]['type'] == 'umbrella':    
             # matrix_calculator_us_ex.py
             stage_in.append(sd_shared_list[3])
-
+        
         cu = radical.pilot.ComputeUnitDescription()
         cu.cores = self.replica_cores    
         cu.mpi = self.replica_mpi
-
+        
         if KERNELS[self.resource]["shell"] == "bash":
             cu.executable = '/bin/bash'
             pre_exec_str = "python input_file_builder.py " + "\'" + \
