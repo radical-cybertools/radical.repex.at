@@ -53,7 +53,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
                 if state == radical.pilot.states.FAILED:
-                    self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
+                    self.logger.info("Log: {0:s}".format( unit.as_dict() ) )
                     # restarting the replica
                     #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
                     #unit_manager.submit_units( unit.description )
@@ -137,7 +137,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             
             submitted_replicas = []
             exchange_replicas = []
-            
+
             #-------------------------------------------------------------------
             #
             if bulk_submission:
@@ -158,7 +158,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                 t2 = datetime.datetime.utcnow()
                 md_prep_timing += (t2-t1).total_seconds()
-
+                
                 batch = []
                 r_cores = md_kernel.replica_cores
                 for group in all_groups:
@@ -166,8 +166,11 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     if ( (len(batch)+len(group))*r_cores ) <= self.cores:
                         batch.append(group)
                     else:
-                        if len(batch) == 0:
-                            self.logger.error('ERROR: batch is empty, no replicas to prepare!')
+                        # we have more replicas than cores in a single group
+                        if len(batch) == 0 and len(group) > self.cores:
+                            batch.append(group)
+                        elif len(batch) == 0:
+                            self.logger.info('ERROR: batch is empty, no replicas to prepare!')
                             sys.exit(1)
 
                         t1 = datetime.datetime.utcnow()
@@ -175,7 +178,6 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                         for group in batch:
                             for replica in group:
-
                                 compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                                 c_replicas.append(compute_replica)
                         t2 = datetime.datetime.utcnow()
@@ -196,15 +198,19 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         self.logger.info('AFTER(1) unit_manager.wait_units() call for MD phase...')
                         t2 = datetime.datetime.utcnow()
                         md_exec_timing += (t2-t1).total_seconds()
-                        batch = []
-                        batch.append(group)
+
+                        if len(group) < self.cores:
+                            batch = []
+                            batch.append(group)
+                        else:
+                            batch = []
+
                 if len(batch) != 0:
                     t1 = datetime.datetime.utcnow()
                     c_replicas = []
 
                     for group in batch:
                         for replica in group:
-
                             compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                             c_replicas.append(compute_replica)
                     t2 = datetime.datetime.utcnow()
@@ -215,7 +221,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     submitted_replicas += submitted_batch
                     t2 = datetime.datetime.utcnow()
                     md_sub_timing += (t2-t1).total_seconds()
-                    
+
                     unit_ids = []
                     for item in submitted_batch:
                         unit_ids.append( item.uid )    
@@ -257,7 +263,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                             batch.append(group)
                         else:
                             if len(batch) == 0:
-                                self.logger.error('ERROR: batch is empty, no replicas to prepare!')
+                                self.logger.info('ERROR: batch is empty, no replicas to prepare!')
                                 sys.exit(1)
 
                             t1 = datetime.datetime.utcnow()
@@ -379,17 +385,17 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             t1 = datetime.datetime.utcnow()
             for r in submitted_replicas:
                 if r.state != radical.pilot.DONE:
-                    self.logger.error('ERROR: In D%d MD-step failed for unit:  %s' % (dim_int, r.uid))
+                    self.logger.info('ERROR: In D%d MD-step failed for unit:  %s' % (dim_int, r.uid))
                     failed_cus.append( r.uid )
 
             if len(exchange_replicas) > 0:
                 for r in exchange_replicas:
                     if r.state != radical.pilot.DONE:
-                        self.logger.error('ERROR: In D%d Exchange-step failed for unit:  %s' % (dim_int, r.uid))
+                        self.logger.info('ERROR: In D%d Exchange-step failed for unit:  %s' % (dim_int, r.uid))
                         failed_cus.append( r.uid )
 
             if global_ex_cu.state != radical.pilot.DONE:
-                self.logger.error('ERROR: In D%d Global-Exchange-step failed for unit:  %s' % (dim_int, global_ex_cu.uid))
+                self.logger.info('ERROR: In D%d Global-Exchange-step failed for unit:  %s' % (dim_int, global_ex_cu.uid))
                 failed_cus.append( global_ex_cu.uid )
 
             # do exchange of parameters                     
