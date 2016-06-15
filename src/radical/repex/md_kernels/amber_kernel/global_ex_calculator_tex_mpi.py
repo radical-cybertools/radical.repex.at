@@ -102,8 +102,8 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
     Arguments:
     r_i - given replica for which is found partner replica
     replicas - list of Replica objects
-    swap_matrix - matrix of dimension-less energies, where each column is a 
-    replica and each row is a state
+    swap_matrix - matrix of dimension-less energies, where each column is a replica 
+    and each row is a state
 
     Returns:
     r_j - replica to exchnage parameters with
@@ -118,7 +118,6 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
                   swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
         j += 1
         
-    ######################################
     new_ps = []
     for item in ps:
         if item > math.log(sys.float_info.max): new_item=sys.float_info.max
@@ -135,11 +134,9 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
     # guard for errors
     if j is None:
         #j = random.randint(0,(len(replicas)-1))
-        #print "...gibbs exchnage warning: j was None..."
         return r_i  #don't exchange if this error occurred
     # actual replica
     r_j = replicas[j]
-    ######################################
 
     return r_j
 
@@ -156,8 +153,6 @@ class Replica(object):
 #-------------------------------------------------------------------------------
 #
 if __name__ == '__main__':
-    """
-    """
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -192,8 +187,8 @@ if __name__ == '__main__':
     r_ids = comm.bcast(r_ids, root=0)
     #---------------------------------------------------------------------------
     if rank == 0:
-        print "r_ids: "
-        print r_ids
+        print "r_ids: {0}".format( r_ids )
+        print "size: {0} replicas: {1}".format(size, replicas)
 
     # init swap column
     swap_column = [0.0]*replicas
@@ -218,7 +213,7 @@ if __name__ == '__main__':
         attempts = 0
         while (success == 0):
             try:
-                replica_path = "/"
+                replica_path = "/replica_" + str(replica_id) + "/"
                 replica_temp, replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
                 temperatures[replica_id] = replica_temp
                 energies[replica_id] = replica_energy
@@ -227,7 +222,6 @@ if __name__ == '__main__':
                 temperatures = comm.gather(replica_temp, root=0)
                 energies     = comm.gather(replica_energy, root=0)
 
-
                 if rank == 0:  
                     for r in range(size):
                         index = r_ids[r][id_number]
@@ -235,24 +229,20 @@ if __name__ == '__main__':
                         all_temperatures[index] = temperatures[r]
                         all_energies[index] = energies[r] 
 
-                print "rank {0}: Got history data for self!".format(rank)
+                print "rank {0}: Got history data for replica {1}".format(rank, replica_id)
                 success = 1
                 id_number += 1
             except:
-                print "rank {0}: Waiting for self (history file)".format(rank)
+                print "rank {0}: Waiting for history file for replica {1}".format(rank, replica_id)
                 time.sleep(1)
                 attempts += 1
                 if attempts >= 3:
                     print "rank {0}: Amber run failed, matrix_swap_column_x_x.dat populated with zeros".format(rank)
-
-                    #-----------------------------------------------------------
                     # temp fix
                     replica_temp = 0.0
                     replica_energy = 0.0
                     temperatures = comm.gather(replica_temp, root=0)
                     energies     = comm.gather(replica_energy, root=0)
-                    #-----------------------------------------------------------
- 
                     success = 1
                 pass
 
@@ -289,17 +279,13 @@ if __name__ == '__main__':
         exchange_list = []
         for r_i in replicas_obj:
             r_j = gibbs_exchange(r_i, replicas_obj, swap_matrix)
-            #if (r_j != r_i) and ([r_i.id,r_j.id] not in exchange_list) and ([r_j.id,r_i.id] not in exchange_list):
             if r_j.id != r_i.id:
-                exchange_pair = []
-                exchange_pair.append(r_i.id)
-                exchange_pair.append(r_j.id)
-                exchange_list.append(exchange_pair)
+                exchange_list.append( [r_i.id, r_j.id] )
             
         #-----------------------------------------------------------------------
         # writing to file
         try:
-            outfile = "pairs_for_exchange_{cycle}.dat".format(cycle=current_cycle)
+            outfile = "pairs_for_exchange_1_{cycle}.dat".format(cycle=current_cycle)
             with open(outfile, 'w+') as f:
                 for pair in exchange_list:
                     if pair:

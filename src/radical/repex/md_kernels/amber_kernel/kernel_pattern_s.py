@@ -30,6 +30,8 @@ import amber_kernel.salt_conc_pre_exec
 import amber_kernel.salt_conc_post_exec
 import amber_kernel.global_ex_calculator
 import amber_kernel.global_ex_calculator_gr
+import amber_kernel.global_ex_calculator_tex_mpi
+import amber_kernel.global_ex_calculator_us_mpi
 import amber_kernel.matrix_calculator_us_ex
 import amber_kernel.matrix_calculator_temp_ex
 import amber_kernel.matrix_calculator_us_ex_mpi
@@ -94,11 +96,14 @@ class KernelPatternS(object):
             self.replica_gpu = False
 
         # if True, we do global MPI for 1D cases (umbrella and temperature)
+        # Note: must be set to True for Execution Mode II
         if inp_file['remd.input'].get('exchange_mpi') == "True":
             self.exchange_mpi = True
         else:
             self.exchange_mpi = False
 
+        self.exchange_mpi_cores = int(inp_file['remd.input'].get('exchange_mpi_cores', 0))
+           
         #-----------------------------------------------------------------------
     
         self.amber_coordinates_path = inp_file['remd.input'].get('amber_coordinates_folder')
@@ -433,14 +438,12 @@ class KernelPatternS(object):
         #    self.logger.info("--------------------------------------------")
 
         if self.nr_dims == 2:
-
             if dim_int == 1:
                 g_d1 = []
-
                 for r in replicas:
                     updated = False
                     if len(g_d1) == 0:
-                        g_d1.append(r.dims['d2']['par']) 
+                        g_d1.append(r.dims['d2']['par'])
                     for i in range(len(g_d1)):
                         if (g_d1[i] == r.dims['d2']['par']):
                             r.group_idx[0] = i
@@ -448,7 +451,6 @@ class KernelPatternS(object):
                     if updated == False:
                         g_d1.append(r.dims['d2']['par'])
                         r.group_idx[0] = len(g_d1) - 1
-
                 self.groups_numbers[0] = len(g_d1) 
 
             if dim_int == 2:
@@ -465,7 +467,6 @@ class KernelPatternS(object):
                     if updated == False:
                         g_d2.append(r.dims['d1']['par'])
                         r.group_idx[1] = len(g_d2) - 1
-
                 self.groups_numbers[1] = len(g_d2) 
 
         if self.nr_dims == 1:
@@ -533,6 +534,12 @@ class KernelPatternS(object):
         global_calc = os.path.dirname(amber_kernel.global_ex_calculator.__file__)
         global_calc_path = global_calc + "/global_ex_calculator.py"
 
+        calc_temp_ex_mpi = os.path.dirname(amber_kernel.global_ex_calculator_tex_mpi.__file__)
+        calc_temp_ex_mpi_path = calc_temp_ex_mpi + "/global_ex_calculator_tex_mpi.py"
+
+        calc_us_ex_mpi = os.path.dirname(amber_kernel.global_ex_calculator_us_mpi.__file__)
+        calc_us_ex_mpi_path = calc_us_ex_mpi + "/global_ex_calculator_us_mpi.py"
+
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
         build_inp = os.path.dirname(amber_kernel.input_file_builder.__file__)
@@ -554,11 +561,15 @@ class KernelPatternS(object):
             self.shared_files.append("matrix_calculator_temp_ex_mpi.py")
             self.shared_files.append("matrix_calculator_us_ex_mpi.py")
             self.shared_files.append("global_ex_calculator_gr.py")
-        else:
+        elif self.exchange_mpi == False:
             self.shared_files.append("matrix_calculator_temp_ex.py")
             self.shared_files.append("matrix_calculator_us_ex.py")
             self.shared_files.append("input_file_builder.py")
             self.shared_files.append("global_ex_calculator.py")
+        elif self.exchange_mpi == True:
+            self.shared_files.append("global_ex_calculator_tex_mpi.py")
+            self.shared_files.append("global_ex_calculator_us_mpi.py")
+            self.shared_files.append("input_file_builder.py")
 
         self.shared_files.append(self.us_template)
 
@@ -573,7 +584,7 @@ class KernelPatternS(object):
             self.shared_files.append(replicas[0].coor_file)
 
         #-----------------------------------------------------------------------
-
+        #
         parm_url = 'file://%s' % (parm_path)
         self.shared_urls.append(parm_url)
 
@@ -589,7 +600,7 @@ class KernelPatternS(object):
 
             global_calc_url = 'file://%s' % (global_calc_path_gr)
             self.shared_urls.append(global_calc_url)
-        else:
+        elif self.exchange_mpi == False:
             calc_temp_ex_url = 'file://%s' % (calc_temp_ex_path)
             self.shared_urls.append(calc_temp_ex_url)
 
@@ -601,6 +612,15 @@ class KernelPatternS(object):
 
             global_calc_url = 'file://%s' % (global_calc_path)
             self.shared_urls.append(global_calc_url)
+        elif self.exchange_mpi == True:
+            calc_temp_ex_mpi_url = 'file://%s' % (calc_temp_ex_mpi_path)
+            self.shared_urls.append(calc_temp_ex_mpi_url)
+
+            calc_us_ex_mpi_url = 'file://%s' % (calc_us_ex_mpi_path)
+            self.shared_urls.append(calc_us_ex_mpi_url)
+
+            build_inp_url = 'file://%s' % (build_inp_path)
+            self.shared_urls.append(build_inp_url)
 
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
@@ -695,7 +715,7 @@ class KernelPatternS(object):
             }
             stage_out.append(rstr_out)
         
-        if self.dims[dim_str]['type'] != 'salt':
+        if self.dims[dim_str]['type'] != 'salt' and self.exchange_mpi == False:
             matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), 
                                                       str(replica.cycle-1))
             matrix_col_out = {
@@ -716,7 +736,6 @@ class KernelPatternS(object):
         current_group = []
         for repl in group:
             current_group.append(repl.id)
-        #current_group = self.get_current_group_ids(dim_int, replicas, replica)
 
         #-----------------------------------------------------------------------
         # for all
@@ -862,11 +881,11 @@ class KernelPatternS(object):
         else:
             amber_str = self.amber_path
         
-        if self.dims[dim_str]['type'] == 'temperature':
-            #self.logger.info( "id: {0} par1: {1}  par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
+        if self.dims[dim_str]['type'] == 'temperature' and self.exchange_mpi == False:
+            # self.logger.info( "id: {0} par1: {1}  par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
             # matrix_calculator_temp_ex.py
             stage_in.append(sd_shared_list[2])
-        if self.dims[dim_str]['type'] == 'umbrella':    
+        if self.dims[dim_str]['type'] == 'umbrella' and self.exchange_mpi == False: 
             # matrix_calculator_us_ex.py
             stage_in.append(sd_shared_list[3])
         
@@ -876,11 +895,14 @@ class KernelPatternS(object):
         
         if KERNELS[self.resource]["shell"] == "bash":
             cu.executable = '/bin/bash'
-            pre_exec_str = "python input_file_builder.py " + "\'" + \
+            pre_exec_str  = "python input_file_builder.py " + "\'" + \
                            json_pre_data_bash + "\'"
             if self.dims[dim_str]['type'] == 'temperature':
-                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
+                if self.exchange_mpi == False:
+                    post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
                                 json_post_data_bash + "\'"
+                else:
+                    post_exec_str = " "
             if self.dims[dim_str]['type'] == 'umbrella':
                 post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
                                 json_post_data_bash + "\'"
@@ -889,8 +911,11 @@ class KernelPatternS(object):
             pre_exec_str = "python input_file_builder.py " + "\'" + \
                            json_pre_data_sh + "\'"
             if self.dims[dim_str]['type'] == 'temperature':
-                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
+                if self.exchange_mpi == False:
+                    post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
                                 json_post_data_sh + "\'"
+                else:
+                    post_exec_str = " "
             if self.dims[dim_str]['type'] == 'umbrella':
                 post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
                                 json_post_data_sh + "\'"
@@ -902,7 +927,7 @@ class KernelPatternS(object):
                            " -c " + replica.coor_file + \
                            " -r " + new_coor + \
                            " -x " + new_traj + \
-                        " -inf " + new_info  
+                           " -inf " + new_info  
 
             if (self.umbrella == True) and (self.us_template != ''):
                 if self.restart_done == False:
@@ -1436,7 +1461,6 @@ class KernelPatternS(object):
                             r1 = r
                         if r.id == r2_id:
                             r2 = r
-
                     #-----------------------------------------------------------
                     # swap parameters
                     if r1 != None and r2 != None:
@@ -1498,7 +1522,7 @@ class KernelPatternS(object):
         if self.group_exec == True:
             # global_ex_calculator_gr.py file
             stage_in.append(sd_shared_list[4])
-        else:
+        elif self.exchange_mpi == False:
             # global_ex_calculator.py file
             stage_in.append(sd_shared_list[5])
 
@@ -1507,8 +1531,8 @@ class KernelPatternS(object):
         stage_out.append(outfile)
 
         if (self.exchange_mpi == True) and (self.dims[dim_str]['type'] == 'temperature'):
-            # global_ex_calculator_tex_mpi.py file?????
-            stage_in.append(sd_shared_list[4])
+            # global_ex_calculator_tex_mpi.py file
+            stage_in.append(sd_shared_list[2])
 
             cu = radical.pilot.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
@@ -1520,12 +1544,16 @@ class KernelPatternS(object):
                              str(self.inp_basename)]
 
             if self.cores < self.replicas:
-                if (self.replicas % self.cores) != 0:
+                if self.exchange_mpi_cores != 0:
+                    if self.replicas % self.exchange_mpi_cores == 0:
+                        cu.cores = self.exchange_mpi_cores
+                elif (self.replicas % self.cores) == 0:
+                    cu.cores = self.cores
+                else:
                     self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                     self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                     sys.exit()
-                else:
-                    cu.cores = self.cores
+    
             elif self.cores >= self.replicas:
                 cu.cores = self.replicas
             else:
@@ -1538,7 +1566,7 @@ class KernelPatternS(object):
 
         elif (self.exchange_mpi == True) and (self.dims[dim_str]['type'] == 'umbrella'):
 
-            # ???
+            # 
             all_restraints = {}
             all_temperatures = {}
             for repl in replicas:
@@ -1555,7 +1583,7 @@ class KernelPatternS(object):
             dump_data = json.dumps(data)
             json_data_us = dump_data.replace("\\", "")
 
-            # global_ex_calculator_us_mpi.py file??????
+            # global_ex_calculator_us_mpi.py file
             stage_in.append(sd_shared_list[3])
 
             cu = radical.pilot.ComputeUnitDescription()

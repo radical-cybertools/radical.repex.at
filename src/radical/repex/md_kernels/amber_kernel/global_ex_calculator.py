@@ -47,7 +47,6 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
                   swap_matrix[r_i.sid][r_i.id] - swap_matrix[r_j.sid][r_j.id]) 
         j += 1
         
-    #---------------------------------------------------------------------------
     new_ps = []
     for item in ps:
         if item > math.log(sys.float_info.max): new_item=sys.float_info.max
@@ -65,10 +64,8 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
     if j is None:
         #j = random.randint(0,(len(replicas)-1))
         return r_i  #don't exchange if this error occurred
-        #print "...gibbs exchnage warning: j was None..."
     # actual replica
     r_j = replicas[j]
-    #---------------------------------------------------------------------------
 
     return r_j
 
