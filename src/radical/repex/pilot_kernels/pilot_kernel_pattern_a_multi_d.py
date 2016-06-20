@@ -127,13 +127,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
         self._prof.prof('sim_loop_start')
         while (simulation_time < self.runtime*60.0 ):
-
-            #if dim_int < dim_count:
-            #    dim_int = dim_int + 1
-            #else:
-            #    dim_int = 1
-            #self.logger.info( "current dimension after increment: {0}".format(dim_int) )
-            
             
             if (simulation_time < (self.runtime*60.0 - self.cycletime) ):
                 replicas_for_md = []
@@ -151,7 +144,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         r_dim = replica.cur_dim
                         group = md_kernel.get_replica_group(r_dim, replicas, replica)
                         cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
-                        self.logger.info( "cu_name: {0}".format(cu_name) )
+                        self.logger.info( "FIRST LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_name[1], cu_name[7]) )
                         compute_replica = md_kernel.prepare_replica_for_md(r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
                         c_replicas.append( compute_replica )
@@ -176,6 +169,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     self._prof.prof('gl_ex_prep_start_1' + c_str )
                     ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, gl_dim, dim_str[gl_dim], replicas_for_exchange, self.sd_shared_list)   
                     ex_calculator.name = cu_name
+                    self.logger.info( "FIRST LOOP: Preparing global calc in dim {0}".format(gl_dim) )
                     self._prof.prof('gl_ex_prep_end_1' + c_str )
                     self._prof.prof('gl_ex_sub_start_1' + c_str )
                     global_ex_cu = unit_manager.submit_units(ex_calculator)
@@ -248,7 +242,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             r_dim = replica.cur_dim
                             group = md_kernel.get_replica_group(r_dim, replicas, replica)
                             cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
-                            self.logger.info( "cu_name: {0}".format(cu_name) )
+                            self.logger.info( "SECOND LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_name[1], cu_name[7]) )
                             compute_replica = md_kernel.prepare_replica_for_md(r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                             compute_replica.name = cu_name
                             c_replicas.append( compute_replica )
@@ -272,7 +266,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
             #-------------------------------------------------------------------
             # first wait
             self.logger.info( "first wait....." )
-            #wait_size = len(sub_md_replicas) / 8
             wait_size = int(self.running_replicas * self.wait_ratio)
             if wait_size == 0:
                 wait_size = 1
@@ -304,7 +297,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
             all_gr_list = []
             
             for cu in completed_cus:
-                self.logger.info( "w2_cu_name1: {0}".format( cu.name ) )
+                #self.logger.info( "w2_cu_name1: {0}".format( cu.name ) )
                 r_tuple = cu.name.split('_')
                 # check if replicas from same group are finished after 1st wait
                 added = 0
@@ -329,7 +322,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     r_tuple = cu.name.split('_')
                     self.logger.info( "r_tuple: {0}".format( r_tuple ) )
                     for cu1 in sub_md_replicas:
-                        self.logger.info( "w2_cu_name2: {0}".format( cu1.name ) )
+                        #self.logger.info( "w2_cu_name2: {0}".format( cu1.name ) )
                         if cu1.name not in processed_cus and cu1.state == 'Done':
                                 r1_tuple = cu1.name.split('_')
                                 self.logger.info( "r1_tuple: {0}".format( r1_tuple ) )
@@ -376,10 +369,9 @@ class PilotKernelPatternAmultiD(PilotKernel):
             rm_cus = []
             for cu in sub_md_replicas:
                 if cu.state == 'Done':
-                    self.logger.info( "ok md" )
                     for r in running_replicas:
                         cu_name = cu.name.split('_')
-                        self.logger.info("cu_name[0]: {0}".format( cu_name[0]) )
+                        #self.logger.info("cu_name[0]: {0}".format( cu_name[0]) )
                         if str(r.id) == cu_name[1]:
                             self.logger.info( "Replica {0} finished MD for dim {1}".format( r.id, r.cur_dim ) )
                             replicas_for_exchange.append(r)

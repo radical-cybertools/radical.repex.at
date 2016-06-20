@@ -1018,7 +1018,7 @@ class KernelPatternS(object):
             # BOTH BELOW
             if (self.umbrella == True) and (self.us_template != ''):
                 
-                self.logger.info("stage_in replica.new_restraints: {0}".format( replica.new_restraints ) )
+                #self.logger.info("stage_in replica.new_restraints: {0}".format( replica.new_restraints ) )
                 # restraint file
                 restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
                                     'target': replica.new_restraints,
@@ -1026,7 +1026,7 @@ class KernelPatternS(object):
                 }
                 stage_in.append(restraints_in_st)
             
-            self.logger.info( "stage_in old_coors: {0}".format( replica_path + old_coor ) )
+            #self.logger.info( "stage_in old_coors: {0}".format( replica_path + old_coor ) )
             old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
                            'target': (old_coor),
                            'action': radical.pilot.LINK
