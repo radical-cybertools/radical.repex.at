@@ -387,8 +387,7 @@ class KernelPatternS(object):
                     if updated == False:
                         g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']])
                         r.group_idx[0] = len(g_d1) - 1
-                    self.logger.info( "d1, repl group idx: {0}".format(r.group_idx[0]) )
-
+                    #self.logger.info( "d1, repl group idx: {0}".format(r.group_idx[0]) )
                 self.groups_numbers[0] = len(g_d1)
 
             if dim_int == 2:
@@ -405,7 +404,7 @@ class KernelPatternS(object):
                     if updated == False:
                         g_d2.append([r.dims['d1']['par'], r.dims['d3']['par']])
                         r.group_idx[1] = len(g_d2) - 1
-                    self.logger.info( "d2, repl group idx: {0}".format(r.group_idx[1]) )
+                    #self.logger.info( "d2, repl group idx: {0}".format(r.group_idx[1]) )
 
                 self.groups_numbers[1] = len(g_d2)
 
@@ -423,11 +422,11 @@ class KernelPatternS(object):
                     if updated == False:
                         g_d3.append([r.dims['d1']['par'], r.dims['d2']['par']])
                         r.group_idx[2] = len(g_d3) - 1
-                    self.logger.info( "d3, repl group idx: {0}".format(r.group_idx[2]) )
+                    #self.logger.info( "d3, repl group idx: {0}".format(r.group_idx[2]) )
 
                 self.groups_numbers[2] = len(g_d3)
 
-            self.logger.info( "repl group idx: {0} {1} {2}".format(r.group_idx[0], r.group_idx[1],  r.group_idx[2]) )
+            self.logger.info( "repl group idx: d1:{0} d2:{1} d3:{2}".format(r.group_idx[0], r.group_idx[1],  r.group_idx[2]) )
 
         #self.logger.info("self group numbers: ")
         #self.logger.info(self.groups_numbers)
