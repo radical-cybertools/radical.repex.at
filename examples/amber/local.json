@@ -2,7 +2,7 @@
     "target": {
         "resource": "local.localhost",
         "username" : "antons",
-        "runtime" : "30",
+        "runtime" : "15",
         "cycletime" : "30",
         "cleanup" : "False",
         "cores" : "4",

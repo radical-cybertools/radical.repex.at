@@ -32,6 +32,7 @@ class Replica(object):
         self.state = 'I'
         self.cycle = 0
         self.group_idx = [None, None, None]
+        self.cur_dim = 1
 
         if coor is not None:
             self.coor_file = coor
