@@ -113,14 +113,13 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
             s = 'd' + str(i+1)
             dim_str.append(s)
 
-        for c in range(0,cycles*dim_count):
+        for c in range(1,cycles*dim_count+1):
 
             if dim_int < dim_count:
                 dim_int = dim_int + 1
             else:
                 dim_int = 1
-
-            current_cycle = c / dim_count
+                current_cycle += 1
 
             if dim_int == 1:
                 cu_performance_data["cycle_{0}".format(current_cycle)] = {}

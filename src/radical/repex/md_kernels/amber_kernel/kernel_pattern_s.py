@@ -40,9 +40,10 @@ import amber_kernel.matrix_calculator_temp_ex_mpi
 #-------------------------------------------------------------------------------
 
 class Restart(object):
-    def __init__(self, dimension=None, new_sandbox=None):
-        self.new_sandbox = new_sandbox
-        self.dimension = dimension
+    def __init__(self, dimension=None, current_cycle=None, new_sandbox=None):
+        self.new_sandbox    = new_sandbox
+        self.dimension      = dimension
+        self.current_cycle  = current_cycle
         self.groups_numbers = None
 
 #-------------------------------------------------------------------------------
@@ -457,7 +458,7 @@ class KernelPatternS(object):
                 for r in replicas:
                     updated = False
                     if len(g_d2) == 0:
-                        g_d1.append(r.dims['d2']['par']) 
+                        g_d2.append(r.dims['d1']['par']) 
                             
                     for i in range(len(g_d2)):
                         if (g_d2[i] == r.dims['d1']['par']):
@@ -479,6 +480,7 @@ class KernelPatternS(object):
     #
     def save_replicas(self, current_cycle, dim_int, dim_str, replicas):
         self.restart_object.dimension   = dim_int
+        self.restart_object.current_cycle =  current_cycle
         self.restart_object.old_sandbox = self.restart_object.new_sandbox
 
         self.logger.info( "current dimension: {0}".format( dim_int ) )
