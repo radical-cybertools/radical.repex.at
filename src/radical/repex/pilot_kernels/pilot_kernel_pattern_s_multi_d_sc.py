@@ -59,7 +59,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                     #unit_manager.submit_units( unit.description )
 
         #-----------------------------------------------------------------------
-        cycles = md_kernel.nr_cycles + 1
+        cycles = md_kernel.nr_cycles
                 
         unit_manager = radical.pilot.UnitManager(self.session, scheduler=radical.pilot.SCHED_DIRECT_SUBMISSION)
         unit_manager.register_callback(unit_state_change_cb)
@@ -109,7 +109,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
             current_cycle = md_kernel.restart_object.current_cycle
         else:
             dim_int = 0
-            current_cycle = 0
+            current_cycle = 1
 
         dim_count = md_kernel.nr_dims
         dim_str = []
@@ -130,7 +130,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 cu_performance_data["cycle_{0}".format(current_cycle)] = {}
                 hl_performance_data["cycle_{0}".format(current_cycle)] = {}
 
-            self.logger.info("Performing cycle: {0}".format(current_cycle) )
+            self.logger.info("Performing cycle: {0} c: {1}".format(current_cycle, c) )
             
             cu_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)] = {}
             hl_performance_data["cycle_{0}".format(current_cycle)]["dim_{0}".format(dim_int)] = {}
@@ -180,8 +180,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                         for group in batch:
                             for replica in group:
-
-                                compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
+                                compute_replica = md_kernel.prepare_replica_for_md(current_cycle, dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                                 c_replicas.append(compute_replica)
                         t2 = datetime.datetime.utcnow()
                         md_prep_timing += (t2-t1).total_seconds()
@@ -214,7 +213,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
 
                     for group in batch:
                         for replica in group:
-                            compute_replica = md_kernel.prepare_replica_for_md(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
+                            compute_replica = md_kernel.prepare_replica_for_md(current_cycle, dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                             c_replicas.append(compute_replica)
                     t2 = datetime.datetime.utcnow()
                     md_prep_timing += (t2-t1).total_seconds()
@@ -273,7 +272,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                             e_replicas = []
                             for group in batch:
                                 for replica in group:
-                                    ex_replica = md_kernel.prepare_replica_for_exchange(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
+                                    ex_replica = md_kernel.prepare_replica_for_exchange(current_cycle, dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                                     e_replicas.append(ex_replica)
                             t2 = datetime.datetime.utcnow()
                             ex_prep_timing += (t2-t1).total_seconds()
@@ -294,7 +293,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                         e_replicas = []
                         for group in batch:
                             for replica in group:
-                                ex_replica = md_kernel.prepare_replica_for_exchange(dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
+                                ex_replica = md_kernel.prepare_replica_for_exchange(current_cycle, dim_int, dim_str[dim_int], group, replica, self.sd_shared_list)
                                 e_replicas.append(ex_replica)
                         t2 = datetime.datetime.utcnow()
                         ex_prep_timing += (t2-t1).total_seconds()

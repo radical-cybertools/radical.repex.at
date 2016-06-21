@@ -60,7 +60,7 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
                     #unit_manager.submit_units( unit.description )
 
         #-----------------------------------------------------------------------
-        cycles = md_kernel.nr_cycles + 1
+        cycles = md_kernel.nr_cycles
                 
         unit_manager = radical.pilot.UnitManager(self.session, scheduler=radical.pilot.SCHED_DIRECT_SUBMISSION)
         unit_manager.register_callback(unit_state_change_cb)
@@ -105,6 +105,7 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
         # bulk_submission = 1: do bulk_submission submission
         bulk_submission = 1
         dim_int = 0
+        current_cycle = 0
         
         dim_count = md_kernel.nr_dims
         dim_str = []
@@ -154,7 +155,7 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
                 c_units = []
                 for group in all_groups:
                     t1 = datetime.datetime.utcnow()
-                    compute_group = md_kernel.prepare_group_for_md(dim_int, dim_str[dim_int], group, self.sd_shared_list)
+                    compute_group = md_kernel.prepare_group_for_md(current_cycle, dim_int, dim_str[dim_int], group, self.sd_shared_list)
                     c_units.append(compute_group)
                     t2 = datetime.datetime.utcnow()
                     md_prep_timing += (t2-t1).total_seconds()

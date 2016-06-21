@@ -31,6 +31,7 @@ class Replica(object):
         self.sid = int(my_id)
         self.state = 'I'
         self.cycle = 0
+        self.sim_cycle = 0
         self.group_idx = [None, None, None]
         self.cur_dim = 1
 

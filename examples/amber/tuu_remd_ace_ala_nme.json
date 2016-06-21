@@ -1,7 +1,7 @@
 {
     "remd.input": {
         "re_pattern": "S",
-        "number_of_cycles": "3",
+        "number_of_cycles": "1",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -12,7 +12,7 @@
         "group_exec": "False",
         "init_temp": "300.0",
         "replica_gpu": "False",
-        "steps_per_cycle": "1000",
+        "steps_per_cycle": "100",
         "download_mdinfo": "False",
         "download_mdout" : "False"
         },

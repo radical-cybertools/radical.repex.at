@@ -485,7 +485,7 @@ class KernelPatternS(object):
 
         self.logger.info( "current dimension: {0}".format( dim_int ) )
 
-        self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( current_cycle, dim_int )
+        self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
         with open(self.restart_file, 'wb') as output:
             for replica in replicas:
                 pickle.dump(replica, output, pickle.HIGHEST_PROTOCOL)
@@ -645,6 +645,7 @@ class KernelPatternS(object):
     #---------------------------------------------------------------------------
     #                         
     def prepare_replica_for_md(self, 
+                               current_cycle,
                                dim_int, 
                                dim_str, 
                                group, 
@@ -672,6 +673,7 @@ class KernelPatternS(object):
         else:
             first_step = (replica.cycle - 1) * int(self.cycle_steps)
         replica.cycle += 1
+        replica.sim_cycle = current_cycle
 
         input_file = "%s_%d_%d.mdin" % (self.inp_basename, replica.id, (replica.cycle-1))
         output_file = "%s_%d_%d.mdout" % (self.inp_basename, replica.id, (replica.cycle-1))
@@ -1072,7 +1074,12 @@ class KernelPatternS(object):
 
     #---------------------------------------------------------------------------
     #                     
-    def prepare_group_for_md(self, dim_int, dim_str, group, sd_shared_list):
+    def prepare_group_for_md(self, 
+                             current_cycle, 
+                             dim_int, 
+                             dim_str, 
+                             group, 
+                             sd_shared_list):
 
         #group.pop(0)
         group_id = group[0].group_idx[dim_int-1]
@@ -1313,6 +1320,7 @@ class KernelPatternS(object):
     #---------------------------------------------------------------------------
     #
     def prepare_replica_for_exchange(self, 
+                                     current_cycle,
                                      dim_int, 
                                      dim_str, 
                                      group, 
@@ -1444,7 +1452,7 @@ class KernelPatternS(object):
 
         r1 = None
         r2 = None
-        cycle = replicas[0].cycle-1
+        cycle = replicas[0].sim_cycle
 
         infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
                                                                cycle=cycle)
@@ -1512,7 +1520,7 @@ class KernelPatternS(object):
 
         data = {"replicas" : str(self.replicas),
                 "replica_ids" : replica_ids,
-                "current_cycle" : str(cycle),
+                "current_cycle" : str(current_cycle),
                 "dimension" : str(dim_int),
                 "group_nr" : str(group_nr),
                 "dim_string": dims_string
@@ -1528,7 +1536,7 @@ class KernelPatternS(object):
             stage_in.append(sd_shared_list[5])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
-                                                                cycle=cycle)
+                                                                cycle=current_cycle)
         stage_out.append(outfile)
 
         if (self.exchange_mpi == True) and (self.dims[dim_str]['type'] == 'temperature'):
@@ -1575,7 +1583,7 @@ class KernelPatternS(object):
                 all_temperatures[str(repl.id)] = str(repl.new_temperature)
 
             data = {
-                "current_cycle" : str(cycle),
+                "current_cycle" : str(current_cycle),
                 "replicas" : str(self.replicas),
                 "base_name" : str(self.inp_basename),
                 "all_temperatures" : all_temperatures,

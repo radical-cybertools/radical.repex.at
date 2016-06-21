@@ -108,7 +108,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
         sub_global_ex = []
         sub_global_cycles = []
         sub_global_repl = []
-        current_cycle = 0
+        current_cycle = 1
         c = 0
 
         dim_int = 1
@@ -145,7 +145,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         group = md_kernel.get_replica_group(r_dim, replicas, replica)
                         cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
                         self.logger.info( "FIRST LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_name[1], cu_name[7]) )
-                        compute_replica = md_kernel.prepare_replica_for_md(r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
+                        compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
                         c_replicas.append( compute_replica )
                     self._prof.prof('md_prep_end_1' + c_str )
@@ -243,7 +243,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             group = md_kernel.get_replica_group(r_dim, replicas, replica)
                             cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
                             self.logger.info( "SECOND LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_name[1], cu_name[7]) )
-                            compute_replica = md_kernel.prepare_replica_for_md(r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
+                            compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                             compute_replica.name = cu_name
                             c_replicas.append( compute_replica )
                         self._prof.prof('md_prep_end_2' + c_str )
@@ -362,8 +362,8 @@ class PilotKernelPatternAmultiD(PilotKernel):
             simulation_time = (c_end - c_start).total_seconds()
             self.logger.info( "Simulation time: {0}".format( simulation_time ) )
 
+            current_cycle = (c / dim_count) + 1
             c += 1
-            current_cycle = c / dim_count
 
             replicas_for_exchange = []
             rm_cus = []
