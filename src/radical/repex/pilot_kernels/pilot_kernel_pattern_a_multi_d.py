@@ -177,7 +177,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     sub_global_ex.append( global_ex_cu )
                     sub_global_cycles.append( current_cycle )
 
-                    # added below
                     #-----------------------------------------------------------
                     self._prof.prof('gl_ex_wait_start_1' + c_str )
                     unit_manager.wait_units( unit_ids=global_ex_cu.uid )
@@ -226,8 +225,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                                 r.state = 'W'
 
                     #-----------------------------------------------------------
-                    # submit for MD within same cycle!
-                    # check!!!!!
+                    # submit for MD within same cycle
                     replicas_for_md = []
                     for r in replicas:
                         if r.state == 'W':
@@ -297,32 +295,33 @@ class PilotKernelPatternAmultiD(PilotKernel):
             all_gr_list = []
             
             for cu in completed_cus:
-                #self.logger.info( "w2_cu_name1: {0}".format( cu.name ) )
                 r_tuple = cu.name.split('_')
                 # check if replicas from same group are finished after 1st wait
-                added = 0
+                add = 0
+                add_to_sublist = None
                 for sublist in all_gr_list:
                     for item in sublist:
                         r_tuple_add = item.split('_')
                         # if in same group and in same dimension
                         if r_tuple[3] == r_tuple_add[3] and r_tuple[7] == r_tuple_add[7]:
-                            index = all_gr_list.index(sublist)
-                            all_gr_list[index].append(cu.name)
-                            processed_cus.append(cu.name)
-                            added = 1
-                if added == 0:     
+                            add_to_sublist = sublist
+                            add = 1
+                if add == 1:
+                    index = all_gr_list.index(add_to_sublist)
+                    all_gr_list[index].append(cu.name)
+                    processed_cus.append(cu.name)
+                if add == 0:     
                     gr_list = []
                     gr_list.append(cu.name)
                     all_gr_list.append(gr_list)
                     processed_cus.append(cu.name)
                 self.logger.info( "all_gr_list before: {0}".format( all_gr_list )  )
-
+            
             while(no_partner == 1):
                 for cu in completed_cus:
                     r_tuple = cu.name.split('_')
                     self.logger.info( "r_tuple: {0}".format( r_tuple ) )
                     for cu1 in sub_md_replicas:
-                        #self.logger.info( "w2_cu_name2: {0}".format( cu1.name ) )
                         if cu1.name not in processed_cus and cu1.state == 'Done':
                                 r1_tuple = cu1.name.split('_')
                                 self.logger.info( "r1_tuple: {0}".format( r1_tuple ) )
@@ -335,7 +334,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
                                             all_gr_list[index].append(cu1.name)
                                             processed_cus.append(cu1.name)
                                             self.logger.info( "all_gr_list inside: {0}".format( all_gr_list )  )
-                    #all_gr_list.append(gr_list)
                 self.logger.info( "all_gr_list: " )
                 self.logger.info( all_gr_list )
                 all_gr_list_sizes = []
@@ -354,7 +352,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     self.logger.info( "wait time 2: {0}".format( wait_timee )  )
                     no_partner = 0
             #-------------------------------------------------------------------
-
+            
             self._prof.prof('local_wait_end_1' + c_str )
             self._prof.prof('local_proc_start_2' + c_str )
 
@@ -371,14 +369,12 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 if cu.state == 'Done':
                     for r in running_replicas:
                         cu_name = cu.name.split('_')
-                        #self.logger.info("cu_name[0]: {0}".format( cu_name[0]) )
                         if str(r.id) == cu_name[1]:
                             self.logger.info( "Replica {0} finished MD for dim {1}".format( r.id, r.cur_dim ) )
                             replicas_for_exchange.append(r)
                             running_replicas.remove(r)
                             rm_cus.append(cu)
                             r.state = 'M'
-
             for cu in rm_cus:
                 sub_md_replicas.remove(cu)
 
@@ -388,4 +384,3 @@ class PilotKernelPatternAmultiD(PilotKernel):
         # end of loop
         self._prof.prof('sim_loop_end')
 
-            
