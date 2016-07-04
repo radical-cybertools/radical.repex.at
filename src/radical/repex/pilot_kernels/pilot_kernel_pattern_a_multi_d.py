@@ -105,9 +105,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
         running_replicas = []
         sub_md_replicas = []
         sub_ex_replicas = []
-        sub_global_ex = []
-        sub_global_cycles = []
-        sub_global_repl = []
         current_cycle = 1
         c = 0
 
@@ -125,6 +122,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
         self.logger.info("cycle_time: {0}".format( self.cycletime) )
         c_start = datetime.datetime.utcnow()
 
+        #-----------------------------------------------------------------------
         self._prof.prof('sim_loop_start')
         while (simulation_time < self.runtime*60.0 ):
             
@@ -144,7 +142,8 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         r_dim = replica.cur_dim
                         group = md_kernel.get_replica_group(r_dim, replicas, replica)
                         cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
-                        self.logger.info( "FIRST LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_name[1], cu_name[7]) )
+                        cu_tuple = cu_name.split('_')
+                        self.logger.info( "FIRST LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_tuple[1], cu_tuple[7]) )
                         compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
                         c_replicas.append( compute_replica )
@@ -162,66 +161,74 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 self.logger.info( "sub_md_replicas: {0}".format( len(sub_md_replicas) ) )
 
                 if (len(replicas_for_exchange) != 0):
-                    sub_global_repl.append( replicas_for_exchange ) 
+                    gl_exchange_dims = []
+                    for r in replicas_for_exchange:
+                        if r.cur_dim not in gl_exchange_dims:
+                            gl_exchange_dims.append(r.cur_dim)
+                    self.logger.info( "gl_exchange_dims: {0}".format(gl_exchange_dims) )
 
-                    gl_dim = replicas_for_exchange[0].cur_dim
-                    cu_name = 'gl_ex_cu' + c_str
-                    self._prof.prof('gl_ex_prep_start_1' + c_str )
-                    ex_calculator = md_kernel.prepare_global_ex_calc(current_cycle, gl_dim, dim_str[gl_dim], replicas_for_exchange, self.sd_shared_list)   
-                    ex_calculator.name = cu_name
-                    self.logger.info( "FIRST LOOP: Preparing global calc in dim {0}".format(gl_dim) )
-                    self._prof.prof('gl_ex_prep_end_1' + c_str )
-                    self._prof.prof('gl_ex_sub_start_1' + c_str )
-                    global_ex_cu = unit_manager.submit_units(ex_calculator)
-                    self._prof.prof('gl_ex_sub_end_1' + c_str )
-                    sub_global_ex.append( global_ex_cu )
-                    sub_global_cycles.append( current_cycle )
+                    gl_exchange_dims = sorted(gl_exchange_dims)
+                    replicas_by_dim = []
+                    idx = 0
+                    for d in gl_exchange_dims:
+                        replicas_by_dim.append([])
+                        for r in replicas_for_exchange:
+                            if r.cur_dim == d:
+                                replicas_by_dim[idx].append(r)
+                        idx += 1
+
+                    for d in replicas_by_dim:
+                        for r in d:
+                            self.logger.info( "replica_id: {0} cur_dim: {1}".format(r.id, r.cur_dim) )
 
                     #-----------------------------------------------------------
-                    self._prof.prof('gl_ex_wait_start_1' + c_str )
-                    unit_manager.wait_units( unit_ids=global_ex_cu.uid )
-                    self._prof.prof('gl_ex_wait_end_1' + c_str )
+                    # do global exchange, replicas in different dimensions may 
+                    # have reached this stage
+                    for replicas_d_list in replicas_by_dim:
+                        gl_dim = replicas_d_list[0].cur_dim
+                        cur_cycle = replicas_d_list[0].sim_cycle
+                        cu_name = 'gl_ex_cu' + c_str
+                        self._prof.prof('gl_ex_prep_start_1' + c_str )
+                        ex_calculator = md_kernel.prepare_global_ex_calc(cur_cycle, gl_dim, dim_str[gl_dim], replicas_d_list , self.sd_shared_list)   
+                        ex_calculator.name = cu_name
+                        self.logger.info( "FIRST LOOP: Preparing global calc in dim {0} cycle {1}".format(gl_dim, cur_cycle) )
+                        self._prof.prof('gl_ex_prep_end_1' + c_str )
+                        self._prof.prof('gl_ex_sub_start_1' + c_str )
+                        global_ex_cu = unit_manager.submit_units(ex_calculator)
+                        self._prof.prof('gl_ex_sub_end_1' + c_str )
 
-                    gl_state = 'None'
-                    sleep = 0
-                    while (gl_state != 'Done'):
-                        self.logger.info( "Waiting for global calc to finish!" )
-                        gl_state = global_ex_cu.state
-                        time.sleep(1)
-                        sleep += 1
-                        if ( sleep > 30 ):
-                            self.logger.info( "Warning: global calc never reached Done state..." )
-                            gl_state = 'Done'
+                        self._prof.prof('gl_ex_wait_start_1' + c_str )
+                        unit_manager.wait_units( unit_ids=global_ex_cu.uid )
+                        self._prof.prof('gl_ex_wait_end_1' + c_str )
 
-                    self.logger.info( "Global calc {0} finished!".format( global_ex_cu.uid ) )
+                        gl_state = 'None'
+                        sleep = 0
+                        while (gl_state != 'Done'):
+                            self.logger.info( "Waiting for global calc to finish!" )
+                            gl_state = global_ex_cu.state
+                            time.sleep(1)
+                            sleep += 1
+                            if ( sleep > 60 ):
+                                self.logger.info( "Warning: global calc never reached Done state..." )
+                                gl_state = 'Done'
 
-                    self._prof.prof('local_proc_start_1' + c_str )
-                    # exchange is a part of MD CU
-                    for r in replicas_for_exchange:
-                        self.logger.info( "replica id {0} state changed to E".format( r.id ) )
-                        r.state = 'E'
-                        if r.cur_dim < 3:
-                            r.cur_dim += 1
-                        else:
-                            r.cur_dim = 1 
-                    
-                    if (len(sub_global_ex) != 0):
-                        if sub_global_ex[0].state == 'Done':
+                        self.logger.info( "Global calc {0} finished!".format( global_ex_cu.uid ) )
 
+                        self._prof.prof('local_proc_start_1' + c_str )
+                        # exchange is a part of MD CU
+                        for r in replicas_d_list:
+                            self.logger.info( "replica id {0} state changed to E".format( r.id ) )
+                            r.state = 'E'
+                            if r.cur_dim < 3:
+                                r.cur_dim += 1
+                            else:
+                                r.cur_dim = 1 
+                        
+                        if global_ex_cu.state == 'Done':
                             self.logger.info( "Got exchange pairs!" )
-
-                            sub_global_ex.pop(0)
-
-                            ex_repl = sub_global_repl[0]
-                            sub_global_repl.pop(0)
-
-                            cycle = sub_global_cycles[0]
-                            sub_global_cycles.pop(0)
-         
-                            md_kernel.do_exchange(cycle, gl_dim, dim_str[gl_dim], ex_repl)
-
-                            for r in ex_repl:
-                                self.logger.info( "replica id {0} state changed to W".format( r.id ) )
+                            md_kernel.do_exchange(cur_cycle, gl_dim, dim_str[gl_dim], replicas_d_list)
+                            for r in replicas_d_list:
+                                self.logger.info( "replica id {0} dim {1} state changed to W".format( r.id, r.cur_dim ) )
                                 r.state = 'W'
 
                     #-----------------------------------------------------------
@@ -240,7 +247,8 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             r_dim = replica.cur_dim
                             group = md_kernel.get_replica_group(r_dim, replicas, replica)
                             cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
-                            self.logger.info( "SECOND LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_name[1], cu_name[7]) )
+                            cu_tuple = cu_name.split('_')
+                            self.logger.info( "SECOND LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_tuple[1], cu_tuple[7]) )
                             compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                             compute_replica.name = cu_name
                             c_replicas.append( compute_replica )
@@ -292,6 +300,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
             no_partner = 1
             wait_timee = 0
             processed_cus = []
+            cus_to_exchange = completed_cus
             all_gr_list = []
             
             for cu in completed_cus:
@@ -333,6 +342,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                                             index = all_gr_list.index(sublist)
                                             all_gr_list[index].append(cu1.name)
                                             processed_cus.append(cu1.name)
+                                            cus_to_exchange.append(cu1)
                                             self.logger.info( "all_gr_list inside: {0}".format( all_gr_list )  )
                 self.logger.info( "all_gr_list: " )
                 self.logger.info( all_gr_list )
@@ -343,11 +353,11 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 self.logger.info( all_gr_list_sizes )
                 # some replica does not have a partner
                 if 1 in all_gr_list_sizes:
-                    time.sleep(2)
-                    wait_timee += 2
+                    time.sleep(3)
+                    wait_timee += 3
                 elif len(all_gr_list_sizes) == 0:
-                    time.sleep(2)
-                    wait_timee += 2
+                    time.sleep(3)
+                    wait_timee += 3
                 else:
                     self.logger.info( "wait time 2: {0}".format( wait_timee )  )
                     no_partner = 0
@@ -363,9 +373,10 @@ class PilotKernelPatternAmultiD(PilotKernel):
             current_cycle = (c / dim_count) + 1
             c += 1
 
+            self.logger.info( "Incremented current cycle: {0}".format( current_cycle ) )
             replicas_for_exchange = []
             rm_cus = []
-            for cu in sub_md_replicas:
+            for cu in cus_to_exchange:
                 if cu.state == 'Done':
                     for r in running_replicas:
                         cu_name = cu.name.split('_')
