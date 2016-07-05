@@ -103,9 +103,9 @@ KERNELS = {
         {
             "amber": {
                 "environment" : {},
-                "pre_execution" : [],
-                "executable" : "/u/sciteam/treikali/amber14/bin/sander",
-                "executable_mpi" : "/u/sciteam/treikali/amber14/bin/sander.MPI"
+                "pre_execution" : ["module use --append /projects/sciteam/gkd/modules","module load openmpi","source /projects/sciteam/gkd/virtenvs/mpi4py/20151210_OMPI20151210-DYN/bin/activate","export PATH=$PATH:/projects/sciteam/gkd/amber_ompi_cpu/bin"],
+                "executable" : "sander",
+                "executable_mpi" : "sander.MPI"
             }
         },
         "shell": "bash"

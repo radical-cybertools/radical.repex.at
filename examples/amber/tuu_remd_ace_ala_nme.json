@@ -1,37 +1,38 @@
 {
     "remd.input": {
         "re_pattern": "S",
-        "number_of_cycles": "1",
+        "number_of_cycles": "99",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
-        "us_template": "ace_ala_nme_double.RST",
-        "amber_parameters": "ace_ala_nme.parm7",
-        "amber_coordinates_folder": "ace_ala_nme_coors",
+        "amber_parameters": "ace_ala_nme_big.parm7",
+        "amber_coordinates_folder": "ace_ala_nme_big_coors",
         "same_coordinates": "True",
+        "us_template": "ace_ala_nme_us.RST",
         "group_exec": "False",
         "init_temp": "300.0",
-        "replica_gpu": "False",
-        "steps_per_cycle": "100",
+        "replica_mpi": "True",
+        "replica_cores": "32",
+        "steps_per_cycle": "10000",
         "download_mdinfo": "False",
         "download_mdout" : "False"
         },
     "dim.input": {
         "d1": {
             "type" : "umbrella",
-            "number_of_replicas": "2",
+            "number_of_replicas": "8",
             "min_us_param": "0.0",
             "max_us_param": "360.0"
             },
         "d2": {
             "type" : "temperature",
-            "number_of_replicas": "2",
+            "number_of_replicas": "8",
             "min_temperature": "300.0",
             "max_temperature": "600.0"
             },
         "d3": {
             "type" : "umbrella",
-            "number_of_replicas": "2",
+            "number_of_replicas": "8",
             "min_us_param": "0.0",
             "max_us_param": "360.0"
             }
