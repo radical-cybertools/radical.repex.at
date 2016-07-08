@@ -136,6 +136,7 @@ if __name__ == '__main__':
 
     replicas      = int(data["replicas"])
     replica_ids   = data["replica_ids"]
+    cycle         = int(data["cycle"])
     current_cycle = int(data["current_cycle"])
     dimension     = int(data["dimension"])
     group_nr      = int(data["group_nr"])
@@ -162,7 +163,7 @@ if __name__ == '__main__':
     for r_id in replica_ids:
         success = 0
         attempts = 0
-        column_file = base_name + "_" + str(r_id) + "_" + str(current_cycle) + ".dat" 
+        column_file = base_name + "_" + str(r_id) + "_" + str(cycle) + ".dat" 
         path = "../staging_area/" + column_file     
         while (success == 0):
             try:

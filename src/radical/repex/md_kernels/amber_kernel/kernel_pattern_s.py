@@ -1452,10 +1452,10 @@ class KernelPatternS(object):
 
         r1 = None
         r2 = None
-        cycle = replicas[0].sim_cycle
+        #cycle = replicas[0].sim_cycle
 
         infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
-                                                               cycle=cycle)
+                                                               cycle=current_cycle)
         try:
             f = open(infile)
             lines = f.readlines()
@@ -1521,6 +1521,7 @@ class KernelPatternS(object):
         data = {"replicas" : str(self.replicas),
                 "replica_ids" : replica_ids,
                 "current_cycle" : str(current_cycle),
+                "cycle" : str(cycle),
                 "dimension" : str(dim_int),
                 "group_nr" : str(group_nr),
                 "dim_string": dims_string

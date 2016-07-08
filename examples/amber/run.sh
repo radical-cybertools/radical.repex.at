@@ -5,7 +5,7 @@ export SAGA_VERBOSE=INFO;
 export REPEX_PROFILING=1;
 export RADICAL_PILOT_PROFILE=TRUE;
 
-nohup repex-amber --input='tuu_remd_ace_ala_nme.json' --rconfig='bw.json' 2> bw-tuu-sync-r512-c16448.log &
+nohup repex-amber --input='tuu_remd_phos_trans_qmmm.json' --rconfig='stampede.json' 2> stamp-qmmm-async-r216-c240.log &
 
 
 #repex-amber --input='tuu_remd_phos_trans_qmmm.json' --rconfig='local.json' 2> local.log &
