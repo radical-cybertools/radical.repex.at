@@ -1690,13 +1690,10 @@ class KernelPatternS(object):
 
         dim = dim_int-1
 
-        self.logger.info( "dim: {0}".format(dim) )
         all_groups = []
         for i in range(self.groups_numbers[dim]):
             all_groups.append([None])
         for r in replicas:
-            self.logger.info( "repl group idx: " )
-            self.logger.info( r.group_idx )
             all_groups[r.group_idx[dim]].append(r)
 
         return all_groups
