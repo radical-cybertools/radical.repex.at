@@ -158,15 +158,18 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
     size = comm.Get_size()
 
-    argument_list = str(sys.argv)
-    current_cycle = int(sys.argv[1])
-    replicas = int(sys.argv[2])
-    base_name = str(sys.argv[3])
+    json_data = sys.argv[1]
+    data=json.loads(json_data)
+
+    replicas        = int(data["replicas"])
+    all_replicas    = int(data["all_replicas"])
+    replica_ids     = data["replica_ids"]
+    cycle           = int(data["cycle"])
+    current_cycle   = int(data["current_cycle"])
+    dimension       = int(data["dimension"])
+    base_name       = data["basename"]
 
     comm.Barrier()
-
-    # replica id equals to rank
-    replica_id = rank
 
     #---------------------------------------------------------------------------    
     # assigning replicas to procs
@@ -179,7 +182,7 @@ if __name__ == '__main__':
                 for r in range(replicas):
                     if p == r:
                         for i in range(num):
-                            r_ids[p].append(r+size*i)
+                            r_ids[p].append(int(replica_ids[r+size*i]))
 
     else:
         r_ids = None
@@ -191,12 +194,12 @@ if __name__ == '__main__':
         print "size: {0} replicas: {1}".format(size, replicas)
 
     # init swap column
-    swap_column = [0.0]*replicas
-    temperatures = [0.0]*replicas
-    energies = [0.0]*replicas
+    swap_column = [0.0]*all_replicas
+    temperatures = [0.0]*all_replicas
+    energies = [0.0]*all_replicas
 
-    all_temperatures = [0.0]*replicas
-    all_energies = [0.0]*replicas
+    all_temperatures = [0.0]*all_replicas
+    all_energies = [0.0]*all_replicas
 
     comm.Barrier()
 
@@ -208,7 +211,7 @@ if __name__ == '__main__':
         # getting history data for self
         history_name = base_name + "_" + \
                        str(replica_id) + "_" + \
-                       str(current_cycle) + ".mdinfo"
+                       str(cycle) + ".mdinfo"
         success = 0
         attempts = 0
         while (success == 0):
@@ -236,7 +239,7 @@ if __name__ == '__main__':
                 print "rank {0}: Waiting for history file for replica {1}".format(rank, replica_id)
                 time.sleep(1)
                 attempts += 1
-                if attempts >= 3:
+                if attempts >= 5:
                     print "rank {0}: Amber run failed, matrix_swap_column_x_x.dat populated with zeros".format(rank)
                     # temp fix
                     replica_temp = 0.0
@@ -285,7 +288,7 @@ if __name__ == '__main__':
         #-----------------------------------------------------------------------
         # writing to file
         try:
-            outfile = "pairs_for_exchange_1_{cycle}.dat".format(cycle=current_cycle)
+            outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dimension, cycle=current_cycle)
             with open(outfile, 'w+') as f:
                 for pair in exchange_list:
                     if pair:

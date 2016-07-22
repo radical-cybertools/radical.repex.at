@@ -62,6 +62,9 @@ class KernelPatternS(object):
         self.name = 'amber-pattern-s-3d'
         self.logger  = rul.get_logger ('radical.repex', self.name)
 
+        self.re_pattern = inp_file['remd.input'].get('re_pattern')
+
+        self.cores         = int(rconfig['target'].get('cores', '1'))
         self.resource         = rconfig['target'].get('resource')
         self.inp_basename     = inp_file['remd.input'].get('input_file_basename')
         self.input_folder     = inp_file['remd.input'].get('input_folder')
@@ -82,10 +85,8 @@ class KernelPatternS(object):
             self.restart = False
             self.restart_done = True
 
-        self.cores         = int(rconfig['target'].get('cores', '1'))
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
-        self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
         self.nr_ex_neighbors = int(inp_file['remd.input'].get('nr_exchange_neighbors', '1'))
 
         self.group_exec = inp_file['remd.input'].get('group_exec', 'False')
@@ -94,20 +95,6 @@ class KernelPatternS(object):
         else:
             self.group_exec = False
 
-        if inp_file['remd.input'].get('replica_gpu') == "True":
-            self.replica_gpu = True
-        else:
-            self.replica_gpu = False
-
-        # if True, we do global MPI for 1D cases (umbrella and temperature)
-        # Note: must be set to True for Execution Mode II
-        if inp_file['remd.input'].get('exchange_mpi') == "True":
-            self.exchange_mpi = True
-        else:
-            self.exchange_mpi = False
-
-        self.exchange_mpi_cores = int(inp_file['remd.input'].get('exchange_mpi_cores', 0))
-           
         #-----------------------------------------------------------------------
     
         self.amber_coordinates_path = inp_file['remd.input'].get('amber_coordinates_folder')
@@ -126,15 +113,45 @@ class KernelPatternS(object):
         else:
             self.down_mdout = False
 
-        if inp_file['remd.input'].get('replica_mpi') == "True":
-            self.replica_mpi = True
-        else:
-            self.replica_mpi = False   
-    
+        self.nr_dims = 0
+        if inp_file['dim.input'].get('d1') and (not inp_file['dim.input'].get('d2')) and (not inp_file['dim.input'].get('d3')):
+            self.nr_dims = 1
+        if inp_file['dim.input'].get('d1') and inp_file['dim.input'].get('d2') and (not inp_file['dim.input'].get('d3')):
+            self.nr_dims = 2
+        if inp_file['dim.input'].get('d1') and inp_file['dim.input'].get('d2') and inp_file['dim.input'].get('d3'):
+            self.nr_dims = 3
+
         self.dims = {}
-        self.dims['d1'] = {'replicas' : None, 'type' : None} 
-        self.dims['d2'] = {'replicas' : None, 'type' : None}
-        self.dims['d3'] = {'replicas' : None, 'type' : None}
+        self.dims['d1'] = {'replicas' : None, 'type' : None, 'mpi': False, 'gpu': False, 'cores': 1, 'ex_mpi': False, 'ex_cores': 2} 
+        self.dims['d2'] = {'replicas' : None, 'type' : None, 'mpi': False, 'gpu': False, 'cores': 1, 'ex_mpi': False, 'ex_cores': 2}
+        self.dims['d3'] = {'replicas' : None, 'type' : None, 'mpi': False, 'gpu': False, 'cores': 1, 'ex_mpi': False ,'ex_cores': 2}
+
+        for d in range(self.nr_dims):
+            d_str = 'd' + str(d+1)
+            if inp_file['dim.input'][d_str].get('replica_mpi') == "True":
+                self.dims[d_str]['mpi'] = True
+            else:
+                self.dims[d_str]['mpi'] = False
+            if inp_file['dim.input'][d_str].get('replica_gpu') == "True":
+                self.dims[d_str]['gpu'] = True
+            else:
+                self.dims[d_str]['gpu'] = False
+            if inp_file['dim.input'][d_str].get('exchange_mpi') == "True":
+                self.dims[d_str]['ex_mpi'] = True
+            else:
+                self.dims[d_str]['ex_mpi'] = False
+
+            self.dims[d_str]['ex_cores'] =  int(inp_file['dim.input'][d_str].get('exchange_cores', '1'))
+            self.dims[d_str]['cores'] = int(inp_file['dim.input'][d_str].get('replica_cores', '1'))
+
+            # for mpi we need at least 2 cores
+            if self.dims[d_str]['mpi'] == True:
+                if self.dims[d_str]['cores'] < 2:
+                    self.dims[d_str]['cores'] = 2
+
+            if self.dims[d_str]['ex_mpi'] == True:
+                if self.dims[d_str]['ex_cores'] < 2:
+                    self.dims[d_str]['cores'] = 2
 
         #-----------------------------------------------------------------------
         #  
@@ -142,6 +159,7 @@ class KernelPatternS(object):
             self.dims['d1']['replicas'] = int(inp_file['dim.input']\
                                ['d1'].get("number_of_replicas"))
             self.dims['d1']['type'] = (inp_file['dim.input']['d1'].get("type"))
+
 
         if inp_file['dim.input'].get('d2'):
             self.dims['d2']['replicas'] = int(inp_file['dim.input']\
@@ -152,14 +170,6 @@ class KernelPatternS(object):
             self.dims['d3']['replicas'] = int(inp_file['dim.input']\
                                ['d3'].get("number_of_replicas"))
             self.dims['d3']['type'] = (inp_file['dim.input']['d3'].get("type"))
-
-        self.nr_dims = 0
-        if self.dims['d1']['replicas'] and (not self.dims['d2']['replicas']) and (not self.dims['d3']['replicas']):
-            self.nr_dims = 1
-        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] and (not self.dims['d3']['replicas']):
-            self.nr_dims = 2
-        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] and self.dims['d3']['replicas']:
-            self.nr_dims = 3
 
         if self.nr_dims == 0:
             self.logger.info("Number of dimensions must be greater than 0, exiting...")
@@ -545,15 +555,16 @@ class KernelPatternS(object):
             self.shared_files.append("matrix_calculator_temp_ex_mpi.py")
             self.shared_files.append("matrix_calculator_us_ex_mpi.py")
             self.shared_files.append("global_ex_calculator_gr.py")
-        elif self.exchange_mpi == False:
+        else:
+            #elif self.dims[dim_str]['ex_mpi'] == False:
             self.shared_files.append("matrix_calculator_temp_ex.py")
             self.shared_files.append("matrix_calculator_us_ex.py")
             self.shared_files.append("input_file_builder.py")
             self.shared_files.append("global_ex_calculator.py")
-        elif self.exchange_mpi == True:
+            #elif self.dims[dim_str]['ex_mpi'] == True:
             self.shared_files.append("global_ex_calculator_tex_mpi.py")
             self.shared_files.append("global_ex_calculator_us_mpi.py")
-            self.shared_files.append("input_file_builder.py")
+            #self.shared_files.append("input_file_builder.py")
 
         self.shared_files.append(self.us_template)
 
@@ -584,7 +595,8 @@ class KernelPatternS(object):
 
             global_calc_url = 'file://%s' % (global_calc_path_gr)
             self.shared_urls.append(global_calc_url)
-        elif self.exchange_mpi == False:
+        else:
+            #elif self.dims[dim_str]['ex_mpi'] == False:
             calc_temp_ex_url = 'file://%s' % (calc_temp_ex_path)
             self.shared_urls.append(calc_temp_ex_url)
 
@@ -596,15 +608,15 @@ class KernelPatternS(object):
 
             global_calc_url = 'file://%s' % (global_calc_path)
             self.shared_urls.append(global_calc_url)
-        elif self.exchange_mpi == True:
+            #elif self.dims[dim_str]['ex_mpi'] == True:
             calc_temp_ex_mpi_url = 'file://%s' % (calc_temp_ex_mpi_path)
             self.shared_urls.append(calc_temp_ex_mpi_url)
 
             calc_us_ex_mpi_url = 'file://%s' % (calc_us_ex_mpi_path)
             self.shared_urls.append(calc_us_ex_mpi_url)
 
-            build_inp_url = 'file://%s' % (build_inp_path)
-            self.shared_urls.append(build_inp_url)
+            #build_inp_url = 'file://%s' % (build_inp_path)
+            #self.shared_urls.append(build_inp_url)
 
         rstr_template_url = 'file://%s' % (rstr_template_path)
         self.shared_urls.append(rstr_template_url)
@@ -701,7 +713,7 @@ class KernelPatternS(object):
             }
             stage_out.append(rstr_out)
         
-        if self.dims[dim_str]['type'] != 'salt' and self.exchange_mpi == False:
+        if self.dims[dim_str]['type'] != 'salt' and self.dims[dim_str]['ex_mpi'] == False:
             matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), 
                                                       str(replica.cycle-1))
             matrix_col_out = {
@@ -839,8 +851,6 @@ class KernelPatternS(object):
                      str(repl.dims[dim_str]['par']), \
                      str(repl.new_restraints)]
 
-                #self.logger.info( "id: {0} temp: {1} umbrella: {2}".format( repl.id, repl.dims['d1']['par'], repl.dims['d3']['par']  ) )
-
             data = {
                 "rid": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
@@ -860,31 +870,30 @@ class KernelPatternS(object):
 
         #-----------------------------------------------------------------------
         
-        if (self.replica_gpu == True):
+        if (self.dims[dim_str]['gpu'] == True):
             amber_str = self.amber_path_gpu
-        elif (self.replica_mpi == True):
+        elif (self.dims[dim_str]['mpi'] == True):
             amber_str = self.amber_path_mpi
         else:
             amber_str = self.amber_path
         
-        if self.dims[dim_str]['type'] == 'temperature' and self.exchange_mpi == False:
-            # self.logger.info( "id: {0} par1: {1}  par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
+        if self.dims[dim_str]['type'] == 'temperature' and self.dims[dim_str]['ex_mpi'] == False:
             # matrix_calculator_temp_ex.py
             stage_in.append(sd_shared_list[2])
-        if self.dims[dim_str]['type'] == 'umbrella' and self.exchange_mpi == False: 
+        if self.dims[dim_str]['type'] == 'umbrella' and self.dims[dim_str]['ex_mpi'] == False: 
             # matrix_calculator_us_ex.py
             stage_in.append(sd_shared_list[3])
         
         cu = radical.pilot.ComputeUnitDescription()
-        cu.cores = self.replica_cores    
-        cu.mpi = self.replica_mpi
+        cu.cores = self.dims[dim_str]['cores']    
+        cu.mpi = self.dims[dim_str]['mpi']
         
         if KERNELS[self.resource]["shell"] == "bash":
             cu.executable = '/bin/bash'
             pre_exec_str  = "python input_file_builder.py " + "\'" + \
                            json_pre_data_bash + "\'"
             if self.dims[dim_str]['type'] == 'temperature':
-                if self.exchange_mpi == False:
+                if self.dims[dim_str]['ex_mpi'] == False:
                     post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
                                 json_post_data_bash + "\'"
                 else:
@@ -897,7 +906,7 @@ class KernelPatternS(object):
             pre_exec_str = "python input_file_builder.py " + "\'" + \
                            json_pre_data_sh + "\'"
             if self.dims[dim_str]['type'] == 'temperature':
-                if self.exchange_mpi == False:
+                if self.dims[dim_str]['ex_mpi'] == False:
                     post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
                                 json_post_data_sh + "\'"
                 else:
@@ -936,7 +945,7 @@ class KernelPatternS(object):
                 stage_out.append(restraints_out_st)
 
                 # restraint template file: ace_ala_nme_us.RST
-                stage_in.append(sd_shared_list[6])
+                stage_in.append(sd_shared_list[8])
 
             if self.restart_done == False:
                 old_path = self.restart_object.old_sandbox + '/staging_area/' + replica_path + old_coor
@@ -960,7 +969,7 @@ class KernelPatternS(object):
             stage_in.append(sd_shared_list[4])
 
             #-------------------------------------------------------------------
-            if (self.replica_mpi == False) and (self.replica_gpu == False):
+            if (self.dims[dim_str]['mpi'] == False) and (self.dims[dim_str]['gpu'] == False):
                 cu.pre_exec = self.pre_exec
                 if self.dims[dim_str]['type'] != 'salt':
                     cu.arguments = ["-c", pre_exec_str + \
@@ -1028,7 +1037,7 @@ class KernelPatternS(object):
             }
             stage_out.append(new_coor_out)
                
-            if (self.replica_mpi == False) and (self.replica_gpu == False):
+            if (self.dims[dim_str]['mpi'] == False) and (self.dims[dim_str]['gpu'] == False):
                 if self.dims[dim_str]['type'] != 'salt':
                     cu.arguments = ["-c", pre_exec_str + \
                                     "; wait; " + \
@@ -1295,8 +1304,8 @@ class KernelPatternS(object):
         cu.pre_exec = self.pre_exec
         cu.input_staging = stage_in
         cu.output_staging = stage_out
-        cu.cores = self.replica_cores
-        cu.mpi = self.replica_mpi
+        cu.cores = self.dims[dim_str]['cores']
+        cu.mpi = self.dims[dim_str]['mpi']
 
         return cu
 
@@ -1515,7 +1524,7 @@ class KernelPatternS(object):
         if self.group_exec == True:
             # global_ex_calculator_gr.py file
             stage_in.append(sd_shared_list[4])
-        elif self.exchange_mpi == False:
+        elif self.dims[dim_str]['ex_mpi'] == False:
             # global_ex_calculator.py file
             stage_in.append(sd_shared_list[5])
 
@@ -1523,43 +1532,65 @@ class KernelPatternS(object):
                                                                 cycle=current_cycle)
         stage_out.append(outfile)
 
-        if (self.exchange_mpi == True) and (self.dims[dim_str]['type'] == 'temperature'):
+        if (self.dims[dim_str]['ex_mpi'] == True) and (self.dims[dim_str]['type'] == 'temperature'):
             # global_ex_calculator_tex_mpi.py file
-            stage_in.append(sd_shared_list[2])
+            stage_in.append(sd_shared_list[6])
+
+            data = {"replicas" : str(len(replicas)),
+                    "all_replicas" : str(self.replicas),
+                    "replica_ids" : replica_ids,
+                    "current_cycle" : str(current_cycle),
+                    "cycle" : str(cycle),
+                    "dimension" : str(dim_int),
+                    "basename": str(self.inp_basename)         
+                   }
+            dump_data = json.dumps(data)
+            json_data_tex = dump_data.replace("\\", "")
 
             cu = radical.pilot.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             cu.input_staging  = stage_in
-            cu.arguments = ["global_ex_calculator_tex_mpi.py", \
-                             str(cycle), \
-                             str(self.replicas), \
-                             str(self.inp_basename)]
+            cu.arguments = ["global_ex_calculator_tex_mpi.py", json_data_tex]
 
-            if self.cores < self.replicas:
-                if self.exchange_mpi_cores != 0:
-                    if self.replicas % self.exchange_mpi_cores == 0:
-                        cu.cores = self.exchange_mpi_cores
-                elif (self.replicas % self.cores) == 0:
-                    cu.cores = self.cores
+            #cu.arguments = ["global_ex_calculator_tex_mpi.py", \
+            #                 str(cycle), \
+            #                 str(self.replicas), \
+            #                 str(self.inp_basename)]
+
+            if self.re_pattern == 'S':
+                if self.cores < self.replicas:
+                    # non-default value
+                    if self.dims[dim_str]['ex_cores'] != 2:
+                        if self.replicas % self.dims[dim_str]['ex_cores'] == 0:
+                            cu.cores = self.dims[dim_str]['ex_cores']
+                    elif (self.replicas % self.cores) == 0:
+                        cu.cores = self.cores
+                    else:
+                        self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
+                        self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
+                        sys.exit()
+        
+                elif self.cores >= self.replicas:
+                    cu.cores = self.replicas
                 else:
                     self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                     self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                     sys.exit()
-    
-            elif self.cores >= self.replicas:
-                cu.cores = self.replicas
             else:
-                self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
-                self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
-                sys.exit()
+                if self.dims[dim_str]['ex_cores'] < (len(replicas) / 10):
+                    cores = self.dims[dim_str]['ex_cores'] + 2
+                    while ( len(replicas) % cores != 0 ):
+                        cores += 2
+                    cu.cores = cores
+                else:
+                    cu.cores = self.dims[dim_str]['ex_cores']
             
             cu.mpi = True         
             cu.output_staging = stage_out
 
-        elif (self.exchange_mpi == True) and (self.dims[dim_str]['type'] == 'umbrella'):
+        elif (self.dims[dim_str]['ex_mpi'] == True) and (self.dims[dim_str]['type'] == 'umbrella'):
 
-            # 
             all_restraints = {}
             all_temperatures = {}
             for repl in replicas:
@@ -1577,7 +1608,7 @@ class KernelPatternS(object):
             json_data_us = dump_data.replace("\\", "")
 
             # global_ex_calculator_us_mpi.py file
-            stage_in.append(sd_shared_list[3])
+            stage_in.append(sd_shared_list[7])
 
             cu = radical.pilot.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec

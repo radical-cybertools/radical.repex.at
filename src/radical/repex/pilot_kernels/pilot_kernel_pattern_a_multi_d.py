@@ -79,6 +79,13 @@ class PilotKernelPatternAmultiD(PilotKernel):
         self._prof.prof('start_run')
         self._prof.prof('stagein_start')
 
+        dim_count = md_kernel.nr_dims
+        dim_str = []
+        dim_str.append('')
+        for i in range(dim_count):
+            s = 'd' + str(i+1)
+            dim_str.append(s)
+
         # staging shared input data in
         md_kernel.prepare_shared_data(replicas)
 
@@ -116,7 +123,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
         running_replicas = []
         sub_md_replicas = []
         sub_ex_replicas = []
-        dim_count = md_kernel.nr_dims
+        
         current_cycle = 1
 
         if md_kernel.restart == True:
@@ -127,12 +134,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
         else:
             dim_int = 1
             c = 0
-
-        dim_str = []
-        dim_str.append('')
-        for i in range(dim_count):
-            s = 'd' + str(i+1)
-            dim_str.append(s)
 
         replicas_for_exchange = []
         replicas_for_md = []
