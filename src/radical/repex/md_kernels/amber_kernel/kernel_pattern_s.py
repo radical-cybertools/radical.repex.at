@@ -42,6 +42,7 @@ import amber_kernel.matrix_calculator_temp_ex_mpi
 class Restart(object):
     def __init__(self, dimension=None, current_cycle=None, new_sandbox=None):
         self.new_sandbox    = new_sandbox
+        self.old_sandbox    = None
         self.dimension      = dimension
         self.current_cycle  = current_cycle
         self.groups_numbers = None
@@ -75,8 +76,10 @@ class KernelPatternS(object):
         self.restart           = inp_file['remd.input'].get('restart', 'False')
         self.restart_file      = inp_file['remd.input'].get('restart_file', '')
         if self.restart == 'True':
+            self.restart = True
             self.restart_done = False
         else:
+            self.restart = False
             self.restart_done = True
 
         self.cores         = int(rconfig['target'].get('cores', '1'))
@@ -464,8 +467,6 @@ class KernelPatternS(object):
         self.restart_object.dimension   = dim_int
         self.restart_object.current_cycle =  current_cycle
         self.restart_object.old_sandbox = self.restart_object.new_sandbox
-
-        self.logger.info( "current dimension: {0}".format( dim_int ) )
 
         self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
         with open(self.restart_file, 'wb') as output:
@@ -1444,7 +1445,7 @@ class KernelPatternS(object):
             f.close()
             for l in lines:
                 pair = l.split()
-                if pair[0].isdigit() and pair[0].isdigit():
+                if pair[0].isdigit() and pair[1].isdigit():
                     r1_id = int(pair[0])
                     r2_id = int(pair[1])
                     for r in replicas:

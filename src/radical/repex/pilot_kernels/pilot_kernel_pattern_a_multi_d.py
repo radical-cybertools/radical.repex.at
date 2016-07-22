@@ -116,11 +116,18 @@ class PilotKernelPatternAmultiD(PilotKernel):
         running_replicas = []
         sub_md_replicas = []
         sub_ex_replicas = []
-        current_cycle = 1
-        c = 0
-
-        dim_int = 1
         dim_count = md_kernel.nr_dims
+        current_cycle = 1
+
+        if md_kernel.restart == True:
+            dim_int = md_kernel.restart_object.dimension
+            c = md_kernel.restart_object.current_cycle
+            for r in replicas:
+                r.state = 'I'
+        else:
+            dim_int = 1
+            c = 0
+
         dim_str = []
         dim_str.append('')
         for i in range(dim_count):
@@ -264,11 +271,15 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             if r.cur_dim < 3:
                                 r.cur_dim += 1
                             else:
-                                r.cur_dim = 1 
+                                r.cur_dim = 1
                         
                         if global_ex_cu.state == 'Done':
                             self.logger.info( "Got exchange pairs!" )
                             md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], replicas_d_list)
+
+                            #write replica objects out
+                            md_kernel.save_replicas(c, gl_dim, dim_str[gl_dim], replicas)
+                            
                             for r in replicas_d_list:
                                 self.logger.info( "replica id {0} dim {1} state changed to W".format( r.id, r.cur_dim ) )
                                 r.state = 'W'

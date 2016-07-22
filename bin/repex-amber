@@ -52,7 +52,10 @@ if __name__ == '__main__':
 		pilot_kernel = PilotKernelPatternAmultiD( inp_file, rconfig )
 
 		# initializing replicas
-		replicas = md_kernel.initialize_replicas()
+		if md_kernel.restart_done == True:
+			replicas = md_kernel.initialize_replicas()
+		else:
+			replicas = md_kernel.recover_replicas()
 		
 	if (inp_file['remd.input']['re_pattern'] == 'S') and (group_exec == 'False'):
 
