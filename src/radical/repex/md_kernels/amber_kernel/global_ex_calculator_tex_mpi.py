@@ -285,13 +285,16 @@ if __name__ == '__main__':
         #-----------------------------------------------------------------------
         # writing to file
         try:
-            outfile = "pairs_for_exchange_1_{cycle}.dat".format(cycle=current_cycle)
+            outfile = "pairs_for_exchange_1_{cycle}.dat".format(cycle=current_cycle+1)
             with open(outfile, 'w+') as f:
                 for pair in exchange_list:
                     if pair:
                         row_str = str(pair[0]) + " " + str(pair[1]) 
                         f.write(row_str)
                         f.write('\n')
+                pwd = os.getcwd()
+                f.write(pwd)
+                f.write('\n')
             f.close()
 
         except IOError:
