@@ -122,7 +122,7 @@ if __name__ == '__main__':
             print "Waiting for self (history file)"
             time.sleep(1)
             attempts += 1
-            if attempts > 5:
+            if attempts > 10:
                 #---------------------------------------------------------------
                 # writing to file
                 try:
@@ -175,7 +175,7 @@ if __name__ == '__main__':
                     attempts += 1
                     # some of the replicas in current group failed
                     # set temperature and energy for this replicas as -1.0
-                    if attempts > 2:
+                    if attempts > 250:
                         temperatures[j] = -1.0
                         energies[j] = -1.0
                         success = 1
