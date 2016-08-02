@@ -3,9 +3,9 @@
         "resource" : "xsede.stampede",
         "username" : "antontre",
         "project"  : "TG-MCB090174",
-        "runtime"  : "120",
+        "runtime"  : "20",
         "cleanup"  : "False",
-        "cores" : "1744",
-        "mongo_url" : "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"
+        "cores" : "16",
+        "mongo_url" : "mongodb://129.114.18.191:27017/cdi-testing"
     }
 }

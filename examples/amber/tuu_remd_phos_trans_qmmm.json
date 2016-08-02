@@ -12,8 +12,8 @@
         "us_template": "phos_trans_us.RST",
         "group_exec": "False",
         "steps_per_cycle": "100",
-        "wait_ratio": "0.5",
-        "running_replicas": "4",
+        "wait_ratio": "0.05",
+        "running_replicas": "8",
         "download_mdinfo": "False",
         "download_mdout" : "False",
         "restart" : "False"
@@ -35,8 +35,8 @@
             "max_temperature": "373",
             "replica_cores": "1",
             "replica_mpi": "False",
-            "exchange_cores" : "2",
-            "exchange_mpi": "True"
+            "exchange_cores" : "1",
+            "exchange_mpi": "False"
             },
         "d3": {
             "type": "umbrella",

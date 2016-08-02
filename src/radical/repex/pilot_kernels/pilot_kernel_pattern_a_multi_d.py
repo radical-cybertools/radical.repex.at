@@ -276,7 +276,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         
                         if global_ex_cu.state == 'Done':
                             self.logger.info( "Got exchange pairs!" )
-                            md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], replicas_d_list)
+                            #md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], replicas_d_list)
 
                             #write replica objects out
                             md_kernel.save_replicas(c, gl_dim, dim_str[gl_dim], replicas)
@@ -387,7 +387,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 no_partner = 1
                 wait_timee = 0
                 processed_cus = []
-                cus_to_exchange = completed_cus
+                cus_to_exchange = list(completed_cus)
                 all_gr_list = []
                 
                 for cu in completed_cus:
@@ -412,7 +412,49 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         all_gr_list.append(gr_list)
                         processed_cus.append(cu.name)
                 self.logger.info( "all_gr_list before: {0}".format( all_gr_list )  )
-                
+                #---------------------------------------------------------------
+                # some more filtering
+                tmp_all_gr_list = list()
+                total_completed_count = 0
+                for item in all_gr_list:
+                    if len(item) > 1:
+                        tmp_all_gr_list.append(item)
+                for item in tmp_all_gr_list:
+                    for i in item:
+                        total_completed_count += 1
+
+                if total_completed_count >= wait_size:
+                    no_partner = 0
+
+                while (total_completed_count < wait_size):
+                    for item in all_gr_list:
+                        if item not in tmp_all_gr_list:
+                            tmp_all_gr_list.append(item)
+                            total_completed_count += 1
+                            break
+
+                all_gr_list = list(tmp_all_gr_list)
+                # updating cus_to_exchange
+                cus_to_exchange_new = list()
+                for cu in completed_cus:
+                    c_tuple = self.update_group_idx(cu.name.split('_'), replicas)
+                    for item in all_gr_list:
+                        for nu in item:
+                            n_tuple = nu.split('_')
+                            if c_tuple[3] == n_tuple[3] and c_tuple[7] == n_tuple[7] and c_tuple[1] == n_tuple[1]:
+                                cus_to_exchange_new.append(cu) 
+                cus_to_exchange = list(cus_to_exchange_new)
+
+                for cu in completed_cus:
+                    self.logger.info( "completed cus.name: {0}".format( cu.name ) )
+
+                cus_to_exchange_names = list()
+                for cu in cus_to_exchange_new:
+                    cus_to_exchange_names.append(cu.name)
+                self.logger.info( "all_gr_list middle: {0}".format( all_gr_list )  )
+                self.logger.info( "cus_to_exchange_names:    {0}".format( cus_to_exchange_names )  )
+                self.logger.info( "size cus_to_exchange: {0} size all_gr_list: {1}".format( len(cus_to_exchange), total_completed_count ) )
+
                 while(no_partner == 1):
                     for cu in completed_cus:
                         r_tuple = self.update_group_idx(cu.name.split('_'), replicas)
@@ -496,12 +538,12 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 self.logger.info( "dim: {0} UPDATED cus_to_exchange: {1}".format(dim, cus_to_exchange ) )
 
                 # updating completed_cus
-                completed_cus_new = completed_cus
+                completed_cus_new = list(completed_cus)
                 for cu1 in cus_to_exchange:
                     for cu2 in completed_cus:
                         if cu1.name == cu2.name:
                             completed_cus_new.remove(cu2)
-                completed_cus = completed_cus_new
+                completed_cus = list(completed_cus_new)
 
                 #---------------------------------------------------------------
                 

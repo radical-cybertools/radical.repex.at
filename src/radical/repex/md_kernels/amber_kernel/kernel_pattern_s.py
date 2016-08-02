@@ -1038,6 +1038,7 @@ class KernelPatternS(object):
             stage_out.append(new_coor_out)
                
             if (self.dims[dim_str]['mpi'] == False) and (self.dims[dim_str]['gpu'] == False):
+                cu.pre_exec = self.pre_exec
                 if self.dims[dim_str]['type'] != 'salt':
                     cu.arguments = ["-c", pre_exec_str + \
                                     "; wait; " + \
