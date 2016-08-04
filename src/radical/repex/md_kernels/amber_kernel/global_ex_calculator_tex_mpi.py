@@ -295,6 +295,9 @@ if __name__ == '__main__':
                         row_str = str(pair[0]) + " " + str(pair[1]) 
                         f.write(row_str)
                         f.write('\n')
+                pwd = os.getcwd()
+                f.write(pwd)
+                f.write('\n')
             f.close()
 
         except IOError:

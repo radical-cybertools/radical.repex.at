@@ -40,8 +40,8 @@ import amber_kernel.matrix_calculator_temp_ex_mpi
 #-------------------------------------------------------------------------------
 
 class Restart(object):
-    def __init__(self, dimension=None, current_cycle=None, new_sandbox=None):
-        self.new_sandbox    = new_sandbox
+    def __init__(self, dimension=None, current_cycle=None):
+        self.new_sandbox    = None
         self.old_sandbox    = None
         self.dimension      = dimension
         self.current_cycle  = current_cycle
@@ -64,7 +64,9 @@ class KernelPatternS(object):
 
         self.re_pattern = inp_file['remd.input'].get('re_pattern')
 
-        self.cores         = int(rconfig['target'].get('cores', '1'))
+        self.new_sandbox      = None
+        self.old_sandbox      = inp_file['remd.input'].get('old_sandbox', '')
+        self.cores            = int(rconfig['target'].get('cores', '1'))
         self.resource         = rconfig['target'].get('resource')
         self.inp_basename     = inp_file['remd.input'].get('input_file_basename')
         self.input_folder     = inp_file['remd.input'].get('input_folder')
@@ -476,7 +478,7 @@ class KernelPatternS(object):
     def save_replicas(self, current_cycle, dim_int, dim_str, replicas):
         self.restart_object.dimension   = dim_int
         self.restart_object.current_cycle =  current_cycle
-        self.restart_object.old_sandbox = self.restart_object.new_sandbox
+        self.restart_object.old_sandbox = self.new_sandbox
 
         self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
         with open(self.restart_file, 'wb') as output:
@@ -496,6 +498,10 @@ class KernelPatternS(object):
                 replicas.append( r_temp )
             self.restart_object = pickle.load(input)
             self.groups_numbers = self.restart_object.groups_numbers
+
+            if self.restart_object.old_sandbox == None:
+                self.restart_object.old_sandbox = self.old_sandbox
+            self.logger.info( "ro.old_sandbox: {0} ro.new_sandbox: {1} ro.dim: {2}".format( self.restart_object.old_sandbox, self.restart_object.new_sandbox, self.restart_object.dimension   ) )
         return replicas
 
     #---------------------------------------------------------------------------
@@ -1475,7 +1481,8 @@ class KernelPatternS(object):
                     while i != '/':
                         l = l[:-1]
                         i = l[-1]
-                    self.restart_object.new_sandbox = l
+                    self.logger.info("updating new sandbox to: {0}".format( l ))
+                    self.new_sandbox = l
         except:
             raise
 

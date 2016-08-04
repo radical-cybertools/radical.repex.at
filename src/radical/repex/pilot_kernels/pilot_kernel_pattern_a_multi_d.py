@@ -142,36 +142,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
         self.logger.info("cycle_time: {0}".format( self.cycletime) )
         c_start = datetime.datetime.utcnow()
         #-----------------------------------------------------------------------
-        #check:
-        """
-        all_grrroups = md_kernel.get_all_groups(1, replicas)
-        for gr in all_grrroups:
-            gr.pop(0)
-            ids = []
-            gr_id = gr[0].group_idx[0]
-            for r in gr:
-                ids.append(r.id)
-            self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 1, gr_id, len(ids), ids) )
-
-        all_grrroups = md_kernel.get_all_groups(2, replicas)
-        for gr in all_grrroups:
-            gr.pop(0)
-            ids = []
-            gr_id = gr[0].group_idx[1]
-            for r in gr:
-                ids.append(r.id)
-            self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 2, gr_id, len(ids), ids) )
-
-        all_grrroups = md_kernel.get_all_groups(3, replicas)
-        for gr in all_grrroups:
-            gr.pop(0)
-            ids = []
-            gr_id = gr[0].group_idx[2]
-            for r in gr:
-                ids.append(r.id)
-            self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 3, gr_id, len(ids), ids) )
-        """
-        #-----------------------------------------------------------------------
         
         self._prof.prof('sim_loop_start')
         while (simulation_time < self.runtime*60.0 ):
@@ -269,14 +239,14 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         for r in replicas_d_list:
                             self.logger.info( "replica id {0} state changed to E".format( r.id ) )
                             r.state = 'E'
-                            if r.cur_dim < 3:
+                            if r.cur_dim < dim_count:
                                 r.cur_dim += 1
                             else:
                                 r.cur_dim = 1
                         
                         if global_ex_cu.state == 'Done':
                             self.logger.info( "Got exchange pairs!" )
-                            #md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], replicas_d_list)
+                            md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], replicas_d_list)
 
                             #write replica objects out
                             md_kernel.save_replicas(c, gl_dim, dim_str[gl_dim], replicas)
@@ -352,36 +322,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 self.logger.info( "len completed: {0}".format( completed )  )
                 #---------------------------------------------------------------
                 # second wait
-                # check
-                """
-                all_grrroups = md_kernel.get_all_groups(1, replicas)
-                for gr in all_grrroups:
-                    gr.pop(0)
-                    ids = []
-                    gr_id = gr[0].group_idx[0]
-                    for r in gr:
-                        ids.append(r.id)
-                    self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 1, gr_id, len(ids), ids) )
-
-                all_grrroups = md_kernel.get_all_groups(2, replicas)
-                for gr in all_grrroups:
-                    gr.pop(0)
-                    ids = []
-                    gr_id = gr[0].group_idx[1]
-                    for r in gr:
-                        ids.append(r.id)
-                    self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 2, gr_id, len(ids), ids) )
-
-                all_grrroups = md_kernel.get_all_groups(3, replicas)
-                for gr in all_grrroups:
-                    gr.pop(0)
-                    ids = []
-                    gr_id = gr[0].group_idx[2]
-                    for r in gr:
-                        ids.append(r.id)
-                    self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 3, gr_id, len(ids), ids) )
-                """
-                #---------------------------------------------------------------
 
                 self.logger.info( "second wait....." )
                 no_partner = 1
