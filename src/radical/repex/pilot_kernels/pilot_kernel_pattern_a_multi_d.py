@@ -295,85 +295,85 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 #---------------------------------------------------------------
                 completed = 0
                 self._prof.prof('local_wait_start_1' + c_str )
+                
                 #---------------------------------------------------------------
-                # first wait
-                self.logger.info( "first wait....." )
+                # wait loop
+
+                self.logger.info( "second wait....." )
+
                 wait_size = int(self.running_replicas * self.wait_ratio)
                 if wait_size == 0:
                     wait_size = 1
                 self.logger.info( "wait size: {0}".format( wait_size ) )
 
-                wait_timee = 0
-                while ( completed < wait_size ):
-                    self.logger.info( "proceed when completed replicas >= {0}".format( wait_size ) )
+                wait_time_2 = 0
+                
+                total_completed_count = 0
+                while (total_completed_count < wait_size):
                     for cu in sub_md_replicas:
                         if cu.state == 'Done':
                             if cu not in completed_cus:
                                 completed_cus.append(cu)
-                    time.sleep(1)
-                    wait_timee += 1
-                    completed = len(completed_cus)
-                    c_end = datetime.datetime.utcnow()
-                    simulation_time = (c_end - c_start).total_seconds()
-                    if (simulation_time > self.runtime*60.0):
-                        completed = md_kernel.replicas
-                       
-                self.logger.info( "wait time 1: {0}".format( wait_timee )  )
-                self.logger.info( "len completed: {0}".format( completed )  )
-                #---------------------------------------------------------------
-                # second wait
 
-                self.logger.info( "second wait....." )
-                no_partner = 1
-                wait_timee = 0
-                processed_cus = []
+                    if (len(completed_cus) > wait_size):
+                        processed_cus = []
+                        all_gr_list = []
+                        for cu in completed_cus:
+                            r_tuple = self.update_group_idx(cu.name.split('_'), replicas)
+                            # check if replicas from same group are finished after 1st wait
+                            add = 0
+                            add_to_sublist = None
+                            for sublist in all_gr_list:
+                                for item in sublist:
+                                    r_tuple_add = self.update_group_idx(item.split('_'), replicas)
+                                    # if in same group and in same dimension
+                                    if r_tuple[3] == r_tuple_add[3] and r_tuple[7] == r_tuple_add[7]:
+                                        add_to_sublist = sublist
+                                        add = 1
+                            if add == 1:
+                                index = all_gr_list.index(add_to_sublist)
+                                all_gr_list[index].append(cu.name)
+                                processed_cus.append(cu.name)
+                            if add == 0:     
+                                gr_list = []
+                                gr_list.append(cu.name)
+                                all_gr_list.append(gr_list)
+                                processed_cus.append(cu.name)
+
+                        self.logger.info( "all_gr_list in while: {0}".format( all_gr_list )  )
+                        all_gr_list_sizes = []
+                        for gr_list in all_gr_list:
+                            all_gr_list_sizes.append( len(gr_list) )
+                        self.logger.info( "all_gr_list_sizes in while: {0}".format( all_gr_list_sizes ) )
+                    
+                        #-----------------------------------------------------------
+                        # updating total_completed_count
+                        total_completed_count = 0
+                        tmp_all_gr_list = list()
+                        #total_completed_count = 0
+                        for item in all_gr_list:
+                            # we only count groups with 2 or more replicas 
+                            if len(item) > 1:
+                                tmp_all_gr_list.append(item)
+                        for item in tmp_all_gr_list:
+                            for i in item:
+                                total_completed_count += 1
+
+                        if total_completed_count >= wait_size:
+                            time.sleep(2)
+                            wait_time_2 += 2
+                    else:
+                        time.sleep(2)
+                        wait_time_2 += 2
+
+                #---------------------------------------------------------------
+                # end of while loop   
+                self.logger.info( "wait time: {0}".format( wait_time_2 ) )
+
                 cus_to_exchange = list(completed_cus)
-                all_gr_list = []
-                
-                for cu in completed_cus:
-                    r_tuple = self.update_group_idx(cu.name.split('_'), replicas)
-                    # check if replicas from same group are finished after 1st wait
-                    add = 0
-                    add_to_sublist = None
-                    for sublist in all_gr_list:
-                        for item in sublist:
-                            r_tuple_add = self.update_group_idx(item.split('_'), replicas)
-                            # if in same group and in same dimension
-                            if r_tuple[3] == r_tuple_add[3] and r_tuple[7] == r_tuple_add[7]:
-                                add_to_sublist = sublist
-                                add = 1
-                    if add == 1:
-                        index = all_gr_list.index(add_to_sublist)
-                        all_gr_list[index].append(cu.name)
-                        processed_cus.append(cu.name)
-                    if add == 0:     
-                        gr_list = []
-                        gr_list.append(cu.name)
-                        all_gr_list.append(gr_list)
-                        processed_cus.append(cu.name)
-                self.logger.info( "all_gr_list before: {0}".format( all_gr_list )  )
-                #---------------------------------------------------------------
-                # some more filtering
-                tmp_all_gr_list = list()
-                total_completed_count = 0
-                for item in all_gr_list:
-                    if len(item) > 1:
-                        tmp_all_gr_list.append(item)
-                for item in tmp_all_gr_list:
-                    for i in item:
-                        total_completed_count += 1
-
-                if total_completed_count >= wait_size:
-                    no_partner = 0
-
-                while (total_completed_count < wait_size):
-                    for item in all_gr_list:
-                        if item not in tmp_all_gr_list:
-                            tmp_all_gr_list.append(item)
-                            total_completed_count += 1
-                            break
 
                 all_gr_list = list(tmp_all_gr_list)
+                #---------------------------------------------------------------
                 # updating cus_to_exchange
                 cus_to_exchange_new = list()
                 for cu in completed_cus:
@@ -385,47 +385,12 @@ class PilotKernelPatternAmultiD(PilotKernel):
                                 cus_to_exchange_new.append(cu) 
                 cus_to_exchange = list(cus_to_exchange_new)
 
-                for cu in completed_cus:
-                    self.logger.info( "completed cus.name: {0}".format( cu.name ) )
-
                 cus_to_exchange_names = list()
                 for cu in cus_to_exchange_new:
                     cus_to_exchange_names.append(cu.name)
-                self.logger.info( "all_gr_list middle: {0}".format( all_gr_list )  )
-                self.logger.info( "cus_to_exchange_names:    {0}".format( cus_to_exchange_names )  )
-                self.logger.info( "size cus_to_exchange: {0} size all_gr_list: {1}".format( len(cus_to_exchange), total_completed_count ) )
-
-                while(no_partner == 1):
-                    for cu in completed_cus:
-                        r_tuple = self.update_group_idx(cu.name.split('_'), replicas)
-                        for cu1 in sub_md_replicas:
-                            if cu1.name not in processed_cus and cu1.state == 'Done':
-                                    r1_tuple = self.update_group_idx(cu1.name.split('_'), replicas)
-                                    # must be in same group and in same dimension
-                                    if r_tuple[3] == r1_tuple[3] and r_tuple[7] == r1_tuple[7]:
-                                        # getting index of gr_list
-                                        for sublist in all_gr_list:
-                                            if cu.name in sublist:
-                                                index = all_gr_list.index(sublist)
-                                                all_gr_list[index].append(cu1.name)
-                                                processed_cus.append(cu1.name)
-                                                cus_to_exchange.append(cu1)
-                    self.logger.info( "all_gr_list inside: {0}".format( all_gr_list )  )
-                    all_gr_list_sizes = []
-                    for gr_list in all_gr_list:
-                        all_gr_list_sizes.append( len(gr_list) )
-                    self.logger.info( "all_gr_list_sizes: {0}".format( all_gr_list_sizes ) )
-
-                    # some replica does not have a partner
-                    if 1 in all_gr_list_sizes:
-                        time.sleep(1)
-                        wait_timee += 1
-                    elif len(all_gr_list_sizes) == 0:
-                        time.sleep(1)
-                        wait_timee += 1
-                    else:
-                        self.logger.info( "wait time 2: {0}".format( wait_timee ) )
-                        no_partner = 0
+                #self.logger.info( "all_gr_list middle: {0}".format( all_gr_list )  )
+                #self.logger.info( "cus_to_exchange_names:    {0}".format( cus_to_exchange_names )  )
+                #self.logger.info( "size cus_to_exchange: {0} size all_gr_list: {1}".format( len(cus_to_exchange), total_completed_count ) )
 
                 #---------------------------------------------------------------
                 # in each group must be only even number of replicas

@@ -5,6 +5,6 @@
         "runtime" : "10",
         "cleanup" : "False",
         "cores" : "4",
-        "mongo_url" : "mongodb://129.114.18.191:27017/cdi-testing"
+        "mongo_url" : "mongodb://treikali:pf43ek6klo@149.165.156.129:27017/cdi-tests"
     }
 }
