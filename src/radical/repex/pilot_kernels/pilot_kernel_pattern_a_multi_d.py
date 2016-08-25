@@ -38,12 +38,15 @@ class PilotKernelPatternAmultiD(PilotKernel):
     #
     def update_group_idx(self, cu_tuple, running_replicas):
         
+        """
         for r in running_replicas:
             if cu_tuple[1] == str(r.id):
                 r_dim = int(cu_tuple[7])
                 group_nr = r.group_idx[r_dim-1]
         cu_name = 'id_' + cu_tuple[1] + '_gr_' + str(group_nr) + '_c_' + cu_tuple[5] + '_d_' + cu_tuple[7]
-        return cu_name.split('_')
+        """
+        #return cu_name.split('_')
+        return cu_tuple
 
     #---------------------------------------------------------------------------
     #
@@ -116,7 +119,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
         #DIM = 0
         #dimensions = md_kernel.dims
-
         #-----------------------------------------------------------------------
         # async loop
         simulation_time = 0.0
@@ -141,6 +143,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
         self.logger.info("cycle_time: {0}".format( self.cycletime) )
         c_start = datetime.datetime.utcnow()
+
         #-----------------------------------------------------------------------
         
         self._prof.prof('sim_loop_start')
@@ -198,9 +201,9 @@ class PilotKernelPatternAmultiD(PilotKernel):
                                 replicas_by_dim[idx].append(r)
                         idx += 1
 
-                    for d in replicas_by_dim:
-                        for r in d:
-                            self.logger.info( "replica_id: {0} cur_dim: {1}".format(r.id, r.cur_dim) )
+                    #for d in replicas_by_dim:
+                    #    for r in d:
+                    #        self.logger.info( "replica_id: {0} cur_dim: {1}".format(r.id, r.cur_dim) )
 
                     #-----------------------------------------------------------
                     # do global exchange, replicas in different dimensions may 
@@ -246,7 +249,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         
                         if global_ex_cu.state == 'Done':
                             self.logger.info( "Got exchange pairs!" )
-                            md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], replicas_d_list)
+                            #md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], replicas_d_list)
 
                             #write replica objects out
                             md_kernel.save_replicas(c, gl_dim, dim_str[gl_dim], replicas)
@@ -300,7 +303,6 @@ class PilotKernelPatternAmultiD(PilotKernel):
                 # wait loop
 
                 self.logger.info( "second wait....." )
-
                 wait_size = int(self.running_replicas * self.wait_ratio)
                 if wait_size == 0:
                     wait_size = 1
@@ -346,7 +348,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             all_gr_list_sizes.append( len(gr_list) )
                         self.logger.info( "all_gr_list_sizes in while: {0}".format( all_gr_list_sizes ) )
                     
-                        #-----------------------------------------------------------
+                        #-------------------------------------------------------
                         # updating total_completed_count
                         total_completed_count = 0
                         tmp_all_gr_list = list()
@@ -359,7 +361,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                             for i in item:
                                 total_completed_count += 1
 
-                        if total_completed_count >= wait_size:
+                        if total_completed_count < wait_size:
                             time.sleep(2)
                             wait_time_2 += 2
                     else:
@@ -422,7 +424,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
                     for cu in cus_to_exchange:
                         cu_tuple = self.update_group_idx(cu.name.split('_'), replicas)
                         if cu_tuple[7] == dim:
-                            self.logger.info( "dim: {0} cur_id: {1}".format(dim, int(cu_tuple[3]) )  )
+                            #self.logger.info( "dim: {0} cur_id: {1}".format(dim, int(cu_tuple[3]) )  )
                             cus_to_exchange_gr[int(cu_tuple[3])].append(cu)
                             cus_to_exchange_gr_names[int(cu_tuple[3])].append(cu.name)
 
@@ -437,10 +439,17 @@ class PilotKernelPatternAmultiD(PilotKernel):
                         item.pop(0)
                         if len(item) % 2 != 0:
                             item.pop(0)
+                    # removing empty lists
+                    try:
+                        for i in range(len(cus_to_exchange_gr_names)):
+                            if (len(cus_to_exchange_gr_names[i]) == 0):
+                                cus_to_exchange_gr_names.pop(i)
+                    except:
+                        pass
                     self.logger.info( "dim: {0} AFTER UPDATE cus_to_exchange_gr_names: {1}".format(dim, cus_to_exchange_gr_names ) )
 
                 cus_to_exchange = cus_to_exchange_new
-                self.logger.info( "dim: {0} UPDATED cus_to_exchange: {1}".format(dim, cus_to_exchange ) )
+                #self.logger.info( "dim: {0} UPDATED cus_to_exchange: {1}".format(dim, cus_to_exchange ) )
 
                 # updating completed_cus
                 completed_cus_new = list(completed_cus)

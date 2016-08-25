@@ -3,9 +3,10 @@
         "resource" : "xsede.stampede",
         "username" : "antontre",
         "project"  : "TG-MCB090174",
-        "runtime"  : "20",
+        "queue"    : "development",
+        "runtime"  : "120",
         "cleanup"  : "False",
-        "cores" : "16",
-        "mongo_url" : "mongodb://129.114.18.191:27017/cdi-testing"
+        "cores" : "64",
+        "mongo_url" : "mongodb://144.76.72.175:27017/cdi-testing"
     }
 }

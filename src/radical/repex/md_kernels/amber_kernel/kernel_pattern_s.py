@@ -815,8 +815,8 @@ class KernelPatternS(object):
             json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
 
         #-----------------------------------------------------------------------
-        self.logger.info( "current group: " )
-        self.logger.info( current_group )
+        #self.logger.info( "current group: " )
+        #self.logger.info( current_group )
 
         if self.dims[dim_str]['type'] == 'umbrella':
             # 
