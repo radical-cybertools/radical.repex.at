@@ -401,9 +401,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
                 self.logger.info('ERROR: In D%d Global-Exchange-step failed for unit:  %s' % (dim_int, global_ex_cu.uid))
                 failed_cus.append( global_ex_cu.uid )
 
-            # do exchange of parameters
-            self.logger.info('QM/MM SLEEP 30 SECONDS') 
-            time.sleep(30)                    
+            # do exchange of parameters                   
             md_kernel.do_exchange(current_cycle, dim_int, dim_str[dim_int], replicas)
             t2 = datetime.datetime.utcnow()
                 
