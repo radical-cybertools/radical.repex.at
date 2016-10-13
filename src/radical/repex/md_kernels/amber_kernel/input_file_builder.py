@@ -56,6 +56,7 @@ if __name__ == '__main__':
                     
     if new_temperature == None:
         new_temperature = init_temp
+        
     #---------------------------------------------------------------------------
     # this is for every cycle
     try:
