@@ -73,7 +73,7 @@ class PilotKernelPatternSmultiDsc(PilotKernel):
         shared_input_file_urls = md_kernel.shared_urls
         shared_input_files = md_kernel.shared_files
 
-        for i in range(len(shared_input_files)):
+        for i,j in enumerate(shared_input_files):
 
             sd_pilot = {'source': shared_input_file_urls[i],
                         'target': 'staging:///%s' % shared_input_files[i],

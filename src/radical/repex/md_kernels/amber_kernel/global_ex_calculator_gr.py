@@ -206,7 +206,7 @@ if __name__ == '__main__':
                             rstr_vals.append( rstr_val_2 )
                     
                     params = [0.0]*4
-                    for i in range(len(dim_types)):
+                    for i,j in enumerate(dim_types):
                         if dim_types[i] == 'temperature':
                             params[i] = replica_dict[rid][2]
                         elif dim_types[i] == 'umbrella':

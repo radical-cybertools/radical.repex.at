@@ -10,7 +10,7 @@ import os
 import re
 import sys
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def alphanumeric_sorting(data_list):
     """This function sorts a list of strings composed of letters and digits in "logical" order, 
@@ -29,7 +29,7 @@ def alphanumeric_sorting(data_list):
 
     return sorted(data_list, key = alphanumeric_key, reverse=True)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
@@ -49,7 +49,7 @@ def reduced_energy(temperature, potential):
         beta = 1. / kb     
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def get_historical_data(history_name):
     """Retrieves temperature and potential energy from simulation output file .history file.
@@ -205,7 +205,7 @@ def get_historical_data(history_name):
 
     return replica_data
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """This module calculates one swap matrix column for replica and writes this column to 

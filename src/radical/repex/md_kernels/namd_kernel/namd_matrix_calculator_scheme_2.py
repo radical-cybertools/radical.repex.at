@@ -9,7 +9,7 @@ __license__ = "MIT"
 import os
 import sys
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
@@ -29,7 +29,7 @@ def reduced_energy(temperature, potential):
         beta = 1. / kb     
     return float(beta * potential)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 def get_historical_data(history_name):
     """Retrieves temperature and potential energy from simulation output file .history file.
@@ -63,7 +63,7 @@ def get_historical_data(history_name):
     return float(data[0]), float(data[1]), path_to_replica_folder
 
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     """This module calculates one swap matrix column for replica and writes this column to 

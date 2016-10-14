@@ -384,7 +384,7 @@ class KernelPatternS(object):
                     updated = False
                     if len(g_d1) == 0:
                         g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']]) 
-                    for i in range(len(g_d1)):
+                    for i,j in enumerate(g_d1)
                         if (g_d1[i][0] == r.dims['d2']['par']) and (g_d1[i][1] == r.dims['d3']['par']):
                             r.group_idx[0] = i
                             updated = True
@@ -399,7 +399,7 @@ class KernelPatternS(object):
                     updated = False
                     if len(g_d2) == 0:
                         g_d2.append([r.dims['d1']['par'], r.dims['d3']['par']]) 
-                    for i in range(len(g_d2)):
+                    for i,j in enumerate(g_d2):
                         if (g_d2[i][0] == r.dims['d1']['par']) and (g_d2[i][1] == r.dims['d3']['par']):
                             r.group_idx[1] = i
                             updated = True
@@ -414,7 +414,7 @@ class KernelPatternS(object):
                     updated = False
                     if len(g_d3) == 0:
                         g_d3.append([r.dims['d1']['par'], r.dims['d2']['par']])
-                    for i in range(len(g_d3)):
+                    for i,j in enumerate(g_d3):
                         if (g_d3[i][0] == r.dims['d1']['par']) and (g_d3[i][1] == r.dims['d2']['par']):
                             r.group_idx[2] = i
                             updated = True
@@ -430,7 +430,7 @@ class KernelPatternS(object):
                     updated = False
                     if len(g_d1) == 0:
                         g_d1.append(r.dims['d2']['par'])
-                    for i in range(len(g_d1)):
+                    for i,j in enumerate(g_d1):
                         if (g_d1[i] == r.dims['d2']['par']):
                             r.group_idx[0] = i
                             updated = True
@@ -446,7 +446,7 @@ class KernelPatternS(object):
                     if len(g_d2) == 0:
                         g_d2.append(r.dims['d1']['par']) 
                             
-                    for i in range(len(g_d2)):
+                    for i,j in enumerate(g_d2):
                         if (g_d2[i] == r.dims['d1']['par']):
                             r.group_idx[1] = i
                             updated = True

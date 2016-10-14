@@ -126,7 +126,7 @@ class NamdKernelTex(object):
         compute_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
         compute_replicas = []
-        for r in range(len(replicas)):
+        for r,m in enumerate(replicas):
             self.build_input_file_local(replicas[r])
             input_file = "%s_%d_%d.namd" % (self.inp_basename[:-5], replicas[r].id, (replicas[r].cycle-1))
 

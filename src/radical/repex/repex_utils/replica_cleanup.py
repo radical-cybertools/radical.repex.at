@@ -48,7 +48,7 @@ def clean_up(work_dir_local, replicas):
     Arguments:
     replicas - list of Replica objects
     """
-    for r in range(len(replicas)):
+    for r,m in enumerate(replicas):
         dir_path = "%s/replica_%d" % ( work_dir_local, replicas[r].id )
         shutil.rmtree(dir_path)
 

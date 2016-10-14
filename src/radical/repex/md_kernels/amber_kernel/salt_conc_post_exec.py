@@ -46,7 +46,7 @@ def get_historical_data(history_name, data_path=os.getcwd()):
         lines = f.readlines()
         f.close()
         path_to_replica_folder = os.getcwd()
-        for i in range(len(lines)):
+        for i,j in enumerate(lines):
             #if "TEMP(K)" in lines[i]:
             #    temp = float(lines[i].split()[8])
             if "EPtot" in lines[i]:

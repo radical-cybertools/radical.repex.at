@@ -34,7 +34,7 @@ def get_historical_data(replica_path, history_name):
         f.close()
         #path_to_replica_folder = os.getcwd()
         path_to_replica_folder = path
-        for i in range(len(lines)):
+        for i,j in enumerate(lines):
             if "EPtot" in lines[i]:
                 eptot = float(lines[i].split()[8])
     except:

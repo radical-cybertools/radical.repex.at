@@ -8,7 +8,7 @@ __license__ = "MIT"
 
 from namd_kernel_tex import *
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class NamdKernelTexScheme2a(NamdKernelTex):
     """This class is responsible for performing all operations related to NAMD for RE scheme 2a.

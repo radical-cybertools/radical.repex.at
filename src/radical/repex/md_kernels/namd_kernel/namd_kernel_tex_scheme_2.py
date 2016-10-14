@@ -15,7 +15,7 @@ from namd_kernel_tex import *
 import namd_kernels_tex.namd_matrix_calculator_scheme_2
 import radical.utils.logger as rul
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class NamdKernelTexScheme2(NamdKernelTex):
     """This class is responsible for performing all operations related to NAMD for RE scheme 2.
@@ -47,10 +47,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
 
         NamdKernelTex.__init__(self, inp_file, work_dir_local)
 
-
-#----------------------------------------------------------------------------------------------------------------------------------
-
-    # ------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def prepare_shared_data(self):
  
@@ -71,7 +68,7 @@ class NamdKernelTexScheme2(NamdKernelTex):
         params_url = 'file://%s' % (params_path)
         self.shared_urls.append(params_url)
     
-    # ------------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def build_input_file(self, replica):
         """Generates input file for individual replica, based on template input file. Tokens @xxx@ are
@@ -145,8 +142,8 @@ class NamdKernelTexScheme2(NamdKernelTex):
         except IOError:
             print 'Warning: unable to access file %s' % new_input_file
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------
+    #
     def prepare_replica_for_md(self, replica, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for MD simulation step. Here are
         specified input/output files to be transferred to/from target resource. Note: input 
@@ -224,8 +221,8 @@ class NamdKernelTexScheme2(NamdKernelTex):
 
         return cu
 
-#-----------------------------------------------------------------------------------------------------------------------------------
-
+    #---------------------------------------------------------------------------
+    #
     def prepare_replica_for_exchange(self, replica, sd_shared_list):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.
         Number of matrix_calculator_scheme_2.py instances invoked on resource is equal to the number 

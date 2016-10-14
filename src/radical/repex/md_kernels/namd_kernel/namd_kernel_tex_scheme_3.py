@@ -10,7 +10,7 @@ import os
 from os import path
 from namd_kernel_tex import *
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class NamdKernelTexScheme3(NamdKernelTex):
     """This class is responsible for performing all operations related to NAMD for RE scheme 3.
@@ -42,7 +42,7 @@ class NamdKernelTexScheme3(NamdKernelTex):
 
         NamdKernelTex.__init__(self, inp_file, work_dir_local)
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def check_replicas(self, replicas):
         """

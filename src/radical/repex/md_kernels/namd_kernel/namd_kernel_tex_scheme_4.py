@@ -14,7 +14,7 @@ from kernels.kernels import KERNELS
 from namd_kernel_tex import *
 import namd_kernels_tex.namd_matrix_calculator_scheme_4
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class NamdKernelTexScheme4(NamdKernelTex):
     """This class is responsible for performing all operations related to NAMD for RE scheme 2.
@@ -38,7 +38,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
         except:
             self.cycle_time = 3
 
-#----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def build_input_file(self, replica):
         """Generates input file for individual replica, based on template input file. Tokens @xxx@ are
@@ -151,7 +151,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
         except IOError:
             print 'Warning: unable to access file %s' % new_input_file
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def prepare_replicas_for_md(self, replicas):
         """Creates a list of ComputeUnitDescription objects for MD simulation step. Here are
@@ -165,7 +165,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
         compute_replicas - list of radical.pilot.ComputeUnitDescription objects
         """
         compute_replicas = []
-        for r in range(len(replicas)):
+        for r,m in enumerate(replicas):
             self.build_input_file(replicas[r])
             input_file = "%s_%d_%d.namd" % (self.inp_basename[:-5], replicas[r].id, (replicas[r].cycle-1))
 
@@ -211,7 +211,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
 
         return compute_replicas
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def prepare_replicas_for_exchange(self, replicas):
         """Creates a list of ComputeUnitDescription objects for exchange step on resource.
@@ -226,7 +226,7 @@ class NamdKernelTexScheme4(NamdKernelTex):
         """
 
         exchange_replicas = []
-        for r in range(len(replicas)):
+        for r,m in enumerate(replicas):
            
             # name of the file which contains swap matrix column data for each replica
             matrix_col = "matrix_column_%s_%s.dat" % (r, (replicas[r].cycle-1))
