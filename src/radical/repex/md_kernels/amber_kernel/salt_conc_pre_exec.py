@@ -69,11 +69,11 @@ if __name__ == '__main__':
 
     # getting history data for self
     history_name = base_name + "_" + str(replica_id) + "_" + str(replica_cycle) + ".mdinfo"
-    replica_path = "/replica_%s/" % (str(replica_id))
+    replica_path = "/replica_{0}/".format(str(replica_id))
     replica_energy, path_to_replica_folder = get_historical_data( replica_path, history_name )
 
     # FILE ala10_remd_X_X.rst IS IN DIRECTORY WHERE THIS SCRIPT IS LAUNCHED AND CEN BE REFERRED TO AS:
-    new_coor_file = "%s_%d_%d.rst" % (base_name, replica_id, replica_cycle)
+    new_coor_file = "{0}_{1}_{2}.rst".format(base_name, replica_id, replica_cycle)
     new_coor = path_to_replica_folder + new_coor_file
 
     # getting history data for all replicas

@@ -18,7 +18,7 @@ def move_output_files(work_dir_local, md_kernel, replicas):
     #---------------------------------------------------------------------------
     # moving shared files
 
-    dir_path = "%s/simulation_output" % (work_dir_local)
+    dir_path = "{0}/simulation_output".format(work_dir_local)
     if not os.path.exists(dir_path):
         try:
             os.makedirs(dir_path)
@@ -49,8 +49,8 @@ def clean_up(work_dir_local, replicas):
     replicas - list of Replica objects
     """
     for r,m in enumerate(replicas):
-        dir_path = "%s/replica_%d" % ( work_dir_local, replicas[r].id )
+        dir_path = "{0}/replica_{1}".format( work_dir_local, replicas[r].id )
         shutil.rmtree(dir_path)
 
-    dir_path = "%s/shared_files" % ( work_dir_local )
+    dir_path = "{0}/shared_files".format( work_dir_local )
     shutil.rmtree(dir_path)

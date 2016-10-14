@@ -89,13 +89,13 @@ class PilotKernelPatternAmultiD(PilotKernel):
         for i,j in enumerate(shared_input_files):
 
             sd_pilot = {'source': shared_input_file_urls[i],
-                        'target': 'staging:///%s' % shared_input_files[i],
+                        'target': 'staging:///{0}'.format(shared_input_files[i]),
                         'action': rp.TRANSFER
             }
 
             self.pilot_object.stage_in(sd_pilot)
 
-            sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
+            sd_shared = {'source': 'staging:///{0}'.format(shared_input_files[i]),
                          'target': shared_input_files[i],
                          'action': rp.COPY
             }
