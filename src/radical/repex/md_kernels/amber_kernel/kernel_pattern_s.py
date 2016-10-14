@@ -236,6 +236,7 @@ class KernelPatternS(object):
 
     #---------------------------------------------------------------------------
     #
+    @staticmethod
     def get_rstr_id(self, restraint):
         dot = 0
         rstr_id = ''
@@ -1456,11 +1457,10 @@ class KernelPatternS(object):
                             r2 = r
                     #-----------------------------------------------------------
                     # swap parameters
-                    if r1 != None and r2 != None:
-                        if self.exchange_off[dim_int-1] == False:
-                            self.exchange_params(dim_str, r1, r2)
-                            r1.swap = 1
-                            r2.swap = 1
+                    if r1 != None and r2 != None and self.exchange_off[dim_int-1] == False:
+                        self.exchange_params(dim_str, r1, r2)
+                        r1.swap = 1
+                        r2.swap = 1
                 else:
                     i = l[-1]
                     while i != '/':

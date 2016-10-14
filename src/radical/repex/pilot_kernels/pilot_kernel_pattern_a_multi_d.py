@@ -36,6 +36,7 @@ class PilotKernelPatternAmultiD(PilotKernel):
 
     #---------------------------------------------------------------------------
     #
+    @staticmethod
     def update_group_idx(self, cu_tuple, running_replicas):
         
         for r in running_replicas:

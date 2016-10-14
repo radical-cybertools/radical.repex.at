@@ -11,13 +11,11 @@ import sys
 from os import path
 import radical.pilot
 from kernels.kernels import KERNELS
-from md_kernels.md_kernel_tex import *
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-class NamdKernelTex(MdKernelTex):
-    """
-    """
+class NamdKernelTex(object):
+    
     def __init__(self, inp_file,  work_dir_local):
         """Constructor.
 
@@ -41,7 +39,7 @@ class NamdKernelTex(MdKernelTex):
         self.namd_coordinates = inp_file['input.MD']['namd_coordinates']
         self.namd_parameters = inp_file['input.MD']['namd_parameters']
         
-#----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def build_input_file_local(self, replica):
         """Generates input file for individual replica, based on template input file. Tokens @xxx@ are
@@ -114,7 +112,7 @@ class NamdKernelTex(MdKernelTex):
         except IOError:
             print 'Warning: unable to access file %s' % new_input_file
 
-#-----------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
     def prepare_replicas_local(self, replicas):
         """Creates a list of ComputeUnitDescription objects for MD simulation step. Here are
@@ -169,8 +167,8 @@ class NamdKernelTex(MdKernelTex):
 
         return compute_replicas
 
-#----------------------------------------------------------------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
+    @staticmethod
     def get_historical_data(self, replica, cycle):
         """Retrieves temperature and potential energy from simulaion output file <file_name>.history
         """

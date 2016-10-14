@@ -41,7 +41,7 @@ class PilotKernel(object):
         self.queue = rconfig['target'].get('queue')
         self.cores = int(rconfig['target'].get('cores'))
         self.runtime = int(rconfig['target'].get('runtime'))
-        self.dburl = rconfig['target'].get('mongo_url', None)
+        self.dburl = rconfig['target'].get('mongo_url')
         self.access_schema = rconfig['target'].get('access_schema')
 
         self.cycletime = float(rconfig['target'].get('cycletime', 10.0))

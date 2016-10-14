@@ -2,7 +2,6 @@ import re
 import os
 import sys
 import subprocess
-from distutils.core import setup
 from setuptools import setup, find_packages
 
 def get_version():
@@ -97,9 +96,8 @@ def isbad(name):
 
 def isgood(name):
     """ Whether name should be installed """
-    if not isbad(name):
-        if name.endswith('.py') or name.endswith('.json'):
-            return True
+    if not isbad(name) and (name.endswith('.py') or name.endswith('.json')):
+        return True
     return False
 
 #-------------------------------------------------------------------------------
@@ -115,8 +113,7 @@ setup(
               'kernels', 
               'pilot_kernels', 
               'md_kernels', 
-              'namd_kernels_tex', 
-              'amber_kernels_salt',
+              'namd_kernel', 
               'amber_kernel'],
     package_dir={'repex_utils': 'src/radical/repex/repex_utils',
                  'repex': 'src/radical/repex',
@@ -124,8 +121,7 @@ setup(
                  'kernels': 'src/radical/repex/kernels',
                  'pilot_kernels': 'src/radical/repex/pilot_kernels',
                  'md_kernels': 'src/radical/repex/md_kernels',
-                 'namd_kernels_tex': 'src/radical/repex/md_kernels/namd_kernels_tex',
-                 'amber_kernels_salt': 'src/radical/repex/md_kernels/amber_kernels_salt',
+                 'namd_kernel': 'src/radical/repex/md_kernels/namd_kernel',
                  'amber_kernel': 'src/radical/repex/md_kernels/amber_kernel'},
     scripts=['bin/repex-version', 'bin/repex-amber'],
     license='LICENSE.txt',
@@ -133,6 +129,5 @@ setup(
     install_requires=['radical.pilot', 'mpi4py'],
     download_url = 'https://github.com/AntonsT/radical.repex/tarball/0.2',
     url = 'https://github.com/radical-cybertools/radical.repex.git',
-    data_files=makeDataFiles('share/radical.repex/examples/', 'examples'),
-    #data_files=makeDataFiles('share/radical.repex/remote-modules/', 'remote-modules')
+    data_files=makeDataFiles('share/radical.repex/examples/', 'examples')
 )
