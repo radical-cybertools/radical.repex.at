@@ -1,0 +1,20 @@
+ alanine dipeptide
+ &cntrl
+  irest = @irest@,
+  ntx = @ntx@, 
+  nstlim = @nstlim@,
+  dt = 0.001,
+  temp0 = @temp@,
+  ntpr = 10000, ntwx = 10000, ntwr = 10000,
+  ntc = 2, ntf = 2, tol = 1e-08, 
+  ntt = 3, gamma_ln = 5.0, ig = -1, 
+  nmropt=1
+ /
+ &wt
+  type='DUMPFREQ', istep1=100,
+ &end
+ &wt
+  type='END',
+ &end
+ DISANG=@disang@
+ DUMPAVE=@disang@.out
