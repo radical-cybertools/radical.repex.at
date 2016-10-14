@@ -37,7 +37,7 @@ def reduced_energy(temperature, potential):
 def get_historical_data(replica_path, history_name):
 
     home_dir = os.getcwd()
-    if replica_path != None:
+    if replica_path is not None:
         path = "../staging_area" + replica_path
         try:
             os.chdir(path)

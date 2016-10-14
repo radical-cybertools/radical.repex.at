@@ -78,7 +78,7 @@ if __name__ == '__main__':
     else:
         tbuffer = tbuffer.replace("@irest@","1")
         tbuffer = tbuffer.replace("@ntx@","5")
-    if new_salt != None:
+    if new_salt is not None:
         tbuffer = tbuffer.replace("@salt@",str(new_salt) )
     try:
         w_file = open(new_input_file, "w")

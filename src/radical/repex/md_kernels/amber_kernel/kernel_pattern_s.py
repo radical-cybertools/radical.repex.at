@@ -1457,7 +1457,7 @@ class KernelPatternS(object):
                             r2 = r
                     #-----------------------------------------------------------
                     # swap parameters
-                    if r1 != None and r2 != None and self.exchange_off[dim_int-1] == False:
+                    if r1 is not None and r2 is not None and self.exchange_off[dim_int-1] == False:
                         self.exchange_params(dim_str, r1, r2)
                         r1.swap = 1
                         r2.swap = 1
