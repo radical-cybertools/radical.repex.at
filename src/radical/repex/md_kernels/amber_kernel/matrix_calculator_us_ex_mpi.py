@@ -49,18 +49,25 @@ def dihedral(c1,c2,c3,c4):
     dih = math.acos(r)*180.0/math.pi
     for i in range(3):
         det += n1[i]*v43[i]
-    if det >= 0.0: return dih
-    else: return 360.0-dih
+    if det >= 0.0: 
+        return dih
+    else: 
+        return 360.0-dih
 
-def calc(r,r1,r2,r3,r4,rk2,rk3):
+def calc(r, r1, r2, r3, r4, rk2, rk3):
 
     #see page 414 in amber 14 manual
     energy = 0.0
-    if r < r1: energy = rk2*(r1-r2)**2 - 2.0*rk2*(r1-r2)*(r-r1)
-    elif (r >= r1) and (r < r2): energy = rk2*(r-r2)**2
-    elif (r >= r2) and (r <= r3): energy = 0.0
-    elif (r > r3) and (r <= r4): energy = rk3*(r-r3)**2
-    elif r > r4: energy = rk3*(r4-r3)**2 - 2.0*rk3*(r4-r3)*(r-r4)
+    if r < r1: 
+        energy = rk2*(r1-r2)**2 - 2.0*rk2*(r1-r2)*(r-r1)
+    elif (r1 <= r < r2): 
+        energy = rk2*(r-r2)**2
+    elif (r2 <= r <= r3): 
+        energy = 0.0
+    elif (r3 < r <= r4): 
+        energy = rk3*(r-r3)**2
+    elif (r > r4): 
+        energy = rk3*(r4-r3)**2 - 2.0*rk3*(r4-r3)*(r-r4)
     return energy
 
 class Restraint(object):
