@@ -32,19 +32,7 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 
 def get_historical_data(history_name):
-    """Retrieves temperature and potential energy from simulation output file .history file.
-    This file is generated after each simulation run. The function searches for directory 
-    where .history file recides by checking all computeUnit directories on target resource.
-
-    Arguments:
-    history_name - name of .history file for a given replica. 
-
-    Returns:
-    data[0] - temperature obtained from .history file
-    data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
-    input/output files for a given replica recide.
-    """
+    
     home_dir = os.getcwd()
     os.chdir("../")
     
@@ -101,7 +89,6 @@ if __name__ == '__main__':
 
     for j in range(replicas):        
         swap_column[j] = reduced_energy(temperatures[j], replica_energy)
-
 
     for item in swap_column:
         print item,    

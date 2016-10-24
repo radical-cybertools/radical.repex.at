@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import json
+from os import path
+import radical.utils.logger as rul
+from repex_utils.replica_cleanup import *
+from repex_utils.parser import parse_command_line
+
+from namd_kernels_tex.kernel_pattern_s_tex import KernelPatternStex
+from pilot_kernels.pilot_kernel_pattern_s  import PilotKernelPatternS
+
+#-------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    
+    name = 'namd'
+    logger  = rul.getLogger ('radical.repex', name)
+
+    work_dir_local = os.getcwd()
+    params = parse_command_line()
+    
+    # get remd_input file
+    json_data=open(params.remd_input)
+    inp_file = json.load(json_data)
+    json_data.close()
+
+    # get resource config
+    json_data=open(params.resource_config)
+    rconfig = json.load(json_data)
+    json_data.close()
+
+    if (inp_file['remd.input']['re_pattern'] == 'S') and (inp_file['remd.input']['exchange'] == 'T-REMD'):
+
+		logger.info("*********************************************************")
+		logger.info("*            RepEx: T-REMD with NAMD kernel             *")
+		logger.info("*********************************************************")
+
+        #-----------------------------------------------------------------------
+        # initializing kernels
+	    #md_kernel = NamdKernelTexScheme2( inp_file, work_dir_local )
+	    #pilot_kernel = PilotKernelScheme2( inp_file )
+
+	    # initializing replicas
+	    #replicas = md_kernel.initialize_replicas()
+	    
+	    #pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
+	    
+	    # now we can run RE simulation
+	    #pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+	                
+	    # finally we are moving all files to individual replica directories
+	    #move_output_files(work_dir_local, md_kernel.inp_basename, replicas ) 
+        #-----------------------------------------------------------------------
+        
+	    # initializing kernels
+		md_kernel = KernelPatternStex( inp_file, rconfig, work_dir_local )
+		pilot_kernel = PilotKernelPatternS( inp_file, rconfig )
+        
+		# initializing replicas
+		replicas = md_kernel.initialize_replicas()
+        
+		try:
+			pilot_manager, pilot_object, session = pilot_kernel.launch_pilot()
+	        
+			# now we can run RE simulation
+			pilot_kernel.run_simulation( replicas, pilot_object, session, md_kernel )
+            
+			# this is a quick hack
+			base = md_kernel.inp_basename + ".mdin"
+		except:
+			raise
+		try:
+			# finally we are moving all files to individual replica directories
+			move_output_files(work_dir_local, base, replicas ) 
+            
+			logger.info("Simulation successfully finished!")
+			logger.info("Please check output files in replica_x directories.")
+		except:
+			logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+			raise 
+		finally :
+			logger.info("Closing session.")
+			session.close (cleanup=False)  
+            
+   

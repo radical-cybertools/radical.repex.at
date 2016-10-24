@@ -1,3 +1,2 @@
 include *.py *.json *.sh MANIFEST.in README.md CHANGES.md LICENSE.md 
 recursive-include examples *.json *.sh *.inpcrd *.RST *.mdin *.py *.dat *.parm7 *.prmtop *.0 *.1 *.2 *.3 
-recursive-include remote-modules *.py 
