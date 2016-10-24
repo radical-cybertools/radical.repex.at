@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.pilot_kernels.pilot_kernel_pattern_s_multi_d_sc
+.. module:: radical.repex.execution_management_modules.exec_mng_module_pattern_a_gr
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
@@ -13,13 +13,13 @@ import math
 import json
 import datetime
 from os import path
-import radical.pilot
+import radical.pilot as rp
 import radical.utils.logger as rul
-from pilot_kernels.pilot_kernel import *
+from execution_management_modules.exec_mng_module import *
 
 #-------------------------------------------------------------------------------
 
-class PilotKernelPatternSmultiDscg(PilotKernel):
+class ExecutionManagementModulePatternSgroup(PilotKernel):
     """
     """
     def __init__(self, inp_file, rconfig):
@@ -53,7 +53,7 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
             if unit:            
                 self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
 
-                if state == radical.pilot.states.FAILED:
+                if state == rp.states.FAILED:
                     self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
                     # restarting the replica
                     #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
@@ -62,7 +62,7 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
         #-----------------------------------------------------------------------
         cycles = md_kernel.nr_cycles
                 
-        unit_manager = radical.pilot.UnitManager(self.session, scheduler=radical.pilot.SCHED_DIRECT_SUBMISSION)
+        unit_manager = rp.UnitManager(self.session, scheduler=rp.SCHED_DIRECT_SUBMISSION)
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(self.pilot_object)
 
@@ -78,14 +78,14 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
 
             sd_pilot = {'source': shared_input_file_urls[i],
                         'target': 'staging:///%s' % shared_input_files[i],
-                        'action': radical.pilot.TRANSFER
+                        'action': rp.TRANSFER
             }
 
             self.pilot_object.stage_in(sd_pilot)
 
             sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],
-                         'action': radical.pilot.COPY
+                         'action': rp.COPY
             }
             self.sd_shared_list.append(sd_shared)
 
@@ -215,15 +215,15 @@ class PilotKernelPatternSmultiDscg(PilotKernel):
             #               
             t1 = datetime.datetime.utcnow()
             for r in submitted_groups:
-                if r.state != radical.pilot.DONE:
+                if r.state != rp.DONE:
                     self.logger.error('ERROR: In D%d MD-step failed for unit:  %s' % (dim_int, r.uid))
 
             if len(exchange_replicas) > 0:
                 for r in exchange_replicas:
-                    if r.state != radical.pilot.DONE:
+                    if r.state != rp.DONE:
                         self.logger.error('ERROR: In D%d Exchange-step failed for unit:  %s' % (dim_int, r.uid))
 
-            if global_ex_cu.state != radical.pilot.DONE:
+            if global_ex_cu.state != rp.DONE:
                 self.logger.error('ERROR: In D%d Global-Exchange-step failed for unit:  %s' % (dim_int, global_ex_cu.uid))
 
             # do exchange of parameters                     

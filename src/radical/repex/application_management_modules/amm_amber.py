@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernles.amber_kernels_3d_tuu.kernel_pattern_s_3d_tuu
+.. module:: radical.repex.application_management_modules.amm_amber
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
@@ -18,24 +18,24 @@ import pickle
 import tarfile
 import datetime
 from os import path
-import radical.pilot
+import radical.pilot as rp
 from os import listdir
 from os.path import isfile, join
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 from replicas.replica import Replica
 
-import amber_kernel.input_file_builder
-import amber_kernel.salt_conc_pre_exec
-import amber_kernel.salt_conc_post_exec
-import amber_kernel.global_ex_calculator
-import amber_kernel.global_ex_calculator_gr
-import amber_kernel.global_ex_calculator_tex_mpi
-import amber_kernel.global_ex_calculator_us_mpi
-import amber_kernel.matrix_calculator_us_ex
-import amber_kernel.matrix_calculator_temp_ex
-import amber_kernel.matrix_calculator_us_ex_mpi
-import amber_kernel.matrix_calculator_temp_ex_mpi
+import ram_amber.input_file_builder
+import ram_amber.salt_conc_pre_exec
+import ram_amber.salt_conc_post_exec
+import ram_amber.global_ex_calculator
+import ram_amber.global_ex_calculator_gr
+import ram_amber.global_ex_calculator_tex_mpi
+import ram_amber.global_ex_calculator_us_mpi
+import ram_amber.matrix_calculator_us_ex
+import ram_amber.matrix_calculator_temp_ex
+import ram_amber.matrix_calculator_us_ex_mpi
+import ram_amber.matrix_calculator_temp_ex_mpi
 
 #-------------------------------------------------------------------------------
 
@@ -49,9 +49,12 @@ class Restart(object):
 
 #-------------------------------------------------------------------------------
 #
-class KernelPatternS(object):
+class AmmAmber(object):
 
-    def __init__(self, inp_file, rconfig, work_dir_local):
+    def __init__(self, 
+                 inp_file, 
+                 rconfig, 
+                 work_dir_local):
         """
         Arguments:
         inp_file - simulation input file with parameters specified by user 
@@ -154,11 +157,14 @@ class KernelPatternS(object):
             self.dims['d3']['type'] = (inp_file['dim.input']['d3'].get("type"))
 
         self.nr_dims = 0
-        if self.dims['d1']['replicas'] and (not self.dims['d2']['replicas']) and (not self.dims['d3']['replicas']):
+        if self.dims['d1']['replicas'] and (not self.dims['d2']['replicas']) 
+        and (not self.dims['d3']['replicas']):
             self.nr_dims = 1
-        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] and (not self.dims['d3']['replicas']):
+        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] 
+        and (not self.dims['d3']['replicas']):
             self.nr_dims = 2
-        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] and self.dims['d3']['replicas']:
+        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] 
+        and self.dims['d3']['replicas']:
             self.nr_dims = 3
 
         if self.nr_dims == 0:
@@ -181,7 +187,8 @@ class KernelPatternS(object):
             self.ex_accept_id_matrix_d1 = []
             self.ex_accept_id_matrix_d2 = []
         elif self.nr_dims == 3:
-            self.replicas = self.dims['d1']['replicas'] * self.dims['d2']['replicas'] * self.dims['d3']['replicas']
+            self.replicas = self.dims['d1']['replicas'] * 
+            self.dims['d2']['replicas'] * self.dims['d3']['replicas']
             self.ex_accept_id_matrix_d1 = []
             self.ex_accept_id_matrix_d2 = []
             self.ex_accept_id_matrix_d3 = []   
@@ -237,7 +244,8 @@ class KernelPatternS(object):
     #---------------------------------------------------------------------------
     #
     @staticmethod
-    def get_rstr_id(self, restraint):
+    def get_rstr_id(self, 
+                    restraint):
         dot = 0
         rstr_id = ''
         for ch in restraint:
@@ -374,7 +382,9 @@ class KernelPatternS(object):
 
     #---------------------------------------------------------------------------
     #
-    def assign_group_idx(self, replicas, dim_int):
+    def assign_group_idx(self, 
+                         replicas, 
+                         dim_int):
 
         if self.nr_dims == 3:
 
@@ -384,7 +394,7 @@ class KernelPatternS(object):
                     updated = False
                     if len(g_d1) == 0:
                         g_d1.append([r.dims['d2']['par'], r.dims['d3']['par']]) 
-                    for i,j in enumerate(g_d1)
+                    for i,j in enumerate(g_d1):
                         if (g_d1[i][0] == r.dims['d2']['par']) and (g_d1[i][1] == r.dims['d3']['par']):
                             r.group_idx[0] = i
                             updated = True
@@ -464,7 +474,11 @@ class KernelPatternS(object):
                
     #---------------------------------------------------------------------------
     #
-    def save_replicas(self, current_cycle, dim_int, dim_str, replicas):
+    def save_replicas(self, 
+                      current_cycle, 
+                      dim_int, 
+                      dim_str, 
+                      replicas):
         self.restart_object.dimension   = dim_int
         self.restart_object.current_cycle =  current_cycle
         self.restart_object.old_sandbox = self.restart_object.new_sandbox
@@ -491,49 +505,50 @@ class KernelPatternS(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_shared_data(self, replicas):
+    def prepare_shared_data(self, 
+                            replicas):
 
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
         #-----------------------------------------------------------------------
-        # for group exec only, check
-        calc_temp_ex = os.path.dirname(amber_kernel.matrix_calculator_temp_ex_mpi.__file__)
+        # for group exec only
+        calc_temp_ex = os.path.dirname(ram_amber.matrix_calculator_temp_ex_mpi.__file__)
         calc_temp_ex_path_gr = calc_temp_ex + "/matrix_calculator_temp_ex_mpi.py"
 
-        calc_us_ex = os.path.dirname(amber_kernel.matrix_calculator_us_ex_mpi.__file__)
+        calc_us_ex = os.path.dirname(ram_amber.matrix_calculator_us_ex_mpi.__file__)
         calc_us_ex_path_gr = calc_us_ex + "/matrix_calculator_us_ex_mpi.py"
 
-        global_calc = os.path.dirname(amber_kernel.global_ex_calculator_gr.__file__)
+        global_calc = os.path.dirname(ram_amber.global_ex_calculator_gr.__file__)
         global_calc_path_gr = global_calc + "/global_ex_calculator_gr.py"
         #
         #-----------------------------------------------------------------------
 
-        calc_temp_ex = os.path.dirname(amber_kernel.matrix_calculator_temp_ex.__file__)
+        calc_temp_ex = os.path.dirname(ram_amber.matrix_calculator_temp_ex.__file__)
         calc_temp_ex_path = calc_temp_ex + "/matrix_calculator_temp_ex.py"
 
-        calc_us_ex = os.path.dirname(amber_kernel.matrix_calculator_us_ex.__file__)
+        calc_us_ex = os.path.dirname(ram_amber.matrix_calculator_us_ex.__file__)
         calc_us_ex_path = calc_us_ex + "/matrix_calculator_us_ex.py"
 
-        global_calc = os.path.dirname(amber_kernel.global_ex_calculator.__file__)
+        global_calc = os.path.dirname(ram_amber.global_ex_calculator.__file__)
         global_calc_path = global_calc + "/global_ex_calculator.py"
 
-        calc_temp_ex_mpi = os.path.dirname(amber_kernel.global_ex_calculator_tex_mpi.__file__)
+        calc_temp_ex_mpi = os.path.dirname(ram_amber.global_ex_calculator_tex_mpi.__file__)
         calc_temp_ex_mpi_path = calc_temp_ex_mpi + "/global_ex_calculator_tex_mpi.py"
 
-        calc_us_ex_mpi = os.path.dirname(amber_kernel.global_ex_calculator_us_mpi.__file__)
+        calc_us_ex_mpi = os.path.dirname(ram_amber.global_ex_calculator_us_mpi.__file__)
         calc_us_ex_mpi_path = calc_us_ex_mpi + "/global_ex_calculator_us_mpi.py"
 
         rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
-        build_inp = os.path.dirname(amber_kernel.input_file_builder.__file__)
+        build_inp = os.path.dirname(ram_amber.input_file_builder.__file__)
         build_inp_path = build_inp + "/input_file_builder.py"
 
-        salt_pre_exec  = os.path.dirname(amber_kernel.salt_conc_pre_exec.__file__)
+        salt_pre_exec  = os.path.dirname(ram_amber.salt_conc_pre_exec.__file__)
         salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
 
-        salt_post_exec  = os.path.dirname(amber_kernel.salt_conc_post_exec.__file__)
+        salt_post_exec  = os.path.dirname(ram_amber.salt_conc_post_exec.__file__)
         salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
 
         #-----------------------------------------------------------------------
@@ -672,7 +687,7 @@ class KernelPatternS(object):
             info_local = {
                 'source':   new_info,
                 'target':   new_info,
-                'action':   radical.pilot.TRANSFER
+                'action':   rp.TRANSFER
             }
             stage_out.append(info_local)
 
@@ -680,7 +695,7 @@ class KernelPatternS(object):
             output_local = {
                 'source':   output_file,
                 'target':   output_file,
-                'action':   radical.pilot.TRANSFER
+                'action':   rp.TRANSFER
             }
             stage_out.append(output_local)
 
@@ -689,7 +704,7 @@ class KernelPatternS(object):
         new_coor_out = {
             'source': new_coor,
             'target': 'staging:///%s' % (replica_path + new_coor),
-            'action': radical.pilot.COPY
+            'action': rp.COPY
         }
         stage_out.append(new_coor_out)
 
@@ -698,7 +713,7 @@ class KernelPatternS(object):
             rstr_out = {
                 'source': (replica.new_restraints + '.out'),
                 'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
-                'action': radical.pilot.COPY
+                'action': rp.COPY
             }
             stage_out.append(rstr_out)
         
@@ -708,7 +723,7 @@ class KernelPatternS(object):
             matrix_col_out = {
                 'source': matrix_col,
                 'target': 'staging:///%s' % (matrix_col),
-                'action': radical.pilot.COPY
+                'action': rp.COPY
             }
             stage_out.append(matrix_col_out)
 
@@ -716,7 +731,7 @@ class KernelPatternS(object):
         info_out = {
                 'source': new_info,
                 'target': 'staging:///%s' % (replica_path + new_info),
-                'action': radical.pilot.COPY
+                'action': rp.COPY
             }
         stage_out.append(info_out)
 
@@ -806,8 +821,7 @@ class KernelPatternS(object):
             current_group_rst = {}
             for repl in group:
                 current_group_rst[str(repl.id)] = str(repl.new_restraints)
-                #self.logger.info( "id: {0} par1: {1} par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']   ) )
-
+                
             base_restraint = self.us_template + "."
 
             data = {
@@ -840,8 +854,6 @@ class KernelPatternS(object):
                      str(repl.dims[dim_str]['par']), \
                      str(repl.new_restraints)]
 
-                #self.logger.info( "id: {0} temp: {1} umbrella: {2}".format( repl.id, repl.dims['d1']['par'], repl.dims['d3']['par']  ) )
-
             data = {
                 "rid": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
@@ -869,14 +881,13 @@ class KernelPatternS(object):
             amber_str = self.amber_path
         
         if self.dims[dim_str]['type'] == 'temperature' and self.exchange_mpi == False:
-            # self.logger.info( "id: {0} par1: {1}  par2: {2} par3: {3}".format( repl.id, repl.dims['d1']['par'], repl.dims['d2']['par'], repl.dims['d3']['par']  ) )
             # matrix_calculator_temp_ex.py
             stage_in.append(sd_shared_list[2])
         if self.dims[dim_str]['type'] == 'umbrella' and self.exchange_mpi == False: 
             # matrix_calculator_us_ex.py
             stage_in.append(sd_shared_list[3])
         
-        cu = radical.pilot.ComputeUnitDescription()
+        cu = rp.ComputeUnitDescription()
         cu.cores = self.replica_cores    
         cu.mpi = self.replica_mpi
         
@@ -924,7 +935,7 @@ class KernelPatternS(object):
                     # restraint file
                     restraints_in_st = {'source': old_path,
                                         'target': replica.new_restraints,
-                                        'action': radical.pilot.COPY
+                                        'action': rp.COPY
                     }
                     stage_in.append(restraints_in_st)
                 
@@ -932,7 +943,7 @@ class KernelPatternS(object):
                 restraints_out_st = {
                     'source': (replica.new_restraints),
                     'target': 'staging:///%s' % (replica.new_restraints),
-                    'action': radical.pilot.COPY
+                    'action': rp.COPY
                 }
                 stage_out.append(restraints_out_st)
 
@@ -943,7 +954,7 @@ class KernelPatternS(object):
                 old_path = self.restart_object.old_sandbox + '/staging_area/' + replica_path + old_coor
                 old_coor_st = {'source': old_path,
                                'target': (old_coor),
-                               'action': radical.pilot.COPY
+                               'action': rp.COPY
                 }
                 stage_in.append(old_coor_st)
 
@@ -1005,19 +1016,16 @@ class KernelPatternS(object):
 
             # BOTH BELOW
             if (self.umbrella == True) and (self.us_template != ''):
-                
-                #self.logger.info("stage_in replica.new_restraints: {0}".format( replica.new_restraints ) )
                 # restraint file
                 restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
                                     'target': replica.new_restraints,
-                                    'action': radical.pilot.COPY
+                                    'action': rp.COPY
                 }
                 stage_in.append(restraints_in_st)
             
-            #self.logger.info( "stage_in old_coors: {0}".format( replica_path + old_coor ) )
             old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
                            'target': (old_coor),
-                           'action': radical.pilot.LINK
+                           'action': rp.LINK
             }
             stage_in.append(old_coor_st)
 
@@ -1025,7 +1033,7 @@ class KernelPatternS(object):
             new_coor_out = {
                 'source': new_coor,
                 'target': 'staging:///%s' % (replica_path + new_coor),
-                'action': radical.pilot.COPY
+                'action': rp.COPY
             }
             stage_out.append(new_coor_out)
                
@@ -1066,7 +1074,6 @@ class KernelPatternS(object):
                              group, 
                              sd_shared_list):
 
-        #group.pop(0)
         group_id = group[0].group_idx[dim_int-1]
 
         stage_out = []
@@ -1161,7 +1168,7 @@ class KernelPatternS(object):
                 info_local = {
                     'source':   new_info,
                     'target':   new_info,
-                    'action':   radical.pilot.TRANSFER
+                    'action':   rp.TRANSFER
                 }
                 stage_out.append(info_local)
 
@@ -1169,7 +1176,7 @@ class KernelPatternS(object):
                 output_local = {
                     'source':   output_file,
                     'target':   output_file,
-                    'action':   radical.pilot.TRANSFER
+                    'action':   rp.TRANSFER
                 }
                 stage_out.append(output_local)
 
@@ -1178,7 +1185,7 @@ class KernelPatternS(object):
             new_coor_out = {
                 'source': new_coor,
                 'target': 'staging:///%s' % (replica_path + new_coor),
-                'action': radical.pilot.COPY
+                'action': rp.COPY
             }
             stage_out.append(new_coor_out)
 
@@ -1189,7 +1196,7 @@ class KernelPatternS(object):
                     'target': 'staging:///%s' % (replica_path + \
                                                  replica.new_restraints + \
                                                  out_string),
-                    'action': radical.pilot.COPY
+                    'action': rp.COPY
                 }
                 stage_out.append(rstr_out)
             
@@ -1198,7 +1205,7 @@ class KernelPatternS(object):
             matrix_col_out = {
                 'source': matrix_col,
                 'target': 'staging:///%s' % (matrix_col),
-                'action': radical.pilot.COPY
+                'action': rp.COPY
             }
             stage_out.append(matrix_col_out)
 
@@ -1206,7 +1213,7 @@ class KernelPatternS(object):
             info_out = {
                     'source': new_info,
                     'target': 'staging:///%s' % (replica_path + new_info),
-                    'action': radical.pilot.COPY
+                    'action': rp.COPY
                 }
             stage_out.append(info_out)
 
@@ -1239,7 +1246,7 @@ class KernelPatternS(object):
                 restraints_out_st = {
                     'source': (replica.new_restraints),
                     'target': 'staging:///%s' % (replica.new_restraints),
-                    'action': radical.pilot.COPY
+                    'action': rp.COPY
                 }
                 stage_out.append(restraints_out_st)
 
@@ -1255,13 +1262,13 @@ class KernelPatternS(object):
                 # restraint file
                 restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
                                     'target': replica.new_restraints,
-                                    'action': radical.pilot.COPY
+                                    'action': rp.COPY
                 }
                 stage_in.append(restraints_in_st)
 
                 old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
                                'target': (old_coor),
-                               'action': radical.pilot.LINK
+                               'action': rp.LINK
                 }
                 stage_in.append(old_coor_st)
 
@@ -1272,7 +1279,7 @@ class KernelPatternS(object):
         json_data_bash = dump_data.replace("\\", "")
         json_data_sh   = dump_data.replace("\"", "\\\\\"")
 
-        cu = radical.pilot.ComputeUnitDescription()
+        cu = rp.ComputeUnitDescription()
 
         if (self.dims[dim_str]['type'] == 'umbrella'):
             if KERNELS[self.resource]["shell"] == "bash":
@@ -1325,7 +1332,7 @@ class KernelPatternS(object):
         
         #current_group = self.get_current_group_ids(dim_int, replicas, replica)
 
-        cu = radical.pilot.ComputeUnitDescription()
+        cu = rp.ComputeUnitDescription()
         
         current_group_tsu = {}
         for repl in group:
@@ -1392,7 +1399,7 @@ class KernelPatternS(object):
                 rstr_in = {
                     'source': 'staging:///%s' % (rst_file),
                     'target': rst_file,
-                    'action': radical.pilot.COPY
+                    'action': rp.COPY
                 }
                 in_list.append(rstr_in)
   
@@ -1400,7 +1407,7 @@ class KernelPatternS(object):
         matrix_col_out = {
             'source': matrix_col,
             'target': 'staging:///%s' % (matrix_col),
-            'action': radical.pilot.COPY
+            'action': rp.COPY
         }
         out_list.append(matrix_col_out)
 
@@ -1437,7 +1444,6 @@ class KernelPatternS(object):
 
         r1 = None
         r2 = None
-        #cycle = replicas[0].sim_cycle
 
         infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
                                                                cycle=current_cycle)
@@ -1528,7 +1534,7 @@ class KernelPatternS(object):
             # global_ex_calculator_tex_mpi.py file
             stage_in.append(sd_shared_list[2])
 
-            cu = radical.pilot.ComputeUnitDescription()
+            cu = rp.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             cu.input_staging  = stage_in
@@ -1580,7 +1586,7 @@ class KernelPatternS(object):
             # global_ex_calculator_us_mpi.py file
             stage_in.append(sd_shared_list[3])
 
-            cu = radical.pilot.ComputeUnitDescription()
+            cu = rp.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             cu.input_staging  = stage_in
@@ -1602,7 +1608,7 @@ class KernelPatternS(object):
             cu.mpi = True         
             cu.output_staging = stage_out
         else:
-            cu = radical.pilot.ComputeUnitDescription()
+            cu = rp.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             cu.input_staging  = stage_in
@@ -1667,11 +1673,6 @@ class KernelPatternS(object):
     #
     def get_all_groups(self, dim_int, replicas):
 
-        #try:
-        #    self.assign_group_idx(replicas, dim_int)
-        #except:
-        #    raise
-
         dim = dim_int-1
 
         all_groups = []
@@ -1685,11 +1686,6 @@ class KernelPatternS(object):
     #---------------------------------------------------------------------------
     #
     def get_replica_group(self, dim_int, replicas, replica):
-
-        #try:
-        #    self.assign_group_idx(replicas, dim_int)
-        #except:
-        #    raise
 
         dim = dim_int-1
         group = []

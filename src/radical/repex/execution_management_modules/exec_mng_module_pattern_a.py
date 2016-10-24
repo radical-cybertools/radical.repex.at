@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.pilot_kernels.pilot_kernel_pattern_a
+.. module:: radical.repex.execution_management_modules.exec_mng_module_pattern_a
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
@@ -15,11 +15,11 @@ import datetime
 from os import path
 import radical.pilot as rp
 import radical.utils.logger as rul
-from pilot_kernels.pilot_kernel import *
+from execution_management_modules.exec_mng_module import *
 
 #-------------------------------------------------------------------------------
 #
-class PilotKernelPatternAmultiD(PilotKernel):
+class ExecutionManagementModulePatternA(PilotKernel):
     
     def __init__(self, inp_file, rconfig):
 

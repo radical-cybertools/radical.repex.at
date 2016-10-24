@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.namd_kernels.namd_kernel
+.. module:: radical.repex.application_management_modules.amm_namd
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
 """
 
@@ -14,7 +14,7 @@ from kernels.kernels import KERNELS
 
 #-------------------------------------------------------------------------------
 
-class NamdKernelTex(object):
+class AmmNamd(object):
     
     def __init__(self, inp_file,  work_dir_local):
         """Constructor.

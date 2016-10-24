@@ -5,6 +5,6 @@
         "runtime" : "10",
         "cleanup" : "False",
         "cores" : "4",
-        "mongo_url" : "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"
+        "mongo_url" : "mongodb://localhost:27017/repex-tests"
     }
 }
