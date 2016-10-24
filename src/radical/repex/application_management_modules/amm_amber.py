@@ -62,7 +62,7 @@ class AmmAmber(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.name = 'amber-pattern-s-3d'
+        self.name = 'AMM-Amber'
         self.logger  = rul.get_logger ('radical.repex', self.name)
 
         self.resource         = rconfig['target'].get('resource')

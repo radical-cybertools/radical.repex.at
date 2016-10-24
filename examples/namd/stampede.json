@@ -1,0 +1,11 @@
+{
+    "target": {
+        "resource" : "xsede.stampede",
+        "username" : "antontre",
+        "project"  : "TG-MCB090174",
+        "runtime"  : "120",
+        "cleanup"  : "False",
+        "cores" : "1744",
+        "mongo_url" : "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"
+    }
+}
