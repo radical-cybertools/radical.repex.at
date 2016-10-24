@@ -40,17 +40,27 @@ class AmmNamd(object):
         
         self.namd_structure   = inp_file['remd.input'].get('namd_structure')
         self.namd_coordinates = inp_file['remd.input'].get('namd_coordinates')
-        self.namd_parameters   = inp_file['remd.input'].get('namd_parameters')
+        self.namd_parameters  = inp_file['remd.input'].get('namd_parameters')
  
-        self.resource          = rconfig['target'].get('resource')
+        self.resource      = rconfig['target'].get('resource')
         self.cores         = int(rconfig['target'].get('cores', '1'))
-        self.replicas      = int(inp_file['remd.input'].get('number_of_replicas'))
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
 
-        # hardcoded
+        # hardcoded for 1d
         self.nr_dims = 1
+        self.groups_numbers = [1]
+
+        self.dims = {}
+        self.dims['d1'] = {'replicas' : None, 'type' : None} 
+
+        if inp_file['dim.input'].get('d1'):
+            self.dims['d1']['replicas'] = int(inp_file['dim.input']\
+                               ['d1'].get("number_of_replicas"))
+            self.dims['d1']['type'] = (inp_file['dim.input']['d1'].get("type"))
+
+        self.replicas = int(inp_file['dim.input']['d1'].get("number_of_replicas"))
 
         # for restart
         self.restart           = inp_file['remd.input'].get('restart', 'False')
@@ -160,12 +170,22 @@ class AmmNamd(object):
             new_temp = self.min_temp * (factor**k)
             r = Replica(k, d1_param=new_temp)
             replicas.append(r)
+
+        # hardcoded for 1d
+        for r in replicas:
+            r.group_idx[0] = 0
             
         return replicas
     
     #---------------------------------------------------------------------------
     #
-    def prepare_replica_for_md(self, replica, sd_shared_list):
+    def prepare_replica_for_md(self, 
+                               current_cycle,
+                               dim_int, 
+                               dim_str, 
+                               group, 
+                               replica, 
+                               sd_shared_list):
         
         basename = self.inp_basename
         template = self.inp_basename + ".namd"
@@ -230,7 +250,7 @@ class AmmNamd(object):
             "namd_coordinates": str(self.namd_coordinates),
             "namd_parameters": str(self.namd_parameters),
             "swap": str(replica.swap),
-            "old_temperature": str(replica.old_temperature),
+            "old_temperature": str(replica.dims['d1']['old_par']),
             "new_temperature": str(replica.dims['d1']['par']),
             }
         dump_pre_data = json.dumps(data)
@@ -238,7 +258,6 @@ class AmmNamd(object):
 
         pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
 
-        print "replica.cycle: {0}".format(replica.cycle)
         # only for first cycle we transfer structure, coordinates and parameters files
         if replica.cycle == 0:
             for i in range(5):
@@ -248,7 +267,7 @@ class AmmNamd(object):
             cu.pre_exec   = self.pre_exec + [pre_exec_str]
             cu.executable = self.namd_path
             cu.arguments  = [input_file]
-            cu.cores      = replica.cores
+            cu.cores      = self.replica_cores
             cu.mpi = False
             cu.input_staging = stage_in
             cu.output_staging = stage_out
@@ -300,7 +319,12 @@ class AmmNamd(object):
        
     #---------------------------------------------------------------------------
     #
-    def prepare_global_ex_calc(self, GL, current_cycle, replicas, sd_shared_list):
+    def prepare_global_ex_calc(self, 
+                               current_cycle, 
+                               dim_int, 
+                               dim_str, 
+                               replicas, 
+                               sd_shared_list):
 
         stage_out = []
         stage_in = []
@@ -319,7 +343,7 @@ class AmmNamd(object):
             cu.input_staging  = stage_in
             cu.arguments = ["global_ex_calculator_mpi.py", str(cycle), str(self.replicas), str(self.inp_basename)]
 
-            # guard for supermic
+            # tmp guard for supermic
             if self.replicas == 1000:
                 print "1000"
                 cu.cores = self.replicas / 2
@@ -366,6 +390,9 @@ class AmmNamd(object):
         replica_i - a replica object
         replica_j - a replica object
         """
+        # update old temperature
+        replica_i.dims['d1']['old_par'] = replica_i.dims['d1']['par']
+        replica_j.dims['d1']['old_par'] = replica_j.dims['d1']['par']
 
         # swap temperatures
         temperature = replica_j.dims['d1']['par']
@@ -377,7 +404,7 @@ class AmmNamd(object):
 
     #---------------------------------------------------------------------------
     #
-    def do_exchange(self, current_cycle, replicas):
+    def do_exchange(self, current_cycle, dim_int, dim_str, replicas):
         """
         """
 
