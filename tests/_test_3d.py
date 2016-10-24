@@ -75,8 +75,9 @@ def repex_initialize_e2e():
     pilot_kernel = PilotKernelPatternSmultiDsc( inp_file, rconfig )
     return md_kernel, pilot_kernel , work_dir   
 
-#######################################################################################################
-class Testbasic(object):
+################################################################################
+
+class TestBasic(object):
     def test_try(self):
         inp_file, rconfig, work_dir_local = repex_file_setup()
         assert inp_file['remd.input'].get('group_exec') == 'False'
@@ -87,7 +88,7 @@ class Testbasic(object):
         assert md_kernel.name == 'samber-pattern-s-3d'
 
 
-class Test_replica_tests(object):
+class TestReplicaTests(object):
     def test_initialize_replica_id(self):
         md_kernel, a = repex_initialize()
         d1,d2,d3 = replica_num()
@@ -134,9 +135,9 @@ class Test_replica_tests(object):
         assert max(max(replica_output))+1 == (max1*max2)
 
 
-##################################################################################################
+################################################################################
         
-class Test_groups(object):
+class TestGroups(object):
     def test_group_d1(self):
         md_kernel, a = repex_initialize()
         d1,d2,d3 = replica_num()
@@ -210,7 +211,8 @@ class Test_groups(object):
             num_out.append(len(x))
         print num_out
         assert num_out == test_out
-############################################################################################
+
+################################################################################
 
 # class Test_E2E(object):
 #     def test_endtoend(self):
@@ -234,7 +236,7 @@ class Test_groups(object):
 # 	    logger.info("Closing session.")
 # 	    session.close (cleanup=True, terminate=True)  
 
-############################################################################################
+################################################################################
 ##        
 ##class Test_d1(object):
 ##    def test_d1_d1_par(self):

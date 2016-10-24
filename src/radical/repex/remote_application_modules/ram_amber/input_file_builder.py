@@ -54,7 +54,7 @@ if __name__ == '__main__':
             if umbrellas == 2:
                 rstr_val_2 = pair[1]
                     
-    if new_temperature == None:
+    if new_temperature is None:
         new_temperature = init_temp
     #---------------------------------------------------------------------------
     # this is for every cycle

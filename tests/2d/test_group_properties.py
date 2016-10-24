@@ -61,7 +61,7 @@ def repex_initialize_shared_data():
     return md_kernel,a    
 
 
-class Test_replica_tests(object):
+class TestReplicaTests(object):
     def test_initialize_replica_id(self,cmdopt):
         fname = cmdopt
         md_kernel, a = repex_initialize(fname)
@@ -89,7 +89,7 @@ class Test_replica_tests(object):
         print max1
         assert max(max(replica_output))+1 == (max1)
 
-class Test_groups(object):
+class TestGroups(object):
     def test_group_d1(self,cmdopt):
         fname = cmdopt
         md_kernel, a = repex_initialize(fname)
@@ -146,7 +146,7 @@ class Test_groups(object):
         assert num_out == test_out
 
 
-class Testbasic(object):
+class TestBasic(object):
     def test_import(self):
 	from amber_kernel.kernel_pattern_s import KernelPatternS
 

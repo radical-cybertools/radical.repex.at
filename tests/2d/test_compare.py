@@ -15,7 +15,7 @@ from pilot_kernels.pilot_kernel_pattern_a_multi_d     import PilotKernelPatternA
 from amber_kernel.kernel_pattern_s import KernelPatternS
 
 
-class Test_sim_result(object):
+class TestSimResult(object):
     def _init_(self):
         self.dic_d1={}
         self.dic_d2={}
@@ -114,7 +114,7 @@ class Test_sim_result(object):
         return replicas
 
 def test_simulation(cmdopt):
-    classobj = Test_sim_result()
+    classobj = TestSimResult()
     #fname = cmdopt
     fname = 'sync/su_remd_ace_ala_nme.json'
     classobj.repex_file_setup(fname)

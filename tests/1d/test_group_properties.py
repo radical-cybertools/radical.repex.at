@@ -18,7 +18,6 @@ def repex_file_setup(fname):
     with open("inputs/stampede.json") as config_file:
         rconfig = json.load(config_file)
 
-    
     return inp_file, rconfig, work_dir_local
 
 @pytest.fixture(scope="class")
@@ -56,7 +55,7 @@ def repex_initialize_shared_data():
     return md_kernel,a    
 
 
-class Test_replica_tests(object):
+class TestReplicaTests(object):
     def test_initialize_replica_id(self,cmdopt):
         fname = cmdopt
         md_kernel, a = repex_initialize(fname)
@@ -66,7 +65,6 @@ class Test_replica_tests(object):
 	replica_output = []
 	for i in range(0,len(a)):
             replica_output.append(a[i].id)
-	    #print a[i].group_idx
 
 	print replica_output
 	print test_out
@@ -84,7 +82,7 @@ class Test_replica_tests(object):
         #print max1
         assert max(max(replica_output))+1 == 1
 
-class Test_groups(object):
+class TestGroups(object):
     def test_group_d1(self,cmdopt):
         fname = cmdopt
         md_kernel, a = repex_initialize(fname)
@@ -112,7 +110,7 @@ class Test_groups(object):
         print cmdopt
         assert num_out == test_out    
 
-class Testbasic(object):
+class TestBasic(object):
     def test_import(self):
 	from amber_kernel.kernel_pattern_s import KernelPatternS
 
