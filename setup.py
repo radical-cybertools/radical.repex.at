@@ -123,7 +123,7 @@ setup(
                  'application_management_modules': 'src/radical/repex/application_management_modules',
                  'ram_namd': 'src/radical/repex/remote_application_modules/ram_namd',
                  'ram_amber': 'src/radical/repex/remote_application_modules/ram_amber'},
-    scripts=['bin/repex-version', 'bin/repex-amber'],
+    scripts=['bin/repex-version', 'bin/repex-amber', 'bin/repex-namd'],
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Package',
     install_requires=['radical.pilot', 'mpi4py'],

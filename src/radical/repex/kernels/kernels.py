@@ -74,6 +74,10 @@ KERNELS = {
                 "pre_execution" : [],
                 "executable" : "/home/antons/amber/amber14-single/bin/sander",
                 "executable_mpi" : "/home/antons/amber/amber14-mpi/bin/sander.MPI"
+            },
+            "namd": {
+                "pre_execution" : [],
+                "executable" : "/home/antons/NAMD_2.9_Linux-x86/namd2"
             }
         },
         "shell": "bash"

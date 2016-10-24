@@ -17,11 +17,11 @@ from execution_management_modules.exec_mng_module_pattern_a import ExecutionMana
 
 if __name__ == '__main__':
     
-    name = 'repex-namd.log'
-    logger  = rul.getLogger ('radical.repex', name)
+    name   = 'repex-namd.log'
+    logger = rul.get_logger ('radical.repex', name)
 
     work_dir_local = os.getcwd()
-    params = parse_command_line()
+    params         = parse_command_line()
     
     # get remd_input file
     json_data=open(params.remd_input)
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         emm = ExecutionManagementModulePatternS( inp_file, rconfig )
         
         # initializing replicas
-        replicas = md_kernel.initialize_replicas()
+        replicas = amm.initialize_replicas()
         
     try:
         emm.launch_pilot()

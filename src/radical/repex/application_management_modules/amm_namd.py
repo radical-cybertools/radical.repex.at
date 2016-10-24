@@ -21,13 +21,22 @@ from replicas.replica import *
 
 #-------------------------------------------------------------------------------
 
+class Restart(object):
+    def __init__(self, dimension=None, current_cycle=None, new_sandbox=None):
+        self.new_sandbox    = new_sandbox
+        self.old_sandbox    = None
+        self.dimension      = dimension
+        self.current_cycle  = current_cycle
+
+#-------------------------------------------------------------------------------
+
 class AmmNamd(object):
 
     def __init__(self, inp_file, rconfig,  work_dir_local):
         
         self.name = 'AMM-NAMD'
         self.ex_name = 'temperature'
-        self.logger  = rul.getLogger ('radical.repex', self.name)
+        self.logger  = rul.get_logger ('radical.repex', self.name)
         
         self.namd_structure   = inp_file['remd.input'].get('namd_structure')
         self.namd_coordinates = inp_file['remd.input'].get('namd_coordinates')
@@ -39,6 +48,19 @@ class AmmNamd(object):
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
+
+        # hardcoded
+        self.nr_dims = 1
+
+        # for restart
+        self.restart           = inp_file['remd.input'].get('restart', 'False')
+        self.restart_file      = inp_file['remd.input'].get('restart_file', '')
+        if self.restart == 'True':
+            self.restart = True
+            self.restart_done = False
+        else:
+            self.restart = False
+            self.restart_done = True
 
         if inp_file['remd.input'].get('exchange_mpi') == "True":
             self.exchange_mpi = True
@@ -136,7 +158,7 @@ class AmmNamd(object):
         factor = (self.max_temp/self.min_temp)**(1./(N-1))
         for k in range(N):
             new_temp = self.min_temp * (factor**k)
-            r = Replica1d(k, new_temperature=new_temp)
+            r = Replica(k, d1_param=new_temp)
             replicas.append(r)
             
         return replicas
@@ -209,7 +231,7 @@ class AmmNamd(object):
             "namd_parameters": str(self.namd_parameters),
             "swap": str(replica.swap),
             "old_temperature": str(replica.old_temperature),
-            "new_temperature": str(replica.new_temperature),
+            "new_temperature": str(replica.dims['d1']['par']),
             }
         dump_pre_data = json.dumps(data)
         json_pre_data = dump_pre_data.replace("\\", "")
@@ -275,28 +297,7 @@ class AmmNamd(object):
 
         replica.cycle += 1
         return cu
-
-    #---------------------------------------------------------------------------
-    #
-    def prepare_replica_for_exchange(self, replica, sd_shared_list):
-        
-        """   
-        # name of the file which contains swap matrix column data for each replica
-        matrix_col = "matrix_column_%s_%s.dat" % (replica.id, (replica.cycle-1))
-        basename = self.inp_basename[:-5]
-        cu = rp.ComputeUnitDescription()
-        cu.executable = "python"
-        # each scheme has it's own calculator!
-        calculator_path = os.path.dirname(namd_kernels_tex.namd_matrix_calculator_scheme_2.__file__)
-        calculator = calculator_path + "/namd_matrix_calculator_scheme_2.py"
-        cu.input_staging = [calculator] + sd_shared_list
-        cu.arguments = ["namd_matrix_calculator_scheme_2.py", replica.id, (replica.cycle-1), self.replicas, basename]
-        cu.cores = 1            
-            
-        return cu
-        """
-        pass
-           
+       
     #---------------------------------------------------------------------------
     #
     def prepare_global_ex_calc(self, GL, current_cycle, replicas, sd_shared_list):
@@ -367,9 +368,9 @@ class AmmNamd(object):
         """
 
         # swap temperatures
-        temperature = replica_j.new_temperature
-        replica_j.new_temperature = replica_i.new_temperature
-        replica_i.new_temperature = temperature
+        temperature = replica_j.dims['d1']['par']
+        replica_j.dims['d1']['par'] = replica_i.dims['d1']['par']
+        replica_i.dims['d1']['par'] = temperature
         # record that swap was performed
         replica_i.swap = 1
         replica_j.swap = 1
@@ -415,3 +416,17 @@ class AmmNamd(object):
                 r2.swap = 1
         except:
             raise 
+
+    #---------------------------------------------------------------------------
+    #
+    def get_all_groups(self, dim_int, replicas):
+
+        dim = dim_int-1
+
+        all_groups = []
+        for i in range(self.groups_numbers[dim]):
+            all_groups.append([None])
+        for r in replicas:
+            all_groups[r.group_idx[dim]].append(r)
+
+        return all_groups
