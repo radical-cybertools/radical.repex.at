@@ -19,7 +19,7 @@ from execution_management_modules.exec_mng_module import *
 
 #-------------------------------------------------------------------------------
 
-class ExecutionManagementModulePatternSgroup(PilotKernel):
+class ExecutionManagementModulePatternSgroup(ExecutionManagementModule):
     """
     """
     def __init__(self, inp_file, rconfig):
@@ -29,9 +29,9 @@ class ExecutionManagementModulePatternSgroup(PilotKernel):
         inp_file - json input file with Pilot and NAMD related parameters as 
         specified by user 
         """
-        PilotKernel.__init__(self, inp_file, rconfig)
+        ExecutionManagementModule.__init__(self, inp_file, rconfig)
 
-        self.name = 'exec-pattern-A-multiDsc'
+        self.name = 'EMM-pattern-S-group'
         self.logger  = rul.get_logger ('radical.repex', self.name)
 
         self.sd_shared_list = []

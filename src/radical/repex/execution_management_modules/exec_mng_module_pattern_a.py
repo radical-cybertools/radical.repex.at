@@ -19,13 +19,13 @@ from execution_management_modules.exec_mng_module import *
 
 #-------------------------------------------------------------------------------
 #
-class ExecutionManagementModulePatternA(PilotKernel):
+class ExecutionManagementModulePatternA(ExecutionManagementModule):
     
     def __init__(self, inp_file, rconfig):
 
-        PilotKernel.__init__(self, inp_file, rconfig)
+        ExecutionManagementModule.__init__(self, inp_file, rconfig)
 
-        self.name             = 'exec-pattern-A'
+        self.name             = 'EMM-pattern-A'
         self.logger           = rul.get_logger ('radical.repex', self.name)
         self.wait_ratio       = float(inp_file['remd.input'].get('wait_ratio', 0.125) )
         self.running_replicas = int(inp_file['remd.input'].get('running_replicas', 0) )

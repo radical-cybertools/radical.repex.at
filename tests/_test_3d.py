@@ -1,11 +1,9 @@
 import os
 import pytest
 import json
-import radical.utils.logger as rul
 from os import path
-
-import radical.utils.logger as rul
 import pilot_kernels
+import radical.utils.logger as rul
 from pilot_kernels.pilot_kernel_pattern_s_multi_d_sc import PilotKernelPatternSmultiDsc
 from pilot_kernels.pilot_kernel_pattern_s_multi_d_scg import PilotKernelPatternSmultiDscg
 
