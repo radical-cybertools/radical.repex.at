@@ -2,7 +2,7 @@
     "remd.input": {
         "re_pattern": "A",
         "exchange": "TUU-REMD",
-        "number_of_cycles": "99",
+        "number_of_cycles": "999",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "phos_trans",
         "amber_input": "phos_trans.mdin",
@@ -18,8 +18,7 @@
         "running_replicas": "4",
         "download_mdinfo": "False",
         "download_mdout" : "False",
-        "restart" : "True",
-        "restart_file": "simulation_objects_2_12.pkl"
+        "restart" : "False"
         },
     "dim.input": {
         "d1": {

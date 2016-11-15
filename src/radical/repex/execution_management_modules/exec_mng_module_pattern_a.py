@@ -36,23 +36,10 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
 
     #---------------------------------------------------------------------------
     #
-    @staticmethod
-    def update_group_idx(self, cu_tuple, running_replicas):
-        
-        for r in running_replicas:
-            if cu_tuple[1] == str(r.id):
-                r_dim = int(cu_tuple[7])
-                group_nr = r.group_idx[r_dim-1]
-        cu_name = 'id_' + cu_tuple[1] + '_gr_' + str(group_nr) + '_c_' + cu_tuple[5] + '_d_' + cu_tuple[7]
-        return cu_name.split('_')
-
-    #---------------------------------------------------------------------------
-    #
-    def run_simulation(self, replicas, md_kernel ):
+    def run_simulation(self, replicas, md_kernel):
         
         if self.running_replicas > len(replicas):
             self.running_replicas = len(replicas)
-
 
         # ----------------------------------------------------------------------
         #
@@ -76,9 +63,12 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         unit_manager.register_callback(unit_state_change_cb)
         unit_manager.add_pilots(self.pilot_object)
 
-        self._prof = rp.utils.Profiler(self.name)
-        self._prof.prof('start_run')
-        self._prof.prof('stagein_start')
+        dim_count = md_kernel.nr_dims
+        dim_str = []
+        dim_str.append('')
+        for i in range(dim_count):
+            s = 'd' + str(i+1)
+            dim_str.append(s)
 
         # staging shared input data in
         md_kernel.prepare_shared_data(replicas)
@@ -86,23 +76,21 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         shared_input_file_urls = md_kernel.shared_urls
         shared_input_files = md_kernel.shared_files
 
-        for i,j in enumerate(shared_input_files):
+        for i in range(len(shared_input_files)):
 
             sd_pilot = {'source': shared_input_file_urls[i],
-                        'target': 'staging:///{0}'.format(shared_input_files[i]),
+                        'target': 'staging:///%s' % shared_input_files[i],
                         'action': rp.TRANSFER
             }
 
             self.pilot_object.stage_in(sd_pilot)
 
-            sd_shared = {'source': 'staging:///{0}'.format(shared_input_files[i]),
+            sd_shared = {'source': 'staging:///%s' % shared_input_files[i],
                          'target': shared_input_files[i],
                          'action': rp.COPY
             }
             self.sd_shared_list.append(sd_shared)
         
-        self._prof.prof('stagein_end')
-
         #-----------------------------------------------------------------------
         # GL = 0: submit global calculator before
         # GL = 1: submit global calculator after
@@ -110,14 +98,9 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
 
         #DIM = 0
         #dimensions = md_kernel.dims
-
         #-----------------------------------------------------------------------
         # async loop
         simulation_time = 0.0
-        running_replicas = []
-        sub_md_replicas = []
-        sub_ex_replicas = []
-        dim_count = md_kernel.nr_dims
         current_cycle = 1
 
         if md_kernel.restart == True:
@@ -129,408 +112,242 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
             dim_int = 1
             c = 0
 
-        dim_str = []
-        dim_str.append('')
-        for i in range(dim_count):
-            s = 'd' + str(i+1)
-            dim_str.append(s)
+        # init required lists
+        md_replicas = list()
+        exchange_replicas  = list()
 
-        replicas_for_exchange = []
-        replicas_for_md = []
-        completed_cus = []
+        completed_md_tasks = list()
+        submitted_md_tasks = list()
 
         self.logger.info("cycle_time: {0}".format( self.cycletime) )
         c_start = datetime.datetime.utcnow()
-        #-----------------------------------------------------------------------
-        #check:
-        """
-        all_grrroups = md_kernel.get_all_groups(1, replicas)
-        for gr in all_grrroups:
-            gr.pop(0)
-            ids = []
-            gr_id = gr[0].group_idx[0]
-            for r in gr:
-                ids.append(r.id)
-            self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 1, gr_id, len(ids), ids) )
 
-        all_grrroups = md_kernel.get_all_groups(2, replicas)
-        for gr in all_grrroups:
-            gr.pop(0)
-            ids = []
-            gr_id = gr[0].group_idx[1]
-            for r in gr:
-                ids.append(r.id)
-            self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 2, gr_id, len(ids), ids) )
-
-        all_grrroups = md_kernel.get_all_groups(3, replicas)
-        for gr in all_grrroups:
-            gr.pop(0)
-            ids = []
-            gr_id = gr[0].group_idx[2]
-            for r in gr:
-                ids.append(r.id)
-            self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 3, gr_id, len(ids), ids) )
-        """
         #-----------------------------------------------------------------------
-        
-        self._prof.prof('sim_loop_start')
+        #
+        # async algo
+        #
+        #-----------------------------------------------------------------------
+        for r in replicas:
+            r.state == 'I'
+
         while (simulation_time < self.runtime*60.0 ):
 
             current_cycle = (c / dim_count) + 1
             if ( simulation_time < (self.runtime*60.0 - self.cycletime) ):
-                replicas_for_md = []
-                for r in replicas:
-                    if r.state == 'I':
-                        r.state = 'W'
-                    if r.state == 'W':
-                        replicas_for_md.append(r)
 
-                if (len(replicas_for_md) != 0):
-                    c_str = '_c_' + str(current_cycle) + '_d_' + str(replicas_for_md[0].cur_dim)
-                    self._prof.prof('md_prep_start_1' + c_str )
-                    c_replicas = []
-                    for replica in replicas_for_md:
-                        r_dim = replica.cur_dim
-                        group = md_kernel.get_replica_group(r_dim, replicas, replica)
-                        cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
-                        cu_tuple = cu_name.split('_')
-                        self.logger.info( "FIRST LOOP: Preparing replica id {0} for MD in dim {1}".format(cu_tuple[1], cu_tuple[7]) )
-                        compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
-                        compute_replica.name = cu_name
-                        c_replicas.append( compute_replica )
-                    self._prof.prof('md_prep_end_1' + c_str )
-                        
-                    self._prof.prof('md_sub_start_1' + c_str )
-                    sub_replicas = unit_manager.submit_units(c_replicas)
-                    self._prof.prof('md_sub_end_1' + c_str )
-                    sub_md_replicas += sub_replicas
-
-                    for r in replicas_for_md:
-                        r.state = 'R'
-                    running_replicas += replicas_for_md
-
-                self.logger.info( "sub_md_replicas: {0}".format( len(sub_md_replicas) ) )
-
-                if (len(replicas_for_exchange) != 0):
+                #---------------------------------------------------------------
+                # perform exchange phase
+                if exchange_replicas:
+                    # group replicas by dimension
                     gl_exchange_dims = []
-                    for r in replicas_for_exchange:
+                    for r in exchange_replicas:
                         if r.cur_dim not in gl_exchange_dims:
                             gl_exchange_dims.append(r.cur_dim)
-                    self.logger.info( "gl_exchange_dims: {0}".format(gl_exchange_dims) )
-
                     gl_exchange_dims = sorted(gl_exchange_dims)
                     replicas_by_dim = []
                     idx = 0
                     for d in gl_exchange_dims:
                         replicas_by_dim.append([])
-                        for r in replicas_for_exchange:
+                        for r in exchange_replicas:
                             if r.cur_dim == d:
                                 replicas_by_dim[idx].append(r)
                         idx += 1
 
-                    for d in replicas_by_dim:
-                        for r in d:
-                            self.logger.info( "replica_id: {0} cur_dim: {1}".format(r.id, r.cur_dim) )
-
                     #-----------------------------------------------------------
                     # do global exchange, replicas in different dimensions may 
                     # have reached this stage
-                    for replicas_d_list in replicas_by_dim:
-                        gl_dim = replicas_d_list[0].cur_dim
-                        cur_cycle = replicas_d_list[0].sim_cycle
-                        cu_name = 'gl_ex_cu' + c_str
-                        self._prof.prof('gl_ex_prep_start_1' + c_str )
-                        ex_calculator = md_kernel.prepare_global_ex_calc(c, gl_dim, dim_str[gl_dim], replicas_d_list , self.sd_shared_list)   
+                    for r_dim_list in replicas_by_dim:
+                        gl_dim = r_dim_list[0].cur_dim
+                        cur_cycle = r_dim_list[0].sim_cycle
+                        cu_name = 'gl_ex' + '_c_' + str(current_cycle) + '_d_' + str(r_dim_list[0].cur_dim)
+                        ex_calculator = md_kernel.prepare_global_ex_calc(c, gl_dim, dim_str[gl_dim], r_dim_list , self.sd_shared_list)   
                         ex_calculator.name = cu_name
-                        self.logger.info( "FIRST LOOP: Preparing global calc in dim {0} cycle {1}".format(gl_dim, cur_cycle) )
-                        self._prof.prof('gl_ex_prep_end_1' + c_str )
-                        self._prof.prof('gl_ex_sub_start_1' + c_str )
                         global_ex_cu = unit_manager.submit_units(ex_calculator)
-                        self._prof.prof('gl_ex_sub_end_1' + c_str )
 
-                        self._prof.prof('gl_ex_wait_start_1' + c_str )
+                        # wait for exchange to finish
                         unit_manager.wait_units( unit_ids=global_ex_cu.uid )
-                        self._prof.prof('gl_ex_wait_end_1' + c_str )
-
-                        gl_state = 'None'
                         sleep = 0
+                        gl_state = 'None'
                         while (gl_state != 'Done'):
-                            self.logger.info( "Waiting for global calc to finish!" )
                             gl_state = global_ex_cu.state
                             time.sleep(1)
                             sleep += 1
                             if ( sleep > 60 ):
-                                self.logger.info( "Warning: global calc never reached Done state..." )
                                 gl_state = 'Done'
-
-                        self.logger.info( "Global calc {0} finished!".format( global_ex_cu.uid ) )
-                        self._prof.prof('local_proc_start_1' + c_str )
-                        # exchange is a part of MD CU
-                        for r in replicas_d_list:
-                            self.logger.info( "replica id {0} state changed to E".format( r.id ) )
-                            r.state = 'E'
-                            if r.cur_dim < 3:
+                        #-------------------------------------------------------
+                        # update dimension count and set state to 'I'
+                        for r in r_dim_list:
+                            r.state = 'I'
+                            if r.cur_dim < dim_count:
                                 r.cur_dim += 1
                             else:
                                 r.cur_dim = 1
+                        #-------------------------------------------------------
+                        # exchange params
+                        md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], r_dim_list)
+                        #write replica objects out
+                        md_kernel.save_replicas(c, gl_dim, dim_str[gl_dim], replicas)
                         
-                        if global_ex_cu.state == 'Done':
-                            self.logger.info( "Got exchange pairs!" )
-                            md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], replicas_d_list)
-
-                            #write replica objects out
-                            md_kernel.save_replicas(c, gl_dim, dim_str[gl_dim], replicas)
-                            
-                            for r in replicas_d_list:
-                                self.logger.info( "replica id {0} dim {1} state changed to W".format( r.id, r.cur_dim ) )
-                                r.state = 'W'
 
                     #-----------------------------------------------------------
-                    # updating group indexes after exchange
-                    for d in range(1,dim_count+1):
-                        md_kernel.assign_group_idx(replicas, d)
-
-                    #-----------------------------------------------------------
-                    # submit for MD within same cycle
-                    replicas_for_md = []
+                    # submit for MD replicas which finished exchange
+                    md_replicas = list()
                     for r in replicas:
-                        if r.state == 'W':
-                            replicas_for_md.append(r)
+                        if r.state == 'I':
+                            md_replicas.append(r)
 
-                    c_str = '_c_' + str(current_cycle) + '_d_' + str(replicas_for_md[0].cur_dim)
-                    self._prof.prof('local_proc_end_1' + c_str )
-                    if (len(replicas_for_md) != 0):
-                        self._prof.prof('md_prep_start_2' + c_str )
-                        c_replicas = []
-                        for replica in replicas_for_md:
-                            r_dim = replica.cur_dim
-                            group = md_kernel.get_replica_group(r_dim, replicas, replica)
-                            cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
-                            cu_tuple = cu_name.split('_')
-                            self.logger.info( "SECOND LOOP: Preparing replica id {0} for MD in dim {0}".format(cu_tuple[1], cu_tuple[7]) )
-                            compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
-                            compute_replica.name = cu_name
-                            c_replicas.append( compute_replica )
-                        self._prof.prof('md_prep_end_2' + c_str )
-                            
-                        self._prof.prof('md_sub_start_2' + c_str )
-                        sub_replicas = unit_manager.submit_units(c_replicas)
-                        self._prof.prof('md_sub_end_2' + c_str )
-                        sub_md_replicas += sub_replicas
+                    c_replicas = []
+                    for replica in md_replicas:
+                        r_dim = replica.cur_dim
+                        group = md_kernel.get_replica_group(r_dim, replicas, replica)
+                        cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
+                        cu_tuple = cu_name.split('_')
+                        compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
+                        compute_replica.name = cu_name
+                        c_replicas.append( compute_replica )
+                    sub_replicas = unit_manager.submit_units(c_replicas)
+                    submitted_md_tasks += sub_replicas
 
-                        for r in replicas_for_md:
-                            r.state = 'R'
-                        running_replicas += replicas_for_md
+                    for r in md_replicas:
+                        r.state = 'MD'
 
                 #---------------------------------------------------------------
-                completed = 0
-                self._prof.prof('local_wait_start_1' + c_str )
+                # perform MD phase
+                md_replicas = list()
+                for r in replicas:
+                    if r.state == 'I':
+                        md_replicas.append(r)
+
+                if md_replicas:
+                    c_replicas = []
+                    for replica in md_replicas:
+                        r_dim = replica.cur_dim
+                        group = md_kernel.get_replica_group(r_dim, replicas, replica)
+                        cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
+                        cu_tuple = cu_name.split('_')
+                        compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
+                        compute_replica.name = cu_name
+                        c_replicas.append( compute_replica )
+                    sub_replicas = unit_manager.submit_units(c_replicas)
+                    submitted_md_tasks += sub_replicas
+                    for r in md_replicas:
+                        r.state = 'MD'
+
                 #---------------------------------------------------------------
-                # first wait
-                self.logger.info( "first wait....." )
+                # wait loop
                 wait_size = int(self.running_replicas * self.wait_ratio)
                 if wait_size == 0:
-                    wait_size = 1
-                self.logger.info( "wait size: {0}".format( wait_size ) )
-
-                wait_timee = 0
-                while ( completed < wait_size ):
-                    self.logger.info( "proceed when completed replicas >= {0}".format( wait_size ) )
-                    for cu in sub_md_replicas:
+                    wait_size = 2
+                wait_time = 0
+                count_of_completed = 0
+                #---------------------------------------------------------------
+                # start of while loop (waiting for MD tasks to finish)
+                while (count_of_completed < wait_size):
+                    # update completed_md_tasks
+                    for cu in submitted_md_tasks:
                         if cu.state == 'Done':
-                            if cu not in completed_cus:
-                                completed_cus.append(cu)
-                    time.sleep(1)
-                    wait_timee += 1
-                    completed = len(completed_cus)
-                    c_end = datetime.datetime.utcnow()
-                    simulation_time = (c_end - c_start).total_seconds()
-                    if (simulation_time > self.runtime*60.0):
-                        completed = md_kernel.replicas
-                       
-                self.logger.info( "wait time 1: {0}".format( wait_timee )  )
-                self.logger.info( "len completed: {0}".format( completed )  )
-                #---------------------------------------------------------------
-                # second wait
-                # check
-                """
-                all_grrroups = md_kernel.get_all_groups(1, replicas)
-                for gr in all_grrroups:
-                    gr.pop(0)
-                    ids = []
-                    gr_id = gr[0].group_idx[0]
-                    for r in gr:
-                        ids.append(r.id)
-                    self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 1, gr_id, len(ids), ids) )
+                            if cu not in completed_md_tasks:
+                                completed_md_tasks.append(cu)
 
-                all_grrroups = md_kernel.get_all_groups(2, replicas)
-                for gr in all_grrroups:
-                    gr.pop(0)
-                    ids = []
-                    gr_id = gr[0].group_idx[1]
-                    for r in gr:
-                        ids.append(r.id)
-                    self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 2, gr_id, len(ids), ids) )
+                    # enter this loop only of there are enough CUs
+                    if (len(completed_md_tasks) > wait_size):
+                        all_gr_list = list()
+                        for idx, cunit in enumerate(completed_md_tasks):
+                            cu = completed_md_tasks[idx]
+                            r_tuple_1 = cu.name.split('_')
+                            # check if replicas from same group are finished
+                            add = 0
+                            add_to_sublist = None
+                            for sublist in all_gr_list:
+                                for item in sublist:
+                                    r_tuple_2 = item.split('_')
+                                    # if in same group and in same dimension
+                                    if r_tuple_1[3] == r_tuple_2[3] and r_tuple_1[7] == r_tuple_2[7]:
+                                        add_to_sublist = sublist
+                                        add = 1
+                            # in all_gr_list already are replicas from the same 
+                            # group and dimension as current cu, so we add to 
+                            # existing gr_list
+                            if add == 1:
+                                index = all_gr_list.index(add_to_sublist)
+                                all_gr_list[index].append(cu.name)
+                            # in all_gr_list there are no replicas from the same 
+                            # group and dimension as current cu, so we add new 
+                            # gr_list
+                            if add == 0:     
+                                gr_list = list()
+                                gr_list.append(cu.name)
+                                all_gr_list.append(gr_list)
 
-                all_grrroups = md_kernel.get_all_groups(3, replicas)
-                for gr in all_grrroups:
-                    gr.pop(0)
-                    ids = []
-                    gr_id = gr[0].group_idx[2]
-                    for r in gr:
-                        ids.append(r.id)
-                    self.logger.info("dim: {0} gr_id: {1} gr_size: {2} ids: {3}".format( 3, gr_id, len(ids), ids) )
-                """
-                #---------------------------------------------------------------
-
-                self.logger.info( "second wait....." )
-                no_partner = 1
-                wait_timee = 0
-                processed_cus = []
-                cus_to_exchange = completed_cus
-                all_gr_list = []
-                
-                for cu in completed_cus:
-                    r_tuple = self.update_group_idx(cu.name.split('_'), replicas)
-                    # check if replicas from same group are finished after 1st wait
-                    add = 0
-                    add_to_sublist = None
-                    for sublist in all_gr_list:
-                        for item in sublist:
-                            r_tuple_add = self.update_group_idx(item.split('_'), replicas)
-                            # if in same group and in same dimension
-                            if r_tuple[3] == r_tuple_add[3] and r_tuple[7] == r_tuple_add[7]:
-                                add_to_sublist = sublist
-                                add = 1
-                    if add == 1:
-                        index = all_gr_list.index(add_to_sublist)
-                        all_gr_list[index].append(cu.name)
-                        processed_cus.append(cu.name)
-                    if add == 0:     
-                        gr_list = []
-                        gr_list.append(cu.name)
-                        all_gr_list.append(gr_list)
-                        processed_cus.append(cu.name)
-                self.logger.info( "all_gr_list before: {0}".format( all_gr_list )  )
-                
-                while(no_partner == 1):
-                    for cu in completed_cus:
-                        r_tuple = self.update_group_idx(cu.name.split('_'), replicas)
-                        for cu1 in sub_md_replicas:
-                            if cu1.name not in processed_cus and cu1.state == 'Done':
-                                    r1_tuple = self.update_group_idx(cu1.name.split('_'), replicas)
-                                    # must be in same group and in same dimension
-                                    if r_tuple[3] == r1_tuple[3] and r_tuple[7] == r1_tuple[7]:
-                                        # getting index of gr_list
-                                        for sublist in all_gr_list:
-                                            if cu.name in sublist:
-                                                index = all_gr_list.index(sublist)
-                                                all_gr_list[index].append(cu1.name)
-                                                processed_cus.append(cu1.name)
-                                                cus_to_exchange.append(cu1)
-                    self.logger.info( "all_gr_list inside: {0}".format( all_gr_list )  )
-                    all_gr_list_sizes = []
-                    for gr_list in all_gr_list:
-                        all_gr_list_sizes.append( len(gr_list) )
-                    self.logger.info( "all_gr_list_sizes: {0}".format( all_gr_list_sizes ) )
-
-                    # some replica does not have a partner
-                    if 1 in all_gr_list_sizes:
-                        time.sleep(1)
-                        wait_timee += 1
-                    elif len(all_gr_list_sizes) == 0:
-                        time.sleep(1)
-                        wait_timee += 1
+                        # updating count_of_completed
+                        count_of_completed = 0
+                        cus_to_exchange_names = list()
+                        for item in all_gr_list:
+                            # we only count groups with 2 or more replicas 
+                            # because each replica must have a partner
+                            group_size = len(item)
+                            if group_size > 1:
+                                # in each group must be even number of replicas
+                                if ((group_size % 2) != 0):
+                                    item.pop()
+                                cus_to_exchange_names += item
+                        for item in cus_to_exchange_names:
+                            count_of_completed += 1
+                        if count_of_completed < wait_size:
+                            time.sleep(1)
+                            wait_time += 1
                     else:
-                        self.logger.info( "wait time 2: {0}".format( wait_timee ) )
-                        no_partner = 0
-
+                        time.sleep(1)
+                        wait_time += 1
+                # end of while loop   
                 #---------------------------------------------------------------
-                # in each group must be only even number of replicas
-                dims = []
-                cus_to_exchange_new = []
-                for cu in cus_to_exchange:
-                    cu_tuple = cu.name.split('_')
-                    if cu_tuple[7] not in dims:
-                        dims.append(cu_tuple[7])
-                self.logger.info( "dims: {0}".format( dims )  )
-                
-                for dim in dims:
-                    cus_to_exchange_gr = []
-                    cus_to_exchange_gr_names = []
-
-                    gr_ids = []
-                    max_id = 0
-                    for cu in cus_to_exchange:
-                        cu_tuple = self.update_group_idx(cu.name.split('_'), replicas)
-                        if (cu_tuple[7] == dim):
-                            if max_id < int(cu_tuple[3]):
-                                max_id = int(cu_tuple[3])
-                    self.logger.info( "dim: {0} max_id: {1}".format(dim, max_id )  )
-
-                    for i in range(max_id+1):
-                         cus_to_exchange_gr.append([None])
-                         cus_to_exchange_gr_names.append([None])
-
-                    for cu in cus_to_exchange:
-                        cu_tuple = self.update_group_idx(cu.name.split('_'), replicas)
-                        if cu_tuple[7] == dim:
-                            self.logger.info( "dim: {0} cur_id: {1}".format(dim, int(cu_tuple[3]) )  )
-                            cus_to_exchange_gr[int(cu_tuple[3])].append(cu)
-                            cus_to_exchange_gr_names[int(cu_tuple[3])].append(cu.name)
-
-                    for item in cus_to_exchange_gr:
-                        item.pop(0)
-                        if len(item) % 2 != 0:
-                            item.pop(0)
-                        cus_to_exchange_new += item
-
-                    self.logger.info( "dim: {0} BEFORE UPDATE cus_to_exchange_gr_names: {1}".format(dim, cus_to_exchange_gr_names ) )
-                    for item in cus_to_exchange_gr_names:
-                        item.pop(0)
-                        if len(item) % 2 != 0:
-                            item.pop(0)
-                    self.logger.info( "dim: {0} AFTER UPDATE cus_to_exchange_gr_names: {1}".format(dim, cus_to_exchange_gr_names ) )
-
-                cus_to_exchange = cus_to_exchange_new
-                self.logger.info( "dim: {0} UPDATED cus_to_exchange: {1}".format(dim, cus_to_exchange ) )
-
-                # updating completed_cus
-                completed_cus_new = completed_cus
-                for cu1 in cus_to_exchange:
-                    for cu2 in completed_cus:
+                # updating submitted_md_tasks: we remove all cus which are in
+                # completed_md_tasks, regardless if they proceed to exchange 
+                # or not
+                idx_list = list()
+                for i,cu1 in enumerate(completed_md_tasks): 
+                    for j,cu2 in enumerate(submitted_md_tasks):
                         if cu1.name == cu2.name:
-                            completed_cus_new.remove(cu2)
-                completed_cus = completed_cus_new
+                            idx_list.append(j)
+                # must sort to maintain the order
+                idx_list.sort(reverse=True)
+                for i,j in enumerate(idx_list):
+                    submitted_md_tasks.pop(j)
 
-                #---------------------------------------------------------------
-                
-                self._prof.prof('local_wait_end_1' + c_str )
-                self._prof.prof('local_proc_start_2' + c_str )
+                # populating cus_to_exchange
+                cus_to_exchange = list()
+                for item in cus_to_exchange_names:
+                    for idx, cunit in enumerate(completed_md_tasks):
+                        cu = completed_md_tasks[idx]
+                        if item == cu.name:
+                            cus_to_exchange.append(cu)
 
+                # updating completed_md_tasks: removing tasks which proceed to
+                # exchange
+                idx_list = list()
+                for i,cu1 in enumerate(cus_to_exchange): 
+                    for j,cu2 in enumerate(completed_md_tasks):
+                        if cu1.name == cu2.name:
+                            idx_list.append(j)
+                # must sort to maintain the order
+                idx_list.sort(reverse=True)
+                for i,j in enumerate(idx_list):
+                    completed_md_tasks.pop(j)
+
+                # update simulation time
                 c_end = datetime.datetime.utcnow()
                 simulation_time = (c_end - c_start).total_seconds()
-                self.logger.info( "Simulation time: {0}".format( simulation_time ) )
-
                 c += 1
 
-                self.logger.info( "Incremented current cycle: {0}".format( current_cycle ) )
-                replicas_for_exchange = []
-                rm_cus = []
+                # populating exchange_replicas
+                exchange_replicas = list()
                 for cu in cus_to_exchange:
                     if cu.state == 'Done':
-                        for r in running_replicas:
+                        for r in replicas:
                             cu_name = cu.name.split('_')
                             if str(r.id) == cu_name[1]:
-                                self.logger.info( "Replica {0} finished MD for dim {1}".format( r.id, r.cur_dim ) )
-                                replicas_for_exchange.append(r)
-                                running_replicas.remove(r)
-                                rm_cus.append(cu)
-                                r.state = 'M'
-                for cu in rm_cus:
-                    sub_md_replicas.remove(cu)
-                self._prof.prof('local_proc_end_2' + c_str )
-
+                                exchange_replicas.append(r)
+                                r.state = 'EX'
         #-----------------------------------------------------------------------
         # end of loop
-        self._prof.prof('sim_loop_end')
+

@@ -157,13 +157,13 @@ class AmmAmber(object):
             self.dims['d3']['type'] = (inp_file['dim.input']['d3'].get("type"))
 
         self.nr_dims = 0
-        if self.dims['d1']['replicas'] and (not self.dims['d2']['replicas']) 
+        if self.dims['d1']['replicas'] and (not self.dims['d2']['replicas']) \
         and (not self.dims['d3']['replicas']):
             self.nr_dims = 1
-        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] 
+        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] \
         and (not self.dims['d3']['replicas']):
             self.nr_dims = 2
-        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] 
+        if self.dims['d1']['replicas'] and self.dims['d2']['replicas'] \
         and self.dims['d3']['replicas']:
             self.nr_dims = 3
 
@@ -187,7 +187,7 @@ class AmmAmber(object):
             self.ex_accept_id_matrix_d1 = []
             self.ex_accept_id_matrix_d2 = []
         elif self.nr_dims == 3:
-            self.replicas = self.dims['d1']['replicas'] * 
+            self.replicas = self.dims['d1']['replicas'] * \
             self.dims['d2']['replicas'] * self.dims['d3']['replicas']
             self.ex_accept_id_matrix_d1 = []
             self.ex_accept_id_matrix_d2 = []
@@ -1437,6 +1437,14 @@ class AmmAmber(object):
             temp = replica_2.dims[dim_str]['par']
             replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
             replica_1.dims[dim_str]['par'] = temp
+
+        # exchange group indexes
+        dim_int = int(dim_str[1])-1
+        for i,j in enumerate(replica_1.group_idx):
+            if (i != dim_int):
+                tmp = replica_1.group_idx[i]
+                replica_1.group_idx[i] = replica_2.group_idx[i]
+                replica_2.group_idx[i] = tmp
 
     #---------------------------------------------------------------------------
     #
