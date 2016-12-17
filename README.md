@@ -36,3 +36,15 @@ RepEx user guide can be found at: [repex.readthedocs.org](http://repex.readthedo
 ###Website
 
 RepEx website can be found at: [repex.io](http://radical-cybertools.github.io/RepEx/)
+
+###ICPP-2016 paper
+
+Paper in pdf format: [paper.pdf](https://github.com/radical-cybertools/radical.repex/blob/devel/documents/icpp16/paper.pdf)
+
+Presentation in pdf format: [slides-icpp16.pdf](https://github.com/radical-cybertools/radical.repex/blob/devel/documents/icpp16/slides-icpp16.pdf)
+
+###Presentations
+
+A. Treikalis thesis: [at-thesis-slides.pdf](https://github.com/radical-cybertools/radical.repex/blob/devel/documents/presentations/at-thesis-slides.pdf)
+
+Performance optimization slides: [repex-performance-optimization.pdf](https://github.com/radical-cybertools/radical.repex/blob/devel/documents/presentations/repex-performance-optimization.pdf)
