@@ -242,7 +242,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                 count_of_completed = 0
                 #---------------------------------------------------------------
                 # start of while loop (waiting for MD tasks to finish)
-                while (count_of_completed < wait_size):
+                while (count_of_completed <= wait_size):
                     # update completed_md_tasks
                     for cu in submitted_md_tasks:
                         if cu.state == 'Done':
