@@ -1,7 +1,7 @@
 """
 .. module:: radical.repex.application_management_modules.amm_amber
-.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -119,15 +119,20 @@ class AmmAmber(object):
         else:
             self.same_coordinates = False
 
-        if inp_file['remd.input'].get('download_mdinfo') == 'True':
+        if inp_file['remd.input'].get('download_mdinfo', 'False') == 'True':
             self.down_mdinfo = True
         else:
             self.down_mdinfo = False
      
-        if inp_file['remd.input'].get('download_mdout') == 'True':
+        if inp_file['remd.input'].get('download_mdout', 'False') == 'True':
             self.down_mdout = True
         else:
             self.down_mdout = False
+
+        if inp_file['remd.input'].get('copy_mdinfo', 'False') == 'True':
+            self.copy_mdinfo = True
+        else:
+            self.copy_mdinfo = False
 
         if inp_file['remd.input'].get('replica_mpi') == "True":
             self.replica_mpi = True
@@ -699,6 +704,14 @@ class AmmAmber(object):
             }
             stage_out.append(output_local)
 
+        if self.copy_mdinfo == True:  
+            info_out = {
+                'source': new_info,
+                'target': 'staging:///%s' % (replica_path + new_info),
+                'action': rp.COPY
+            }
+            stage_out.append(info_out)
+
         replica_path = "replica_%d/" % (rid)
 
         new_coor_out = {
@@ -726,14 +739,6 @@ class AmmAmber(object):
                 'action': rp.COPY
             }
             stage_out.append(matrix_col_out)
-
-        # for all cases (OPTIONAL)    
-        info_out = {
-                'source': new_info,
-                'target': 'staging:///%s' % (replica_path + new_info),
-                'action': rp.COPY
-            }
-        stage_out.append(info_out)
 
         current_group = []
         for repl in group:

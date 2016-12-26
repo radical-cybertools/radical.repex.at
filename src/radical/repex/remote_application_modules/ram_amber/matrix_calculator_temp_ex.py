@@ -44,7 +44,7 @@ def get_historical_data(replica_path, history_name):
         f = open(history_name)
         lines = f.readlines()
         f.close()
-        path_to_replica_folder = os.getcwd()
+        #path_to_replica_folder = os.getcwd()
         for i,j in enumerate(lines):
             if "TEMP(K)" in lines[i]:
                 temp = float(lines[i].split()[8])
@@ -56,7 +56,7 @@ def get_historical_data(replica_path, history_name):
 
     os.chdir(home_dir)
     
-    return temp, eptot, path_to_replica_folder
+    return temp, eptot
 
 #-------------------------------------------------------------------------------
 
@@ -65,57 +65,31 @@ if __name__ == '__main__':
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
-    replica_id = data["rid"]
-    replica_cycle = data["replica_cycle"]
-    base_name = data["base_name"]
-    replicas = int(data["replicas"])
+    replica_id       = int(data["rid"])
+    replica_cycle    = data["replica_cycle"]
+    base_name        = data["base_name"]
+    replicas         = int(data["replicas"])
     amber_parameters = data["amber_parameters"]
-    new_restraints = data["new_restraints"]
-    init_temp = data["init_temp"]
-    temp_group = data["current_group"]
+    new_restraints   = data["new_restraints"]
+    init_temp        = data["init_temp"]
+    temp_group       = data["current_group"]
 
     current_group_temp = data["current_group_temp"]
 
-    current_group = []
+    tmp = list()
     for i in temp_group:
-        current_group.append(int(i))
-     
-    history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".mdinfo"
+        tmp.append(int(i))
+    current_group = sorted(tmp) 
+
+    history_name = base_name + "_" + str(replica_id) + "_" + replica_cycle + ".mdinfo"
     swap_column  = [0.0]*replicas
-
-    #---------------------------------------------------------------------------
-    # copy history_name to staging_area/replica_x 
-    pwd = os.getcwd()
-    replica_path = "/replica_%s/" % (replica_id)
-    src = pwd + "/" + history_name
-
-    size = len(pwd)-1
-    path = pwd
-    for i in range(0,size):
-        if pwd[size-i] != '/':
-            path = path[:-1]
-        else:
-            break
-
-    dst_path = path + "staging_area" + replica_path
-    dst = dst_path + history_name
-
-    if not os.path.exists(dst_path):
-        os.makedirs(dst_path)
-
-    try:
-        shutil.copyfile(src, dst)
-        print "Success copying history_name to staging_area!"
-    except:
-        print "Fail copying history_name to staging_area..."
-        raise
 
     #---------------------------------------------------------------------------
     success = 0
     attempts = 0
     while (success == 0):
         try:
-            replica_temp, replica_energy, path_to_replica_folder = get_historical_data(None, history_name)
+            replica_temp, replica_energy = get_historical_data(None, history_name)
             print "Got history data for self!"
             success = 1
         except:
@@ -126,7 +100,7 @@ if __name__ == '__main__':
                 #---------------------------------------------------------------
                 # writing to file
                 try:
-                    outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
+                    outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=str(replica_id) )
                     with open(outfile, 'w+') as f:
                         row_str = ""
                         for item in swap_column:
@@ -145,42 +119,179 @@ if __name__ == '__main__':
                 print "MD run failed for replica {0}, matrix_swap_column_x_x.dat populated with zeros".format(replica_id)
             pass
 
+    #---------------------------------------------------------------------------
     # getting history data for all replicas
-    # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
+    # we rely on the fact that last cycle for every replica is the same, 
+    # e.g. == replica_cycle
     # but this is easily changeble for arbitrary cycle numbers
     temperatures = [0.0]*replicas
     energies = [0.0]*replicas
 
     # for self
-    temperatures[int(replica_id)] = float(current_group_temp[replica_id])
-    energies[int(replica_id)] = replica_energy
+    temperatures[replica_id] = float(current_group_temp[str(replica_id)])
+    energies[replica_id] = replica_energy
+
+    history_str = str(replica_id) + " " + str(replica_energy) + " "
+
+    first_id = current_group[0]
+    gr_size  = len(current_group)
+    if replica_id == first_id:
+        right_id = first_id + 1
+    else if replica_id == (gr_size-1):
+        left_id  = replica_id - 1
+    else:
+        right_id = replica_id + 1
+        left_id  = replica_id - 1
+
+    pwd = os.getcwd()
+    print pwd
+    size = len(pwd)-1
+    path = pwd
+    for i in range(0,size):
+        if pwd[size-i] != '/':
+            path = path[:-1]
+        else:
+            break
+    print path
+
+    # we use fifo_self fo sends and fifo_right / fifo_left for receives
+    if replica_id == first_id:
+
+        fifo_self  = path + "replica" + str(replica_id) + ".fifo"
+        fifo_right = path + "replica" + str(right_id)   + ".fifo"
+
+        r = os.path.exists(fifo_self)
+        if r == False:
+            print "making fifo_self, rid {0}".format(replica_id)
+            os.mkfifo(fifo_self)
+
+        # sending data to the right
+        cmd = "echo " + history_str + " > " + fifo_self
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process.wait()
+        out, err = process.communicate()
+
+        # receiving data from the right
+        r = os.path.exists(fifo_right)
+        if r == False:
+            print "making fifo_right, rid {0}".format(replica_id)
+            os.mkfifo(fifo_right)
+
+        cmd = "cat < " + fifo_right
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process.wait()
+        history_str_full, err1 = process.communicate()
+        history_str_full = history_str_full.rstrip()
+
+        if os.path.exists(fifo_self):
+            os.unlink(fifo_self)
+
+    else if replica_id == (gr_size-1):
+
+        fifo_self  = path + "replica" + str(replica_id) + ".fifo"
+        fifo_left = path + "replica" + str(left_id)   + ".fifo"
+
+        # receiving data from the left
+        r = os.path.exists(fifo_left)
+        if r == False:
+            print "making fifo_left, rid {0}".format(replica_id)
+            os.mkfifo(fifo_left)
+
+        cmd = "cat < " + fifo_left
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process.wait()
+        history_str_tmp, err = process.communicate()
+
+        history_str_full = history_str_tmp.rstrip() + history_str
+
+        r = os.path.exists(fifo_self)
+        if r == False:
+            print "making fifo_self, rid {0}".format(replica_id)
+            os.mkfifo(fifo_self)
+
+        # sending data to the left
+        cmd = "echo " + history_str_full + " > " + fifo_self
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process.wait()
+        out1, err1 = process.communicate()
+
+        if os.path.exists(fifo_self):
+            os.unlink(fifo_self)
+
+    else:
+
+        fifo_left   = path + "replica" + str(left_id)    + ".fifo"
+        fifo_right  = path + "replica" + str(right_id)   + ".fifo"
+        fifo_self_l = path + "replica" + str(replica_id) + "l.fifo"
+        fifo_self_r = path + "replica" + str(replica_id) + "r.fifo"
+
+        # receiving data from the left
+        r = os.path.exists(fifo_left)
+        if r == False:
+            print "making fifo_left, rid {0}".format(replica_id)
+            os.mkfifo(fifo_left)
+
+        cmd = "cat < " + fifo_left
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process.wait()
+        history_str_tmp, err = process.communicate()
+
+        history_str_tmp = history_str_tmp.rstrip() + history_str
+
+        r = os.path.exists(fifo_self_r)
+        if r == False:
+            print "making fifo_self_r, rid {0}".format(replica_id)
+            os.mkfifo(fifo_self_r)
+
+        # sending data to the right
+        cmd = "echo " + history_str_tmp + " > " + fifo_self_r
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process.wait()
+        out1, err1 = process.communicate()
+
+        #-----------------------------------------------------------------------
+        # receiving data from the right
+        r = os.path.exists(fifo_right)
+        if r == False:
+            print "making fifo_right, rid {0}".format(replica_id)
+            os.mkfifo(fifo_right)
+
+        cmd = "cat < " + fifo_right
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process.wait()
+        history_str_full, err = process.communicate()
+        history_str_full = history_str_full.rstrip()
+
+        r = os.path.exists(fifo_self_l)
+        if r == False:
+            print "making fifo_self_l, rid {0}".format(replica_id)
+            os.mkfifo(fifo_self_l)
+
+        # sending data to the left
+        cmd = "echo " + history_str_full + " > " + fifo_self_l
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process.wait()
+        out1, err1 = process.communicate()
+
+        if os.path.exists(fifo_self_r):
+            os.unlink(fifo_self_r)
+
+        if os.path.exists(fifo_self_l):
+            os.unlink(fifo_self_l)
+
+    print "history_str_full: {0}".format(history_str_full)
+    h_list = history_str_full.split()
+
+    history_data = {}
+    for idx,val in enumerate(h_list):
+        if (idx % 2) == 0:
+            history_data[int(h_list[idx])] = h_list[idx+1]
 
     for j in current_group:
         # for self already processed
-        if j != int(replica_id):
-            success = 0
-            attempts = 0
-            history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".mdinfo" 
-            replica_path = "/replica_%s/" % (str(j))
-            while (success == 0):
-                try:
-                    rj_temp, rj_energy, temp = get_historical_data(replica_path, history_name)
-                    temperatures[j] = float(current_group_temp[str(j)])
-                    energies[j] = rj_energy
-                    success = 1
-                    print "Success processing replica: %s" % j
-                except:
-                    print "Waiting for replica: %s" % j
-                    time.sleep(1)
-                    attempts += 1
-                    # some of the replicas in current group failed
-                    # set temperature and energy for this replicas as -1.0
-                    if attempts > 2:
-                        temperatures[j] = -1.0
-                        energies[j] = -1.0
-                        success = 1
-                        print "Replica {0} failed, initialized temperatures[j] and energies[j] to -1.0".format(j)
-                    pass
+        if j != replica_id:
+            temperatures[j] = float(current_group_temp[str(j)])
+            energies[j] = history_data[j]
 
     print "Got history data for other replicas in current group!"
 
@@ -191,7 +302,7 @@ if __name__ == '__main__':
     #---------------------------------------------------------------------------
     # writing to file
     try:
-        outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=replica_id )
+        outfile = "matrix_column_{replica}_{cycle}.dat".format(cycle=replica_cycle, replica=str(replica_id) )
         with open(outfile, 'w+') as f:
             row_str = ""
             for item in swap_column:
@@ -201,11 +312,9 @@ if __name__ == '__main__':
                     row_str = str(item)
             f.write(row_str)
             f.write('\n')
-            row_str = replica_id + " " + replica_cycle + " " + new_restraints + " " + init_temp + " _"
+            row_str = str(replica_id) + " " + replica_cycle + " " + new_restraints + " " + init_temp + " _"
             f.write(row_str)
         f.close()
 
     except IOError:
-        print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
-
-    
+        print 'Error: unable to create column file {0} for replica {1}'.format(outfile, replica_id)
