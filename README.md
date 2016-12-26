@@ -25,6 +25,7 @@ phase. Alternatively, only replicas which have finished a predefined number of
 simulation time-steps (2 ps) during some real time interval (1 minute)
 transition into exchange phase.
 
+
 [1] - [Amber](http://ambermd.org/)
 
 [2] - [NAMD](http://www.ks.uiuc.edu/Research/namd/)
