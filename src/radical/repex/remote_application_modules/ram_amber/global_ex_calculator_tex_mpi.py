@@ -215,6 +215,8 @@ if __name__ == '__main__':
             try:
                 replica_path = "/replica_" + str(replica_id) + "/"
                 replica_temp, replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
+                
+                # wrong temperature!
                 temperatures[replica_id] = replica_temp
                 energies[replica_id] = replica_energy
 
@@ -301,4 +303,3 @@ if __name__ == '__main__':
             print 'Error: unable to create column file %s for replica %s' % \
             (outfile, replica_id)
 
-        

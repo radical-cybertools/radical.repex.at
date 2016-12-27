@@ -1,7 +1,7 @@
 """
 .. module:: radical.repex.application_management_modules.amm_amber
-.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 .. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -30,6 +30,7 @@ import ram_amber.salt_conc_pre_exec
 import ram_amber.salt_conc_post_exec
 import ram_amber.global_ex_calculator
 import ram_amber.global_ex_calculator_gr
+import ram_amber.global_ex_calculator_temp_ex
 import ram_amber.global_ex_calculator_tex_mpi
 import ram_amber.global_ex_calculator_us_mpi
 import ram_amber.matrix_calculator_us_ex
@@ -119,15 +120,20 @@ class AmmAmber(object):
         else:
             self.same_coordinates = False
 
-        if inp_file['remd.input'].get('download_mdinfo') == 'True':
+        if inp_file['remd.input'].get('download_mdinfo', 'False') == 'True':
             self.down_mdinfo = True
         else:
             self.down_mdinfo = False
      
-        if inp_file['remd.input'].get('download_mdout') == 'True':
+        if inp_file['remd.input'].get('download_mdout', 'False') == 'True':
             self.down_mdout = True
         else:
             self.down_mdout = False
+
+        if inp_file['remd.input'].get('copy_mdinfo', 'False') == 'True':
+            self.copy_mdinfo = True
+        else:
+            self.copy_mdinfo = False
 
         if inp_file['remd.input'].get('replica_mpi') == "True":
             self.replica_mpi = True
@@ -309,7 +315,7 @@ class AmmAmber(object):
                         else:
                             coor_file = self.coor_basename + ".0.0.0"
 
-                        r = Replica(rid, \
+                        re = Replica(rid, \
                                     new_restraints=r, \
                                     coor=coor_file,
                                     d1_param=float(dim_params['d1'][i]), \
@@ -319,7 +325,7 @@ class AmmAmber(object):
                                     d2_type = self.dims['d2']['type'], \
                                     d3_type = self.dims['d3']['type'], \
                                     nr_dims = self.nr_dims)
-                        replicas.append(r)
+                        replicas.append(re)
 
             self.assign_group_idx(replicas, 1)
             self.assign_group_idx(replicas, 2)
@@ -343,7 +349,7 @@ class AmmAmber(object):
                     else:
                         coor_file = self.coor_basename + ".0.0"
 
-                    r = Replica(rid, \
+                    re = Replica(rid, \
                                 new_restraints=r, \
                                 coor=coor_file,
                                 d1_param=float(dim_params['d1'][i]), \
@@ -351,7 +357,7 @@ class AmmAmber(object):
                                 d1_type = self.dims['d1']['type'], \
                                 d2_type = self.dims['d2']['type'], \
                                 nr_dims = self.nr_dims)
-                    replicas.append(r)
+                    replicas.append(re)
 
             self.assign_group_idx(replicas, 1)
             self.assign_group_idx(replicas, 2)
@@ -368,13 +374,13 @@ class AmmAmber(object):
                 else:
                     coor_file = self.coor_basename + ".0"
 
-                r = Replica(rid, \
+                re = Replica(rid, \
                             new_restraints=r, \
                             coor=coor_file,
                             d1_param=float(dim_params['d1'][i]), \
                             d1_type = self.dims['d1']['type'], \
                             nr_dims = self.nr_dims)
-                replicas.append(r)
+                replicas.append(re)
 
             self.assign_group_idx(replicas, 1)
 
@@ -534,6 +540,9 @@ class AmmAmber(object):
         global_calc = os.path.dirname(ram_amber.global_ex_calculator.__file__)
         global_calc_path = global_calc + "/global_ex_calculator.py"
 
+        global_calc_temp_ex = os.path.dirname(ram_amber.global_ex_calculator_temp_ex.__file__)
+        global_calc_temp_ex_path = global_calc + "/global_ex_calculator_temp_ex.py"
+
         calc_temp_ex_mpi = os.path.dirname(ram_amber.global_ex_calculator_tex_mpi.__file__)
         calc_temp_ex_mpi_path = calc_temp_ex_mpi + "/global_ex_calculator_tex_mpi.py"
 
@@ -566,6 +575,7 @@ class AmmAmber(object):
             self.shared_files.append("matrix_calculator_us_ex.py")
             self.shared_files.append("input_file_builder.py")
             self.shared_files.append("global_ex_calculator.py")
+            self.shared_files.append("global_ex_calculator_temp_ex.py")
         elif self.exchange_mpi == True:
             self.shared_files.append("global_ex_calculator_tex_mpi.py")
             self.shared_files.append("global_ex_calculator_us_mpi.py")
@@ -612,6 +622,9 @@ class AmmAmber(object):
 
             global_calc_url = 'file://%s' % (global_calc_path)
             self.shared_urls.append(global_calc_url)
+
+            global_calc_url_t = 'file://%s' % (global_calc_temp_ex_path)
+            self.shared_urls.append(global_calc_url_t)
         elif self.exchange_mpi == True:
             calc_temp_ex_mpi_url = 'file://%s' % (calc_temp_ex_mpi_path)
             self.shared_urls.append(calc_temp_ex_mpi_url)
@@ -681,9 +694,11 @@ class AmmAmber(object):
         new_traj = replica.new_traj
         new_info = replica.new_info
         old_coor = replica.old_coor
-        rid = replica.id
+        rid      = replica.id
 
-        if self.down_mdinfo == True:
+        replica_path = "replica_%d/" % (rid)
+
+        if (self.down_mdinfo == True):
             info_local = {
                 'source':   new_info,
                 'target':   new_info,
@@ -691,7 +706,7 @@ class AmmAmber(object):
             }
             stage_out.append(info_local)
 
-        if self.down_mdout == True:
+        if (self.down_mdout == True):
             output_local = {
                 'source':   output_file,
                 'target':   output_file,
@@ -699,7 +714,13 @@ class AmmAmber(object):
             }
             stage_out.append(output_local)
 
-        replica_path = "replica_%d/" % (rid)
+        if (self.copy_mdinfo == True):
+            info_out = {
+                'source': new_info,
+                'target': 'staging:///%s' % (replica_path + new_info),
+                'action': rp.COPY
+            }
+            stage_out.append(info_out)
 
         new_coor_out = {
             'source': new_coor,
@@ -717,7 +738,7 @@ class AmmAmber(object):
             }
             stage_out.append(rstr_out)
         
-        if self.dims[dim_str]['type'] != 'salt' and self.exchange_mpi == False:
+        if self.dims[dim_str]['type'] == 'umbrella' and self.exchange_mpi == False:
             matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), 
                                                       str(replica.cycle-1))
             matrix_col_out = {
@@ -726,14 +747,6 @@ class AmmAmber(object):
                 'action': rp.COPY
             }
             stage_out.append(matrix_col_out)
-
-        # for all cases (OPTIONAL)    
-        info_out = {
-                'source': new_info,
-                'target': 'staging:///%s' % (replica_path + new_info),
-                'action': rp.COPY
-            }
-        stage_out.append(info_out)
 
         current_group = []
         for repl in group:
@@ -792,20 +805,26 @@ class AmmAmber(object):
         json_pre_data_sh   = dump_data.replace("\"", "\\\\\"")
 
         if self.dims[dim_str]['type'] == 'temperature':
-            current_group_temp = {}
-            for repl in group:
-                current_group_temp[str(repl.id)] = repl.dims[dim_str]['par']
+
+            rstr_vals = []
+            for key in replica.dims:
+                if replica.dims[key]['type'] == 'umbrella':
+                    rstr_vals.append(replica.dims[key]['par'])
+
+            if len(rstr_vals) == 0:
+                rstr_vals.append('_')
+                rstr_vals.append('_')
 
             data = {
                 "rid": str(replica.id),
                 "replica_cycle" : str(replica.cycle-1),
+                "current_cycle" : str(current_cycle),
                 "base_name" : str(basename),
-                "current_group" : current_group,
                 "replicas" : str(self.replicas),
                 "amber_parameters": str(self.amber_parameters),
                 "new_restraints" : str(replica.new_restraints),
-                "init_temp": str(self.init_temp),
-                "current_group_temp" : current_group_temp
+                "init_temp": str(replica.dims[dim_str]['par']),
+                "rstr_vals" : rstr_vals
                 }
 
             dump_data = json.dumps(data)
@@ -929,7 +948,6 @@ class AmmAmber(object):
 
             if (self.umbrella == True) and (self.us_template != ''):
                 if self.restart_done == False:
-
                     old_path = self.restart_object.old_sandbox + '/staging_area/' + replica.new_restraints
                     self.logger.info( "restart_path: {0}".format( old_path ) )
                     # restraint file
@@ -948,7 +966,7 @@ class AmmAmber(object):
                 stage_out.append(restraints_out_st)
 
                 # restraint template file: ace_ala_nme_us.RST
-                stage_in.append(sd_shared_list[6])
+                stage_in.append(sd_shared_list[7])
 
             if self.restart_done == False:
                 old_path = self.restart_object.old_sandbox + '/staging_area/' + replica_path + old_coor
@@ -959,7 +977,8 @@ class AmmAmber(object):
                 stage_in.append(old_coor_st)
 
             #-------------------------------------------------------------------
-            # files needed to be staged in replica dir
+            # stagein amber_parameters (.param7) and amber_input template (.mdin)  
+            # 
             for i in range(2):
                 stage_in.append(sd_shared_list[i])
             #-------------------------------------------------------------------            
@@ -1080,7 +1099,7 @@ class AmmAmber(object):
         stage_in  = []
 
         #-----------------------------------------------------------------------
-        # files needed to be staged in replica dir
+        # stagein amber_parameters (.param7) and amber_input template (.mdin)
         for i in range(2):
             stage_in.append(sd_shared_list[i])
 
@@ -1209,13 +1228,13 @@ class AmmAmber(object):
             }
             stage_out.append(matrix_col_out)
 
-            # for all cases (OPTIONAL)    
-            info_out = {
+            if self.copy_mdinfo == True:
+                info_out = {
                     'source': new_info,
                     'target': 'staging:///%s' % (replica_path + new_info),
                     'action': rp.COPY
                 }
-            stage_out.append(info_out)
+                stage_out.append(info_out)
 
             #-------------------------------------------------------------------
             
@@ -1384,8 +1403,8 @@ class AmmAmber(object):
         in_list = []
         in_list.append(sd_shared_list[0])
         in_list.append(sd_shared_list[1])
-        in_list.append(sd_shared_list[7])
         in_list.append(sd_shared_list[8])
+        in_list.append(sd_shared_list[9])
 
         if (self.umbrella == True) and (self.us_template != ''):
             # copying .RST files from staging area to replica folder
@@ -1423,69 +1442,6 @@ class AmmAmber(object):
 
     #---------------------------------------------------------------------------
     #
-    def exchange_params(self, dim_str, replica_1, replica_2):
-        
-        if (self.dims[dim_str]['type'] == 'umbrella'):
-            rstr = replica_2.dims[dim_str]['par']
-            replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
-            replica_1.dims[dim_str]['par'] = rstr
-            
-            rstr = replica_2.new_restraints
-            replica_2.new_restraints = replica_1.new_restraints
-            replica_1.new_restraints = rstr
-        else:
-            temp = replica_2.dims[dim_str]['par']
-            replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
-            replica_1.dims[dim_str]['par'] = temp
-
-        # exchange group indexes
-        dim_int = int(dim_str[1])-1
-        for i,j in enumerate(replica_1.group_idx):
-            if (i != dim_int):
-                tmp = replica_1.group_idx[i]
-                replica_1.group_idx[i] = replica_2.group_idx[i]
-                replica_2.group_idx[i] = tmp
-
-    #---------------------------------------------------------------------------
-    #
-    def do_exchange(self, current_cycle, dim_int, dim_str, replicas):
-
-        r1 = None
-        r2 = None
-
-        infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
-                                                               cycle=current_cycle)
-        try:
-            f = open(infile)
-            lines = f.readlines()
-            f.close()
-            for l in lines:
-                pair = l.split()
-                if pair[0].isdigit() and pair[1].isdigit():
-                    r1_id = int(pair[0])
-                    r2_id = int(pair[1])
-                    for r in replicas:
-                        if r.id == r1_id:
-                            r1 = r
-                        if r.id == r2_id:
-                            r2 = r
-                    #-----------------------------------------------------------
-                    # swap parameters
-                    if r1 is not None and r2 is not None and self.exchange_off[dim_int-1] == False:
-                        self.exchange_params(dim_str, r1, r2)
-                        r1.swap = 1
-                        r2.swap = 1
-                else:
-                    i = l[-1]
-                    while i != '/':
-                        l = l[:-1]
-                        i = l[-1]
-                    self.restart_object.new_sandbox = l
-        except:
-            raise
-
-    #---------------------------------------------------------------------------
-    #
     def prepare_global_ex_calc(self, 
                                current_cycle, 
                                dim_int, 
@@ -1496,9 +1452,9 @@ class AmmAmber(object):
         stage_out = []
         stage_in = []
 
-        replica_ids = []
-        for r in replicas:
-            replica_ids.append(r.id)
+        #replica_ids = []
+        #for r in replicas:
+        #    replica_ids.append(r.id)
 
         if self.nr_dims == 3:
             d1_type = self.dims['d1']['type']
@@ -1516,12 +1472,14 @@ class AmmAmber(object):
         group_nr = self.groups_numbers[dim_int-1]
         cycle = replicas[0].cycle-1
 
+        group_ids = self.get_all_groups_ids(dim_int, replicas)
+
         data = {"replicas" : str(self.replicas),
-                "replica_ids" : replica_ids,
                 "current_cycle" : str(current_cycle),
                 "cycle" : str(cycle),
                 "dimension" : str(dim_int),
                 "group_nr" : str(group_nr),
+                "group_ids" : group_ids,
                 "dim_string": dims_string
         }
         dump_data = json.dumps(data)
@@ -1532,7 +1490,7 @@ class AmmAmber(object):
             stage_in.append(sd_shared_list[4])
         elif self.exchange_mpi == False:
             # global_ex_calculator.py file
-            stage_in.append(sd_shared_list[5])
+            stage_in.append(sd_shared_list[6])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
                                                                 cycle=current_cycle)
@@ -1615,6 +1573,18 @@ class AmmAmber(object):
                 sys.exit()
             cu.mpi = True         
             cu.output_staging = stage_out
+        elif (self.dims[dim_str]['type'] == 'temperature'):
+            cu = rp.ComputeUnitDescription()
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
+            cu.input_staging  = stage_in
+            if self.group_exec == True:
+                cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
+            else:
+                cu.arguments = ["global_ex_calculator_temp_ex.py", json_data_single]                 
+            cu.cores = 1
+            cu.mpi = False            
+            cu.output_staging = stage_out
         else:
             cu = rp.ComputeUnitDescription()
             cu.pre_exec = self.pre_exec
@@ -1632,9 +1602,66 @@ class AmmAmber(object):
 
     #---------------------------------------------------------------------------
     #
-    def init_matrices(self, replicas):
-        # TODO
-        pass
+    def exchange_params(self, dim_str, replica_1, replica_2):
+        
+        if (self.dims[dim_str]['type'] == 'umbrella'):
+            rstr = replica_2.dims[dim_str]['par']
+            replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
+            replica_1.dims[dim_str]['par'] = rstr
+            
+            rstr = replica_2.new_restraints
+            replica_2.new_restraints = replica_1.new_restraints
+            replica_1.new_restraints = rstr
+        else:
+            temp = replica_2.dims[dim_str]['par']
+            replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
+            replica_1.dims[dim_str]['par'] = temp
+
+        # exchange group indexes
+        dim_int = int(dim_str[1])-1
+        for i,j in enumerate(replica_1.group_idx):
+            if (i != dim_int):
+                tmp = replica_1.group_idx[i]
+                replica_1.group_idx[i] = replica_2.group_idx[i]
+                replica_2.group_idx[i] = tmp
+
+    #---------------------------------------------------------------------------
+    #
+    def do_exchange(self, current_cycle, dim_int, dim_str, replicas):
+
+        r1 = None
+        r2 = None
+
+        infile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
+                                                               cycle=current_cycle)
+        try:
+            f = open(infile)
+            lines = f.readlines()
+            f.close()
+            for l in lines:
+                pair = l.split()
+                if pair[0].isdigit() and pair[1].isdigit():
+                    r1_id = int(pair[0])
+                    r2_id = int(pair[1])
+                    for r in replicas:
+                        if r.id == r1_id:
+                            r1 = r
+                        if r.id == r2_id:
+                            r2 = r
+                    #-----------------------------------------------------------
+                    # swap parameters
+                    if r1 is not None and r2 is not None and self.exchange_off[dim_int-1] == False:
+                        self.exchange_params(dim_str, r1, r2)
+                        r1.swap = 1
+                        r2.swap = 1
+                else:
+                    i = l[-1]
+                    while i != '/':
+                        l = l[:-1]
+                        i = l[-1]
+                    self.restart_object.new_sandbox = l
+        except:
+            raise
 
     #---------------------------------------------------------------------------
     #
@@ -1679,6 +1706,36 @@ class AmmAmber(object):
 
     #---------------------------------------------------------------------------
     #
+    def get_all_groups_ids(self, dim_int, replicas):
+
+        dim = dim_int-1
+
+        all_groups = []
+        for i in range(self.groups_numbers[dim]):
+            all_groups.append([None])
+        for r in replicas:
+            all_groups[r.group_idx[dim]].append(r.id)
+
+        print "all_groups 1:"
+        print all_groups
+
+        for gr in all_groups:
+            gr.pop(0) 
+
+        print "all_groups 2:"
+        print all_groups
+
+        for i,v in enumerate(all_groups):
+            if len(all_groups[i]) == 0:
+                all_groups.pop(i)
+
+        print "all_groups 3:"
+        print all_groups
+
+        return all_groups
+
+    #---------------------------------------------------------------------------
+    #
     def get_all_groups(self, dim_int, replicas):
 
         dim = dim_int-1
@@ -1703,4 +1760,10 @@ class AmmAmber(object):
                 group.append(r)
 
         return group
+
+    #---------------------------------------------------------------------------
+    #
+    def init_matrices(self, replicas):
+        # TODO
+        pass
 
