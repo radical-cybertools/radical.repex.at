@@ -1,8 +1,8 @@
 {
     "remd.input": {
-        "re_pattern": "S",
+        "re_pattern": "A",
         "exchange": "T-REMD",
-        "number_of_cycles": "99",
+        "number_of_cycles": "2",
         "input_folder": "t_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
@@ -16,12 +16,14 @@
         "replica_mpi": "False",
         "replica_cores": "1",
         "exchange_mpi": "False",
+        "wait_ratio": "0.25",
+        "running_replicas": "4",
         "restart" : "False"
     },
     "dim.input": {
         "d1": {
             "type" : "temperature",
-            "number_of_replicas": "4",
+            "number_of_replicas": "8",
             "min_temperature": "300.0",
             "max_temperature": "420.0"
         }

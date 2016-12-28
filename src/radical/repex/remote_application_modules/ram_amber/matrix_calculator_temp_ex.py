@@ -118,7 +118,7 @@ if __name__ == '__main__':
         else:
             break
 
-    path += "staging_area/history_" + current_cycle + ".dat" 
+    path += "staging_area/history_info.dat" 
     try:
         with open(path, "a") as g:
             fcntl.flock(g, fcntl.LOCK_EX)
