@@ -26,17 +26,6 @@ from kernels.kernels import KERNELS
 from replicas.replica import Replica
 
 import ram_amber.input_file_builder
-import ram_amber.salt_conc_pre_exec
-import ram_amber.salt_conc_post_exec
-import ram_amber.global_ex_calculator
-import ram_amber.global_ex_calculator_gr
-import ram_amber.global_ex_calculator_temp_ex
-import ram_amber.global_ex_calculator_tex_mpi
-import ram_amber.global_ex_calculator_us_mpi
-import ram_amber.matrix_calculator_us_ex
-import ram_amber.matrix_calculator_temp_ex
-import ram_amber.matrix_calculator_us_ex_mpi
-import ram_amber.matrix_calculator_temp_ex_mpi
 
 #-------------------------------------------------------------------------------
 
@@ -57,9 +46,8 @@ class AmmAmber(object):
                  rconfig, 
                  work_dir_local):
         """
-        Arguments:
-        inp_file - simulation input file with parameters specified by user 
-        rconfig - resource configuration file
+        inp_file       - simulation input file with parameters specified by user 
+        rconfig        - resource configuration file
         work_dir_local - directory from which main simulation script was invoked
         """
 
@@ -70,7 +58,7 @@ class AmmAmber(object):
         self.inp_basename     = inp_file['remd.input'].get('input_file_basename')
         self.input_folder     = inp_file['remd.input'].get('input_folder')
         self.us_template      = inp_file['remd.input'].get('us_template', '') 
-        self.init_temp        = float(inp_file['remd.input'].get('init_temp', '-1.0') )
+        self.init_temp        = float(inp_file['remd.input'].get('init_temperature', '-1.0') )
         self.amber_parameters = inp_file['remd.input'].get('amber_parameters')
         self.amber_input      = inp_file['remd.input'].get('amber_input')
         self.work_dir_local   = work_dir_local
@@ -518,47 +506,31 @@ class AmmAmber(object):
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
         inp_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_input
 
+        rams_path = os.path.dirname(ram_amber.input_file_builder.__file__)
+
         #-----------------------------------------------------------------------
         # for group exec only
-        calc_temp_ex = os.path.dirname(ram_amber.matrix_calculator_temp_ex_mpi.__file__)
-        calc_temp_ex_path_gr = calc_temp_ex + "/matrix_calculator_temp_ex_mpi.py"
-
-        calc_us_ex = os.path.dirname(ram_amber.matrix_calculator_us_ex_mpi.__file__)
-        calc_us_ex_path_gr = calc_us_ex + "/matrix_calculator_us_ex_mpi.py"
-
-        global_calc = os.path.dirname(ram_amber.global_ex_calculator_gr.__file__)
-        global_calc_path_gr = global_calc + "/global_ex_calculator_gr.py"
-        #
+        
+        calc_temp_ex_path_gr = rams_path + "/matrix_calculator_temp_ex_mpi.py"
+        calc_us_ex_path_gr   = rams_path + "/matrix_calculator_us_ex_mpi.py"
+        global_calc_path_gr  = rams_path + "/global_ex_calculator_gr.py"
+        
         #-----------------------------------------------------------------------
 
-        calc_temp_ex = os.path.dirname(ram_amber.matrix_calculator_temp_ex.__file__)
-        calc_temp_ex_path = calc_temp_ex + "/matrix_calculator_temp_ex.py"
+        calc_temp_ex_path = rams_path + "/matrix_calculator_temp_ex.py"
+        calc_us_ex_path   = rams_path + "/matrix_calculator_us_ex.py"
 
-        calc_us_ex = os.path.dirname(ram_amber.matrix_calculator_us_ex.__file__)
-        calc_us_ex_path = calc_us_ex + "/matrix_calculator_us_ex.py"
+        global_calc_path         = rams_path + "/global_ex_calculator.py"
+        global_calc_temp_ex_path = rams_path + "/global_ex_calculator_temp_ex.py"
+        global_calc_us_ex_path   = rams_path + "/global_ex_calculator_us_ex.py"
+        calc_temp_ex_mpi_path    = rams_path + "/global_ex_calculator_tex_mpi.py"
+        calc_us_ex_mpi_path      = rams_path + "/global_ex_calculator_us_mpi.py"
 
-        global_calc = os.path.dirname(ram_amber.global_ex_calculator.__file__)
-        global_calc_path = global_calc + "/global_ex_calculator.py"
+        rstr_template_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
 
-        global_calc_temp_ex = os.path.dirname(ram_amber.global_ex_calculator_temp_ex.__file__)
-        global_calc_temp_ex_path = global_calc + "/global_ex_calculator_temp_ex.py"
-
-        calc_temp_ex_mpi = os.path.dirname(ram_amber.global_ex_calculator_tex_mpi.__file__)
-        calc_temp_ex_mpi_path = calc_temp_ex_mpi + "/global_ex_calculator_tex_mpi.py"
-
-        calc_us_ex_mpi = os.path.dirname(ram_amber.global_ex_calculator_us_mpi.__file__)
-        calc_us_ex_mpi_path = calc_us_ex_mpi + "/global_ex_calculator_us_mpi.py"
-
-        rstr_template_path = self.work_dir_local + "/" + self.input_folder + "/" + self.us_template
-
-        build_inp = os.path.dirname(ram_amber.input_file_builder.__file__)
-        build_inp_path = build_inp + "/input_file_builder.py"
-
-        salt_pre_exec  = os.path.dirname(ram_amber.salt_conc_pre_exec.__file__)
-        salt_pre_exec_path = salt_pre_exec + "/salt_conc_pre_exec.py"
-
-        salt_post_exec  = os.path.dirname(ram_amber.salt_conc_post_exec.__file__)
-        salt_post_exec_path = salt_post_exec + "/salt_conc_post_exec.py"
+        build_inp_path      = rams_path + "/input_file_builder.py"
+        salt_pre_exec_path  = rams_path + "/salt_conc_pre_exec.py"
+        salt_post_exec_path = rams_path + "/salt_conc_post_exec.py"
 
         #-----------------------------------------------------------------------
         # now adding to shared_files:
@@ -576,13 +548,13 @@ class AmmAmber(object):
             self.shared_files.append("input_file_builder.py")
             self.shared_files.append("global_ex_calculator.py")
             self.shared_files.append("global_ex_calculator_temp_ex.py")
+            self.shared_files.append("global_ex_calculator_us_ex.py")
         elif self.exchange_mpi == True:
             self.shared_files.append("global_ex_calculator_tex_mpi.py")
             self.shared_files.append("global_ex_calculator_us_mpi.py")
             self.shared_files.append("input_file_builder.py")
 
         self.shared_files.append(self.us_template)
-
         self.shared_files.append("salt_conc_pre_exec.py")
         self.shared_files.append("salt_conc_post_exec.py")
 
@@ -625,6 +597,9 @@ class AmmAmber(object):
 
             global_calc_url_t = 'file://%s' % (global_calc_temp_ex_path)
             self.shared_urls.append(global_calc_url_t)
+
+            global_calc_url_u = 'file://%s' % (global_calc_us_ex_path)
+            self.shared_urls.append(global_calc_url_u)
         elif self.exchange_mpi == True:
             calc_temp_ex_mpi_url = 'file://%s' % (calc_temp_ex_mpi_path)
             self.shared_urls.append(calc_temp_ex_mpi_url)
@@ -836,23 +811,39 @@ class AmmAmber(object):
         self.logger.info( current_group )
 
         if self.dims[dim_str]['type'] == 'umbrella':
-            # 
+
+            rstr_vals = []
+            for key in replica.dims:
+                if replica.dims[key]['type'] == 'umbrella':
+                    rstr_vals.append(replica.dims[key]['par'])
+
+            if len(rstr_vals) == 0:
+                rstr_vals.append('_')
+                rstr_vals.append('_')
+
             current_group_rst = {}
             for repl in group:
                 current_group_rst[str(repl.id)] = str(repl.new_restraints)
                 
             base_restraint = self.us_template + "."
 
+            # if no temperature exchange
+            if self.temperature_str == '':
+                temp_str = str(self.init_temp)
+            else:
+                temp_str = str(replica.dims[self.temperature_str]['par'])
+
             data = {
                 "rid": str(rid),
                 "replica_cycle" : str(replica.cycle-1),
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
-                "temp_par" : str(replica.dims[self.temperature_str]['par']),
+                "init_temp" : temp_str,
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": str(self.amber_parameters),
                 "new_restraints" : str(replica.new_restraints),
-                "current_group_rst" : current_group_rst
+                "current_group_rst" : current_group_rst,
+                "rstr_vals" : rstr_vals
             }
             dump_data = json.dumps(data)
             json_post_data_bash = dump_data.replace("\\", "")
@@ -862,8 +853,7 @@ class AmmAmber(object):
             # 
             current_group_tsu = {}
             for repl in group:
-                #if str(repl.id) in current_group:
-                # no temperature exchange
+                # if no temperature exchange
                 if self.temperature_str == '':
                     temp_str = str(self.init_temp)
                 else:
@@ -966,7 +956,7 @@ class AmmAmber(object):
                 stage_out.append(restraints_out_st)
 
                 # restraint template file: ace_ala_nme_us.RST
-                stage_in.append(sd_shared_list[7])
+                stage_in.append(sd_shared_list[8])
 
             if self.restart_done == False:
                 old_path = self.restart_object.old_sandbox + '/staging_area/' + replica_path + old_coor
@@ -1403,8 +1393,8 @@ class AmmAmber(object):
         in_list = []
         in_list.append(sd_shared_list[0])
         in_list.append(sd_shared_list[1])
-        in_list.append(sd_shared_list[8])
         in_list.append(sd_shared_list[9])
+        in_list.append(sd_shared_list[10])
 
         if (self.umbrella == True) and (self.us_template != ''):
             # copying .RST files from staging area to replica folder
@@ -1489,8 +1479,12 @@ class AmmAmber(object):
             # global_ex_calculator_gr.py file
             stage_in.append(sd_shared_list[4])
         elif self.exchange_mpi == False:
-            # global_ex_calculator.py file
-            stage_in.append(sd_shared_list[6])
+            if (self.dims[dim_str]['type'] == 'temperature'): 
+                # global_ex_calculator_temp_ex.py file
+                stage_in.append(sd_shared_list[6])
+            if (self.dims[dim_str]['type'] == 'umbrella'):
+                # global_ex_calculator_us_ex.py file
+                stage_in.append(sd_shared_list[7])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
                                                                 cycle=current_cycle)
@@ -1532,7 +1526,6 @@ class AmmAmber(object):
 
         elif (self.exchange_mpi == True) and (self.dims[dim_str]['type'] == 'umbrella'):
 
-            # 
             all_restraints = {}
             all_temperatures = {}
             for repl in replicas:
@@ -1582,6 +1575,18 @@ class AmmAmber(object):
                 cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
             else:
                 cu.arguments = ["global_ex_calculator_temp_ex.py", json_data_single]                 
+            cu.cores = 1
+            cu.mpi = False            
+            cu.output_staging = stage_out
+        elif (self.dims[dim_str]['type'] == 'umbrella'):
+            cu = rp.ComputeUnitDescription()
+            cu.pre_exec = self.pre_exec
+            cu.executable = "python"
+            cu.input_staging  = stage_in
+            if self.group_exec == True:
+                cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
+            else:
+                cu.arguments = ["global_ex_calculator_us_ex.py", json_data_single]                 
             cu.cores = 1
             cu.mpi = False            
             cu.output_staging = stage_out

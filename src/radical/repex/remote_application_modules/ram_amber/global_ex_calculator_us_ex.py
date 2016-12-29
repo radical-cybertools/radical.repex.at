@@ -12,15 +12,15 @@ import shutil
 import random
 
 #-------------------------------------------------------------------------------
-#
 
 def reduced_energy(temperature, potential):
-   
+    
     kb = 0.0019872041    #boltzmann const in kcal/mol
     if temperature != 0:
         beta = 1. / (kb*temperature)
     else:
         beta = 1. / kb     
+
     return float(beta * potential)
 
 #-------------------------------------------------------------------------------
@@ -168,9 +168,6 @@ if __name__ == '__main__':
 
     swap_matrix = [[ 0. for j in range(replicas)] for i in range(replicas)]
 
-    #---------------------------------------------------------------------------
-    # 
-
     temperatures = [0.0]*replicas
     energies     = [0.0]*replicas
 
@@ -183,7 +180,7 @@ if __name__ == '__main__':
         else:
             break
 
-    path += "staging_area/history_info_temp.dat" 
+    path += "staging_area/history_info_us.dat" 
     try:
         with open(path, "r") as f:
             fcntl.flock(f, fcntl.LOCK_EX)
@@ -191,6 +188,8 @@ if __name__ == '__main__':
             fcntl.flock(f, fcntl.LOCK_UN)
 
         wb_lines = list()
+        us_energies_dict = {}
+
         for line in lines:
             #print "line: {0}".format(line)
             tmp = line.split()
@@ -198,16 +197,23 @@ if __name__ == '__main__':
             if int(tmp[0]) not in replica_ids:
                 wb_lines.append(line)
             else:
-                rid    = int(tmp[0])
-                temp   = float(tmp[1])
-                energy = float(tmp[2])
-                rst    = tmp[3]
-                r_val1 = tmp[4]
-                r_val2 = tmp[5]
+                rid         = int(tmp[0])
+                temp        = float(tmp[1])
+                energy      = float(tmp[2])
+                rst         = tmp[3]
+                r_val1      = tmp[4]
+                r_val2      = tmp[5]
+
+                us_energies_dict[rid] = {}
+                for i in range(6, (6+replicas)):
+                    if int(tmp[i]) != 0.0:
+                        us_energies_dict[rid][i] = float(tmp[i])
+
+                print "us_energies_dict[{0}]: ".format(rid)
+                print us_energies_dict[rid]
 
                 temperatures[rid] = temp
-                energies[rid]     = energy 
-                replica_dict[rid] = [rst, str(temp), "_", r_val1, r_val2]
+                replica_dict[rid] = [rst, str(temp), str(energy), "_", r_val1, r_val2]
 
         with open(path, "w") as f:
             fcntl.flock(f, fcntl.LOCK_EX)
@@ -215,36 +221,41 @@ if __name__ == '__main__':
                 print "wb line: {0}".format(line)
                 f.write(line)
             fcntl.flock(f, fcntl.LOCK_UN)
-        
     except:
         raise
 
     for gr in groups:
+        # i is rid
         for i in gr:
             swap_column = [0.0]*replicas
             for j in gr:      
-                swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(i)])
+                energies[int(i)] = float(replica_dict[int(i)][2]) + us_energies_dict[int(i)][int(j)]
+                # incorrect?
+                temperatures[int(i)] = float(replica_dict[int(i)][1])
+                # incorrect?
+                swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
             for k in range(replicas):
                 swap_matrix[k][int(i)] = float(swap_column[k])
+
 
     for rid in replica_ids:  
         params = [0.0]*4
         u = 0
         for i,j in enumerate(dim_types):
             if rid not in replica_dict.keys():
-                replica_dict[rid] = ['-1.0', '-1.0', '-1.0', '-1.0', '-1.0']
+                replica_dict[rid] = ['-1.0', '-1.0', '-1.0', '-1.0', '-1.0', '-1.0']
                 print "no data in replica_dict for replica {0}".format(rid)
             
             if dim_types[i] == 'temperature':
                 params[i] = replica_dict[rid][1]
             elif dim_types[i] == 'umbrella':
                 if u == 0:
-                    params[i] = replica_dict[rid][3]
-                else:
                     params[i] = replica_dict[rid][4]
+                else:
+                    params[i] = replica_dict[rid][5]
                 u = 1
             elif dim_types[i] == 'salt':
-                params[i] = replica_dict[rid][2]
+                params[i] = replica_dict[rid][3]
 
         if nr_dims == 3:
             r = Replica(rid, 
@@ -269,8 +280,9 @@ if __name__ == '__main__':
                         new_restraints=replica_dict[rid][0])
 
         replicas_obj.append(r)
+        success = 1
         print "Success creating object for replica: {0}".format(rid)
-            
+    
     #---------------------------------------------------------------------------
 
     d1_list = []

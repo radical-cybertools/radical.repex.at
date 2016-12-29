@@ -17,17 +17,6 @@ import shutil
 
 #-------------------------------------------------------------------------------
 
-def reduced_energy(temperature, potential):
-   
-    kb = 0.0019872041    #boltzmann const in kcal/mol
-    if temperature != 0:
-        beta = 1. / (kb*temperature)
-    else:
-        beta = 1. / kb     
-    return float(beta * potential)
-
-#-------------------------------------------------------------------------------
-
 def get_historical_data(replica_path, history_name):
     
     home_dir = os.getcwd()
@@ -104,7 +93,7 @@ if __name__ == '__main__':
                   str(new_restraints) + " "
 
     for val in rstr_vals:
-        history_str += val + " "
+        history_str += str(val) + " "
     history_str += "\n"
 
     print "history_str: {0}".format(history_str)
@@ -118,7 +107,7 @@ if __name__ == '__main__':
         else:
             break
 
-    path += "staging_area/history_info.dat" 
+    path += "staging_area/history_info_temp.dat" 
     try:
         with open(path, "a") as g:
             fcntl.flock(g, fcntl.LOCK_EX)
