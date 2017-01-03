@@ -205,12 +205,13 @@ if __name__ == '__main__':
                 r_val2      = tmp[5]
 
                 us_energies_dict[rid] = {}
-                for i in range(6, (6+replicas)):
-                    if int(tmp[i]) != 0.0:
-                        us_energies_dict[rid][i] = float(tmp[i])
+                for i in range(6, (len(tmp))):
+                    print "tmp[{0}]: {1}".format(i, tmp[i])
+                    if float(tmp[i]) != 0.0:
+                        us_energies_dict[rid][i-6] = float(tmp[i])
 
-                print "us_energies_dict[{0}]: ".format(rid)
-                print us_energies_dict[rid]
+                #print "us_energies_dict[{0}]: ".format(rid)
+                #print us_energies_dict[rid]
 
                 temperatures[rid] = temp
                 replica_dict[rid] = [rst, str(temp), str(energy), "_", r_val1, r_val2]
@@ -229,6 +230,7 @@ if __name__ == '__main__':
         for i in gr:
             swap_column = [0.0]*replicas
             for j in gr:      
+                #print "i: {0} j: {1}".format( i, j )
                 energies[int(i)] = float(replica_dict[int(i)][2]) + us_energies_dict[int(i)][int(j)]
                 # incorrect?
                 temperatures[int(i)] = float(replica_dict[int(i)][1])
@@ -282,7 +284,7 @@ if __name__ == '__main__':
         replicas_obj.append(r)
         success = 1
         print "Success creating object for replica: {0}".format(rid)
-    
+
     #---------------------------------------------------------------------------
 
     d1_list = []

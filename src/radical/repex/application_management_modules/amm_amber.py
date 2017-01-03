@@ -789,6 +789,8 @@ class AmmAmber(object):
             if len(rstr_vals) == 0:
                 rstr_vals.append('_')
                 rstr_vals.append('_')
+            if len(rstr_vals) == 1:
+                rstr_vals.append('_')
 
             data = {
                 "rid": str(replica.id),
@@ -819,6 +821,8 @@ class AmmAmber(object):
 
             if len(rstr_vals) == 0:
                 rstr_vals.append('_')
+                rstr_vals.append('_')
+            if len(rstr_vals) == 1:
                 rstr_vals.append('_')
 
             current_group_rst = {}

@@ -192,22 +192,22 @@ if __name__ == '__main__':
 
         wb_lines = list()
         for line in lines:
-            #print "line: {0}".format(line)
             tmp = line.split()
-            #print "tmp: {0}".format(tmp)
-            if int(tmp[0]) not in replica_ids:
-                wb_lines.append(line)
-            else:
-                rid    = int(tmp[0])
-                temp   = float(tmp[1])
-                energy = float(tmp[2])
-                rst    = tmp[3]
-                r_val1 = tmp[4]
-                r_val2 = tmp[5]
+            print "tmp: {0}".format(tmp)
+            if len(tmp) > 5:
+                if int(tmp[0]) not in replica_ids:
+                    wb_lines.append(line)
+                else:
+                    rid    = int(tmp[0])
+                    temp   = float(tmp[1])
+                    energy = float(tmp[2])
+                    rst    = tmp[3]
+                    r_val1 = tmp[4]
+                    r_val2 = tmp[5]
 
-                temperatures[rid] = temp
-                energies[rid]     = energy 
-                replica_dict[rid] = [rst, str(temp), "_", r_val1, r_val2]
+                    temperatures[rid] = temp
+                    energies[rid]     = energy 
+                    replica_dict[rid] = [rst, str(temp), "_", r_val1, r_val2]
 
         with open(path, "w") as f:
             fcntl.flock(f, fcntl.LOCK_EX)
