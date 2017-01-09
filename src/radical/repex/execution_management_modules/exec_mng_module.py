@@ -15,23 +15,22 @@ import random
 import datetime
 from os import path
 import radical.pilot as rp
+import radical.utils as ru
 from random import randint
 from kernels.kernels import KERNELS
-import radical.utils.logger as rul
 
 #-------------------------------------------------------------------------------
 
 class ExecutionManagementModule(object):
 
-    def __init__(self, inp_file, rconfig):
+    def __init__(self, inp_file, rconfig, md_logger):
         """
         Arguments:
         inp_file - json input file with Pilot and MD related parameters as specified by user 
         """
 
-        self.name = 'exec'
-        self.logger  = rul.get_logger ('radical.repex', self.name)
-        
+        self.logger = md_logger
+
         # pilot parameters
         self.resource = rconfig['target'].get('resource')
         self.sandbox = rconfig['target'].get('sandbox')
@@ -65,14 +64,13 @@ class ExecutionManagementModule(object):
         self.pilot_manager = None
         self.pilot_object = None
 
-    # --------------------------------------------------------------------------
+    #---------------------------------------------------------------------------
     #
     def launch_pilot(self):
  
         #-----------------------------------------------------------------------
         #
         def pilot_state_cb(pilot, state):
-           
             if pilot:
                 self.logger.info("ComputePilot '{0}' state changed to {1}.".format(pilot.uid, state) )
 
@@ -81,12 +79,15 @@ class ExecutionManagementModule(object):
                     self.logger.error("RepEx execution FAILED.")
                     sys.exit(1)
         #-----------------------------------------------------------------------
+
+        self._prof = ru.Profiler(self.name)
+        self._prof.prof('launch_pilot_start')
    
         self.session = rp.Session(database_url=self.dburl)
         self.logger.info("Session ID: {0}".format(self.session.uid) )
 
         try:
-            # Add an ssh identity to the session.
+            self._prof.prof('prepare_pd_start')
             if self.user:
                 cred = rp.Context('ssh')
                 cred.user_id = self.user
@@ -117,13 +118,20 @@ class ExecutionManagementModule(object):
             pilot_description.runtime = self.runtime
             pilot_description.cleanup = self.cleanup
 
+            self._prof.prof('prepare_pd_end')
+            self._prof.prof('submit_pilots_start')
             self.pilot_object = self.pilot_manager.submit_pilots(pilot_description)
-            
-            # we wait for the pilot to start running on resource
+            self._prof.prof('submit_pilots_end')
+
             self.logger.info("Pilot ID: {0}".format(self.pilot_object.uid) )
+
+            self._prof.prof('wait_pilots_start')
             self.pilot_manager.wait_pilots(self.pilot_object.uid,'Active') 
+            self._prof.prof('wait_pilots_start')
 
         except rp.PilotException, ex:
             self.logger.error("Error: {0}".format(ex))
             self.session.close (cleanup=True, terminate=True) 
+
+        self._prof.prof('launch_pilot_end')
 

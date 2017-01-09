@@ -27,11 +27,10 @@ def move_output_files(work_dir_local, md_kernel, replicas):
 
     pairs_name = "pairs_for_exchange_"
     obj_name   = "simulation_objects_"
-    exec_name  = "execution_profile_"
     files = os.listdir( work_dir_local )
 
     for item in files:
-        if (item.startswith(pairs_name) or item.startswith(obj_name) or item.startswith(exec_name)):
+        if (item.startswith(pairs_name) or item.startswith(obj_name) or item.endswith(".log") or item.endswith(".prof") ):
             source =  work_dir_local + "/" + str(item)
             destination = dir_path + "/"
             d_file = destination + str(item)

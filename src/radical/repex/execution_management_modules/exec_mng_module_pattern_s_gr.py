@@ -22,18 +22,16 @@ from execution_management_modules.exec_mng_module import *
 class ExecutionManagementModulePatternSgroup(ExecutionManagementModule):
     """
     """
-    def __init__(self, inp_file, rconfig):
+    def __init__(self, inp_file, rconfig, md_logger):
         """Constructor.
 
         Arguments:
         inp_file - json input file with Pilot and NAMD related parameters as 
         specified by user 
         """
-        ExecutionManagementModule.__init__(self, inp_file, rconfig)
+        ExecutionManagementModule.__init__(self, inp_file, rconfig, md_logger)
 
-        self.name = 'EMM-pattern-S-group'
-        self.logger  = rul.get_logger ('radical.repex', self.name)
-
+        self.name = 'EmmPatternSgroup'
         self.sd_shared_list = []
 
 #-------------------------------------------------------------------------------

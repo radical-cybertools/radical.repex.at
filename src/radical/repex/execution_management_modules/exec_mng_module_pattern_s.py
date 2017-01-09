@@ -14,6 +14,7 @@ import json
 import datetime
 from os import path
 import radical.pilot as rp
+import radical.utils as ru
 import radical.utils.logger as rul
 from execution_management_modules.exec_mng_module import *
 
@@ -22,17 +23,15 @@ from execution_management_modules.exec_mng_module import *
 class ExecutionManagementModulePatternS(ExecutionManagementModule):
     """
     """
-    def __init__(self, inp_file, rconfig):
+    def __init__(self, inp_file, rconfig, md_logger):
         """
         Arguments:
         inp_file - json input file with Pilot and NAMD related parameters as 
         specified by user 
         """
-        ExecutionManagementModule.__init__(self, inp_file, rconfig)
+        ExecutionManagementModule.__init__(self, inp_file, rconfig, md_logger)
 
-        self.name = 'EMM-pattern-S'
-        self.logger  = rul.get_logger ('radical.repex', self.name)
-
+        self.name   = 'EMMpatternS'
         self.sd_shared_list = []
 
 #-------------------------------------------------------------------------------
@@ -45,7 +44,7 @@ class ExecutionManagementModulePatternS(ExecutionManagementModule):
         md_kernel - an instance of NamdKernelScheme2a class
         """
 
-        # ----------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         #
         def unit_state_change_cb(unit, state):
 
@@ -54,11 +53,13 @@ class ExecutionManagementModulePatternS(ExecutionManagementModule):
 
                 if state == rp.states.FAILED:
                     self.logger.info("Log: {0:s}".format( unit.as_dict() ) )
-                    # restarting the replica
-                    #self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )
-                    #unit_manager.submit_units( unit.description )
-
+                    # restar replica here
+                    
         #-----------------------------------------------------------------------
+
+        #self._prof = ru.Profiler(self.name)
+        self._prof.prof('run_simulation_start')
+
         cycles = md_kernel.nr_cycles
                 
         unit_manager = rp.UnitManager(self.session, scheduler=rp.SCHED_DIRECT_SUBMISSION)

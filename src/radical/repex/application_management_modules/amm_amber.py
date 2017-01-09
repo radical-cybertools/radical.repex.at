@@ -51,7 +51,7 @@ class AmmAmber(object):
         work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.name = 'AMM-Amber'
+        self.name = 'AmmAmber.log'
         self.logger  = rul.get_logger ('radical.repex', self.name)
 
         self.resource         = rconfig['target'].get('resource')
