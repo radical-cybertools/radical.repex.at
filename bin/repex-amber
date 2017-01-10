@@ -76,7 +76,7 @@ if __name__ == '__main__':
         sys.exit(1)
     try:
         # finally we are moving all files to individual replica directories
-        move_output_files(work_dir_local, amm, replicas ) 
+        #move_output_files(work_dir_local, amm, replicas ) 
         emm.logger.info("Simulation successfully finished!")
     except:
         raise

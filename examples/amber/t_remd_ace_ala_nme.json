@@ -1,7 +1,7 @@
 {
     "remd.input": {
-        "re_pattern": "A",
-        "number_of_cycles": "3",
+        "re_pattern": "S",
+        "number_of_cycles": "2",
         "group_exec": "False",
         "input_folder": "t_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
@@ -9,7 +9,7 @@
         "amber_parameters": "ace_ala_nme.parm7",
         "amber_coordinates_folder": "ace_ala_nme_coors",
         "same_coordinates": "True",
-        "steps_per_cycle": "100",
+        "steps_per_cycle": "2000",
         "download_mdinfo": "False",
         "download_mdout" : "False",
         "copy_mdinfo" : "False",
@@ -23,7 +23,7 @@
             "type" : "temperature",
             "number_of_replicas": "4",
             "min_temperature": "300.0",
-            "max_temperature": "460.0"
+            "max_temperature": "304.0"
         }
     }
 }

@@ -119,7 +119,11 @@ class ExecutionManagementModulePatternS(ExecutionManagementModule):
                 dim_int = 1
                 current_cycle += 1
 
-            self.logger.info("Performing cycle: {0} c: {1}".format(current_cycle, c) )
+            self.logger.info("parameters before exchange: ")
+            for r in replicas:
+                self.logger.info("replica: {0} type: {1} param: {2}".format(r.id, r.dims[dim_str[dim_int]]['type'], r.dims[dim_str[dim_int]]['par']) )
+
+            self.logger.info("performing cycle: {0} c: {1}".format(current_cycle, c) )
             
             submitted_replicas = []
             exchange_replicas = []
@@ -318,6 +322,11 @@ class ExecutionManagementModulePatternS(ExecutionManagementModule):
             self._prof.prof('save_replicas_start__' + c_str ) 
             md_kernel.save_replicas(current_cycle, dim_int, dim_str[dim_int], replicas)
             self._prof.prof('save_replicas_end__' + c_str )
+
+            # temporary
+            self.logger.info("parameters after exchange: ")
+            for r in replicas:
+                self.logger.info("replica: {0} type: {1} param: {2}".format(r.id, r.dims[dim_str[dim_int]]['type'], r.dims[dim_str[dim_int]]['par']) )
 
         #-----------------------------------------------------------------------
         # end of loop
