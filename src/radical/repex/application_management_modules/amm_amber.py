@@ -1091,7 +1091,7 @@ class AmmAmber(object):
 
         stage_out = []
         stage_in  = []
-
+        print "prepare group....................."
         #-----------------------------------------------------------------------
         # stagein amber_parameters (.param7) and amber_input template (.mdin)
         for i in range(2):
@@ -1240,17 +1240,29 @@ class AmmAmber(object):
             if (dim_str == 'd3'):
                 cd_str = "3"
                
-            data['ex'][str(rid)] = {
-                "cd" : cd_str,
-                "p1" : str(replica.dims['d1']['par']),
-                "p2" : str(replica.dims['d2']['par']),
-                "p3" : str(replica.dims['d3']['par']),
-                "t1" : str(replica.dims['d1']['type']),
-                "t2" : str(replica.dims['d2']['type']),
-                "t3" : str(replica.dims['d3']['type']),
-                "new_rstr" : str(replica.new_restraints[len_substr:]),
-                "r_coor" : str(replica.coor_file[len_substr:])
-                }
+            if self.nr_dims == 3:
+                data['ex'][str(rid)] = {
+                    "cd" : cd_str,
+                    "p1" : str(replica.dims['d1']['par']),
+                    "p2" : str(replica.dims['d2']['par']),
+                    "p3" : str(replica.dims['d3']['par']),
+                    "t1" : str(replica.dims['d1']['type']),
+                    "t2" : str(replica.dims['d2']['type']),
+                    "t3" : str(replica.dims['d3']['type']),
+                    "new_rstr" : str(replica.new_restraints[len_substr:]),
+                    "r_coor" : str(replica.coor_file[len_substr:])
+                    }
+            elif self.nr_dims == 2:
+                data['ex'][str(rid)] = {
+                    "cd" : cd_str,
+                    "p1" : str(replica.dims['d1']['par']),
+                    "p2" : str(replica.dims['d2']['par']),
+                    "t1" : str(replica.dims['d1']['type']),
+                    "t2" : str(replica.dims['d2']['type']),
+                    "new_rstr" : str(replica.new_restraints[len_substr:]),
+                    "r_coor" : str(replica.coor_file[len_substr:])
+                    }
+
             base_restraint = self.us_template + "."
             
             #-------------------------------------------------------------------
@@ -1296,23 +1308,17 @@ class AmmAmber(object):
 
         if (self.dims[dim_str]['type'] == 'umbrella'):
             if KERNELS[self.resource]["shell"] == "bash":
-                cu.executable = "python remote_calculator_us_ex_mpi.py " + \
-                                "\'" + \
-                                json_data_bash + "\'"
+                exec_str = "python matrix_calculator_us_ex_mpi.py "
+                cu.executable = exec_str + "\'" + json_data_bash + "\'"
             elif KERNELS[self.resource]["shell"] == "bourne":
-                cu.executable = "python remote_calculator_us_ex_mpi.py " + \
-                                "\'" + \
-                                json_data_sh + "\'"
+                cu.executable = exec_str + "\'" + json_data_sh + "\'"
 
         if (self.dims[dim_str]['type'] == 'temperature'):
+            exec_str = "python matrix_calculator_temp_ex_mpi.py "
             if KERNELS[self.resource]["shell"] == "bash":
-                cu.executable = "python remote_calculator_temp_ex_mpi.py " + \
-                                "\'" + \
-                                json_data_bash + "\'"
+                cu.executable = exec_str + "\'" + json_data_bash + "\'"
             elif KERNELS[self.resource]["shell"] == "bourne":
-                cu.executable = "python remote_calculator_temp_ex_mpi.py " + \
-                                "\'" + \
-                                json_data_sh + "\'"
+                cu.executable = exec_str + "\'" + json_data_sh + "\'"
 
         cu.pre_exec = self.pre_exec
         cu.input_staging = stage_in
