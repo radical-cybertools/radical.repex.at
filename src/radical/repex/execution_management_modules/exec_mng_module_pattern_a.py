@@ -31,6 +31,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         if self.running_replicas == 0:
             self.running_replicas = self.cores - int(KERNELS[self.resource]["params"].get("cores") )
         
+        self.name = 'EmmPatternA'
         self.sd_shared_list = []
 
     #---------------------------------------------------------------------------
@@ -53,10 +54,11 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                     self.logger.error("Log: {0:s}".format( unit.as_dict() ) )
 
         #-----------------------------------------------------------------------
-        #
+        
+        self._prof.prof('run_simulation_start')
+
         CYCLES = md_kernel.nr_cycles + 1
 
-        do_profile = os.getenv('REPEX_PROFILING', '0')
        
         unit_manager = rp.UnitManager(self.session, scheduler=rp.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
@@ -68,6 +70,8 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         for i in range(dim_count):
             s = 'd' + str(i+1)
             dim_str.append(s)
+
+        self._prof.prof('initial_stagein_start')
 
         # staging shared input data in
         md_kernel.prepare_shared_data(replicas)
@@ -90,6 +94,8 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
             }
             self.sd_shared_list.append(sd_shared)
         
+        self._prof.prof('initial_stagein_end')
+
         #-----------------------------------------------------------------------
         # GL = 0: submit global calculator before
         # GL = 1: submit global calculator after
@@ -129,15 +135,16 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         for r in replicas:
             r.state == 'I'
 
+        self._prof.prof('main_simulation_loop_start')
         while (simulation_time < self.runtime*60.0 ):
 
             current_cycle = (c / dim_count) + 1
             if ( simulation_time < (self.runtime*60.0 - self.cycletime) ):
 
-                #---------------------------------------------------------------
                 # perform exchange phase
                 if exchange_replicas:
                     # group replicas by dimension
+                    self._prof.prof('group_ex_replicas_by_dim_start')
                     gl_exchange_dims = []
                     for r in exchange_replicas:
                         if r.cur_dim not in gl_exchange_dims:
@@ -151,20 +158,28 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                             if r.cur_dim == d:
                                 replicas_by_dim[idx].append(r)
                         idx += 1
+                    self._prof.prof('group_ex_replicas_by_dim_end')
 
                     #-----------------------------------------------------------
                     # do global exchange, replicas in different dimensions may 
                     # have reached this stage
                     for r_dim_list in replicas_by_dim:
+                        c_str = '_c_' + str(current_cycle) + '_d_' + str(r_dim_list[0].cur_dim)
+                        self._prof.prof('prepare_global_ex_calc_start__' + c_str)
                         gl_dim = r_dim_list[0].cur_dim
                         cur_cycle = r_dim_list[0].sim_cycle
-                        cu_name = 'gl_ex' + '_c_' + str(current_cycle) + '_d_' + str(r_dim_list[0].cur_dim)
+                        cu_name = 'gl_ex' + c_str
                         ex_calculator = md_kernel.prepare_global_ex_calc(c, gl_dim, dim_str[gl_dim], r_dim_list , self.sd_shared_list)   
+                        self._prof.prof('prepare_global_ex_calc_end__' + c_str)
                         ex_calculator.name = cu_name
+                        self._prof.prof('submit_gl_unit_start__' + c_str)
                         global_ex_cu = unit_manager.submit_units(ex_calculator)
+                        self._prof.prof('submit_gl_unit_end__' + c_str)
 
                         # wait for exchange to finish
+                        self._prof.prof('wait_gl_unit_start__' + c_str)
                         unit_manager.wait_units( unit_ids=global_ex_cu.uid )
+                        self._prof.prof('wait_gl_unit_end__' + c_str)
                         sleep = 0
                         gl_state = 'None'
                         while (gl_state != 'Done'):
@@ -183,10 +198,13 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                                 r.cur_dim = 1
                         #-------------------------------------------------------
                         # exchange params
+                        self._prof.prof('do_exchange_start__' + c_str)
                         md_kernel.do_exchange(c, gl_dim, dim_str[gl_dim], r_dim_list)
+                        self._prof.prof('do_exchange_end__' + c_str)
                         #write replica objects out
+                        self._prof.prof('save_replicas_start__' + c_str)
                         md_kernel.save_replicas(c, gl_dim, dim_str[gl_dim], replicas)
-                        
+                        self._prof.prof('save_replicas_end__' + c_str)
 
                     #-----------------------------------------------------------
                     # submit for MD replicas which finished exchange
@@ -196,6 +214,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                             md_replicas.append(r)
 
                     c_replicas = []
+                    self._prof.prof('prepare_replica_for_md_start')
                     for replica in md_replicas:
                         r_dim = replica.cur_dim
                         group = md_kernel.get_replica_group(r_dim, replicas, replica)
@@ -204,7 +223,10 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                         compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
                         c_replicas.append( compute_replica )
+                    self._prof.prof('prepare_replica_for_md_end')
+                    self._prof.prof('submit_md_units_start')
                     sub_replicas = unit_manager.submit_units(c_replicas)
+                    self._prof.prof('submit_md_units_end')
                     submitted_md_tasks += sub_replicas
 
                     for r in md_replicas:
@@ -219,6 +241,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
 
                 if md_replicas:
                     c_replicas = []
+                    self._prof.prof('prepare_replica_for_md_start')
                     for replica in md_replicas:
                         r_dim = replica.cur_dim
                         group = md_kernel.get_replica_group(r_dim, replicas, replica)
@@ -227,13 +250,17 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                         compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
                         c_replicas.append( compute_replica )
+                    self._prof.prof('prepare_replica_for_md_end')
+                    self._prof.prof('submit_md_units_start')
                     sub_replicas = unit_manager.submit_units(c_replicas)
+                    self._prof.prof('submit_md_units_end')
                     submitted_md_tasks += sub_replicas
                     for r in md_replicas:
                         r.state = 'MD'
 
                 #---------------------------------------------------------------
                 # wait loop
+                self._prof.prof('wait_md_start')
                 wait_size = int(self.running_replicas * self.wait_ratio)
                 if wait_size == 0:
                     wait_size = 2
@@ -298,11 +325,14 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                     else:
                         time.sleep(1)
                         wait_time += 1
+
+                self._prof.prof('wait_md_end')
                 # end of while loop   
                 #---------------------------------------------------------------
                 # updating submitted_md_tasks: we remove all cus which are in
                 # completed_md_tasks, regardless if they proceed to exchange 
                 # or not
+                self._prof.prof('updating submitted_md_tasks_start')
                 idx_list = list()
                 for i,cu1 in enumerate(completed_md_tasks): 
                     for j,cu2 in enumerate(submitted_md_tasks):
@@ -312,7 +342,9 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                 idx_list.sort(reverse=True)
                 for i,j in enumerate(idx_list):
                     submitted_md_tasks.pop(j)
+                self._prof.prof('updating submitted_md_tasks_end')
 
+                self._prof.prof('populating_cus_to_exchange_start')
                 # populating cus_to_exchange
                 cus_to_exchange = list()
                 for item in cus_to_exchange_names:
@@ -320,9 +352,11 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                         cu = completed_md_tasks[idx]
                         if item == cu.name:
                             cus_to_exchange.append(cu)
+                self._prof.prof('populating_cus_to_exchange_end')
 
                 # updating completed_md_tasks: removing tasks which proceed to
                 # exchange
+                self._prof.prof('updating_completed_md_tasks_start')
                 idx_list = list()
                 for i,cu1 in enumerate(cus_to_exchange): 
                     for j,cu2 in enumerate(completed_md_tasks):
@@ -332,12 +366,14 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                 idx_list.sort(reverse=True)
                 for i,j in enumerate(idx_list):
                     completed_md_tasks.pop(j)
+                self._prof.prof('updating_completed_md_tasks_end')
 
                 # update simulation time
                 c_end = datetime.datetime.utcnow()
                 simulation_time = (c_end - c_start).total_seconds()
                 c += 1
 
+                self._prof.prof('populating_exchange_replicas_start')
                 # populating exchange_replicas
                 exchange_replicas = list()
                 for cu in cus_to_exchange:
@@ -347,6 +383,11 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                             if str(r.id) == cu_name[1]:
                                 exchange_replicas.append(r)
                                 r.state = 'EX'
+                self._prof.prof('populating_exchange_replicas_end')
+                
         #-----------------------------------------------------------------------
         # end of loop
+
+        self._prof.prof('main_simulation_loop_end')
+        self._prof.prof('run_simulation_end')
 

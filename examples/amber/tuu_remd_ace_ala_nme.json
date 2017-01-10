@@ -10,7 +10,6 @@
         "amber_coordinates_folder": "ace_ala_nme_big_coors",
         "same_coordinates": "True",
         "us_template": "ace_ala_nme_us.RST",
-        "group_exec": "False",
         "init_temp": "300.0",
         "replica_mpi": "False",
         "replica_cores": "1",

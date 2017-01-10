@@ -1091,7 +1091,7 @@ class AmmAmber(object):
 
         stage_out = []
         stage_in  = []
-        print "prepare group....................."
+
         #-----------------------------------------------------------------------
         # stagein amber_parameters (.param7) and amber_input template (.mdin)
         for i in range(2):
@@ -1323,8 +1323,8 @@ class AmmAmber(object):
         cu.pre_exec = self.pre_exec
         cu.input_staging = stage_in
         cu.output_staging = stage_out
-        cu.cores = self.replica_cores
-        cu.mpi = self.replica_mpi
+        cu.cores = len(group)
+        cu.mpi = True
 
         return cu
 
