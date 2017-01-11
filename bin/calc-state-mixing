@@ -29,7 +29,7 @@ def read_pairs(filename):
 
 if __name__ == '__main__':
     
-    args = parser.parse_args()
+    args = parser.parse_cmd_state_mixing()
     nr = args.nr_replicas
     ns = args.nr_states
     fs = args.filenames.split(",")

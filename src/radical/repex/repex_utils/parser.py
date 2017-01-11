@@ -99,3 +99,34 @@ def parse_cmd_state_mixing():
         parser.error("You must specify names of the pairs_for_exchange files (--filename). Try --help for help.")
 
     return options
+
+
+def parse_cmd_count_exchange_metrics():
+    """Performs command line parsing.
+
+    Returns:
+    options - dictionary {'input_file': 'path/to/input.json'}
+    """
+
+    usage = "usage: %prog [Options]"
+    parser = optparse.OptionParser(usage=usage)
+
+    parser.add_option('--replicas',
+                      dest='nr_replicas',
+                      help='total number of replicas')
+
+    parser.add_option('--files',
+                      dest='nr_files',
+                      help='number of states in this dimension')
+
+    (options, args) = parser.parse_args()
+
+    if options.nr_replicas is None:
+        parser.error("You must specify the total number of replicas (--replicas). Try --help for help.")
+
+    if options.nr_files is None:
+        parser.error("You must specify the number of files to examine (--files). Try --help for help.")
+
+    return options
+
+    
