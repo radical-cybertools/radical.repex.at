@@ -24,7 +24,7 @@ command line arguments must be provided exactly two input files:
 Both input files must conform to JSON format. Simulations with Amber MD engine 
 must be launched with:
 
-.. parsed-literal:: repex-amber --rconfig='local.json --input='t_remd_ace_ala_nme.json''
+.. parsed-literal:: repex-amber --rconfig='local.json --input='t_remd_ace_ala_nme.json'
 
 where:
 
@@ -34,7 +34,7 @@ where:
 
 Simulations with NAMD MD engine must be launched with:
 
-    ``repex-namd --rconfig='local.json' --input='t_remd_ala.json'``
+.. parsed-literal:: repex-namd --rconfig='local.json' --input='t_remd_ala.json'
 
 
 Resource configuration file
@@ -75,6 +75,8 @@ In addition user can provide the following **optional** parameters:
 
     ``access_schema`` -- *access schema (more info at:* http://radicalpilot.readthedocs.io/en/latest/ *)*
 
+    ``sandbox`` -- *simulation's working directory on the file system of the target HPC resource*
+
 
 Example resource configuration file for Stampede HPC cluster might look like this:
 
@@ -96,7 +98,7 @@ Simulation input file for Amber MD engine
 
 In simulation input file **must** be provided the following parameters:
 
- - ``re_pattern`` - this parameter specifies Replica Exchange Pattern to use, options are: ``S`` - synchronous and ``A`` - asynchronous
+    ``sync`` -- *this parameter allows to specify synchronization options for the simulation. Available options are:* ``S`` *synchronous simulation and* ``A`` *asynchronous simulation*
 
  - ``exchange`` - this parameter specifies type of REMD simulation, for 1D simulation options are: ``T-REMD``, ``S-REMD`` and ``US-REMD``
 
@@ -130,7 +132,7 @@ Optional parameters are specific to each simulation type. Example REMD simulatio
 
 	{
     	    "remd.input": {
-        	    "re_pattern": "S",
+        	    "sync": "S",
         	    "exchange": "T-REMD",
         	    "number_of_cycles": "4",
         	    "number_of_replicas": "16",

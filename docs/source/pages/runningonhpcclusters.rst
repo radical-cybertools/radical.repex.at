@@ -30,7 +30,7 @@ with Amber simulations kernel. You need to verify if parameters specified in ``t
 
     {
         "remd.input": {
-            "re_pattern": "S",
+            "sync": "S",
             "exchange": "T-REMD",
             "number_of_cycles": "4",
             "number_of_replicas": "8",
@@ -115,7 +115,7 @@ To run this example you need to verify if parameters specified in ``us_remd_ace_
 
 	{
     	"remd.input": {
-    	    "re_pattern": "S",
+    	    "sync": "S",
         	"exchange": "US-REMD",
         	"number_of_cycles": "4",
         	"number_of_replicas": "8",
@@ -176,7 +176,7 @@ To run this example you need to verify if parameters specified in ``tuu_remd_ace
 
 	{
     	"input.MD": {
-        	"re_pattern": "S",
+        	"sync": "S",
         	"exchange": "TUU-REMD",
         	"number_of_cycles": "4",
         	"input_folder": "tuu_remd_inputs",

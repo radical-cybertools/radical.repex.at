@@ -64,7 +64,7 @@ your requirements. By default ``t_remd_ala10.json`` file looks like this:
 
     {
         "remd.input": {
-            "re_pattern": "S",
+            "sync": "S",
             "exchange": "T-REMD",
             "number_of_cycles": "4",
             "number_of_replicas": "8",
@@ -161,7 +161,7 @@ Next you need to verify if parameters specified in ``us_remd_ace_ala_nme.json`` 
 
     {
         "remd.input": {
-            "re_pattern": "S",
+            "sync": "S",
             "exchange": "US-REMD",
             "number_of_cycles": "4",
             "number_of_replicas": "8",
@@ -271,7 +271,7 @@ Next you need to verify if parameters specified in ``tuu_remd_ace_ala_nme.json``
 
     {
         "remd.input": {
-            "re_pattern": "S",
+            "sync": "S",
             "exchange": "TUU-REMD",
             "number_of_cycles": "4",
             "input_folder": "tuu_remd_inputs",

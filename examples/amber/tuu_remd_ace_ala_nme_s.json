@@ -1,6 +1,6 @@
 {
     "remd.input": {
-        "re_pattern": "S",
+        "sync": "S",
         "number_of_cycles": "99",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",

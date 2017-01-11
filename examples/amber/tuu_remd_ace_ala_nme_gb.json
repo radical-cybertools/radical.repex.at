@@ -1,6 +1,6 @@
 {
     "remd.input": {
-        "re_pattern": "S",
+        "sync": "S",
         "exchange": "TUU-REMD",
         "number_of_cycles": "3",
         "input_folder": "tuu_remd_inputs",
