@@ -45,8 +45,8 @@ class AmmNamd(object):
         self.namd_coordinates = inp_file['remd.input'].get('namd_coordinates')
         self.namd_parameters  = inp_file['remd.input'].get('namd_parameters')
  
-        self.resource      = rconfig['target'].get('resource')
-        self.cores         = int(rconfig['target'].get('cores', '1'))
+        self.resource      = rconfig.get('resource')
+        self.cores         = int(rconfig.get('cores', '1'))
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
@@ -91,7 +91,7 @@ class AmmNamd(object):
 
         self.namd_path = inp_file['remd.input'].get('namd_path')
         if self.namd_path == None:
-            self.logger.info("Using default NAMD path for: {0}".format(rconfig['target'].get('resource')))
+            self.logger.info("Using default NAMD path for: {0}".format(rconfig.get('resource')))
             self.namd_path = KERNELS[self.resource]["kernels"]["namd"].get("executable")
         if self.namd_path == None:
             self.logger.info("NAMD path can't be found!")

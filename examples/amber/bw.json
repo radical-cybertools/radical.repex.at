@@ -1,12 +1,9 @@
 {
-    "target": {
-        "resource" : "ncsa.bw",
-        "username" : "treikali",
-        "project"  : "gkd",
-        "runtime"  : "480",
-        "queue"    : "high",
-        "cleanup"  : "False",
-        "cores" : "16448",
-        "mongo_url" : "mongodb://52.34.135.153:27017/cdi-tests"
-    }
+    "resource" : "ncsa.bw",
+    "username" : "treikali",
+    "project"  : "gkd",
+    "runtime"  : "480",
+    "queue"    : "high",
+    "cleanup"  : "False",
+    "cores" : "16448"
 }

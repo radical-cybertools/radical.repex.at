@@ -54,7 +54,7 @@ class AmmAmber(object):
         self.name = 'AmmAmber.log'
         self.logger  = rul.get_logger ('radical.repex', self.name)
 
-        self.resource         = rconfig['target'].get('resource')
+        self.resource         = rconfig.get('resource')
         self.inp_basename     = inp_file['remd.input'].get('input_file_basename')
         self.input_folder     = inp_file['remd.input'].get('input_folder')
         self.us_template      = inp_file['remd.input'].get('us_template', '') 
@@ -74,7 +74,7 @@ class AmmAmber(object):
             self.restart = False
             self.restart_done = True
 
-        self.cores         = int(rconfig['target'].get('cores', '1'))
+        self.cores         = int(rconfig.get('cores', '1'))
         self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
         self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
@@ -209,7 +209,7 @@ class AmmAmber(object):
 
         self.amber_path = inp_file['remd.input'].get('amber_path')
         if self.amber_path == None:
-            self.logger.info("Using default Amber path for: {0}".format(rconfig['target'].get('resource')))
+            self.logger.info("Using default Amber path for: {0}".format(rconfig.get('resource')))
             self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
             self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
             self.amber_path_gpu = KERNELS[self.resource]["kernels"]["amber"].get("executable_gpu")

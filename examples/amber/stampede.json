@@ -1,10 +1,8 @@
 {
-    "target": {
-        "resource" : "xsede.stampede",
-        "username" : "antontre",
-        "project"  : "TG-MCB090174",
-        "runtime"  : "120",
-        "cleanup"  : "False",
-        "cores" : "1744"
-    }
+    "resource" : "xsede.stampede",
+    "username" : "antontre",
+    "project"  : "TG-MCB090174",
+    "runtime"  : "120",
+    "cleanup"  : "False",
+    "cores" : "1744"
 }

@@ -1,10 +1,8 @@
 {
-    "target": {
-        "resource": "xsede.supermic",
-        "username" : "antontre",
-        "project" : "TG-MCB090174",
-        "runtime" : "340",
-        "cleanup" : "False",
-        "cores" : "760"
-    }
+    "resource": "xsede.supermic",
+    "username" : "antontre",
+    "project" : "TG-MCB090174",
+    "runtime" : "340",
+    "cleanup" : "False",
+    "cores" : "760"
 }

@@ -9,7 +9,7 @@
         "amber_parameters": "ace_ala_nme.parm7",
         "amber_coordinates_folder": "ace_ala_nme_coors",
         "same_coordinates": "True",
-        "steps_per_cycle": "2000",
+        "steps_per_cycle": "100",
         "download_mdinfo": "False",
         "download_mdout" : "False",
         "copy_mdinfo" : "False",

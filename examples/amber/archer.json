@@ -1,11 +1,9 @@
 {
-    "target": {
-        "resource": "epsrc.archer",
-        "username" : "antonst",
-        "project" : "d130",
-        "queue": "short",
-        "runtime" : "20",
-        "cleanup" : "False",
-        "cores" : "48"
-    }
+    "resource": "epsrc.archer",
+    "username" : "antonst",
+    "project" : "d130",
+    "queue": "short",
+    "runtime" : "20",
+    "cleanup" : "False",
+    "cores" : "48"
 }

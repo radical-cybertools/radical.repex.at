@@ -32,18 +32,18 @@ class ExecutionManagementModule(object):
         self.logger = md_logger
 
         # pilot parameters
-        self.resource = rconfig['target'].get('resource')
-        self.sandbox = rconfig['target'].get('sandbox')
-        self.user = rconfig['target'].get('username')
-        self.password = rconfig['target'].get('password')
-        self.project = rconfig['target'].get('project')
-        self.queue = rconfig['target'].get('queue')
-        self.cores = int(rconfig['target'].get('cores'))
-        self.runtime = int(rconfig['target'].get('runtime'))
-        self.dburl = rconfig['target'].get('mongo_url')
-        self.access_schema = rconfig['target'].get('access_schema')
+        self.resource = rconfig.get('resource')
+        self.sandbox = rconfig.get('sandbox')
+        self.user = rconfig.get('username')
+        self.password = rconfig.get('password')
+        self.project = rconfig.get('project')
+        self.queue = rconfig.get('queue')
+        self.cores = int(rconfig.get('cores'))
+        self.runtime = int(rconfig.get('runtime'))
+        self.dburl = rconfig.get('mongo_url')
+        self.access_schema = rconfig.get('access_schema')
 
-        self.cycletime = float(rconfig['target'].get('cycletime', 10.0))
+        self.cycletime = float(rconfig.get('cycletime', 10.0))
 
         # check if was set in rconfig
         if self.dburl is None:
@@ -54,7 +54,7 @@ class ExecutionManagementModule(object):
                 self.logger.info("Using default Mongo DB url")
                 self.dburl = "mongodb://144.76.72.175:27017/repex-runs"
 
-        cleanup = rconfig['target'].get('cleanup','False')
+        cleanup = rconfig.get('cleanup','False')
         if (cleanup == "True"):
             self.cleanup = True
         else:

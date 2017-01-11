@@ -28,13 +28,13 @@ must be launched with:
 
 where:
 
-``--rconfig=`` command line option for resource configuration file
+    ``--rconfig=`` command line option for resource configuration file
 
-``--input=`` command line option for simulation input file
+    ``--input=`` command line option for simulation input file
 
 Simulations with NAMD MD engine must be launched with:
 
-``repex-namd --rconfig='local.json' --input='t_remd_ala.json'``
+    ``repex-namd --rconfig='local.json' --input='t_remd_ala.json'``
 
 
 Resource configuration file
@@ -42,59 +42,59 @@ Resource configuration file
 
 In resource configuration file **must** be provided the following parameters:
 
- - ``resource`` - this is the name of the target HPC cluster. Currently supported 
- systems are:
+    ``resource`` -- *label of the target HPC cluster*
 
-     ``local.localhost`` - your local workstation
+    ``username`` -- *your username on target HPC cluster*
 
-     ``xsede.stampede``  - Stampede supercomputer (TACC)
+    ``project``  -- *your allocation on target HPC cluster*
 
-     ``xsede.supermic``  - SuperMIC supercomputer (LSU)
+    ``cores``    -- *number of CPU cores you would like to allocate*
 
-     ``epsrc.archer``    - Archer supercomputer (EPCC)
+    ``runtime``  -- *for how long you would like to allocate CPU cores on target HPC system (in minutes)*
 
-     ``ncsa.bw``         - Blue Waters supercomputer (NCSA)
+Currently supported HPC clusters are:
 
+    ``local.localhost`` -- *your local workstation*
 
- - ``username`` - your username on target HPC cluster
+    ``xsede.stampede``  -- *Stampede supercomputer (TACC)*
 
- - ``project``  - your allocation on target HPC cluster
+    ``xsede.supermic``  -- *SuperMIC supercomputer (LSU)*
 
- - ``cores``    - number of CPU cores you would like to allocate
+    ``epsrc.archer``    -- *Archer supercomputer (EPCC)*
 
- - ``runtime``  - for how long you would like to allocate CPU cores on target HPC system (in minutes)
+    ``ncsa.bw``         -- *Blue Waters supercomputer (NCSA)*
+
 
 In addition user can provide the following **optional** parameters:
 
- - ``queue`` - specifies which queue to use for job submission (machine specific)
+    ``queue`` -- *specifies which queue to use for job submission (machine specific)*
 
- - ``cleanup`` - specifies if files on remote machine must be deleted. Possible values are: ``True`` or ``False``
+    ``cleanup`` -- *specifies if files on remote machine must be deleted. Possible values are:* ``True`` *or* ``False``
 
- - ``mongo_url`` - url to Mongo DB instance
+    ``mongo_url`` -- *url to Mongo DB instance*
 
- - ``access_schema`` - access schema (more info at: http://radicalpilot.readthedocs.io/en/latest/)
+    ``access_schema`` -- *access schema (more info at:* http://radicalpilot.readthedocs.io/en/latest/ *)*
+
 
 Example resource configuration file for Stampede HPC cluster might look like this:
 
 .. parsed-literal::
 
 	{
-    	    "target": {
-        	    "resource" : "xsede.stampede",
-        	    "username" : "octocat",
-        	    "project"  : "TG-XYZ123456",
-        	    "queue"    : "development",
-        	    "runtime"  : "30",
-        	    "cleanup"  : "False",
-        	    "cores"    : "16"
-    	    }
+        "resource" : "xsede.stampede",
+        "username" : "octocat",
+        "project"  : "TG-XYZ123456",
+        "queue"    : "development",
+        "runtime"  : "30",
+        "cleanup"  : "False",
+        "cores"    : "16"
 	}
 
 
-REMD input file for Amber kernel
---------------------------------
+Simulation input file for Amber MD engine
+-----------------------------------------
 
-For use with Amber kernel, in REMD simulation input file **must** be provided the following parameters:
+In simulation input file **must** be provided the following parameters:
 
  - ``re_pattern`` - this parameter specifies Replica Exchange Pattern to use, options are: ``S`` - synchronous and ``A`` - asynchronous
 
