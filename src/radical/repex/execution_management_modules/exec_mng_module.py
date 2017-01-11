@@ -52,7 +52,7 @@ class ExecutionManagementModule(object):
             # use default dburl
             if self.dburl is None:
                 self.logger.info("Using default Mongo DB url")
-                self.dburl = "mongodb://treikali:pf43ek6klo@ds023438.mlab.com:23438/cdi-testing"
+                self.dburl = "mongodb://144.76.72.175:27017/repex-runs"
 
         cleanup = rconfig['target'].get('cleanup','False')
         if (cleanup == "True"):

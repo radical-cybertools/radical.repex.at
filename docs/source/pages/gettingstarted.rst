@@ -4,70 +4,77 @@
 Getting Started
 ***************
 
-In this section we will briefly describe how RepEx can be invoked, how input and 
-resource configuration files should be used.
+In this section we will describe how to use RepEx. We will explain available 
+parameters for the resource configuration file and simulation input file.
 
 Invoking RepEx
 ==============
 
-To run RepEx users need to use a command line tool corresponding to MD package 
-kernel they intend to use. For example, if user wants to use Amber as MD kernel, 
-she would use ``repex-amber`` command line tool. In addition to specifying an 
-appropriate command line tool, user need to specify a resource configuration file 
-and REMD simulation input file. The resulting invocation of RepEx should be:
+RepEx provides two command line tools for launching REMD simulations: ``repex-amber`` 
+and ``repex-namd``. As the names suggest, the former is designed for simulations with 
+Amber MD engine, but the latter for simulations with NAMD MD engine.
 
-``repex-amber --input='tuu_remd_ace_ala_nme.json' --rconfig='stampede.json'``
+For each of the two available command line tools for REMD simulations as a 
+command line arguments must be provided exactly two input files:
+
+  **resource configuration file**
+
+  **simulation input file**
+
+Both input files must conform to JSON format. Simulations with Amber MD engine 
+must be launched with:
+
+.. parsed-literal:: repex-amber --rconfig='local.json --input='t_remd_ace_ala_nme.json''
 
 where:
 
-``--input=`` - specifies the REMD simulation input file
+``--rconfig=`` command line option for resource configuration file
 
-``--rconfig=`` - specifies resource configuration file
+``--input=`` command line option for simulation input file
 
-Both REMD simulation input file and resource configuration file must conform to
-JSON format.
+Simulations with NAMD MD engine must be launched with:
+
+``repex-namd --rconfig='local.json' --input='t_remd_ala.json'``
+
 
 Resource configuration file
 ---------------------------
 
 In resource configuration file **must** be provided the following parameters:
 
- - ``resource`` - this is the name of the target machine. Currently supported machines are:
+ - ``resource`` - this is the name of the target HPC cluster. Currently supported 
+ systems are:
 
-     ``local.localhost`` - your local system
+     ``local.localhost`` - your local workstation
 
-     ``xsede.stampede`` - Stampede supercomputer at TACC
+     ``xsede.stampede``  - Stampede supercomputer (TACC)
 
-     ``xsede.supermic`` - SuperMIC supercomputer at LSU
+     ``xsede.supermic``  - SuperMIC supercomputer (LSU)
 
-     ``xsede.comet`` - Comet supercomputer at SDSC
+     ``epsrc.archer``    - Archer supercomputer (EPCC)
 
-     ``xsede.gordon`` - Gordon supercomputer at SDSC
-
-     ``epsrc.archer`` - Archer supercomputer at EPCC
-
-     ``ncsa.bw_orte`` - Blue Waters supercomputer at NCSA
+     ``ncsa.bw``         - Blue Waters supercomputer (NCSA)
 
 
- - ``username`` - your username on the target machine
+ - ``username`` - your username on target HPC cluster
 
- - ``project`` - your allocation on specified machine
+ - ``project``  - your allocation on target HPC cluster
 
- - ``cores`` - number of cores you would like to allocate
+ - ``cores``    - number of CPU cores you would like to allocate
 
- - ``runtime`` - for how long you would like to allocate cores on target machine (in minutes).
+ - ``runtime``  - for how long you would like to allocate CPU cores on target HPC system (in minutes)
 
-In addition are provided the following **optional** parameters:
+In addition user can provide the following **optional** parameters:
 
- - ``queue`` - specifies which queue to use for job submission. Values are machine specific.
+ - ``queue`` - specifies which queue to use for job submission (machine specific)
 
  - ``cleanup`` - specifies if files on remote machine must be deleted. Possible values are: ``True`` or ``False``
 
- - ``mongo_url`` - url to your own Mongo DB instance
+ - ``mongo_url`` - url to Mongo DB instance
 
- - ``access_schema`` - RP access schema
+ - ``access_schema`` - access schema (more info at: http://radicalpilot.readthedocs.io/en/latest/)
 
-Example resource configuration file for Stampede supercomputer might look like this:
+Example resource configuration file for Stampede HPC cluster might look like this:
 
 .. parsed-literal::
 
@@ -82,6 +89,7 @@ Example resource configuration file for Stampede supercomputer might look like t
         	    "cores"    : "16"
     	    }
 	}
+
 
 REMD input file for Amber kernel
 --------------------------------
