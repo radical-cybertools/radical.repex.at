@@ -473,9 +473,9 @@ class AmmAmber(object):
                       dim_int, 
                       dim_str, 
                       replicas):
-        self.restart_object.dimension   = dim_int
+        self.restart_object.dimension     = dim_int
         self.restart_object.current_cycle =  current_cycle
-        self.restart_object.old_sandbox = self.restart_object.new_sandbox
+        self.restart_object.old_sandbox   = self.restart_object.new_sandbox
 
         self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
         with open(self.restart_file, 'wb') as output:

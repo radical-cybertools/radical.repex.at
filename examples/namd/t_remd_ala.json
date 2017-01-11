@@ -1,9 +1,7 @@
 {
     "remd.input": {
         "re_pattern": "S",
-        "exchange": "T-REMD",
-        "number_of_cycles": "4",
-        "number_of_replicas": "1728",
+        "number_of_cycles": "3",
         "input_folder": "namd_inp",
         "input_file_basename": "ala",
         "namd_structure": "ala.psf",
@@ -12,9 +10,14 @@
         "exchange_mpi": "True",
         "replica_mpi": "False",
         "replica_cores": "1",
-        "min_temperature": "300",
-        "max_temperature": "600",
-        "steps_per_cycle": "2000000"
+        "steps_per_cycle": "1000"
+    },
+    "dim.input": {
+        "d1": {
+            "type" : "temperature",
+            "number_of_replicas": "4",
+            "min_temperature": "300.0",
+            "max_temperature": "304.0"
+        }
     }
 }
-

@@ -8,6 +8,9 @@ __license__ = "MIT"
 
 import os
 import sys
+import shutil
+import pickle
+import tarfile
 from os import path
 import radical.pilot as rp
 import radical.utils.logger as rul
@@ -34,7 +37,7 @@ class AmmNamd(object):
 
     def __init__(self, inp_file, rconfig,  work_dir_local):
         
-        self.name = 'AMM-NAMD'
+        self.name = 'AmmNAMD.log'
         self.ex_name = 'temperature'
         self.logger  = rul.get_logger ('radical.repex', self.name)
         
@@ -77,8 +80,8 @@ class AmmNamd(object):
         else:
             self.exchange_mpi = False
 
-        self.min_temp = float(inp_file['remd.input'].get('min_temperature'))
-        self.max_temp = float(inp_file['remd.input'].get('max_temperature'))
+        self.min_temp = float(inp_file['dim.input']['d1'].get('min_temperature'))
+        self.max_temp = float(inp_file['dim.input']['d1'].get('max_temperature'))
         self.work_dir_local    = work_dir_local
         self.current_cycle     = -1
         self.input_folder      = inp_file['remd.input'].get('input_folder')
@@ -162,6 +165,8 @@ class AmmNamd(object):
     #---------------------------------------------------------------------------
     #
     def initialize_replicas(self):
+
+        self.restart_object = Restart()
         
         replicas = []
         N = self.replicas
@@ -174,7 +179,41 @@ class AmmNamd(object):
         # hardcoded for 1d
         for r in replicas:
             r.group_idx[0] = 0
+
+        self.groups_numbers = [1] 
+        self.restart_object.groups_numbers = self.groups_numbers
             
+        return replicas
+
+    #---------------------------------------------------------------------------
+    #
+    def save_replicas(self, 
+                      current_cycle, 
+                      dim_int, 
+                      dim_str, 
+                      replicas):
+        self.restart_object.dimension     = dim_int
+        self.restart_object.current_cycle =  current_cycle
+        self.restart_object.old_sandbox   = self.restart_object.new_sandbox
+
+        self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
+        with open(self.restart_file, 'wb') as output:
+            for replica in replicas:
+                pickle.dump(replica, output, pickle.HIGHEST_PROTOCOL)
+
+            pickle.dump(self.restart_object, output, pickle.HIGHEST_PROTOCOL)
+
+    #---------------------------------------------------------------------------
+    #
+    def recover_replicas(self):
+
+        replicas = []
+        with open(self.restart_file, 'rb') as input:
+            for i in range(self.replicas):
+                r_temp = pickle.load(input)
+                replicas.append( r_temp )
+            self.restart_object = pickle.load(input)
+            self.groups_numbers = self.restart_object.groups_numbers
         return replicas
     
     #---------------------------------------------------------------------------
@@ -263,55 +302,30 @@ class AmmNamd(object):
             for i in range(5):
                 stage_in.append(sd_shared_list[i])
 
-            cu = rp.ComputeUnitDescription()
-            cu.pre_exec   = self.pre_exec + [pre_exec_str]
-            cu.executable = self.namd_path
-            cu.arguments  = [input_file]
-            cu.cores      = self.replica_cores
-            cu.mpi = False
-            cu.input_staging = stage_in
+            cu                = rp.ComputeUnitDescription()
+            cu.pre_exec       = self.pre_exec + [pre_exec_str]
+            cu.executable     = self.namd_path
+            cu.arguments      = [input_file]
+            cu.cores          = self.replica_cores
+            cu.mpi            = False
+            cu.input_staging  = stage_in
             cu.output_staging = stage_out
             
         else:
-            """
-            print "old_coor: {0}".format( old_coor )
-            coor_in = {
-            'source': 'staging:///%s' % old_coor,
-            'target': old_coor,
-            'action': rp.COPY
-            }
-            stage_in.append(coor_in)
-
-            print "old_vel: {0}".format( old_vel )
-            vel_in = {
-            'source': 'staging:///%s' % old_vel,
-            'target': old_vel,
-            'action': rp.COPY
-            }
-            stage_in.append(vel_in)
-
-            print "old_ext_system: {0}".format( old_ext_system )
-            ext_in = {
-            'source': 'staging:///%s' % old_ext_system,
-            'target': old_ext_system,
-            'action': rp.COPY
-            }
-            stage_in.append(ext_in)
-            """
-
+            
             stage_in.append(sd_shared_list[0])
             stage_in.append(sd_shared_list[1])
             stage_in.append(sd_shared_list[2])
             stage_in.append(sd_shared_list[3])
             stage_in.append(sd_shared_list[4])
 
-            cu = rp.ComputeUnitDescription()
-            cu.pre_exec    = self.pre_exec + [pre_exec_str]
-            cu.executable = self.namd_path
-            cu.arguments = [input_file]
-            cu.cores = replica.cores
-            cu.mpi = False
-            cu.input_staging = stage_in
+            cu                = rp.ComputeUnitDescription()
+            cu.pre_exec       = self.pre_exec + [pre_exec_str]
+            cu.executable     = self.namd_path
+            cu.arguments      = [input_file]
+            cu.cores          = self.replica_cores
+            cu.mpi            = False
+            cu.input_staging  = stage_in
             cu.output_staging = stage_out
 
         replica.cycle += 1
