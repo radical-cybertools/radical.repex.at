@@ -6,7 +6,7 @@ import glob
 from os import path
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
-from repex_utils.parser import parse_command_line
+from repex_utils.parser import parse_cmd_repex
 
 from pilot_kernels.pilot_kernel_pattern_s_multi_d_sc  import PilotKernelPatternSmultiDsc
 from pilot_kernels.pilot_kernel_pattern_s_multi_d_scg import PilotKernelPatternSmultiDscg

@@ -6,7 +6,7 @@ import json
 from os import path
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
-from repex_utils.parser import parse_command_line
+from repex_utils.parser import parse_cmd_repex
 
 from application_management_modules.amm_namd import AmmNamd
 
@@ -21,16 +21,16 @@ if __name__ == '__main__':
     logger = rul.get_logger ('radical.repex', name)
 
     work_dir_local = os.getcwd()
-    params         = parse_command_line()
+    params         = parse_cmd_repex()
     
     # get remd_input file
-    json_data=open(params.remd_input)
-    inp_file = json.load(json_data)
+    json_data = open(params.remd_input)
+    inp_file  = json.load(json_data)
     json_data.close()
 
     # get resource config
-    json_data=open(params.resource_config)
-    rconfig = json.load(json_data)
+    json_data = open(params.resource_config)
+    rconfig   = json.load(json_data)
     json_data.close()
 
     amm = AmmNamd( inp_file, rconfig, work_dir_local )

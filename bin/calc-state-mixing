@@ -4,7 +4,11 @@
 generate state-mixing profile (for U dimension in TSU)
 """
 
-import sys,argparse,copy
+import os
+import sys
+import json
+import argparse
+from repex_utils.parser import parse_cmd_state_mixing
 
 def swap(my_array,pair):
     i = pair[0]
@@ -23,15 +27,12 @@ def read_pairs(filename):
         pairs.append(p)
     return pairs
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-nr", "--number_of_replicas", help="total number of replicas", type=int)
-    parser.add_argument("-ns", "--number_of_states", help="number of states in this dimension", type=int)
-    parser.add_argument("-fs", "--pairs_for_exchange_files", help="comma-separated, ordered list of names of the pairs_for_exchange files")
+if __name__ == '__main__':
+    
     args = parser.parse_args()
-    nr = args.number_of_replicas
-    ns = args.number_of_states
-    fs = args.pairs_for_exchange_files.split(",")
+    nr = args.nr_replicas
+    ns = args.nr_states
+    fs = args.filenames.split(",")
     state_matrix = []
     my_array = range(nr)
     for f in fs:
@@ -48,4 +49,3 @@ def main():
         f.write("\n")
     f.close()
 
-main()

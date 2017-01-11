@@ -323,7 +323,6 @@ class ExecutionManagementModulePatternS(ExecutionManagementModule):
             md_kernel.save_replicas(current_cycle, dim_int, dim_str[dim_int], replicas)
             self._prof.prof('save_replicas_end__' + c_str )
 
-            # temporary
             self.logger.info("parameters after exchange: ")
             for r in replicas:
                 self.logger.info("replica: {0} type: {1} param: {2}".format(r.id, r.dims[dim_str[dim_int]]['type'], r.dims[dim_str[dim_int]]['par']) )

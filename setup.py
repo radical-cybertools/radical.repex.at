@@ -66,7 +66,7 @@ def makeDataFiles(prefix, dir):
     os.path.walk(dir, visit, (prefix, strip, found))
     return found
 
-def visit((prefix, strip, found), dirname, names):
+def visit( (prefix, strip, found), dirname, names):
     """ Visit directory, create distutil tuple
     Add distutil tuple for each directory using this format:
         (destination, [dirname/file1, dirname/file2, ...])
@@ -123,7 +123,11 @@ setup(
                  'application_management_modules': 'src/radical/repex/application_management_modules',
                  'ram_namd': 'src/radical/repex/remote_application_modules/ram_namd',
                  'ram_amber': 'src/radical/repex/remote_application_modules/ram_amber'},
-    scripts=['bin/repex-version', 'bin/repex-amber', 'bin/repex-namd'],
+    scripts=['bin/repex-version', 
+             'bin/repex-amber', 
+             'bin/repex-namd',
+             'bin/calc-acceptance-ratio',
+             'bin/calc-state-mixing'],
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Package',
     install_requires=['radical.pilot', 'mpi4py'],

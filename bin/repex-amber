@@ -5,7 +5,7 @@ import sys
 import json
 from os import path
 from repex_utils.replica_cleanup import *
-from repex_utils.parser import parse_command_line
+from repex_utils.parser import parse_cmd_repex
 
 from execution_management_modules.exec_mng_module_pattern_s    import ExecutionManagementModulePatternS
 from execution_management_modules.exec_mng_module_pattern_s_gr import ExecutionManagementModulePatternSgroup
@@ -18,16 +18,16 @@ from application_management_modules.amm_amber import AmmAmber
 if __name__ == '__main__':
 
     work_dir_local = os.getcwd()
-    params = parse_command_line()
+    params         = parse_cmd_repex()
 
     # get remd_input file
-    json_data=open(params.remd_input)
-    inp_file = json.load(json_data)
+    json_data = open(params.remd_input)
+    inp_file  = json.load(json_data)
     json_data.close()
 
     # get resource config
-    json_data=open(params.resource_config)
-    rconfig = json.load(json_data)
+    json_data = open(params.resource_config)
+    rconfig   = json.load(json_data)
     json_data.close()
 
     group_exec = inp_file['remd.input'].get('group_exec', 'False')
@@ -76,7 +76,7 @@ if __name__ == '__main__':
         sys.exit(1)
     try:
         # finally we are moving all files to individual replica directories
-        #move_output_files(work_dir_local, amm, replicas ) 
+        move_output_files(work_dir_local, amm, replicas ) 
         emm.logger.info("Simulation successfully finished!")
     except:
         raise
