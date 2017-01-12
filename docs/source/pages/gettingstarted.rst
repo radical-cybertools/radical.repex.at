@@ -112,6 +112,8 @@ In simulation input file, under ``remd.input`` name, **must** be provided the fo
 
     ``amber_coordinates_folder`` -- *path to folder containing coordinates files*
 
+    ``us_template`` -- *specifies Amber's restraint (.RST) file. This parameter is required 
+    only for simulations performing umbrella exchange.*
 
 Additionally user can specify the following optional parameters (under ``remd.input`` name):
 
@@ -133,15 +135,14 @@ Additionally user can specify the following optional parameters (under ``remd.in
 
     ``copy_mdinfo`` -- *specifies if Amber's *``.mdinfo``* files must be copied from working directories of replicas to "staging area" on remote HPC cluster. Possible values are: *``True``* or *``False``*. Default value is: *``False``.  
 
-    ``group_exec`` -- **
+    ``group_exec`` -- *specifies if replicas in a single group are executed as a 
+    single task. This option is available only for multi-dimensional simulations involving temperature and/or umbrella exchange. Possible values are: *``True``* or *``False``*. Default value is: *``False``.*
 
-    ``us_template`` -- **
+    ``restart`` -- *specifies if previously aborted simulation should be restarted. After every simulation cycle simulation state is written to simulation_objects_d_c.pkl file. If simulation failed, we can restart the simulation from the last saved state. Possible values are: *``True``* or *``False``*. Default value is: *``False``.*
 
-    ``restart`` -- **
+    ``restart_file`` -- *if restart is set to *``True``* name of the restart file must be specified. This file can be one of the simulation_objects_d_c.pkl files, generated after every simulation cycle.*
 
-    ``restart_file`` -- **
-
-
+    ``exchange_off`` -- *allows to turn the exchange calculations off. Possible values are: *``True``* or *``False``*. Default value is: *``False``*. If set to *``True``* only tasks performing MD simulation are submitted for execution. No exchange calculations will be performed and none of the replicas will exchange their respective parameters.* 
 
 
 

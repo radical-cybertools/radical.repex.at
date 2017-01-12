@@ -74,6 +74,10 @@ class AmmAmber(object):
             self.restart = False
             self.restart_done = True
 
+        if ( (self.restart == True) and (self.restart_file == '') ):
+            self.logger.info("If simulation is restarted, name of the restart_file must be specified, exiting...")
+            sys.exit(1)
+
         self.cores           = int(rconfig.get('cores', '1'))
         self.cycle_steps     = int(inp_file['remd.input'].get('steps_per_cycle'))
         self.nr_cycles       = int(inp_file['remd.input'].get('number_of_cycles','1'))
@@ -167,7 +171,7 @@ class AmmAmber(object):
 
         if self.nr_dims == 0:
             self.logger.info("Number of dimensions must be greater than 0, exiting...")
-            sys.exit(1)
+            sys.exit(1) 
 
         self.exchange_off = []
         for d in range(self.nr_dims):
@@ -238,6 +242,10 @@ class AmmAmber(object):
                 self.umbrella = True
 
         self.groups_numbers = [0, 0, 0] 
+
+        if ( (self.umbrella == True) and (self.us_template == '') ):
+            self.logger.info("For umbrella exchange simulations must be specified us_template parameter, exiting...")
+            sys.exit(1)
 
     #---------------------------------------------------------------------------
     #
