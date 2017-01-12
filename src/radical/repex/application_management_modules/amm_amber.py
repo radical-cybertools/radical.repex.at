@@ -74,11 +74,11 @@ class AmmAmber(object):
             self.restart = False
             self.restart_done = True
 
-        self.cores         = int(rconfig.get('cores', '1'))
-        self.cycle_steps   = int(inp_file['remd.input'].get('steps_per_cycle'))
-        self.nr_cycles     = int(inp_file['remd.input'].get('number_of_cycles','1'))
-        self.replica_cores = int(inp_file['remd.input'].get('replica_cores', '1'))
-        self.nr_ex_neighbors = int(inp_file['remd.input'].get('nr_exchange_neighbors', '1'))
+        self.cores           = int(rconfig.get('cores', '1'))
+        self.cycle_steps     = int(inp_file['remd.input'].get('steps_per_cycle'))
+        self.nr_cycles       = int(inp_file['remd.input'].get('number_of_cycles','1'))
+        self.replica_cores   = int(inp_file['remd.input'].get('replica_cores', '1'))
+        #self.nr_ex_neighbors = int(inp_file['remd.input'].get('nr_exchange_neighbors', '1'))
 
         self.group_exec = inp_file['remd.input'].get('group_exec', 'False')
         if self.group_exec == 'True':
@@ -93,7 +93,7 @@ class AmmAmber(object):
 
         # if True, we do global MPI for 1D cases (umbrella and temperature)
         # Note: must be set to True for Execution Mode II
-        if inp_file['remd.input'].get('exchange_mpi') == "True":
+        if inp_file['remd.input'].get('exchange_mpi', 'False') == "True":
             self.exchange_mpi = True
         else:
             self.exchange_mpi = False
@@ -103,7 +103,7 @@ class AmmAmber(object):
         #-----------------------------------------------------------------------
     
         self.amber_coordinates_path = inp_file['remd.input'].get('amber_coordinates_folder')
-        if inp_file['remd.input'].get('same_coordinates') == "True":
+        if inp_file['remd.input'].get('same_coordinates', 'True') == "True":
             self.same_coordinates = True
         else:
             self.same_coordinates = False
@@ -123,11 +123,15 @@ class AmmAmber(object):
         else:
             self.copy_mdinfo = False
 
-        if inp_file['remd.input'].get('replica_mpi') == "True":
+        if inp_file['remd.input'].get('replica_mpi', 'False') == "True":
             self.replica_mpi = True
         else:
             self.replica_mpi = False   
     
+        if ((self.replica_mpi == False) and (self.replica_cores > 1)):
+            self.logger.info("If replica_cores is greater than 1 replica_mpi must be set to True, exiting...")
+            sys.exit(1)
+
         self.dims = {}
         self.dims['d1'] = {'replicas' : None, 'type' : None} 
         self.dims['d2'] = {'replicas' : None, 'type' : None}

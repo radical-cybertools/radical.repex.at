@@ -96,37 +96,61 @@ Example resource configuration file for Stampede HPC cluster might look like thi
 Simulation input file for Amber MD engine
 -----------------------------------------
 
-In simulation input file **must** be provided the following parameters:
+In simulation input file, under ``remd.input`` name, **must** be provided the following parameters:
 
-    ``sync`` -- *this parameter allows to specify synchronization options for the simulation. Available options are:* ``S`` *synchronous simulation and* ``A`` *asynchronous simulation*
+    ``number_of_cycles`` -- *the number of simulation cycles*
 
- - ``exchange`` - this parameter specifies type of REMD simulation, for 1D simulation options are: ``T-REMD``, ``S-REMD`` and ``US-REMD``
+    ``steps_per_cycle`` -- *number of simulation time-steps*
 
- - ``number_of_cycles`` - number of cycles for a given simulation
+    ``input_folder`` -- *path to folder containing simulation input files*
 
- - ``number_of_replicas`` - number of replicas to use
+    ``input_file_basename`` -- *base name for output files*
 
- - ``input_folder`` - path to folder which contains simulation input files
+    ``amber_input`` -- *name of input file template*
 
- - ``input_file_basename`` - base name of generated input/output files
+    ``amber_parameters`` -- *name of parameters file*
 
- - ``amber_input`` - name of input file template
+    ``amber_coordinates_folder`` -- *path to folder containing coordinates files*
 
- - ``amber_parameters`` - name of parameters file
 
- - ``amber_coordinates`` - name of coordinates file
+Additionally user can specify the following optional parameters (under ``remd.input`` name):
 
- - ``replica_mpi`` - specifies if ``sander`` or ``sander.MPI`` is used for MD-step. Options are: ``True`` or ``False``
+    ``sync`` -- *this parameter allows to specify synchronization options for the simulation. Available options are:* ``S`` *synchronous simulation and* ``A`` *asynchronous simulation. Default is synchronous simulation:* ``S``
 
- - ``replica_cores`` - number of cores to use for MD-step for each replica, if ``replica_mpi`` is ``False`` this parameters must be equal to ``1`` 
+    ``same_coordinates`` -- *specifies if the same coordinates file must be used for 
+    all replicas. Possible values are: *``True``* or *``False``*. If this option is set to False, coordinates file for each replica* **must** *end with a postfix corresponding to 
+    numerical group index of this replica in each dumension (dot separated). For example, 
+    coordinates file for a two-dimensional simulation for replica with group indexes 2 and 4 
+    in dimensions 1 and 2 should have a postfix* **.2.4**. *Default value is *``True``. 
 
- - ``steps_per_cycle`` - number of simulation time-steps
+    ``replica_mpi`` -- *specifies if Amber's parallelized executable (pmemd.MPI or sander.MPI) should be used for MD simulation. Possible values are: *``True``* or *``False``*. If set to False (default), Amber's serial executable (sander) is used.*
 
- - ``download_mdinfo`` - specifies if Amber .mdinfo files must be downloaded. Options are: ``True`` or ``False``. If this parameter is ommited, value defaults to "True"
+    ``replica_cores`` -- *number of CPU cores to use for MD simulation (for each replica), if* ``replica_mpi`` *is* ``False`` *this parameters must be equal to 1. *Default value is: 1.*
 
- - ``download_mdout`` - specifies if Amber .mdout files must be downloaded. Options are: ``True`` or ``False``. If this parameter is ommited, value defaults to "True"
+    ``download_mdinfo`` -- *specifies if Amber's *``.mdinfo``* files must be downloaded from HPC cluster to local workstation. Possible values are: *``True``* or *``False``*. *Default value is: *``False``.
 
-Optional parameters are specific to each simulation type. Example REMD simulation input file for T-REMD simulation might look like this:
+    ``download_mdout`` -- specifies if Amber's *``.mdout``* files must be downloaded from HPC cluster to local workstation. Possible values are: *``True``* or *``False``*. Default value is: *``False``.
+
+    ``copy_mdinfo`` -- *specifies if Amber's *``.mdinfo``* files must be copied from working directories of replicas to "staging area" on remote HPC cluster. Possible values are: *``True``* or *``False``*. Default value is: *``False``.  
+
+    ``group_exec`` -- **
+
+    ``us_template`` -- **
+
+    ``restart`` -- **
+
+    ``restart_file`` -- **
+
+
+
+
+
+per dimension:
+
+``exchange_mpi`` -- *specifies if MPI executable should be used for exchange calculations. Possible values are: True or False.*
+
+
+Example simulation input file for T-REMD simulation might look like this:
 
 .. parsed-literal::
 
