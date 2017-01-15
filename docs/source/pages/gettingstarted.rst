@@ -120,29 +120,28 @@ Additionally user can specify the following optional parameters (under ``remd.in
     ``sync`` -- *this parameter allows to specify synchronization options for the simulation. Available options are:* ``S`` *synchronous simulation and* ``A`` *asynchronous simulation. Default is synchronous simulation:* ``S``
 
     ``same_coordinates`` -- *specifies if the same coordinates file must be used for 
-    all replicas. Possible values are: *``True``* or *``False``*. If this option is set to False, coordinates file for each replica* **must** *end with a postfix corresponding to 
-    numerical group index of this replica in each dumension (dot separated). For example, 
+    all replicas. Possible values are:* ``True`` *or* ``False.`` *If this option is set to False, coordinates file for each replica* **must** *end with a postfix corresponding to numerical group index of this replica in each dumension (dot separated). For example, 
     coordinates file for a two-dimensional simulation for replica with group indexes 2 and 4 
-    in dimensions 1 and 2 should have a postfix* **.2.4**. *Default value is *``True``. 
+    in dimensions 1 and 2 should have a postfix* **.2.4**. *Default value is* ``True.`` 
 
-    ``replica_mpi`` -- *specifies if Amber's parallelized executable (pmemd.MPI or sander.MPI) should be used for MD simulation. Possible values are: *``True``* or *``False``*. If set to False (default), Amber's serial executable (sander) is used.*
+    ``replica_mpi`` -- *specifies if Amber's parallelized executable (pmemd.MPI or sander.MPI) should be used for MD simulation. Possible values are:* ``True`` *or* ``False.`` *If set to False (default), Amber's serial executable (sander) is used.*
 
-    ``replica_cores`` -- *number of CPU cores to use for MD simulation (for each replica), if* ``replica_mpi`` *is* ``False`` *this parameters must be equal to 1. *Default value is: 1.*
+    ``replica_cores`` -- *number of CPU cores to use for MD simulation (for each replica), if* ``replica_mpi`` *is* ``False`` *this parameters must be equal to 1. Default value is: 1.*
 
-    ``download_mdinfo`` -- *specifies if Amber's *``.mdinfo``* files must be downloaded from HPC cluster to local workstation. Possible values are: *``True``* or *``False``*. *Default value is: *``False``.
+    ``download_mdinfo`` -- *specifies if Amber's* ``.mdinfo`` *files must be downloaded from HPC cluster to local workstation. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``
 
-    ``download_mdout`` -- specifies if Amber's *``.mdout``* files must be downloaded from HPC cluster to local workstation. Possible values are: *``True``* or *``False``*. Default value is: *``False``.
+    ``download_mdout`` -- *specifies if Amber's* ``.mdout`` *files must be downloaded from HPC cluster to local workstation. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``
 
-    ``copy_mdinfo`` -- *specifies if Amber's *``.mdinfo``* files must be copied from working directories of replicas to "staging area" on remote HPC cluster. Possible values are: *``True``* or *``False``*. Default value is: *``False``.  
+    ``copy_mdinfo`` -- *specifies if Amber's* ``.mdinfo`` *files must be copied from working directories of replicas to "staging area" on remote HPC cluster. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``  
 
     ``group_exec`` -- *specifies if replicas in a single group are executed as a 
-    single task. This option is available only for multi-dimensional simulations involving temperature and/or umbrella exchange. Possible values are: *``True``* or *``False``*. Default value is: *``False``.*
+    single task. This option is available only for multi-dimensional simulations involving temperature and/or umbrella exchange. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``
 
-    ``restart`` -- *specifies if previously aborted simulation should be restarted. After every simulation cycle simulation state is written to simulation_objects_d_c.pkl file. If simulation failed, we can restart the simulation from the last saved state. Possible values are: *``True``* or *``False``*. Default value is: *``False``.*
+    ``restart`` -- *specifies if previously aborted simulation should be restarted. After every simulation cycle simulation state is written to simulation_objects_d_c.pkl file. If simulation failed, we can restart the simulation from the last saved state. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``
 
-    ``restart_file`` -- *if restart is set to *``True``* name of the restart file must be specified. This file can be one of the simulation_objects_d_c.pkl files, generated after every simulation cycle.*
+    ``restart_file`` -- *if restart is set to* ``True`` *name of the restart file must be specified. This file can be one of the simulation_objects_d_c.pkl files, generated after every simulation cycle.*
 
-    ``exchange_off`` -- *allows to turn the exchange calculations off. Possible values are: *``True``* or *``False``*. Default value is: *``False``*. If set to *``True``* only tasks performing MD simulation are submitted for execution. No exchange calculations will be performed and none of the replicas will exchange their respective parameters.* 
+    ``exchange_off`` -- *allows to turn the exchange calculations off. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.`` *If set to* ``True`` *only tasks performing MD simulation are submitted for execution. No exchange calculations will be performed and none of the replicas will exchange their respective parameters.* 
 
 
 

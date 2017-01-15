@@ -95,8 +95,13 @@ class ExecutionManagementModulePatternSgroup(ExecutionManagementModule):
         # bulk_submission = 1: do bulk_submission submission
 
         bulk_submission = 1
-        dim_int = 0
-        current_cycle = 0
+
+        if md_kernel.restart == True:
+            dim_int = md_kernel.restart_object.dimension
+            current_cycle = md_kernel.restart_object.current_cycle
+        else:
+            dim_int = 0
+            current_cycle = 1
         
         dim_count = md_kernel.nr_dims
         dim_str = []
@@ -181,6 +186,8 @@ class ExecutionManagementModulePatternSgroup(ExecutionManagementModule):
             # do exchange of parameters    
             self._prof.prof('do_exchange_start__' + c_str )                   
             md_kernel.do_exchange(current_cycle, dim_int, dim_str[dim_int], replicas)
+            # for the case when we were restarting previous simulation
+            md_kernel.restart_done = True
             self._prof.prof('do_exchange_end__' + c_str )  
             
         #-----------------------------------------------------------------------

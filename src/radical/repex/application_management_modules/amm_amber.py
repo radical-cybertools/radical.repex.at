@@ -944,13 +944,23 @@ class AmmAmber(object):
                                 json_post_data_sh + "\'"
 
         if replica.cycle == 1 or self.restart_done == False:
-            argument_str = " -O " + " -i " + new_input_file + \
-                           " -o " + output_file + \
-                           " -p " +  self.amber_parameters + \
-                           " -c " + replica.coor_file + \
-                           " -r " + new_coor + \
-                           " -x " + new_traj + \
-                           " -inf " + new_info  
+
+            if replica.cycle == 1:
+                argument_str = " -O " + " -i " + new_input_file + \
+                               " -o " + output_file + \
+                               " -p " +  self.amber_parameters + \
+                               " -c " + replica.coor_file + \
+                               " -r " + new_coor + \
+                               " -x " + new_traj + \
+                               " -inf " + new_info  
+            if  self.restart_done == False:
+                argument_str = " -O " + " -i " + new_input_file + \
+                               " -o " + output_file + \
+                               " -p " +  self.amber_parameters + \
+                               " -c " + old_coor + \
+                               " -r " + new_coor + \
+                               " -x " + new_traj + \
+                               " -inf " + new_info
 
             if (self.umbrella == True) and (self.us_template != ''):
                 if self.restart_done == False:
@@ -975,7 +985,7 @@ class AmmAmber(object):
                 stage_in.append(sd_shared_list[8])
 
             if self.restart_done == False:
-                old_path = self.restart_object.old_sandbox + '/staging_area/' + replica_path + old_coor
+                old_path = self.restart_object.old_sandbox + 'staging_area/' + replica_path + old_coor
                 old_coor_st = {'source': old_path,
                                'target': (old_coor),
                                'action': rp.COPY
@@ -1085,8 +1095,6 @@ class AmmAmber(object):
                     cu.pre_exec = self.pre_exec + [pre_exec_str]
             cu.input_staging = stage_in
             cu.output_staging = stage_out
-
-            self.restart_done = True
                 
         return cu
 

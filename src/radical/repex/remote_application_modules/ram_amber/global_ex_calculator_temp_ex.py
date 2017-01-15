@@ -122,10 +122,8 @@ class Replica(object):
 
         if new_restraints is None:
             self.new_restraints = ''
-            self.old_restraints = ''
         else:
             self.new_restraints = new_restraints
-            self.old_restraints = new_restraints
         self.potential_1 = 0
 
 #-------------------------------------------------------------------------------

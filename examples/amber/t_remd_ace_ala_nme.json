@@ -1,7 +1,7 @@
 {
     "remd.input": {
         "sync": "S",
-        "number_of_cycles": "2",
+        "number_of_cycles": "4",
         "group_exec": "False",
         "input_folder": "t_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
@@ -9,14 +9,15 @@
         "amber_parameters": "ace_ala_nme.parm7",
         "amber_coordinates_folder": "ace_ala_nme_coors",
         "same_coordinates": "True",
-        "steps_per_cycle": "100",
+        "steps_per_cycle": "2000",
         "download_mdinfo": "False",
         "download_mdout" : "False",
         "copy_mdinfo" : "False",
         "replica_mpi": "False",
         "replica_cores": "1",
         "exchange_mpi": "False",
-        "restart" : "False"
+        "restart" : "True",
+        "restart_file" : "simulation_objects_1_4.pkl"
     },
     "dim.input": {
         "d1": {

@@ -41,7 +41,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         if self.running_replicas > len(replicas):
             self.running_replicas = len(replicas)
 
-        # ----------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         #
         def unit_state_change_cb(unit, state):
             """This is a callback function. It gets called very time a 
@@ -58,7 +58,6 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         self._prof.prof('run_simulation_start')
 
         CYCLES = md_kernel.nr_cycles + 1
-
        
         unit_manager = rp.UnitManager(self.session, scheduler=rp.SCHED_ROUND_ROBIN)
         unit_manager.register_callback(unit_state_change_cb)
@@ -257,6 +256,8 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                     submitted_md_tasks += sub_replicas
                     for r in md_replicas:
                         r.state = 'MD'
+                    # for the case when we were restarting previous simulation
+                    md_kernel.restart_done = True
 
                 #---------------------------------------------------------------
                 # wait loop

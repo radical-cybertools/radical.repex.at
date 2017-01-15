@@ -316,6 +316,8 @@ class ExecutionManagementModulePatternS(ExecutionManagementModule):
             # do exchange of parameters  
             self._prof.prof('do_exchange_start__' + c_str )                   
             md_kernel.do_exchange(current_cycle, dim_int, dim_str[dim_int], replicas)
+            # for the case when we were restarting previous simulation
+            md_kernel.restart_done = True
             self._prof.prof('do_exchange_end__' + c_str ) 
 
             #write replica objects out
