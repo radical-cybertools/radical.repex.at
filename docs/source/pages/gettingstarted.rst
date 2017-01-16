@@ -144,7 +144,6 @@ Additionally user can specify the following optional parameters (under ``remd.in
     ``exchange_off`` -- *allows to turn the exchange calculations off. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.`` *If set to* ``True`` *only tasks performing MD simulation are submitted for execution. No exchange calculations will be performed and none of the replicas will exchange their respective parameters.* 
 
 
-
 per dimension:
 
 ``exchange_mpi`` -- *specifies if MPI executable should be used for exchange calculations. Possible values are: True or False.*
