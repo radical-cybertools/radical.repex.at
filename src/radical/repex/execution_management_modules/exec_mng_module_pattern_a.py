@@ -25,11 +25,9 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
 
         ExecutionManagementModule.__init__(self, inp_file, rconfig, md_logger)
 
-        self.name             = 'EmmPatternA'
-        self.wait_ratio       = float(inp_file['remd.input'].get('wait_ratio', 0.125) )
-        self.running_replicas = int(inp_file['remd.input'].get('running_replicas', 0) )
-        if self.running_replicas == 0:
-            self.running_replicas = self.cores - int(KERNELS[self.resource]["params"].get("cores") )
+        self.name        = 'EmmPatternA'
+        self.wait_ratio  = float(inp_file['remd.input'].get('wait_ratio', 0.125) )
+        self.nr_replicas = 0
         
         self.name = 'EmmPatternA'
         self.sd_shared_list = []
@@ -38,9 +36,8 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
     #
     def run_simulation(self, replicas, md_kernel):
         
-        if self.running_replicas > len(replicas):
-            self.running_replicas = len(replicas)
-
+        self.nr_replicas = md_kernel.replicas
+        
         #-----------------------------------------------------------------------
         #
         def unit_state_change_cb(unit, state):
@@ -262,7 +259,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                 #---------------------------------------------------------------
                 # wait loop
                 self._prof.prof('wait_md_start')
-                wait_size = int(self.running_replicas * self.wait_ratio)
+                wait_size = int(self.nr_replicas * self.wait_ratio)
                 if wait_size == 0:
                     wait_size = 2
                 wait_time = 0
