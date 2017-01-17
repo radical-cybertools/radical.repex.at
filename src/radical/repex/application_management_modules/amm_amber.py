@@ -275,24 +275,24 @@ class AmmAmber(object):
         self.coor_basename = base.split('inpcrd')[0]+'inpcrd'
 
         replicas = []
-        dim_params = {}
+        self.dim_params = {}
         for k in self.dims:
             N = self.dims[k]['replicas']
-            dim_params[k] = []
+            self.dim_params[k] = []
             if self.dims[k]['type'] == 'temperature':
                 factor = (self.dims[k]['temp_end']/self.dims[k]['temp_start'])**(1./(N-1))
                 for i in range(N):
                     new_temp = self.dims[k]['temp_start'] * (factor**i)
-                    dim_params[k].append(new_temp)
+                    self.dim_params[k].append(new_temp)
             if self.dims[k]['type'] == 'umbrella':
                 for i in range(N):
                     spacing = (self.dims[k]['us_end'] - self.dims[k]['us_start']) / (float(self.dims[k]['replicas'])-1)
                     starting_value = self.dims[k]['us_start'] + i*spacing
-                    dim_params[k].append(starting_value)
+                    self.dim_params[k].append(starting_value)
             if self.dims[k]['type'] == 'salt':
                 for i in range(N):
                     new_salt = (self.dims[k]['salt_end']-self.dims[k]['salt_start'])/(N-1.0)*float(i) + self.dims[k]['salt_start']
-                    dim_params[k].append(new_salt)
+                    self.dim_params[k].append(new_salt)
 
         if self.nr_dims == 3:
             for i in range(self.dims['d1']['replicas']):
@@ -318,9 +318,9 @@ class AmmAmber(object):
                         re = Replica(rid, \
                                     new_restraints=r, \
                                     coor=coor_file,
-                                    d1_param=float(dim_params['d1'][i]), \
-                                    d2_param=float(dim_params['d2'][j]), \
-                                    d3_param=float(dim_params['d3'][k]), \
+                                    d1_param=float(self.dim_params['d1'][i]), \
+                                    d2_param=float(self.dim_params['d2'][j]), \
+                                    d3_param=float(self.dim_params['d3'][k]), \
                                     d1_type = self.dims['d1']['type'], \
                                     d2_type = self.dims['d2']['type'], \
                                     d3_type = self.dims['d3']['type'], \
@@ -352,8 +352,8 @@ class AmmAmber(object):
                     re = Replica(rid, \
                                 new_restraints=r, \
                                 coor=coor_file,
-                                d1_param=float(dim_params['d1'][i]), \
-                                d2_param=float(dim_params['d2'][j]), \
+                                d1_param=float(self.dim_params['d1'][i]), \
+                                d2_param=float(self.dim_params['d2'][j]), \
                                 d1_type = self.dims['d1']['type'], \
                                 d2_type = self.dims['d2']['type'], \
                                 nr_dims = self.nr_dims)
@@ -377,7 +377,7 @@ class AmmAmber(object):
                 re = Replica(rid, \
                             new_restraints=r, \
                             coor=coor_file,
-                            d1_param=float(dim_params['d1'][i]), \
+                            d1_param=float(self.dim_params['d1'][i]), \
                             d1_type = self.dims['d1']['type'], \
                             nr_dims = self.nr_dims)
                 replicas.append(re)

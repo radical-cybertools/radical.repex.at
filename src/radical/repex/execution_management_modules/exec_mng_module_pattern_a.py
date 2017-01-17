@@ -25,21 +25,41 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
 
         ExecutionManagementModule.__init__(self, inp_file, rconfig, md_logger)
 
-        self.name             = 'EmmPatternA'
-        self.wait_ratio       = float(inp_file['remd.input'].get('wait_ratio', 0.125) )
-        self.running_replicas = int(inp_file['remd.input'].get('running_replicas', 0) )
-        if self.running_replicas == 0:
-            self.running_replicas = self.cores - int(KERNELS[self.resource]["params"].get("cores") )
+        self.name        = 'EmmPatternA'
+        self.wait_ratio  = float(inp_file['remd.input'].get('wait_ratio', 0.125) )
+        self.nr_replicas = 0
         
         self.name = 'EmmPatternA'
         self.sd_shared_list = []
+
+    def longest_common_substring(self, list1, list2):
+        """
+        implementation of the classic DP problem
+        """
+
+        size1 = len(list1) + 1
+        size2 = len(list2) + 1
+
+        table  = [[ 0 for i in range(size2)] for j in range(size1)]
+        result = 0 
+        idx    = 0
+
+        for i in range(1,size1):
+            for j in range(1,size2):
+                if list1[i-1] == list2[j-1]:
+                    table[i][j] = table[i-1][j-1] + 1
+                    if table[i][j] > result:
+                        result = table[i][j]
+                        idx    = i
+                else:
+                    table[i][j] = 0
+        return list1[idx-result:idx]
 
     #---------------------------------------------------------------------------
     #
     def run_simulation(self, replicas, md_kernel):
         
-        if self.running_replicas > len(replicas):
-            self.running_replicas = len(replicas)
+        self.nr_replicas = md_kernel.replicas
 
         #-----------------------------------------------------------------------
         #
@@ -131,6 +151,13 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         # async algo
         #
         #-----------------------------------------------------------------------
+        all_temperatures = list()
+        tmp = md_kernel.dim_params['d1']
+        for i in tmp:
+            all_temperatures.append(str(i))
+        all_temperatures.sort()
+        self.logger.info("all_temperatures: {0}".format(all_temperatures))
+
         for r in replicas:
             r.state == 'I'
 
@@ -217,7 +244,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                     for replica in md_replicas:
                         r_dim = replica.cur_dim
                         group = md_kernel.get_replica_group(r_dim, replicas, replica)
-                        cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
+                        cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim) + '_p_' + str(replica.dims['d1']['par'])
                         cu_tuple = cu_name.split('_')
                         compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
@@ -244,7 +271,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                     for replica in md_replicas:
                         r_dim = replica.cur_dim
                         group = md_kernel.get_replica_group(r_dim, replicas, replica)
-                        cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim)
+                        cu_name = 'id_' + str(replica.id) + '_gr_' + str(replica.group_idx[r_dim-1]) + '_c_' + str(current_cycle) + '_d_' + str(r_dim) + '_p_' + str(replica.dims['d1']['par'])
                         cu_tuple = cu_name.split('_')
                         compute_replica = md_kernel.prepare_replica_for_md(current_cycle, r_dim, dim_str[r_dim], group, replica, self.sd_shared_list)
                         compute_replica.name = cu_name
@@ -262,22 +289,26 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                 #---------------------------------------------------------------
                 # wait loop
                 self._prof.prof('wait_md_start')
-                wait_size = int(self.running_replicas * self.wait_ratio)
+                wait_size = int(self.nr_replicas * self.wait_ratio)
                 if wait_size == 0:
                     wait_size = 2
                 wait_time = 0
                 count_of_completed = 0
+                self.logger.info("wait_size: {0}".format(wait_size))
                 #---------------------------------------------------------------
+
                 # start of while loop (waiting for MD tasks to finish)
-                while (count_of_completed <= wait_size):
+                while (count_of_completed < wait_size):
                     # update completed_md_tasks
                     for cu in submitted_md_tasks:
                         if cu.state == 'Done':
                             if cu not in completed_md_tasks:
                                 completed_md_tasks.append(cu)
 
-                    # enter this loop only of there are enough CUs
+                    # enter this loop only if there are enough CUs
                     if (len(completed_md_tasks) > wait_size):
+
+                        """
                         all_gr_list = list()
                         for idx, cunit in enumerate(completed_md_tasks):
                             cu = completed_md_tasks[idx]
@@ -301,28 +332,43 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
                             # in all_gr_list there are no replicas from the same 
                             # group and dimension as current cu, so we add new 
                             # gr_list
-                            if add == 0:     
+                            if add == 0:
                                 gr_list = list()
                                 gr_list.append(cu.name)
                                 all_gr_list.append(gr_list)
+                        """
 
-                        # updating count_of_completed
-                        count_of_completed = 0
+                        # populating completed_temperatures
+                        comp_temperatures = list()
+                        for idx, cunit in enumerate(completed_md_tasks):
+                            cu = completed_md_tasks[idx]
+                            r_tuple_1 = cu.name.split('_')
+                            comp_temperatures.append(r_tuple_1[9])
+                        comp_temperatures.sort()  
+                        self.logger.info("all_temperatures:  {0}".format(all_temperatures))  
+                        self.logger.info("comp_temperatures: {0}".format(comp_temperatures))
+                        nbr_list = self.longest_common_substring(all_temperatures, 
+                                                                 comp_temperatures)
+                        
+                        self.logger.info("nbr_list: {0}".format( nbr_list ))
                         cus_to_exchange_names = list()
-                        for item in all_gr_list:
-                            # we only count groups with 2 or more replicas 
-                            # because each replica must have a partner
-                            group_size = len(item)
-                            if group_size > 1:
-                                # in each group must be even number of replicas
-                                if ((group_size % 2) != 0):
-                                    item.pop()
-                                cus_to_exchange_names += item
-                        for item in cus_to_exchange_names:
-                            count_of_completed += 1
-                        if count_of_completed < wait_size:
+                        if len(nbr_list) >= wait_size:
+                            self.logger.info("updating count_of_completed...")
+                            for idx, cunit in enumerate(completed_md_tasks):
+                                cu = completed_md_tasks[idx]
+                                r_tuple_1 = cu.name.split('_')
+                                
+                                for jdx, tmp in enumerate(nbr_list):
+                                    # if temperatures match
+                                    if nbr_list[jdx] == r_tuple_1[9]:
+                                        cus_to_exchange_names.append( cu.name )
+
+                            # updating count_of_completed
+                            count_of_completed = len(cus_to_exchange_names)
+                        else:
                             time.sleep(1)
                             wait_time += 1
+                        self.logger.info("count_of_completed: {0}".format(count_of_completed))
                     else:
                         time.sleep(1)
                         wait_time += 1
