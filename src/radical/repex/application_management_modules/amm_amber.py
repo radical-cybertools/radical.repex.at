@@ -30,6 +30,22 @@ import ram_amber.input_file_builder
 #-------------------------------------------------------------------------------
 
 class Restart(object):
+    """Maintains the state of the simulation, which is saved to .pkl files after 
+    every simulation cycle. 
+
+    Attributes:
+        new_sandbox - path to RP sandbox on remote HPC cluster for current 
+        simulation 
+
+        old_sandbox - path to RP sandbox on remote HPC cluster for simulation 
+        we are restarting
+
+        dimension - index of the current dimension of simulation
+
+        current_cycle - index of the current cycle of simulation
+
+        groups_numbers - list of the number of groups in each dimension
+    """
     def __init__(self, dimension=None, current_cycle=None, new_sandbox=None):
         self.new_sandbox    = new_sandbox
         self.old_sandbox    = None
@@ -40,15 +56,22 @@ class Restart(object):
 #-------------------------------------------------------------------------------
 #
 class AmmAmber(object):
+    """Application management Module (AMM) for Amber kernel. For each simulation 
+    should be created only a single instance of AMM. 
 
+    Attributes:
+        Way too many
+
+    """
     def __init__(self, 
                  inp_file, 
                  rconfig, 
                  work_dir_local):
         """
-        inp_file       - simulation input file with parameters specified by user 
-        rconfig        - resource configuration file
-        work_dir_local - directory from which main simulation script was invoked
+        Args:
+            inp_file - simulation input file with parameters specified by user 
+            rconfig - resource configuration file
+            work_dir_local - directory from which main simulation script was invoked
         """
 
         self.name = 'AmmAmber.log'
@@ -250,8 +273,15 @@ class AmmAmber(object):
     #---------------------------------------------------------------------------
     #
     @staticmethod
-    def get_rstr_id(self, 
-                    restraint):
+    def get_rstr_id(self, restraint):
+        """extracts restraint index from a given restraint file
+
+        Args:
+            restraint - name of the restraint file
+
+        Returns:
+            integer representing index of a given restraint file
+        """
         dot = 0
         rstr_id = ''
         for ch in restraint:
@@ -265,7 +295,17 @@ class AmmAmber(object):
     #---------------------------------------------------------------------------
     #
     def initialize_replicas(self):
-        
+        """Initializes replicas with parameters specified in simulation input
+        file. Assigns group index in each dimension for each initialized replica
+        using assign_group_idx(). initializes a restart object of this 
+        application management module.  
+
+        Args:
+            None
+
+        Returns:
+            list of replica objects
+        """
         self.restart_object = Restart()
 
         # parse coor file
@@ -388,9 +428,19 @@ class AmmAmber(object):
 
     #---------------------------------------------------------------------------
     #
-    def assign_group_idx(self, 
-                         replicas, 
-                         dim_int):
+    def assign_group_idx(self, replicas, dim_int):
+        """assigns to each replica a group index in current dimension (specified
+        by dim_int) Updates groups_numbers attribute of this AMM. Updates 
+        groups_numbers attribute of the restart object.   
+
+        Args:
+            replicas - list of replica objects
+
+            dim-int - integer representing the index of current dimension
+
+        Returns:
+            None
+        """
 
         if self.nr_dims == 3:
 
@@ -485,6 +535,25 @@ class AmmAmber(object):
                       dim_int, 
                       dim_str, 
                       replicas):
+        """Saves the state of the simulation and state of replicas to .pkl file. 
+        Method is called after every simulation cycle and for each dimension in 
+        the current simulation. Method first updates restart object, writes 
+        state of replicas to .pkl file and then writes restart object (which 
+        represents simulation state) to .pkl file
+
+        Args:
+            current_cycle - current simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            replicas - list of replica objects
+
+        Returns:
+            None
+        """
+
         self.restart_object.dimension     = dim_int
         self.restart_object.current_cycle =  current_cycle
         self.restart_object.old_sandbox   = self.restart_object.new_sandbox
@@ -499,6 +568,16 @@ class AmmAmber(object):
     #---------------------------------------------------------------------------
     #
     def recover_replicas(self):
+        """Recovers the state of the failed simulation from .pkl file. Updates 
+        restart_object of this AMM. Updates groups_numbers attribute of this 
+        AMM.  
+
+        Args:
+            None
+
+        Returns:
+            list of recovered replica objects
+        """
 
         replicas = []
         with open(self.restart_file, 'rb') as input:
@@ -511,8 +590,19 @@ class AmmAmber(object):
 
     #---------------------------------------------------------------------------
     #
-    def prepare_shared_data(self, 
-                            replicas):
+    def prepare_shared_data(self, replicas):
+        """Populates shared_files list (an attribute of this AMM) with names 
+        of the input files which must be transferred to the remote system for 
+        a given simulation. Populates shared_urls list (an attribute of this 
+        AMM) with paths to input files which must be transferred to the remote 
+        system for a given simulation.
+
+        Args:
+            replicas - list of replica objects
+
+        Returns:
+            None
+        """
 
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         parm_path = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_parameters
@@ -650,6 +740,28 @@ class AmmAmber(object):
                                group, 
                                replica, 
                                sd_shared_list):
+
+        """Prepares RPs compute unit for a given replica to run MD simulation. 
+
+        Args:
+            current_cycle - integer representing number of the current 
+            simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            group - list of replica objects which are in the same group with 
+            a given replica in current dimension
+
+            replica - replica object for which we are preparing RPs compute unit
+
+            sd_shared_list - list of RPs data directives corresponding to 
+            simulation input files
+
+        Returns:
+            RPs compute unit
+        """
 
         stage_out = []
         stage_in = []
@@ -997,7 +1109,7 @@ class AmmAmber(object):
             # 
             for i in range(2):
                 stage_in.append(sd_shared_list[i])
-            #-------------------------------------------------------------------            
+                        
             # replica coor
             repl_coor = replica.coor_file
             # index of replica_coor
@@ -1049,7 +1161,6 @@ class AmmAmber(object):
             # input_file_builder.py
             stage_in.append(sd_shared_list[4])
 
-            # BOTH BELOW
             if (self.umbrella == True) and (self.us_template != ''):
                 # restraint file
                 restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
@@ -1106,6 +1217,32 @@ class AmmAmber(object):
                              dim_str, 
                              group, 
                              sd_shared_list):
+
+        """Prepares a (single!) RPs compute unit for a given group of replicas 
+        to run MD simulation.
+
+        Note: this feature is only available for temperature and umbrella 
+        exchange! Feel free to implement this for salt concentration exchange as
+        well :-) It was originally designed for multi-dimensional simulations
+
+        Args:
+            current_cycle - integer representing number of the current 
+            simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            group - list of replica objects which are in the same group in 
+            current dimension
+
+            sd_shared_list - list of RPs data directives corresponding to 
+            simulation input files
+
+        Returns:
+            RPs compute unit
+        """
+
 
         group_id = group[0].group_idx[dim_int-1]
 
@@ -1357,8 +1494,27 @@ class AmmAmber(object):
                                      group, 
                                      replica, 
                                      sd_shared_list):
-        """
-        should be used only for salt concentration exchange for 2d/3d
+    
+        """Prepares RPs compute unit for a given replica to run MD simulation. 
+
+        Args:
+            current_cycle - integer representing number of the current 
+            simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            group - list of replica objects which are in the same group with 
+            a given replica in current dimension
+
+            replica - replica object for which we are preparing RPs compute unit
+
+            sd_shared_list - list of RPs data directives corresponding to 
+            simulation input files
+
+        Returns:
+            RPs compute unit
         """
 
         basename = self.inp_basename

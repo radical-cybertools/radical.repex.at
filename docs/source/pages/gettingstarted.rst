@@ -185,7 +185,7 @@ Additionally user can specify the following **optional** parameters:
 
 	``exchange_off`` -- *allows to turn the exchange calculations off. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.`` *If set to* ``True`` *only tasks performing MD simulation are submitted for execution. No exchange calculations will be performed and none of the replicas will exchange their respective parameters.* 
 
-	``exchange_mpi`` -- *specifies if MPI executable should be used for exchange calculations. Possible values are:* ``True`` *or* ``False`` *. Default value is* ``False``. **Note: ** *this option is available only for temperature exchange and umbrella exchange.* 
+	``exchange_mpi`` -- *specifies if MPI executable should be used for exchange calculations. Possible values are:* ``True`` *or* ``False`` *. Default value is* ``False``. **Note:** *this option is available only for temperature exchange and umbrella exchange.* 
 
 Under dimension key for **temperature exchange** simulation **must** be specified the following parameters:
 
