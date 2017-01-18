@@ -96,7 +96,7 @@ Example resource configuration file for Stampede HPC cluster might look like thi
 Simulation input file for Amber MD engine
 -----------------------------------------
 
-In simulation input file, under ``remd.input`` name, **must** be provided the following parameters:
+In simulation input file, under ``remd.input`` key, **must** be provided the following parameters:
 
 	``number_of_cycles`` -- *the number of simulation cycles*
 
@@ -114,7 +114,7 @@ In simulation input file, under ``remd.input`` name, **must** be provided the fo
 
 	``us_template`` -- *specifies Amber's restraint (.RST) file. This parameter is required only for simulations performing umbrella exchange.*
 
-Additionally user can specify the following optional parameters (under ``remd.input`` name):
+Additionally user can specify the following **optional** parameters (under ``remd.input`` key):
 
 	``sync`` -- *this parameter allows to specify synchronization options for the simulation. Available options are:* ``S`` *synchronous simulation and* ``A`` *asynchronous simulation. Default is synchronous simulation:* ``S``
 
@@ -138,17 +138,72 @@ Additionally user can specify the following optional parameters (under ``remd.in
 
 	``restart_file`` -- *if restart is set to* ``True`` *name of the restart file must be specified. This file can be one of the* ``simulation_objects_d_c.pkl`` *files, generated after every simulation cycle.*
 
-    
 
+Parameters, specific for each dimension **must** be specified under ``dim.input`` key. These parameters must be specified under dimension key, e. g. ``d1``. Index after letter ``d`` specifies order of this dimension. For example, key ``d1`` means that this is first dimension. indexes **must** be unique. To perform one-dimensional temperature exchange simulation in simulation input file we should specify:
 
+.. parsed-literal::
 
-per dimension:
+	"dim.input": {
+		"d1": {
+			"type" : "temperature",
+			"number_of_replicas": "8",
+			"min_temperature": "300.0",
+			"max_temperature": "304.0"
+		}
+	}
 
-``exchange_mpi`` -- *specifies if MPI executable should be used for exchange calculations. Possible values are: True or False.*
+Here parameters under key ``d1`` are specific for this dimension type. In this example type is ``temperature``, meaning that our first dimension for this simulation will be temperature exchange and since there are no other dimensions, we perform **one-dimensional** temperature exchange simulation.
 
-``exchange_off`` -- *allows to turn the exchange calculations off. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.`` *If set to* ``True`` *only tasks performing MD simulation are submitted for execution. No exchange calculations will be performed and none of the replicas will exchange their respective parameters.* 
+To perform multi-dimensional simulations, multiple dimension keys must be specified. We control the order of dimensions using index after letter ``d`` in dimension key. To perform two-dimensional simulation, where first dimension is temperature exchange and second dimension is umbrella exchange, in simulation input file we should specify: 
 
+.. parsed-literal::
 
+	"dim.input": {
+		"d1": {
+			"type" : "temperature",
+			"number_of_replicas": "8",
+			"min_temperature": "300.0",
+			"max_temperature": "304.0"
+		},
+		"d2": {
+			"type" : "umbrella",
+			"number_of_replicas": "8",
+			"min_umbrella": "0.0",
+			"max_umbrella": "180.0"
+            }
+	}
+
+**Note:** the total number of replicas in this simulation will be 64, since we have 8 replicas in each dimension.
+
+Under dimension key **must** be specified the following parameters:
+
+	``type`` -- *specifies the type of a given dimension. Possible values are:* ``temperature``, ``umbrella``, ``salt``.
+
+	``number_of_replicas`` -- *specifies the number of replicas in a given dimension*
+
+Additionally user can specify the following **optional** parameters:
+
+	``exchange_off`` -- *allows to turn the exchange calculations off. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.`` *If set to* ``True`` *only tasks performing MD simulation are submitted for execution. No exchange calculations will be performed and none of the replicas will exchange their respective parameters.* 
+
+	``exchange_mpi`` -- *specifies if MPI executable should be used for exchange calculations. Possible values are:* ``True`` *or* ``False`` *. Default value is* ``False``. **Note: ** *this option is available only for temperature exchange and umbrella exchange.* 
+
+Under dimension key for **temperature exchange** simulation **must** be specified the following parameters:
+
+	``min_temperature`` -- 
+
+	``max_temperature`` --
+
+Under dimension key for **umbrella exchange** simulation **must** be specified the following parameters:
+
+	``min_umbrella`` -- 
+
+	``max_umbrella`` --
+
+Under dimension key for **salt concentration exchange** simulation **must** be specified the following parameters:
+
+	``min_salt`` -- 
+
+	``max_salt`` --
 
 
 Example simulation input file for T-REMD simulation might look like this:

@@ -201,8 +201,8 @@ class AmmAmber(object):
  
         for k in self.dims:
             if self.dims[k]['type'] == 'umbrella':
-                self.dims[k]['us_start'] = float(inp_file['dim.input'][k].get('min_us_param'))
-                self.dims[k]['us_end'] = float(inp_file['dim.input'][k].get('max_us_param'))
+                self.dims[k]['us_start'] = float(inp_file['dim.input'][k].get('min_umbrella'))
+                self.dims[k]['us_end'] = float(inp_file['dim.input'][k].get('max_umbrella'))
             if self.dims[k]['type'] == 'temperature':
                 self.dims[k]['temp_start'] = float(inp_file['dim.input'][k].get('min_temperature'))
                 self.dims[k]['temp_end'] = float(inp_file['dim.input'][k].get('max_temperature'))
