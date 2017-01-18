@@ -26,7 +26,7 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
         ExecutionManagementModule.__init__(self, inp_file, rconfig, md_logger)
 
         self.name        = 'EmmPatternA'
-        self.wait_ratio  = float(inp_file['remd.input'].get('wait_ratio', 0.125) )
+        self.wait_ratio  = float(inp_file['remd.input'].get('wait_ratio', 0.25) )
         self.nr_replicas = 0
         
         self.name = 'EmmPatternA'

@@ -15,7 +15,6 @@
         "replica_cores": "1",
         "steps_per_cycle": "100",
         "wait_ratio": "0.5",
-        "running_replicas": "4",
         "download_mdinfo": "False",
         "download_mdout" : "False",
         "restart" : "False"

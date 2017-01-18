@@ -97,7 +97,7 @@ corresponding ``replica_x`` directory. File format is ``ala10_remd_i_c.mdinfo`` 
 
 Simulation output can similarly be verified for all other examples of this tutorial.  
 
-**Note: ** After you have successfully completed your simulation and verified simulation 
+**Note:** After you have successfully completed your simulation and verified simulation 
 output, delete or move ``replica_x`` and ``shared_files`` directories. 
 
 US-REMD example using Alanine Dipeptide system with Amber kernel
@@ -140,8 +140,7 @@ To run this example you need to verify if parameters specified in ``us_remd_ace_
 In comparison with general REMD input file format discussed in getting-started section 
 this input file contains some additional parameters:
 
- - ``same_coordinates`` - specifies if each replica should use an individual coordinates file. Options are: ``True`` or ``False``. If ``True`` is selected, in ``amber_coordinates_folder`` must be provided coordinate files for each replica. Format of coordinates file is: ``filename.inpcrd.x.y``, where ``filename`` can be any valid python string, ``inpcrd`` is required file extension, ``x`` is index of replica in 1st dimension and ``y`` is index of replica in second dimension. For one-dimensional REMD, ``y = 0`` 
- must be provided 
+  ``same_coordinates`` - specifies if each replica should use an individual coordinates file. Options are: ``True`` or ``False``. If ``True`` is selected, in ``amber_coordinates_folder`` must be provided coordinate files for each replica. Format of coordinates file is: ``filename.inpcrd.x.y``, where ``filename`` can be any valid python string, ``inpcrd`` is required file extension, ``x`` is index of replica in 1st dimension and ``y`` is index of replica in second dimension. For one-dimensional REMD, ``y = 0`` must be provided. 
 
  - ``us_template`` - name of Restraints template file
 
