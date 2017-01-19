@@ -1495,7 +1495,11 @@ class AmmAmber(object):
                                      replica, 
                                      sd_shared_list):
     
-        """Prepares RPs compute unit for a given replica to run MD simulation. 
+        """Prepares RPs compute unit for a given replica to perform exchange 
+        calculations on remote HPC cluster.
+
+        Note: this function should be called for salt concentration exchange 
+        only! 
 
         Args:
             current_cycle - integer representing number of the current 
@@ -1525,13 +1529,10 @@ class AmmAmber(object):
         for repl in group:
             current_group.append( repl.id )
         
-        #current_group = self.get_current_group_ids(dim_int, replicas, replica)
-
         cu = rp.ComputeUnitDescription()
         
         current_group_tsu = {}
         for repl in group:
-            #if str(repl.id) in current_group:
             # no temperature exchange
             if self.temperature_str == '':
                 temp_str = str(self.init_temp)
@@ -1625,12 +1626,39 @@ class AmmAmber(object):
                                replicas, 
                                sd_shared_list):
 
+        """Prepares RPs compute unit for the final stage of exchange procedure.
+        If we perform MPI exchange for temperature exchange 
+        global_ex_calculator_tex_mpi.py RAM is used.
+        If we perform MPI exchange for umbrella exchange 
+        global_ex_calculator_us_mpi.py RAM is used.
+        If we perform group execution (for MD) for temperature/umbrella exchange
+        global_ex_calculator_gr.py is used
+        If we perform exchange for salt concentration exchange
+        global_ex_calculator.py is used
+        If MD tasks are generated for each replica individually and we perform
+        temperature exchange global_ex_calculator_temp_ex.py
+        If MD tasks are generated for each replica individually and we perform
+        umbrella exchange global_ex_calculator_us_ex.py
+
+        Args:
+            current_cycle - integer representing number of the current 
+            simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            replicas - list of replica objects for which we are finalizing 
+            exchange procedure
+
+            sd_shared_list - list of RPs data directives corresponding to 
+            simulation input files
+
+        Returns:
+            RPs compute unit
+        """
         stage_out = []
         stage_in = []
-
-        #replica_ids = []
-        #for r in replicas:
-        #    replica_ids.append(r.id)
 
         if self.nr_dims == 3:
             d1_type = self.dims['d1']['type']
@@ -1794,7 +1822,20 @@ class AmmAmber(object):
     #---------------------------------------------------------------------------
     #
     def exchange_params(self, dim_str, replica_1, replica_2):
-        
+        """Exchanges parameters of the two given replicas in the given 
+        dimension. 
+
+        Args:
+            dim_str - string representing the index of the current dimension
+
+            replica_1 - replica object for which is exchange parameter
+
+            replica_2 - replica object for which is exchange parameter
+
+        Returns:
+            None
+        """
+
         if (self.dims[dim_str]['type'] == 'umbrella'):
             rstr = replica_2.dims[dim_str]['par']
             replica_2.dims[dim_str]['par'] = replica_1.dims[dim_str]['par']
@@ -1819,6 +1860,25 @@ class AmmAmber(object):
     #---------------------------------------------------------------------------
     #
     def do_exchange(self, current_cycle, dim_int, dim_str, replicas):
+
+        """Reads pairs_for_exchange_d_c.dat file to determine which replicas
+        should exchange parameters. Calls exchange_params() method to exchange
+        parameters for a pair of replicas. Updates new_sandbox attribute of the
+        restart_object.
+
+        Args:
+            current_cycle - integer representing number of the current 
+            simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            replicas - list of replica objects
+
+        Returns:
+            None
+        """
 
         r1 = None
         r2 = None
@@ -1857,6 +1917,22 @@ class AmmAmber(object):
     #---------------------------------------------------------------------------
     #
     def get_current_group_ids(self, dim_int, replicas, replica):
+
+        """Retrieves ids of replicas, which are in the same group with a given
+        replica
+
+        Args:
+            dim_int - integer representing the index of the current dimension
+
+            replicas - list of replica objects
+
+            replica - replica object for which we determine ids of it's group
+            members  
+
+        Returns:
+            current_group - list with ids of replicas, which are in the same 
+            group with a given replica
+        """
 
         current_group = []
 
@@ -1899,6 +1975,19 @@ class AmmAmber(object):
     #
     def get_all_groups_ids(self, dim_int, replicas):
 
+        """Composes a 2d list of replica ids, which are grouped based on their
+        group index in the current dimension
+
+        Args:
+            dim_int - integer representing the index of the current dimension
+
+            replicas - list of replica objects 
+
+        Returns:
+            all_groups - 2d list with ids of replicas, which are grouped 
+            together based on their group index in the current dimension 
+        """
+
         dim = dim_int-1
 
         all_groups = []
@@ -1929,6 +2018,19 @@ class AmmAmber(object):
     #
     def get_all_groups(self, dim_int, replicas):
 
+        """Composes a 2d list of replicas, which are grouped based on their
+        group index in the current dimension
+
+        Args:
+            dim_int - integer representing the index of the current dimension
+
+            replicas - list of replica objects 
+
+        Returns:
+            all_groups - 2d list of replicas, which are grouped together based 
+            on their group index in the current dimension 
+        """
+
         dim = dim_int-1
 
         all_groups = []
@@ -1943,8 +2045,23 @@ class AmmAmber(object):
     #
     def get_replica_group(self, dim_int, replicas, replica):
 
+        """Composes a 2d list of replicas, which are grouped based on their
+        group index in the current dimension
+
+        Args:
+            dim_int - integer representing the index of the current dimension
+
+            replicas - list of replica objects 
+
+            replica - replica object for which we are determining group members 
+
+        Returns:
+            group - list of replica objects, which are in the same group as a 
+            given replica 
+        """
+
         dim = dim_int-1
-        group = []
+        group = list()
 
         for r in replicas:
             if r.group_idx[dim] == replica.group_idx[dim]:
@@ -1955,6 +2072,17 @@ class AmmAmber(object):
     #---------------------------------------------------------------------------
     #
     def init_matrices(self, replicas):
+
+        """initializes a 2d lists with ids of replicas to track accepted and
+        attempted exchanges
+
+        Args:
+            replicas - list of replica objects
+
+        Returns:
+            None  
+        """
+
         # TODO
         pass
 

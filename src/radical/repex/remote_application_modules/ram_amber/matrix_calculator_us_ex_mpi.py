@@ -12,6 +12,9 @@ from mpi4py import MPI
 from subprocess import *
 import subprocess
 
+"""For group execution only!
+"""
+
 #-------------------------------------------------------------------------------
 
 def bond(c1,c2):
