@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.md_kernels.amber_kernels_tex.matrix_calculator_tex
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 

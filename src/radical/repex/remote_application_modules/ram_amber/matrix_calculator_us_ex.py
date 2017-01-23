@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.md_kernels.amber_kernels_salt.amber_matrix_calculator_pattern_b
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 

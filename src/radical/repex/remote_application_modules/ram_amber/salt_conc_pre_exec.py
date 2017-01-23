@@ -1,7 +1,7 @@
 """
 .. module:: radical.repex.md_kernels.amber_kernels_salt.amber_matrix_calculator_pattern_b
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"

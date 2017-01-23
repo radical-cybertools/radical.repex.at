@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.namd_kernels.matrix_calculator_scheme_2
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"

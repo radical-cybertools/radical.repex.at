@@ -106,7 +106,7 @@ setup(
     name='radical.repex',
     version='0.2.9',
     author='Antons Treikalis',
-    author_email='antons.treikalis@rutgers.edu',
+    author_email='antons.treikalis@gmail.com',
     packages=['repex_utils', 
               'repex', 
               'replicas', 

@@ -1,4 +1,4 @@
-""" Application kernel configuration file.
+""" Configuration file for Application kernels.
 """
 
 KERNELS = {

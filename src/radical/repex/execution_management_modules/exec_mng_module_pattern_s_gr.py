@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.execution_management_modules.exec_mng_module_pattern_a_gr
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -20,15 +20,28 @@ from execution_management_modules.exec_mng_module import *
 #-------------------------------------------------------------------------------
 
 class ExecutionManagementModulePatternSgroup(ExecutionManagementModule):
-    """
-    """
-    def __init__(self, inp_file, rconfig, md_logger):
-        """Constructor.
+    """This is experimental EMM for synchronous RE pattern with grouping of 
+    replicas from the same group into a single CU. This EMM is designed for 
+    multi-dimensional simulations. 
+    Note: This module can be used only for AmberAMM.
 
-        Arguments:
-        inp_file - json input file with Pilot and NAMD related parameters as 
-        specified by user 
+    Attributes:
+        name - name of this EMM
+
+        sd_shared_list - list with RP's data directoves for staging of 
+        simulation input files, from staging area to CU's workdir
+    """
+
+    def __init__(self, inp_file, rconfig, md_logger):
         """
+        Args:
+            inp_file - simulation input file with parameters specified by user 
+
+            rconfig  - resource configuration file
+            
+            md_logger - logger of associated AMM 
+        """
+
         ExecutionManagementModule.__init__(self, inp_file, rconfig, md_logger)
 
         self.name = 'EmmPatternSgroup'
@@ -37,11 +50,13 @@ class ExecutionManagementModulePatternSgroup(ExecutionManagementModule):
 #-------------------------------------------------------------------------------
 
     def run_simulation(self, replicas, md_kernel):
-        """This function runs the main loop of RE simulation for RE pattern B.
+        """Runs the main loop of synchronous RE simulation with grouping option. 
+        Profiling probes are inserted here.
 
-        Arguments:
-        replicas - list of Replica objects
-        md_kernel - an instance of NamdKernelScheme2a class
+        Args:
+            replicas - list of Replica objects
+
+            md_kernel - an instance of AMM
         """
 
         # ----------------------------------------------------------------------

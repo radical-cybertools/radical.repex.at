@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.execution_management_modules.exec_mng_module_pattern_a
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -20,8 +20,31 @@ from execution_management_modules.exec_mng_module import *
 #-------------------------------------------------------------------------------
 #
 class ExecutionManagementModulePatternA(ExecutionManagementModule):
-    
+    """Execution Management Module for asynchronous RE pattern. This module 
+    can be used by any AMM.
+
+    Attributes:
+        name - name of this EMM
+
+        wait_ratio - ratio of replicas which have to finish MD simulation (before
+        proceeding to exchange) to the total number of replicas. this attribute 
+        is user defined
+
+        nr_replicas - total number of replicas used for this simulation
+
+        sd_shared_list - list with RP's data directoves for staging of 
+        simulation input files, from staging area to CU's workdir
+    """
+
     def __init__(self, inp_file, rconfig, md_logger):
+        """
+        Args:
+            inp_file - simulation input file with parameters specified by user 
+
+            rconfig  - resource configuration file
+            
+            md_logger - logger of associated AMM 
+        """
 
         ExecutionManagementModule.__init__(self, inp_file, rconfig, md_logger)
 
@@ -35,14 +58,22 @@ class ExecutionManagementModulePatternA(ExecutionManagementModule):
     #---------------------------------------------------------------------------
     #
     def run_simulation(self, replicas, md_kernel):
-        
+        """Runs the main loop of asynchronous RE simulation. Profiling probes 
+        are inserted here.
+
+        Args:
+            replicas - list of Replica objects
+
+            md_kernel - an instance of AMM
+        """
+
         self.nr_replicas = md_kernel.replicas
         
         #-----------------------------------------------------------------------
         #
         def unit_state_change_cb(unit, state):
-            """This is a callback function. It gets called very time a 
-            ComputeUnit changes its state.
+            """Callback function. It gets called every time a CU changes its 
+            state.
             """
             if unit:
                 self.logger.info("ComputeUnit '{0:s}' state changed to {1:s}.".format(unit.uid, state) )

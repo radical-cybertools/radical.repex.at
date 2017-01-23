@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.application_management_modules.amm_namd
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -12,31 +12,31 @@ import shutil
 import pickle
 import tarfile
 from os import path
+import replicas.replica
 import radical.pilot as rp
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
-
-import ram_namd.global_ex_calculator
-import ram_namd.ind_ex_calculator
-import ram_namd.global_ex_calculator_mpi
 import ram_namd.input_file_builder
-from replicas.replica import *
-
-#-------------------------------------------------------------------------------
-
-class Restart(object):
-    def __init__(self, dimension=None, current_cycle=None, new_sandbox=None):
-        self.new_sandbox    = new_sandbox
-        self.old_sandbox    = None
-        self.dimension      = dimension
-        self.current_cycle  = current_cycle
+import repex_utils.simulation_restart
 
 #-------------------------------------------------------------------------------
 
 class AmmNamd(object):
+    """Application management Module (AMM) for NAMD kernel. For each simulation 
+    should be created only a single instance of AMM. 
+
+    Attributes:
+        Way too many
+    """
 
     def __init__(self, inp_file, rconfig,  work_dir_local):
-        
+        """
+        Args:
+            inp_file - simulation input file with parameters specified by user 
+            rconfig - resource configuration file
+            work_dir_local - directory from which main simulation script was invoked
+        """
+
         self.name = 'AmmNAMD.log'
         self.ex_name = 'temperature'
         self.logger  = rul.get_logger ('radical.repex', self.name)
@@ -96,6 +96,12 @@ class AmmNamd(object):
         if self.namd_path == None:
             self.logger.info("NAMD path can't be found!")
             sys.exit(1)
+
+        self.exchange_off = []
+        if (inp_file['dim.input'][d_str].get("exchange_off", "False")) == "True":
+            self.exchange_off.append(True)
+        else:
+            self.exchange_off.append(False)
         
         self.all_temp_list = []
 
@@ -105,6 +111,18 @@ class AmmNamd(object):
     #---------------------------------------------------------------------------
     #
     def prepare_shared_data(self, replicas):
+        """Populates shared_files list (an attribute of this AMM) with names 
+        of the input files which must be transferred to the remote system for 
+        a given simulation. Populates shared_urls list (an attribute of this 
+        AMM) with paths to input files which must be transferred to the remote 
+        system for a given simulation.
+
+        Args:
+            replicas - list of replica objects
+
+        Returns:
+            None
+        """
  
         structure_path = self.work_dir_local + "/" + self.input_folder + "/" + self.namd_structure
         coords_path = self.work_dir_local + "/" + self.input_folder + "/" + self.namd_coordinates
@@ -113,17 +131,12 @@ class AmmNamd(object):
         input_template = self.inp_basename + ".namd"
         input_template_path = self.work_dir_local + "/" + self.input_folder + "/" + input_template
 
-        build_inp = os.path.dirname(ram_namd.input_file_builder.__file__)
-        build_inp_path = build_inp + "/input_file_builder.py"
+        rams_path = os.path.dirname(ram_namd.input_file_builder.__file__)
 
-        global_calc = os.path.dirname(ram_namd.global_ex_calculator_mpi.__file__)
-        global_calc_path = global_calc + "/global_ex_calculator_mpi.py"
-
-        global_calc_s = os.path.dirname(ram_namd.global_ex_calculator.__file__)
-        global_calc_path_s = global_calc_s + "/global_ex_calculator.py"
-
-        ind_calc = os.path.dirname(ram_namd.ind_ex_calculator.__file__)
-        ind_calc_path = ind_calc + "/ind_ex_calculator.py"
+        build_inp_path     = rams_path + "/input_file_builder.py"
+        global_calc_path   = rams_path + "/global_ex_calculator_mpi.py"
+        global_calc_path_s = rams_path + "/global_ex_calculator.py"
+        ind_calc_path      = rams_path + "/ind_ex_calculator.py"
 
         #-----------------------------------------------------------------------
 
@@ -165,6 +178,17 @@ class AmmNamd(object):
     #---------------------------------------------------------------------------
     #
     def initialize_replicas(self):
+        """Initializes replicas with parameters specified in simulation input
+        file. Assigns group index in each dimension for each initialized 
+        replica. Initializes a restart object of this application management 
+        module.  
+
+        Args:
+            None
+
+        Returns:
+            list of replica objects
+        """
 
         self.restart_object = Restart()
         
@@ -187,37 +211,6 @@ class AmmNamd(object):
 
     #---------------------------------------------------------------------------
     #
-    def save_replicas(self, 
-                      current_cycle, 
-                      dim_int, 
-                      dim_str, 
-                      replicas):
-        self.restart_object.dimension     = dim_int
-        self.restart_object.current_cycle =  current_cycle
-        self.restart_object.old_sandbox   = self.restart_object.new_sandbox
-
-        self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
-        with open(self.restart_file, 'wb') as output:
-            for replica in replicas:
-                pickle.dump(replica, output, pickle.HIGHEST_PROTOCOL)
-
-            pickle.dump(self.restart_object, output, pickle.HIGHEST_PROTOCOL)
-
-    #---------------------------------------------------------------------------
-    #
-    def recover_replicas(self):
-
-        replicas = []
-        with open(self.restart_file, 'rb') as input:
-            for i in range(self.replicas):
-                r_temp = pickle.load(input)
-                replicas.append( r_temp )
-            self.restart_object = pickle.load(input)
-            self.groups_numbers = self.restart_object.groups_numbers
-        return replicas
-    
-    #---------------------------------------------------------------------------
-    #
     def prepare_replica_for_md(self, 
                                current_cycle,
                                dim_int, 
@@ -225,6 +218,28 @@ class AmmNamd(object):
                                group, 
                                replica, 
                                sd_shared_list):
+
+        """Prepares RPs compute unit for a given replica to run MD simulation. 
+
+        Args:
+            current_cycle - integer representing number of the current 
+            simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            group - list of replica objects which are in the same group with 
+            a given replica in current dimension
+
+            replica - replica object for which we are preparing RPs compute unit
+
+            sd_shared_list - list of RPs data directives corresponding to 
+            simulation input files
+
+        Returns:
+            RPs compute unit
+        """
         
         basename = self.inp_basename
         template = self.inp_basename + ".namd"
@@ -329,6 +344,7 @@ class AmmNamd(object):
             cu.output_staging = stage_out
 
         replica.cycle += 1
+
         return cu
        
     #---------------------------------------------------------------------------
@@ -339,6 +355,26 @@ class AmmNamd(object):
                                dim_str, 
                                replicas, 
                                sd_shared_list):
+
+        """Prepares RPs compute unit for the exchange procedure.
+
+        Args:
+            current_cycle - integer representing number of the current 
+            simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            replicas - list of replica objects for which we are finalizing 
+            exchange procedure
+
+            sd_shared_list - list of RPs data directives corresponding to 
+            simulation input files
+
+        Returns:
+            RPs compute unit
+        """
 
         stage_out = []
         stage_in = []
@@ -355,14 +391,15 @@ class AmmNamd(object):
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             cu.input_staging  = stage_in
-            cu.arguments = ["global_ex_calculator_mpi.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+            cu.arguments = ["global_ex_calculator_mpi.py", 
+                            str(cycle), 
+                            str(self.replicas), 
+                            str(self.inp_basename)]
 
             # tmp guard for supermic
             if self.replicas == 1000:
-                print "1000"
                 cu.cores = self.replicas / 2
             elif self.replicas == 1728:
-                print "1728"
                 cu.cores = self.replicas / 4
             elif self.cores < self.replicas:
                 if (self.replicas % self.cores) != 0:
@@ -388,7 +425,10 @@ class AmmNamd(object):
             cu.pre_exec = self.pre_exec
             cu.executable = "python"
             cu.input_staging  = stage_in
-            cu.arguments = ["global_ex_calculator.py", str(cycle), str(self.replicas), str(self.inp_basename)]
+            cu.arguments = ["global_ex_calculator.py", 
+                            str(cycle), 
+                            str(self.replicas), 
+                            str(self.inp_basename)]
             cu.cores = 1
             cu.mpi = False         
             cu.output_staging = stage_out
@@ -397,12 +437,15 @@ class AmmNamd(object):
 
     #---------------------------------------------------------------------------
     #
-    def perform_swap(self, replica_i, replica_j):
+    def exchange_params(self, replica_i, replica_j):
         """Performs an exchange of temperatures
 
-        Arguments:
-        replica_i - a replica object
-        replica_j - a replica object
+        Args:
+            replica_i - a replica object
+            replica_j - a replica object
+
+        Returns:
+            None
         """
         # update old temperature
         replica_i.dims['d1']['old_par'] = replica_i.dims['d1']['par']
@@ -419,7 +462,24 @@ class AmmNamd(object):
     #---------------------------------------------------------------------------
     #
     def do_exchange(self, current_cycle, dim_int, dim_str, replicas):
-        """
+
+        """Reads pairs_for_exchange_c.dat file to determine which replicas
+        should exchange parameters. Calls exchange_params() method to exchange
+        parameters for a pair of replicas. Updates new_sandbox attribute of the
+        restart_object.
+
+        Args:
+            current_cycle - integer representing number of the current 
+            simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            replicas - list of replica objects
+
+        Returns:
+            None
         """
 
         r1 = None
@@ -428,39 +488,51 @@ class AmmNamd(object):
         cycle = replicas[0].cycle-1
 
         infile = "pairs_for_exchange_{cycle}.dat".format(cycle=cycle)
+        
         try:
             f = open(infile)
             lines = f.readlines()
             f.close()
             for l in lines:
                 pair = l.split()
-                r1_id = int(pair[0])
-                r2_id = int(pair[1])
-                for r in replicas:
-                    if r.id == r1_id:
-                        r1 = r
-                    if r.id == r2_id:
-                        r2 = r
-                #---------------------------------------------------------------
-                # guard
-                if r1 == None:
-                    rid = random.randint(0,(len(replicas)-1))
-                    r1 = replicas[rid]
-                if r2 == None:
-                    rid = random.randint(0,(len(replicas)-1))
-                    r2 = replicas[rid]
-                #---------------------------------------------------------------
-
-                # swap parameters
-                self.perform_swap(r1, r2)
-                r1.swap = 1
-                r2.swap = 1
+                if pair[0].isdigit() and pair[1].isdigit():
+                    r1_id = int(pair[0])
+                    r2_id = int(pair[1])
+                    for r in replicas:
+                        if r.id == r1_id:
+                            r1 = r
+                        if r.id == r2_id:
+                            r2 = r
+                    #-----------------------------------------------------------
+                    # swap parameters
+                    if r1 is not None and r2 is not None and self.exchange_off[0] == False:
+                        self.exchange_params(r1, r2)
+                        r1.swap = 1
+                        r2.swap = 1
+                else:
+                    i = l[-1]
+                    while i != '/':
+                        l = l[:-1]
+                        i = l[-1]
+                    self.restart_object.new_sandbox = l
         except:
             raise 
 
     #---------------------------------------------------------------------------
     #
     def get_all_groups(self, dim_int, replicas):
+        """Composes a 2d list of replicas, which are grouped based on their
+        group index in the current dimension
+
+        Args:
+            dim_int - integer representing the index of the current dimension
+
+            replicas - list of replica objects 
+
+        Returns:
+            all_groups - 2d list of replicas, which are grouped together based 
+            on their group index in the current dimension 
+        """
 
         dim = dim_int-1
 

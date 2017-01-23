@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.md_kernles.amber_kernels_us.global_ex_calculator
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 

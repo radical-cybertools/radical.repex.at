@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.application_management_modules.amm_amber
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 
@@ -18,40 +18,17 @@ import pickle
 import tarfile
 import datetime
 from os import path
-import radical.pilot as rp
 from os import listdir
-from os.path import isfile, join
+import replicas.replica
+from os.path import join
+import radical.pilot as rp
+from os.path import isfile
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
-from replicas.replica import Replica
-
 import ram_amber.input_file_builder
+import repex_utils.simulation_restart
 
-#-------------------------------------------------------------------------------
 
-class Restart(object):
-    """Maintains the state of the simulation, which is saved to .pkl files after 
-    every simulation cycle. 
-
-    Attributes:
-        new_sandbox - path to RP sandbox on remote HPC cluster for current 
-        simulation 
-
-        old_sandbox - path to RP sandbox on remote HPC cluster for simulation 
-        we are restarting
-
-        dimension - index of the current dimension of simulation
-
-        current_cycle - index of the current cycle of simulation
-
-        groups_numbers - list of the number of groups in each dimension
-    """
-    def __init__(self, dimension=None, current_cycle=None, new_sandbox=None):
-        self.new_sandbox    = new_sandbox
-        self.old_sandbox    = None
-        self.dimension      = dimension
-        self.current_cycle  = current_cycle
-        self.groups_numbers = None
 
 #-------------------------------------------------------------------------------
 #
@@ -70,7 +47,9 @@ class AmmAmber(object):
         """
         Args:
             inp_file - simulation input file with parameters specified by user 
+
             rconfig - resource configuration file
+            
             work_dir_local - directory from which main simulation script was invoked
         """
 
@@ -528,66 +507,6 @@ class AmmAmber(object):
 
         self.restart_object.groups_numbers = self.groups_numbers
                
-    #---------------------------------------------------------------------------
-    #
-    def save_replicas(self, 
-                      current_cycle, 
-                      dim_int, 
-                      dim_str, 
-                      replicas):
-        """Saves the state of the simulation and state of replicas to .pkl file. 
-        Method is called after every simulation cycle and for each dimension in 
-        the current simulation. Method first updates restart object, writes 
-        state of replicas to .pkl file and then writes restart object (which 
-        represents simulation state) to .pkl file
-
-        Args:
-            current_cycle - current simulation cycle
-
-            dim_int - integer representing the index of the current dimension
-
-            dim_str - string representing the index of the current dimension
-
-            replicas - list of replica objects
-
-        Returns:
-            None
-        """
-
-        self.restart_object.dimension     = dim_int
-        self.restart_object.current_cycle =  current_cycle
-        self.restart_object.old_sandbox   = self.restart_object.new_sandbox
-
-        self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
-        with open(self.restart_file, 'wb') as output:
-            for replica in replicas:
-                pickle.dump(replica, output, pickle.HIGHEST_PROTOCOL)
-
-            pickle.dump(self.restart_object, output, pickle.HIGHEST_PROTOCOL)
-
-    #---------------------------------------------------------------------------
-    #
-    def recover_replicas(self):
-        """Recovers the state of the failed simulation from .pkl file. Updates 
-        restart_object of this AMM. Updates groups_numbers attribute of this 
-        AMM.  
-
-        Args:
-            None
-
-        Returns:
-            list of recovered replica objects
-        """
-
-        replicas = []
-        with open(self.restart_file, 'rb') as input:
-            for i in range(self.replicas):
-                r_temp = pickle.load(input)
-                replicas.append( r_temp )
-            self.restart_object = pickle.load(input)
-            self.groups_numbers = self.restart_object.groups_numbers
-        return replicas
-
     #---------------------------------------------------------------------------
     #
     def prepare_shared_data(self, replicas):
@@ -1657,6 +1576,7 @@ class AmmAmber(object):
         Returns:
             RPs compute unit
         """
+
         stage_out = []
         stage_in = []
 
@@ -1996,21 +1916,16 @@ class AmmAmber(object):
         for r in replicas:
             all_groups[r.group_idx[dim]].append(r.id)
 
-        print "all_groups 1:"
-        print all_groups
+        self.logger.info("all groups ids before: {0}".format( all_groups ) )
 
         for gr in all_groups:
             gr.pop(0) 
-
-        print "all_groups 2:"
-        print all_groups
 
         for i,v in enumerate(all_groups):
             if len(all_groups[i]) == 0:
                 all_groups.pop(i)
 
-        print "all_groups 3:"
-        print all_groups
+        self.logger.info("all groups ids after: {0}".format( all_groups ) )
 
         return all_groups
 

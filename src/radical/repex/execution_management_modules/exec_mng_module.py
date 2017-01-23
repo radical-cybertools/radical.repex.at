@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.execution_management_modules.exec_mng_module
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -22,16 +22,26 @@ from kernels.kernels import KERNELS
 #-------------------------------------------------------------------------------
 
 class ExecutionManagementModule(object):
+    """Parent class for all Execution Management Modules. Fro standard REMD 
+    simulation typically is needed a single instance of EMM.
+
+    Attributes:
+        Way too many
+    """
 
     def __init__(self, inp_file, rconfig, md_logger):
         """
-        Arguments:
-        inp_file - json input file with Pilot and MD related parameters as specified by user 
+        Args:
+            inp_file - simulation input file with parameters specified by user 
+
+            rconfig - resource configuration file
+            
+            md_logger - logger of associated AMM
         """
 
         self.logger = md_logger
 
-        # pilot parameters
+        # RP's pilot's parameters
         self.resource = rconfig.get('resource')
         self.sandbox = rconfig.get('sandbox')
         self.user = rconfig.get('username')
@@ -67,6 +77,10 @@ class ExecutionManagementModule(object):
     #---------------------------------------------------------------------------
     #
     def launch_pilot(self):
+        """This method is used to submit RP's pilot to a targer HPC resource.
+        Note: by default we wait for a pilot to become active on resource, so
+        this method is blocking
+        """
  
         #-----------------------------------------------------------------------
         #

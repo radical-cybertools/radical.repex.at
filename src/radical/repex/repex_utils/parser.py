@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.namd_kernels.launch_simulation
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"

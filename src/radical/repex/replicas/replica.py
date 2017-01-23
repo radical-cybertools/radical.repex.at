@@ -1,6 +1,6 @@
 """
 .. module:: radical.repex.replicas.replica
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -14,7 +14,25 @@ import json
 #-------------------------------------------------------------------------------
 
 class Replica(object):
-    
+    """Class representing a replica object. Should be used for both Amber 
+    and NAMD.
+
+    Attributes:
+        id - ID of this replica
+
+        sid - state id of this replica
+
+        state - letter, representing state of this replica. Mainly used for 
+        asynchronous RE. possible states are:
+            I  - initiaized
+            MD - replica is performing MD simulation
+            EX - replica is performing Exchange
+
+        group_idx - list with group indexes of this replica in each dimension
+
+        dims - dictionary holding parameters and types of each dimension
+    """
+
     def __init__(self, 
                  my_id, 
                  d1_param=0.0, 
@@ -26,6 +44,28 @@ class Replica(object):
                  new_restraints=None, 
                  coor=None,
                  nr_dims = 1):
+        """
+        Args:
+            my_id -  
+
+            d1_param - 
+            
+            d2_param - 
+
+            d3_param - 
+
+            d1_type - 
+
+            d2_type - 
+
+            d3_type - 
+
+            new_restraints - 
+
+            coor - 
+
+            nr_dims - 
+        """
     
         self.id = int(my_id)
         self.sid = int(my_id)
@@ -55,15 +95,15 @@ class Replica(object):
             self.dims['d2'] = {'par' : d2_param, 'old_par' : d2_param, 'type' : d2_type} 
             self.dims['d3'] = {'par' : d3_param, 'old_par' : d3_param, 'type' : d3_type}
 
-        self.new_traj = ""  # ok
-        self.new_info = ""  # ok
-        self.new_coor = ""  # ok both namd and amber
+        self.new_traj = ""
+        self.new_info = ""
+        self.new_coor = ""  # namd and amber
 
-        self.old_traj = ""  # ok
-        self.old_info = ""  # ok 
-        self.old_coor = ""  # ok both namd and amber
+        self.old_traj = ""
+        self.old_info = ""
+        self.old_coor = ""  # namd and amber
 
-        self.old_path = ""
+        self.old_path   = ""
         self.first_path = ""
-        self.swap = 0
+        self.swap       = 0
 
