@@ -1,3 +1,7 @@
+"""
+.. module:: radical.repex.remote_application_modules.ram_amber.matrix_calculator_us_ex_mpi
+.. moduleauthor::  <antons.treikalis@gmail.com>
+"""
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
 __license__ = "MIT"
@@ -12,12 +16,14 @@ from mpi4py import MPI
 from subprocess import *
 import subprocess
 
-"""For group execution only!
+"""Note: This RAM should be used for group execution only!
 """
 
 #-------------------------------------------------------------------------------
 
 def bond(c1,c2):
+    """
+    """
 
     r = 0.0
     for i in range(3):
@@ -25,6 +31,8 @@ def bond(c1,c2):
     return math.sqrt(r)
 
 def angle(c1,c2,c3):
+    """
+    """
 
     r = 0.0; n1 = 0.0; n2 = 0.0
     for i in range(3):
@@ -35,6 +43,8 @@ def angle(c1,c2,c3):
     return math.acos(r)*180.0/math.pi
 
 def dihedral(c1,c2,c3,c4):
+    """
+    """
 
     #this piece of code needs to be improved later
     v21 = []; v32 = []; v43 = []; n_n1 = 0.0; n_n2 = 0.0; r = 0.0; dih = 0.0; det = 0.0
@@ -58,6 +68,8 @@ def dihedral(c1,c2,c3,c4):
         return 360.0-dih
 
 def calc(r, r1, r2, r3, r4, rk2, rk3):
+    """
+    """
 
     #see page 414 in amber 14 manual
     energy = 0.0
@@ -73,7 +85,25 @@ def calc(r, r1, r2, r3, r4, rk2, rk3):
         energy = rk3*(r4-r3)**2 - 2.0*rk3*(r4-r3)*(r-r4)
     return energy
 
-class Restraint(object):
+class Replica(object):
+    """Represents replica object and it's associated data for umbrella exchange.
+
+    Attributes:
+        crd_file - name of coordinates file
+
+        rstr_entry - string with parameters from restraint file (we may have 
+        multiple such strings)
+
+        crd_data - data read from coordinates file
+
+        rstr_type - string representing restraint type
+
+        rstr_atoms - list with atoms obtained from restraint file
+
+        rstr_atoms_crds - list with atoms obtained from coordinates file
+
+        energy - energy of this replica
+    """
 
     def __init__(self):
 
@@ -86,6 +116,12 @@ class Restraint(object):
         self.energy = 0.0
 
     def set_crd(self, crd_file):
+        """reads data from coordinates file and assigns that data to crd_data
+        atribute
+
+        Args:
+            crd_file - name of coordinates file
+        """
 
         self.crd_data = []
         self.crd_file = crd_file
@@ -103,6 +139,12 @@ class Restraint(object):
                 print "File %s is not found." % self.crd_file
 
     def set_rstr(self, rstr_entry):
+        """sets rstr_atoms, rstr_type and rstr_atoms_crds attributes  
+
+        Args:
+            rstr_entry - string with parameters from restraint file (we may have 
+        multiple such strings)
+        """
 
         self.rstr_type = ''
         self.rstr_atoms = []
@@ -120,6 +162,9 @@ class Restraint(object):
             else: self.rstr_atoms_crds.append(self.crd_data[int(atom)/2+1][37:].strip().split())
 
     def calc_energy(self):
+        """sets energy attribute
+        
+        """
 
         self.r = 0.0
         if self.rstr_type == 'BOND': self.r = bond(self.rstr_atoms_crds[0],self.rstr_atoms_crds[1])
@@ -154,7 +199,16 @@ class Restraint(object):
 #-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
-    
+    """Calculates reduced energy.
+
+    Args:
+        temperature - replica temperature
+        potential - replica potential energy
+
+    Returns:
+        reduced enery of replica
+    """
+
     kb = 0.0019872041    #boltzmann const in kcal/mol
     if temperature != 0:
         beta = 1. / (kb*temperature)
@@ -166,6 +220,19 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path=None, history_name=None):
+    """reads potential energy from a given .mdinfo file
+
+    Args:
+        replica_path - path to replica directory in RP's staging_area
+
+        history_name - name of .mdinfo file
+
+    Returns:
+        eptot - potential energy
+
+        path_to_replica_folder - path to CU sandbox where MD simulation was 
+        executed
+    """
 
     home_dir = os.getcwd()
     if replica_path is not None:
@@ -195,6 +262,15 @@ def get_historical_data(replica_path=None, history_name=None):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    """This script performs the following:
+        1. prepares input files for replicas in single group
+        2. runs MD with Amber engine
+        3. reads output files to generate columns of swap matrix
+
+    Note: for a single group we run only single instance of this script. To 
+    finalize exchange we run a single instance of global calculator for all 
+    groups (on a single CPU core).
+    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -402,7 +478,7 @@ if __name__ == '__main__':
         while (success == 0):
             try:
                 us_energy = 0.0
-                r = Restraint()
+                r = Replica()
                 r.set_crd(new_coor)
                 j = int(item[0])
                 for rstr_entry in item:

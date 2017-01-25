@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernels.amber_kernels_tex.matrix_calculator_tex
+.. module:: radical.repex.remote_application_modules.ram_amber.matrix_calculator_temp_ex
 .. moduleauthor::  <antons.treikalis@gmail.com>
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
@@ -18,7 +18,19 @@ import shutil
 #-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path, history_name):
-    
+    """reads potential energy from a given .mdinfo file
+
+    Args:
+        replica_path - path to replica directory in RP's staging_area
+
+        history_name - name of .mdinfo file
+
+    Returns:
+        temp - temperature
+        
+        eptot - potential energy
+    """
+
     home_dir = os.getcwd()
     if replica_path is not None:
         path = "../staging_area" + replica_path
@@ -50,6 +62,17 @@ def get_historical_data(replica_path, history_name):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    """This RAM is executed after Amber call to obtain data needed to populate 
+    a column of a swap matrix for this replica.
+
+    For this replica we read .mdinfo file and obtain energy values.
+    Next, we write all necessary data to history_info_temp.dat file, which
+    is located in staging_area of this pilot.
+
+    Note: there is only a single instance of history_info_temp.dat file and 
+    each CU associated with some replica is writing to this file (we use locks).
+    Then, CU responsible for exchange calculations reads from that file.
+    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)

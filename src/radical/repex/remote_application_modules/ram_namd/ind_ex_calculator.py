@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.namd_kernels.matrix_calculator_scheme_2
+.. module:: radical.repex.remote_application_modules.ram_namd.ind_ex_calculator
 .. moduleauthor::  <antons.treikalis@gmail.com>
 """
 

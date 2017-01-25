@@ -1,7 +1,7 @@
 """
-.. module:: radical.repex.md_kernels.amber_kernels_salt.amber_matrix_calculator_pattern_b
-.. moduleauthor::  <haoyuan.chen@rutgers.edu>
+.. module:: radical.repex.remote_application_modules.ram_amber.salt_conc_post_exec
 .. moduleauthor::  <antons.treikalis@gmail.com>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -18,12 +18,12 @@ import socket
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 
-    Arguments:
-    temperature - replica temperature
-    potential - replica potential energy
+    Args:
+        temperature - replica temperature
+        potential - replica potential energy
 
     Returns:
-    reduced enery of replica
+        reduced enery of replica
     """
     kb = 0.0019872041    #boltzmann const in kcal/mol
     if temperature != 0:
@@ -35,7 +35,19 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 #
 def get_historical_data(history_name, data_path=os.getcwd()):
+    """reads potential energy from a given .mdinfo file
 
+    Args:
+        data_path - path to replica directory in RP's staging_area
+
+        history_name - name of .mdinfo file
+
+    Returns:
+        eptot - potential energy
+
+        path_to_replica_folder - path to CU sandbox where MD simulation was 
+        executed
+    """
     home_dir = os.getcwd()
     os.chdir(data_path)
 
@@ -60,22 +72,29 @@ def get_historical_data(history_name, data_path=os.getcwd()):
 #-------------------------------------------------------------------------------
 #
 if __name__ == '__main__':
+    """This RAM is executed after Amber call to calculate single point energies 
+    (using Amber' group file feature).
+    For each replica we read _energy.mdinfo file and obtain energy values.
+    Next we populate lists of temperatures and energies and calculate reduced 
+    energy, which is used to populate a column of a swap matrix for a given 
+    replica. 
+    """
    
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
-    replica_id = int(data["rid"])
-    replica_cycle = int(data["replica_cycle"])
-    replicas = int(data["replicas"])
-    base_name = data["base_name"]
-    prmtop_name = data["amber_parameters"]
-    mdin_name = data["amber_input"]
-    init_temp = float(data["init_temp"])
-    init_salt = float(data["init_salt"])
-    new_restraints = data["new_restraints"]
-    amber_path = data["amber_path"]
+    replica_id        = int(data["rid"])
+    replica_cycle     = int(data["replica_cycle"])
+    replicas          = int(data["replicas"])
+    base_name         = data["base_name"]
+    prmtop_name       = data["amber_parameters"]
+    mdin_name         = data["amber_input"]
+    init_temp         = float(data["init_temp"])
+    init_salt         = float(data["init_salt"])
+    new_restraints    = data["new_restraints"]
+    amber_path        = data["amber_path"]
     current_group_tsu = data["current_group_tsu"]
-    r_old_path = data["r_old_path"]
+    r_old_path        = data["r_old_path"]
 
     pwd = os.getcwd()
 

@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.namd_kernels.matrix_calculator_scheme_2
+.. module:: radical.repex.remote_application_modules.ram_namd.global_ex_calculator_mpi
 .. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
@@ -289,42 +289,3 @@ if __name__ == '__main__':
             print 'Error: unable to create column file %s for replica %s' % \
             (outfile, replica_id)
 
-
-
-    """
-    pwd = os.getcwd()
-
-    # getting history data for self
-    history_name = base_name + "_" + replica_id + "_" + replica_cycle + ".history"
-    replica_temp, replica_energy, path_to_replica_folder = get_historical_data( history_name )
-
-    # getting history data for all replicas
-    # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
-    # but this is easily changeble for arbitrary cycle numbers
-    temperatures = [0.0]*replicas
-    energies = [0.0]*replicas
-
-
-    for j in range(replicas):
-        history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".history" 
-        try:
-            rj_temp, rj_energy, temp = get_historical_data( history_name )
-            temperatures[j] = rj_temp
-            energies[j] = rj_energy
-        except:
-             pass 
-
-    # init swap column
-    swap_column = [0.0]*replicas
-
-    for j in range(replicas):        
-        swap_column[j] = reduced_energy(temperatures[j], replica_energy)
-
-    for item in swap_column:
-        print item,    
-        
-    # printing path
-    print str(path_to_replica_folder).rstrip()
-
-    print str(replica_id)
-    """

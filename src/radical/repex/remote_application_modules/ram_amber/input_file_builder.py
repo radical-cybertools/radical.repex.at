@@ -1,3 +1,7 @@
+"""
+.. module:: radical.repex.remote_application_modules.ram_amber.input_file_builder
+.. moduleauthor::  <antons.treikalis@gmail.com>
+"""
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
 __license__ = "MIT"
@@ -12,6 +16,13 @@ import shutil
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    """Uses .mdin template to prepare an input file for this replica (before 
+    every MD simulation).
+    Uses .RST template to prepare .RST file for this replica (befor first 
+    MD simulation, later we reuse prepared file) if we are performing umbrella 
+    exchange or running multi-dimensional RE with one or more dimensions 
+    performing umbrella exchange.
+    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)

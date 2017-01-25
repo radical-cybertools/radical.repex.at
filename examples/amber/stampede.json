@@ -4,5 +4,6 @@
     "project"  : "TG-MCB090174",
     "runtime"  : "120",
     "cleanup"  : "False",
-    "cores" : "1744"
+    "cores" : "1744",
+    
 }

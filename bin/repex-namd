@@ -5,8 +5,10 @@ import sys
 import json
 from os import path
 import radical.utils.logger as rul
-from repex_utils.replica_cleanup import *
 from repex_utils.parser import parse_cmd_repex
+from repex_utils.replica_cleanup import clean_up
+from repex_utils.replica_cleanup import move_output_files
+
 
 from application_management_modules.amm_namd import AmmNamd
 

@@ -1,3 +1,7 @@
+"""
+.. module:: radical.repex.remote_application_modules.ram_amber.matrix_calculator_temp_ex_mpi
+.. moduleauthor::  <antons.treikalis@gmail.com>
+"""
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
 __license__ = "MIT"
@@ -13,7 +17,7 @@ from mpi4py import MPI
 from subprocess import *
 import subprocess
 
-"""For group execution only!
+"""Note: This RAM should be used for group execution only!
 """
 
 #-------------------------------------------------------------------------------
@@ -21,12 +25,13 @@ import subprocess
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 
-    Arguments:
-    temperature - replica temperature
-    potential - replica potential energy
+    Args:
+        temperature - replica temperature
+        
+        potential - replica potential energy
 
     Returns:
-    reduced enery of replica
+        reduced enery of replica
     """
     kb = 0.0019872041    #boltzmann const in kcal/mol
     if temperature != 0:
@@ -38,6 +43,21 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path, history_name):
+    """reads potential energy from a given .mdinfo file
+
+    Args:
+        replica_path - path to replica directory in RP's staging_area
+
+        history_name - name of .mdinfo file
+
+    Returns:
+        temp - temperature
+
+        eptot - potential energy
+
+        path_to_replica_folder - path to CU sandbox where MD simulation was 
+        executed
+    """
 
     home_dir = os.getcwd()
     if replica_path is not None:
@@ -71,6 +91,15 @@ def get_historical_data(replica_path, history_name):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    """This script performs the following:
+        1. prepares input files for replicas in single group
+        2. runs MD with Amber engine
+        3. reads output files to generate columns of swap matrix
+
+    Note: for a single group we run only single instance of this script. To 
+    finalize exchange we run a single instance of global calculator for all 
+    groups (on a single CPU core).
+    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -214,7 +243,6 @@ if __name__ == '__main__':
     process.wait()
 
     #---------------------------------------------------------------------------
-    # good up to here
     # Exchange:
 
     pwd = os.getcwd()

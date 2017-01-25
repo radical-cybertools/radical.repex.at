@@ -1,3 +1,8 @@
+"""
+.. module:: radical.repex.remote_application_modules.ram_amber.global_ex_calculator_us_ex
+.. moduleauthor::  <antons.treikalis@gmail.com>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
+"""
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
 __license__ = "MIT"
@@ -14,7 +19,17 @@ import random
 #-------------------------------------------------------------------------------
 
 def reduced_energy(temperature, potential):
-    
+    """Calculates reduced energy.
+
+    Args:
+        temperature - replica temperature
+
+        potential - replica potential energy
+
+    Returns:
+        reduced enery of replica
+    """
+
     kb = 0.0019872041    #boltzmann const in kcal/mol
     if temperature != 0:
         beta = 1. / (kb*temperature)
@@ -42,14 +57,16 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
     Produces a replica "j" to exchange with the given replica "i"
     based off independence sampling of the discrete distribution
 
-    Arguments:
-    r_i - given replica for which is found partner replica
-    replicas - list of Replica objects
-    swap_matrix - matrix of dimension-less energies, where each column is a replica 
-    and each row is a state
+    Args:
+        r_i - given replica for which is found partner replica
+
+        replicas - list of Replica objects
+
+        swap_matrix - matrix of dimension-less energies, where each column is a 
+        replica and each row is a state
 
     Returns:
-    r_j - replica to exchnage parameters with
+        r_j - replica to exchnage parameters with
     """
 
     #evaluate all i-j swap probabilities
@@ -85,8 +102,19 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 
 #-------------------------------------------------------------------------------
 #
-def do_exchange(dimension, replicas, swap_matrix):
+def do_exchange(replicas, swap_matrix):
+    """Determines exchange pairs in current group of replicas. 
+    For each replica we try to find an exchange partner by calling 
+    gibbs_exchange().
 
+    Args:
+        replicas - list of replica objects (replicas in same group)
+
+        swap_matrix - matrix with reduced energies
+
+    Returns:
+        exchanged_pairs - list with pairs of replicas
+    """
     exchanged_pairs = []
     for r_i in replicas:
         r_j = gibbs_exchange(r_i, replicas, swap_matrix)
@@ -98,7 +126,8 @@ def do_exchange(dimension, replicas, swap_matrix):
 #-------------------------------------------------------------------------------
 #
 class Replica(object):
-    
+    """Class representing replica and it's associated data.
+    """
     def __init__(self, 
                  my_id, 
                  d1_param=0.0, 
@@ -129,6 +158,18 @@ class Replica(object):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    """Should be used only if MD tasks are generated for each replica 
+    individually and we perform umbrella exchange. Generates 
+    pairs_for_exchange_d_c.dat file with pairs of replica id's. 
+    Replica pairs specified in this file must exchange parameters.
+    We first read from staging_area history_info_us.dat file to compose a 
+    swap_matrix. 
+    Then for each replica we create a replica object to hold
+    data associated with that replica. 
+    Next, we call do_exchange() for replicas belonging to the same group
+    Finaly, we write obtaned pairs of replicas to
+    pairs_for_exchange_d_c.dat file. 
+    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)
@@ -300,7 +341,7 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d2_param == r2.d2_param) and (r1.d3_param == r2.d3_param):
                             current_group.append(r2)
-                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_pairs = do_exchange(current_group, swap_matrix)
                     exchange_list += exchange_pairs
 
             elif dimension == 2:
@@ -311,7 +352,7 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d1_param == r2.d1_param) and (r1.d3_param == r2.d3_param):
                             current_group.append(r2)
-                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_pairs = do_exchange(current_group, swap_matrix)
                     exchange_list += exchange_pairs
 
             elif dimension == 3:
@@ -322,7 +363,7 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d1_param == r2.d1_param) and (r1.d2_param == r2.d2_param):
                             current_group.append(r2)
-                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_pairs = do_exchange(current_group, swap_matrix)
                     exchange_list += exchange_pairs
     elif nr_dims == 2:
         for r1 in replicas_obj:
@@ -334,7 +375,7 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d2_param == r2.d2_param):
                             current_group.append(r2)
-                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_pairs = do_exchange(current_group, swap_matrix)
                     exchange_list += exchange_pairs
 
             elif dimension == 2:
@@ -345,7 +386,7 @@ if __name__ == '__main__':
                     for r2 in replicas_obj:
                         if (r1.d1_param == r2.d1_param):
                             current_group.append(r2)
-                    exchange_pairs = do_exchange(dimension, current_group, swap_matrix)
+                    exchange_pairs = do_exchange(current_group, swap_matrix)
                     exchange_list += exchange_pairs
     elif nr_dims == 1:
         for r_i in replicas_obj:

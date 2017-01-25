@@ -1,7 +1,7 @@
 """
-.. module:: radical.repex.md_kernels.amber_kernels_salt.amber_matrix_calculator_pattern_b
-.. moduleauthor::  <haoyuan.chen@rutgers.edu>
+.. module:: radical.repex.remote_application_modules.ram_amber.salt_conc_pre_exec
 .. moduleauthor::  <antons.treikalis@gmail.com>
+.. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -16,6 +16,19 @@ import socket
 #-------------------------------------------------------------------------------
 #
 def get_historical_data(replica_path, history_name):
+    """reads potential energy from a given .mdinfo file
+
+    Args:
+        replica_path - path to replica directory in RP's staging_area
+
+        history_name - name of .mdinfo file
+
+    Returns:
+        eptot - potential energy
+
+        path_to_replica_folder - path to directory of a given replica in RP's 
+        staging area
+    """
 
     home_dir = os.getcwd()
     if replica_path is not None:
@@ -48,22 +61,24 @@ def get_historical_data(replica_path, history_name):
 #-------------------------------------------------------------------------------
 #
 if __name__ == '__main__':
+    """This RAM is executed after MD simulation for a given replica is done and
+    before we call Amber for Single Point Energy (SPE) calculations. This RAM 
+    prepares a groupfile to calculate SPE.
+    """
     
     json_data = sys.argv[1]
     data=json.loads(json_data)
 
-    replica_id = int(data["rid"])
-    replica_cycle = int(data["replica_cycle"])
-    replicas = int(data["replicas"])
-    base_name = data["base_name"]
-    prmtop_name = data["amber_parameters"]
-    mdin_name = data["amber_input"]
-    init_temp = float(data["init_temp"])
-    amber_path = data["amber_path"]
+    replica_id        = int(data["rid"])
+    replica_cycle     = int(data["replica_cycle"])
+    replicas          = int(data["replicas"])
+    base_name         = data["base_name"]
+    prmtop_name       = data["amber_parameters"]
+    mdin_name         = data["amber_input"]
+    init_temp         = float(data["init_temp"])
+    amber_path        = data["amber_path"]
     current_group_tsu = data["current_group_tsu"]
-
-    # PATH TO SHARED INPUT FILES (to get ala10.prmtop)
-    r_old_path = data["r_old_path"]
+    r_old_path        = data["r_old_path"]
 
     pwd = os.getcwd()
 
@@ -76,15 +91,8 @@ if __name__ == '__main__':
     new_coor_file = "{0}_{1}_{2}.rst".format(base_name, replica_id, replica_cycle)
     new_coor = path_to_replica_folder + new_coor_file
 
-    # getting history data for all replicas
-    # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
-    # but this is easily changeble for arbitrary cycle numbers
-    temperatures = [0.0]*replicas   #need to pass the replica temperature here
-    energies = [0.0]*replicas
-
     f_groupfile = file('groupfile','w')
     # call amber to run 1-step energy calculation
-    #for j in range(replicas):
     for j in current_group_tsu.keys():
 
         energy_history_name = base_name + "_" + j + "_" + str(replica_cycle) + "_energy.mdinfo"

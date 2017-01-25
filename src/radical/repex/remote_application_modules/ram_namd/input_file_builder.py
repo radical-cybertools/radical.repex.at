@@ -1,3 +1,7 @@
+"""
+.. module:: radical.repex.remote_application_modules.ram_namd.input_file_builder
+.. moduleauthor::  <antons.treikalis@gmail.com>
+"""
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
 __license__ = "MIT"

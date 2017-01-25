@@ -1,4 +1,10 @@
-#!/usr/bin/python
+"""
+.. module:: radical.repex.namd_kernels.launch_simulation
+.. moduleauthor::  <antons.treikalis@gmail.com>
+"""
+
+__copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
+__license__ = "MIT"
 
 import os
 import sys
@@ -7,6 +13,12 @@ import math
 import datetime
 
 def read_mdinfo(name):
+    """Reads simulation speend and simulation execuiton time (in secs) from
+    Amber's .mdinfo files generated durig simulation
+
+    Args:
+        name - name of the .mdinfo file
+    """
 
     try:
         r_file = open(name, "r")
@@ -38,9 +50,11 @@ def read_mdinfo(name):
 #-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    """
-    reads simulation speend and simulation execuiton time (in secs) from
-    Amber's .mdinfo files generated durig simulation
+    """This module should be called in location where all .mdinfo files 
+    generated durig simulation are located. Usually this is on remote HPC custer
+    in RP's sandbox. Prints the ttal number of .mdinfo files, avegare simulation 
+    speed, total execution time in seconds and average execuiton time in 
+    seconds. Note: all measurements are done by Amber!
     """
     
     sim_list = []

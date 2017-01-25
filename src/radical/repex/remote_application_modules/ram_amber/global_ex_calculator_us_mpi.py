@@ -1,5 +1,5 @@
 """
-.. module:: radical.repex.md_kernles.amber_kernels_us.global_ex_calculator
+.. module:: radical.repex.remote_application_modules.ram_amber.global_ex_calculator_us_mpi
 .. moduleauthor::  <antons.treikalis@gmail.com>
 .. moduleauthor::  <haoyuan.chen@rutgers.edu>
 """
@@ -19,6 +19,8 @@ from mpi4py import MPI
 #-------------------------------------------------------------------------------
 
 def bond(c1,c2):
+    """
+    """
 
     r = 0.0
     for i in range(3):
@@ -26,6 +28,8 @@ def bond(c1,c2):
     return math.sqrt(r)
 
 def angle(c1,c2,c3):
+    """
+    """
 
     r = 0.0; n1 = 0.0; n2 = 0.0
     for i in range(3):
@@ -36,6 +40,8 @@ def angle(c1,c2,c3):
     return math.acos(r)*180.0/math.pi
 
 def dihedral(c1,c2,c3,c4):
+    """
+    """
 
     #this piece of code needs to be improved later
     v21 = []; v32 = []; v43 = []; n_n1 = 0.0; n_n2 = 0.0; r = 0.0; dih = 0.0; det = 0.0
@@ -56,8 +62,25 @@ def dihedral(c1,c2,c3,c4):
     if det >= 0.0: return dih
     else: return 360.0-dih
 
-class Restraint(object):
+class Replica(object):
+    """Represents replica object and it's associated data for umbrella exchange.
 
+    Attributes:
+        crd_file - name of coordinates file
+
+        rstr_entry - string with parameters from restraint file (we may have 
+        multiple such strings)
+
+        crd_data - data read from coordinates file
+
+        rstr_type - string representing restraint type
+
+        rstr_atoms - list with atoms obtained from restraint file
+
+        rstr_atoms_crds - list with atoms obtained from coordinates file
+
+        energy - energy of this replica
+    """
     def __init__(self):
 
         self.crd_file = ''
@@ -69,6 +92,12 @@ class Restraint(object):
         self.energy = 0.0
 
     def set_crd(self, crd_file):
+        """reads data from coordinates file and assigns that data to crd_data
+        atribute
+
+        Args:
+            crd_file - name of coordinates file
+        """
 
         self.crd_data = []
         self.crd_file = crd_file
@@ -86,6 +115,12 @@ class Restraint(object):
                 print "File %s is not found." % self.crd_file
 
     def set_rstr(self, rstr_entry):
+        """sets rstr_atoms, rstr_type and rstr_atoms_crds attributes  
+
+        Args:
+            rstr_entry - string with parameters from restraint file (we may have 
+        multiple such strings)
+        """
 
         self.rstr_type = ''
         self.rstr_atoms = []
@@ -103,6 +138,9 @@ class Restraint(object):
             else: self.rstr_atoms_crds.append(self.crd_data[int(atom)/2+1][37:].strip().split())
 
     def calc_energy(self):
+        """sets energy attribute
+        
+        """
 
         self.r = 0.0
         if self.rstr_type == 'BOND': self.r = bond(self.rstr_atoms_crds[0],self.rstr_atoms_crds[1])
@@ -137,12 +175,13 @@ class Restraint(object):
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 
-    Arguments:
-    temperature - replica temperature
-    potential - replica potential energy
+    Args:
+        temperature - replica temperature
+
+        potential - replica potential energy
 
     Returns:
-    reduced enery of replica
+        reduced enery of replica
     """
     kb = 0.0019872041    #boltzmann const in kcal/mol
     if temperature != 0:
@@ -155,21 +194,18 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path=None, history_name=None):
-    """Retrieves temperature and potential energy from simulation output file .history file.
-    This file is generated after each simulation run. The function searches for directory 
-    where .history file recides by checking all computeUnit directories on target resource.
+    """reads potential energy from a given .mdinfo file
 
-    Arguments:
-    history_name - name of .history file for a given replica. 
+    Args:
+        replica_path - path to replica directory in RP's staging_area
+
+        history_name - name of .mdinfo file
 
     Returns:
-    data[0] - temperature obtained from .history file
-    data[1] - potential energy obtained from .history file
-    path_to_replica_folder - path to computeUnit directory on a target resource where all
-    input/output files for a given replica recide.
-       Get temperature and potential energy from mdinfo file.
+        eptot - potential energy
 
-    ACTUALLY WE ONLY NEED THE POTENTIAL FROM HERE. TEMPERATURE GOTTA BE OBTAINED FROM THE PROPERTY OF THE REPLICA OBJECT.
+        path_to_replica_folder - path to CU sandbox where MD simulation was 
+        executed
     """
 
     home_dir = os.getcwd()
@@ -191,10 +227,6 @@ def get_historical_data(replica_path=None, history_name=None):
         os.chdir(home_dir)
         raise
         
-    #if replica_path != None:
-    #    os.chdir("../")
-    #    os.chdir(home_dir)
-
     os.chdir(home_dir)
 
     return eptot, path_to_replica_folder
@@ -218,14 +250,16 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
     Produces a replica "j" to exchange with the given replica "i"
     based off independence sampling of the discrete distribution
 
-    Arguments:
-    r_i - given replica for which is found partner replica
-    replicas - list of Replica objects
-    swap_matrix - matrix of dimension-less energies, where each column is a replica 
+    Args:
+        r_i - given replica for which is found partner replica
+
+        replicas - list of Replica objects
+
+        swap_matrix - matrix of dimension-less energies, where each column is a replica 
     and each row is a state
 
     Returns:
-    r_j - replica to exchnage parameters with
+        r_j - replica to exchnage parameters with
     """
 
     #evaluate all i-j swap probabilities
@@ -262,32 +296,9 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 
     return r_j
 
-def do_exchange(dimension, replicas, swap_matrix):
-
-#    exchanged_pairs = []
-#    exchanged_replicas = []
-#    for r_i in replicas:
-#        if r_i.id not in exchanged_replicas:
-#            r_j = gibbs_exchange(r_i, replicas, swap_matrix)
-#
-#            if (r_j.id != r_i.id) and (r_j.id not in exchanged_replicas):
-#                exchanged_pairs.append( [r_j.id, r_i.id] )
-#                exchanged_replicas.append(r_j.id)
-#                exchanged_replicas.append(r_i.id)
-#
-#    return  exchanged_pairs
-
-    exchanged_pairs = []
-    for r_i in replicas:
-        r_j = gibbs_exchange(r_i, replicas, swap_matrix)
-        if r_j.id != r_i.id:
-            exchanged_pairs.append( [r_i.id, r_j.id] )
-    return  exchanged_pairs
-
-
 #-------------------------------------------------------------------------------
 #
-class Replica(object):
+class Repl(object):
     """Class representing replica and it's associated data.
     """
     def __init__(self, my_id):
@@ -298,7 +309,17 @@ class Replica(object):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """
+    """Should be used only for if we perform MPI exchange for umbrella exchange. 
+    Generates pairs_for_exchange_d_c.dat file with pairs of replica id's. 
+    Replica pairs specified in this file must exchange parameters.
+    First, we read from staging_area .mdinfo files.
+    Next, we populate temperatures and energies lists.
+    Next, we calculate reduced energies and populate swap_matrix.
+    Then for each replica we create a replica object to hold
+    data associated with that replica. 
+    Next we call gibbs_exchange() for replicas belonging to the same group and 
+    finaly we warite obtaned pairs of replicas 
+    to pairs_for_exchange_d_c.dat file. 
     """
 
     comm = MPI.COMM_WORLD
@@ -376,7 +397,7 @@ if __name__ == '__main__':
                         #-------------------------------------------------------
                         rstr_entries = ''.join(rstr_lines).split('&rst')[1:]
                         us_energy = 0.0
-                        r = Restraint()
+                        r = Replica()
 
                         new_coor = "%s_%d_%d.rst" % (base_name, replica_id, current_cycle)
                         new_coor_path = "../staging_area" + replica_path + new_coor
@@ -470,7 +491,7 @@ if __name__ == '__main__':
                         rstr_val_1 = float(num_list[1])
                     
                 # creating replica
-                r = Replica(rid)
+                r = Repl(rid)
                 replicas_obj.append(r)
 
                 success = 1

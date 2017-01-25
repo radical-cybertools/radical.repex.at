@@ -46,25 +46,25 @@ class Replica(object):
                  nr_dims = 1):
         """
         Args:
-            my_id -  
+            my_id - replica id
 
-            d1_param - 
+            d1_param - parameter in first dimension
             
-            d2_param - 
+            d2_param - parameter in second dimension
 
-            d3_param - 
+            d3_param - parameter in third dimension
 
-            d1_type - 
+            d1_type - type of exchange in first dimension
 
-            d2_type - 
+            d2_type - type of exchange in second dimension
 
-            d3_type - 
+            d3_type - type of exchange in third dimension
 
-            new_restraints - 
+            new_restraints - name of restraint file template
 
-            coor - 
+            coor - name of coordinates file
 
-            nr_dims - 
+            nr_dims - number of dimenions for this replica
         """
     
         self.id = int(my_id)

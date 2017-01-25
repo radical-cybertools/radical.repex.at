@@ -13,7 +13,7 @@ def parse_cmd_repex():
     """Performs command line parsing.
 
     Returns:
-    options - dictionary {'input_file': 'path/to/input.json'}
+        options - dictionary {'input_file': 'path/to/input.json'}
     """
 
     usage = "usage: %prog [Options]"
@@ -41,7 +41,7 @@ def parse_cmd_acc_ratio():
     """Performs command line parsing.
 
     Returns:
-    options - dictionary {'input_file': 'path/to/input.json'}
+        options - dictionary {'input_file': 'path/to/input.json'}
     """
 
     usage = "usage: %prog [Options]"
@@ -69,7 +69,7 @@ def parse_cmd_state_mixing():
     """Performs command line parsing.
 
     Returns:
-    options - dictionary {'input_file': 'path/to/input.json'}
+        options - dictionary {'input_file': 'path/to/input.json'}
     """
 
     usage = "usage: %prog [Options]"
@@ -105,7 +105,7 @@ def parse_cmd_count_exchange_metrics():
     """Performs command line parsing.
 
     Returns:
-    options - dictionary {'input_file': 'path/to/input.json'}
+        options - dictionary {'input_file': 'path/to/input.json'}
     """
 
     usage = "usage: %prog [Options]"
