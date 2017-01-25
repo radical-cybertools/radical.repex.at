@@ -16,6 +16,9 @@ import shutil
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    """Uses .namd template to prepare an input file for this replica (before 
+    every MD simulation).
+    """
 
     json_data = sys.argv[1]
     data=json.loads(json_data)

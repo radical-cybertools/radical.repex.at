@@ -8,16 +8,17 @@ __license__ = "MIT"
 
 import os
 import sys
+import json
 import shutil
 import pickle
 import tarfile
 from os import path
-import replicas.replica
 import radical.pilot as rp
 import radical.utils.logger as rul
 from kernels.kernels import KERNELS
 import ram_namd.input_file_builder
-import repex_utils.simulation_restart
+from replicas.replica import Replica
+from repex_utils.simulation_restart import Restart
 
 #-------------------------------------------------------------------------------
 
@@ -98,7 +99,7 @@ class AmmNamd(object):
             sys.exit(1)
 
         self.exchange_off = []
-        if (inp_file['dim.input'][d_str].get("exchange_off", "False")) == "True":
+        if (inp_file['dim.input']['d1'].get("exchange_off", "False")) == "True":
             self.exchange_off.append(True)
         else:
             self.exchange_off.append(False)
@@ -107,6 +108,66 @@ class AmmNamd(object):
 
         self.shared_urls = []
         self.shared_files = []
+
+    #---------------------------------------------------------------------------
+    #
+    def save_replicas(self, 
+                      current_cycle, 
+                      dim_int, 
+                      dim_str, 
+                      replicas):
+        """Saves the state of the simulation and state of replicas to .pkl file. 
+        Method is called after every simulation cycle and for each dimension in 
+        the current simulation. Method first updates restart object, writes 
+        state of replicas to .pkl file and then writes restart object (which 
+        represents simulation state) to .pkl file
+
+        Args:
+            current_cycle - current simulation cycle
+
+            dim_int - integer representing the index of the current dimension
+
+            dim_str - string representing the index of the current dimension
+
+            replicas - list of replica objects
+
+        Returns:
+            None
+        """
+
+        self.restart_object.dimension     = dim_int
+        self.restart_object.current_cycle =  current_cycle
+        self.restart_object.old_sandbox   = self.restart_object.new_sandbox
+
+        self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
+        with open(self.restart_file, 'wb') as output:
+            for replica in replicas:
+                pickle.dump(replica, output, pickle.HIGHEST_PROTOCOL)
+
+            pickle.dump(self.restart_object, output, pickle.HIGHEST_PROTOCOL)
+
+    #---------------------------------------------------------------------------
+    #
+    def recover_replicas(self):
+        """Recovers the state of the failed simulation from .pkl file. Updates 
+        restart_object of this AMM. Updates groups_numbers attribute of this 
+        AMM.  
+
+        Args:
+            None
+
+        Returns:
+            list of recovered replica objects
+        """
+
+        replicas = []
+        with open(self.restart_file, 'rb') as input:
+            for i in range(self.replicas):
+                r_temp = pickle.load(input)
+                replicas.append( r_temp )
+            self.restart_object = pickle.load(input)
+            self.groups_numbers = self.restart_object.groups_numbers
+        return replicas
 
     #---------------------------------------------------------------------------
     #
@@ -376,6 +437,10 @@ class AmmNamd(object):
             RPs compute unit
         """
 
+        temperatures = ""
+        for r in replicas:
+            temperatures += " " + str(r.dims['d1']['par'])
+
         stage_out = []
         stage_in = []
         cycle = replicas[0].cycle-1
@@ -394,7 +459,8 @@ class AmmNamd(object):
             cu.arguments = ["global_ex_calculator_mpi.py", 
                             str(cycle), 
                             str(self.replicas), 
-                            str(self.inp_basename)]
+                            str(self.inp_basename),
+                            temperatures]
 
             # tmp guard for supermic
             if self.replicas == 1000:

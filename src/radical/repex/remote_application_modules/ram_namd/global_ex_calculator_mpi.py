@@ -19,9 +19,10 @@ from mpi4py import MPI
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 
-    Arguments:
-    temperature - replica temperature
-    potential - replica potential energy
+    Args:
+        temperature - replica temperature
+
+        potential - replica potential energy
 
     Returns:
     reduced enery of replica
@@ -53,14 +54,16 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
     Produces a replica "j" to exchange with the given replica "i"
     based off independence sampling of the discrete distribution
 
-    Arguments:
-    r_i - given replica for which is found partner replica
-    replicas - list of Replica objects
-    swap_matrix - matrix of dimension-less energies, where each column is a 
+    Args:
+        r_i - given replica for which is found partner replica
+
+        replicas - list of Replica objects
+
+        swap_matrix - matrix of dimension-less energies, where each column is a 
     replica and each row is a state
 
     Returns:
-    r_j - replica to exchnage parameters with
+        r_j - replica to exchnage parameters with
     """
 
     #evaluate all i-j swap probabilities
@@ -99,7 +102,23 @@ def gibbs_exchange(r_i, replicas, swap_matrix):
 #-------------------------------------------------------------------------------
 
 def get_historical_data(replica_path, history_name):
-    
+    """reads potential energy from a given .history file
+
+    Args:
+        replica_path - path to staging area of this piot where .history file
+        resides
+
+        history_name - name of .history file
+
+    Returns:
+        temp - temperature
+        
+        eptot - potential energy
+
+        path_to_replica_folder - path to CU sandbox where MD simulation was 
+        executed
+    """
+
     home_dir = os.getcwd()
     if replica_path != None:
         path = "../staging_area" + replica_path
@@ -135,6 +154,16 @@ class Replica(object):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    """Generates pairs_for_exchange_d_c.dat file with pairs of replica id's. 
+    Replica pairs specified in this file must exchange parameters.
+    First, we read from staging_area .history files to compose a 
+    swap_matrix. 
+    Then for each replica we create a replica object to hold
+    data associated with that replica. 
+    Next, we call gibbs_exchange() to calculate pairs of replicas, which will 
+    exchange parameters and finaly we write obtaned pairs of replicas to
+    pairs_for_exchange_d_c.dat file. 
+    """
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -142,8 +171,21 @@ if __name__ == '__main__':
 
     argument_list = str(sys.argv)
     current_cycle = int(sys.argv[1])
-    replicas = int(sys.argv[2])
-    base_name = str(sys.argv[3])
+    replicas      = int(sys.argv[2])
+    base_name     = str(sys.argv[3])
+    temps         = str(sys.argv[4])
+
+    tmp = temps.split(' ')
+    tmp.pop(0)
+    # init swap column
+    swap_column = [0.0]*replicas
+    temperatures = [0.0]*replicas
+    energies = [0.0]*replicas
+
+    for i in range(replicas):
+        temperatures[i] = float(tmp[i])
+
+    print "temperatures: {0}".format( temperatures )
 
     comm.Barrier()
 
@@ -172,11 +214,6 @@ if __name__ == '__main__':
         print "r_ids: "
         print r_ids
 
-    # init swap column
-    swap_column = [0.0]*replicas
-    temperatures = [0.0]*replicas
-    energies = [0.0]*replicas
-
     all_temperatures = [0.0]*replicas
     all_energies = [0.0]*replicas
 
@@ -198,11 +235,11 @@ if __name__ == '__main__':
                 # old
                 #replica_temp, replica_energy, path_to_replica_folder = get_historical_data( history_name )
                 replica_temp, replica_energy, path_to_replica_folder = get_historical_data(replica_path, history_name)
-                temperatures[replica_id] = replica_temp
+                #temperatures[replica_id] = replica_temp
                 energies[replica_id] = replica_energy
 
                 print "rank: {0} temp: {1} energy: {2}".format(rank, replica_temp, replica_energy)
-                temperatures = comm.gather(replica_temp, root=0)
+                #temperatures = comm.gather(replica_temp, root=0)
                 energies     = comm.gather(replica_energy, root=0)
 
 

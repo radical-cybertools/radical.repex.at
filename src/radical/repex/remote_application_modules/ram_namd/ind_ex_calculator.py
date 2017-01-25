@@ -14,12 +14,13 @@ import sys
 def reduced_energy(temperature, potential):
     """Calculates reduced energy.
 
-    Arguments:
-    temperature - replica temperature
-    potential - replica potential energy
+    Args:
+        temperature - replica temperature
+
+        potential - replica potential energy
 
     Returns:
-    reduced enery of replica
+        reduced enery of replica
     """
     kb = 0.0019872041
     # check for division by zero
@@ -32,7 +33,20 @@ def reduced_energy(temperature, potential):
 #-------------------------------------------------------------------------------
 
 def get_historical_data(history_name):
-    
+    """reads potential energy from a given .history file
+
+    Args:
+        history_name - name of .history file
+
+    Returns:
+        temp - temperature
+        
+        eptot - potential energy
+
+        path_to_replica_folder - path to CU sandbox where MD simulation was 
+        executed
+    """
+
     home_dir = os.getcwd()
     os.chdir("../")
     
@@ -54,8 +68,7 @@ def get_historical_data(history_name):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    """This module calculates one swap matrix column for replica and writes this column to 
-    matrix_column_x_x.dat file. 
+    """Calculates a swap matrix column for this replica.
     """
 
     argument_list = str(sys.argv)
@@ -96,5 +109,21 @@ if __name__ == '__main__':
     # printing path
     print str(path_to_replica_folder).rstrip()
 
-    print str(replica_id)
-    
+    try:
+        outfile = "matrix_column_{id}_{cycle}.dat".format(cycle=replica_cycle, id=replica_id )
+        with open(outfile, 'w+') as f:
+            row_str = ""
+            for item in swap_column:
+                if len(row_str) != 0:
+                    row_str = row_str + " " + str(item)
+                else:
+                    row_str = str(item)
+            f.write(row_str)
+            f.write('\n')
+            row_str = replica_id + " " + replica_cycle
+            f.write(row_str)
+        f.close()
+
+    except IOError:
+        print 'Error: unable to create column file %s for replica %s' % (outfile, replica_id)
+
