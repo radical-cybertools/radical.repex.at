@@ -87,7 +87,7 @@ class AmmNamd(object):
         self.current_cycle     = -1
         self.input_folder      = inp_file['remd.input'].get('input_folder')
 
-        self.pre_exec = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
+        self.pre_exec  = KERNELS[self.resource]["kernels"]["namd"]["pre_execution"]
         self.inp_basename = inp_file['remd.input']['input_file_basename']
 
         self.namd_path = inp_file['remd.input'].get('namd_path')
@@ -231,7 +231,7 @@ class AmmNamd(object):
         self.shared_urls.append(global_calc_url)
 
         global_calc_url_s = 'file://%s' % (global_calc_path_s)
-        self.shared_urls.append(global_calc_url)
+        self.shared_urls.append(global_calc_url_s)
 
         ind_calc_url = 'file://%s' % (ind_calc_path)
         self.shared_urls.append(ind_calc_url)
@@ -373,12 +373,12 @@ class AmmNamd(object):
 
         pre_exec_str = "python input_file_builder.py " + "\'" + json_pre_data + "\'"
 
-        # only for first cycle we transfer structure, coordinates and parameters files
-        if replica.cycle == 0:
+        cu = rp.ComputeUnitDescription()
+
+        if self.exchange_mpi == True:
             for i in range(5):
                 stage_in.append(sd_shared_list[i])
 
-            cu                = rp.ComputeUnitDescription()
             cu.pre_exec       = self.pre_exec + [pre_exec_str]
             cu.executable     = self.namd_path
             cu.arguments      = [input_file]
@@ -388,15 +388,38 @@ class AmmNamd(object):
             cu.output_staging = stage_out
             
         else:
-            
-            stage_in.append(sd_shared_list[0])
-            stage_in.append(sd_shared_list[1])
-            stage_in.append(sd_shared_list[2])
-            stage_in.append(sd_shared_list[3])
-            stage_in.append(sd_shared_list[4])
+            for i in range(5):
+                stage_in.append(sd_shared_list[i])
+            stage_in.append(sd_shared_list[7])
 
-            cu                = rp.ComputeUnitDescription()
-            cu.pre_exec       = self.pre_exec + [pre_exec_str]
+            matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), 
+                                                      str(replica.cycle))
+            matrix_col_out = {
+                'source': matrix_col,
+                'target': 'staging:///%s' % (matrix_col),
+                'action': rp.COPY
+            }
+            stage_out.append(matrix_col_out)
+
+            temperatures = ""
+            for r in group:
+                temperatures += " " + str(r.dims['d1']['par'])
+
+            data = {
+                "replica_id" : str(replica.id),
+                "replica_cycle": str(replica.cycle),
+                "replicas": str(self.replicas),
+                "basename": str(basename),
+                "temperatures": temperatures
+            }
+
+            dump_post_data = json.dumps(data)
+            json_post_data = dump_post_data.replace("\\", "")
+
+            post_exec_str = "python ind_ex_calculator.py " + "\'" + json_post_data + "\'"
+
+            cu.pre_exec       = self.pre_exec  + [pre_exec_str]
+            cu.post_exec      = [post_exec_str]
             cu.executable     = self.namd_path
             cu.arguments      = [input_file]
             cu.cores          = self.replica_cores

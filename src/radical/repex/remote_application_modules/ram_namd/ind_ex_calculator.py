@@ -8,6 +8,7 @@ __license__ = "MIT"
 
 import os
 import sys
+import json
 
 #-------------------------------------------------------------------------------
 
@@ -47,10 +48,6 @@ def get_historical_data(history_name):
         executed
     """
 
-    home_dir = os.getcwd()
-    os.chdir("../")
-    
-    os.chdir("staging_area")
     try:
         f = open(history_name)
         lines = f.readlines()
@@ -58,12 +55,9 @@ def get_historical_data(history_name):
         path_to_replica_folder = os.getcwd()
         data = lines[0].split()
     except:
-        pass 
-    os.chdir("../")
- 
-    os.chdir(home_dir)
+        raise
+    
     return float(data[0]), float(data[1]), path_to_replica_folder
-
 
 #-------------------------------------------------------------------------------
 
@@ -71,11 +65,23 @@ if __name__ == '__main__':
     """Calculates a swap matrix column for this replica.
     """
 
-    argument_list = str(sys.argv)
-    replica_id = str(sys.argv[1])
-    replica_cycle = str(sys.argv[2])
-    replicas = int(str(sys.argv[3]))
-    base_name = str(sys.argv[4])
+    json_data = sys.argv[1]
+    data=json.loads(json_data)
+
+    replica_id    = data["replica_id"]
+    replica_cycle = data["replica_cycle"]
+    replicas      = int(data["replicas"])
+    base_name     = data["basename"]
+    temps         = data["temperatures"]
+
+    tmp = temps.split(' ')
+    tmp.pop(0)
+
+    temperatures = [0.0]*replicas
+    energies = [0.0]*replicas
+
+    for i in range(replicas):
+        temperatures[i] = float(tmp[i])
 
     pwd = os.getcwd()
 
@@ -86,13 +92,13 @@ if __name__ == '__main__':
     # getting history data for all replicas
     # we rely on the fact that last cycle for every replica is the same, e.g. == replica_cycle
     # but this is easily changeble for arbitrary cycle numbers
-    temperatures = [0.0]*replicas
-    energies = [0.0]*replicas
+
     for j in range(replicas):
         history_name = base_name + "_" + str(j) + "_" + replica_cycle + ".history" 
+        print "history_name: {0}".format(history_name)
         try:
-            rj_temp, rj_energy, temp = get_historical_data( history_name )
-            temperatures[j] = rj_temp
+            rj_temp, rj_energy, pth = get_historical_data( history_name )
+            #temperatures[j] = rj_temp
             energies[j] = rj_energy
         except:
              pass 
@@ -110,7 +116,7 @@ if __name__ == '__main__':
     print str(path_to_replica_folder).rstrip()
 
     try:
-        outfile = "matrix_column_{id}_{cycle}.dat".format(cycle=replica_cycle, id=replica_id )
+        outfile = "matrix_column_{id}_{cycle}.dat".format(id=replica_id, cycle=replica_cycle)
         with open(outfile, 'w+') as f:
             row_str = ""
             for item in swap_column:

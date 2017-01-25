@@ -176,8 +176,9 @@ if __name__ == '__main__':
     for r_id in range(replicas):
         success = 0
         attempts = 0
-        column_file = base_name + "_" + str(r_id) + "_" + str(current_cycle) + ".dat" 
-        path = "../staging_area/" + column_file     
+        column_file = "matrix_column_" + str(r_id) + "_" + str(current_cycle) + ".dat" 
+        path = "../staging_area/" + column_file    
+        print "path: {0}".format( path ) 
         while (success == 0):
             try:
                 f = open(path)
