@@ -814,7 +814,7 @@ class AmmAmber(object):
             }
             stage_out.append(rstr_out)
         
-        if self.dims[dim_str]['type'] == 'umbrella' and self.exchange_mpi == False:
+        if self.dims[dim_str]['type'] == 'salt':
             matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), 
                                                       str(replica.cycle-1))
             matrix_col_out = {

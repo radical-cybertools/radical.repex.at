@@ -197,8 +197,9 @@ if __name__ == '__main__':
 
     nr_dims = int(len( dim_string.split() ))
 
-    replica_dict = {}
-    replicas_obj = []
+    replica_dict     = ["", "0.0", "0.0", "_", "", ""] * replicas
+    us_energies_dict = [[0.0] * replicas] * replicas
+    replicas_obj = list()
 
     umbrella = False
     for d_type in dim_types:
@@ -227,12 +228,10 @@ if __name__ == '__main__':
             fcntl.flock(f, fcntl.LOCK_UN)
 
         wb_lines = list()
-        us_energies_dict = {}
 
         for line in lines:
-            #print "line: {0}".format(line)
             tmp = line.split()
-            #print "tmp: {0}".format(tmp)
+            print "tmp: {0}".format(tmp)
             if int(tmp[0]) not in replica_ids:
                 wb_lines.append(line)
             else:
@@ -243,14 +242,10 @@ if __name__ == '__main__':
                 r_val1      = tmp[4]
                 r_val2      = tmp[5]
 
-                us_energies_dict[rid] = {}
                 for i in range(6, (len(tmp))):
                     print "tmp[{0}]: {1}".format(i, tmp[i])
                     if float(tmp[i]) != 0.0:
                         us_energies_dict[rid][i-6] = float(tmp[i])
-
-                #print "us_energies_dict[{0}]: ".format(rid)
-                #print us_energies_dict[rid]
 
                 temperatures[rid] = temp
                 replica_dict[rid] = [rst, str(temp), str(energy), "_", r_val1, r_val2]
@@ -264,27 +259,31 @@ if __name__ == '__main__':
     except:
         raise
 
+    print "replica_dict: {0}".format(replica_dict)
+    print "us_energies_dict: {0}".format(us_energies_dict)
+
     for gr in groups:
         # i is rid
         for i in gr:
             swap_column = [0.0]*replicas
             for j in gr:      
-                #print "i: {0} j: {1}".format( i, j )
-                energies[int(i)] = float(replica_dict[int(i)][2]) + us_energies_dict[int(i)][int(j)]
+                i_idx = int(i)
+                j_idx = int(j)
+
+                energies[i_idx] = float(replica_dict[i_idx][2]) + us_energies_dict[i_idx][j_idx]
                 # incorrect?
-                temperatures[int(i)] = float(replica_dict[int(i)][1])
+                temperatures[i_idx] = float(replica_dict[i_idx][1])
                 # incorrect?
-                swap_column[int(j)] = reduced_energy(temperatures[int(j)], energies[int(j)])
+                swap_column[j_idx] = reduced_energy(temperatures[j_idx], energies[j_idx])
             for k in range(replicas):
-                swap_matrix[k][int(i)] = float(swap_column[k])
+                swap_matrix[k][i_idx] = float(swap_column[k])
 
 
     for rid in replica_ids:  
         params = [0.0]*4
         u = 0
         for i,j in enumerate(dim_types):
-            if rid not in replica_dict.keys():
-                replica_dict[rid] = ['-1.0', '-1.0', '-1.0', '-1.0', '-1.0', '-1.0']
+            if replica_dict[rid][0] == "":
                 print "no data in replica_dict for replica {0}".format(rid)
             
             if dim_types[i] == 'temperature':

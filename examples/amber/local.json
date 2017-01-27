@@ -1,8 +1,8 @@
 {
     "resource": "local.localhost",
     "username" : "antons",
-    "runtime" : "5",
+    "runtime" : "10",
     "cleanup" : "False",
-    "cores" : "4",
+    "cores" : "8",
     "mongo_url" : "mongodb://localhost:27017/repex-tests"
 }

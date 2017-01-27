@@ -1,13 +1,12 @@
 {
     "remd.input": {
         "sync": "S",
-        "number_of_cycles": "3",
-        "group_exec": "True",
+        "number_of_cycles": "999",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
-        "amber_parameters": "ace_ala_nme_big.parm7",
-        "amber_coordinates_folder": "ace_ala_nme_big_coors",
+        "amber_parameters": "ace_ala_nme.parm7",
+        "amber_coordinates_folder": "ace_ala_nme_coors",
         "same_coordinates": "True",
         "us_template": "ace_ala_nme_us.RST",
         "replica_mpi": "False",
@@ -20,8 +19,8 @@
         "d1": {
             "type" : "umbrella",
             "number_of_replicas": "2",
-            "min_us_param": "0.0",
-            "max_us_param": "360.0"
+            "min_umbrella": "0.0",
+            "max_umbrella": "360.0"
             },
         "d2": {
             "type" : "temperature",
@@ -32,8 +31,8 @@
         "d3": {
             "type" : "umbrella",
             "number_of_replicas": "2",
-            "min_us_param": "0.0",
-            "max_us_param": "360.0"
+            "min_umbrella": "0.0",
+            "max_umbrella": "360.0"
             }
     }
 }

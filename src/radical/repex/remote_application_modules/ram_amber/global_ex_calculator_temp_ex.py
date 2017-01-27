@@ -197,8 +197,8 @@ if __name__ == '__main__':
 
     nr_dims = int(len( dim_string.split() ))
 
-    replica_dict = {}
-    replicas_obj = []
+    replica_dict = ["", "0.0", "_", "", ""] * replicas
+    replicas_obj = list()
 
     umbrella = False
     for d_type in dim_types:
@@ -270,8 +270,7 @@ if __name__ == '__main__':
         params = [0.0]*4
         u = 0
         for i,j in enumerate(dim_types):
-            if rid not in replica_dict.keys():
-                replica_dict[rid] = ['-1.0', '-1.0', '-1.0', '-1.0', '-1.0']
+            if replica_dict[rid][0] == "":
                 print "no data in replica_dict for replica {0}".format(rid)
             
             if dim_types[i] == 'temperature':
