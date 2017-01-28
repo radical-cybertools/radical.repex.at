@@ -197,7 +197,9 @@ if __name__ == '__main__':
 
     nr_dims = int(len( dim_string.split() ))
 
-    replica_dict = ["", "0.0", "_", "", ""] * replicas
+    replica_dict = [["_", "0.0", "_", "0.0", "0.0"]] * replicas
+    print "replica_dict: {0}".format(replica_dict)
+    
     replicas_obj = list()
 
     umbrella = False
@@ -258,6 +260,8 @@ if __name__ == '__main__':
     except:
         raise
 
+    print "replica_dict: {0}".format(replica_dict)
+
     for gr in groups:
         for i in gr:
             swap_column = [0.0]*replicas
@@ -270,7 +274,8 @@ if __name__ == '__main__':
         params = [0.0]*4
         u = 0
         for i,j in enumerate(dim_types):
-            if replica_dict[rid][0] == "":
+            print "rid: {0}".format(rid)
+            if replica_dict[rid][0] == "_":
                 print "no data in replica_dict for replica {0}".format(rid)
             
             if dim_types[i] == 'temperature':

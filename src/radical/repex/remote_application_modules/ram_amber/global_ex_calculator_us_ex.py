@@ -197,8 +197,12 @@ if __name__ == '__main__':
 
     nr_dims = int(len( dim_string.split() ))
 
-    replica_dict     = ["", "0.0", "0.0", "_", "", ""] * replicas
+    replica_dict     = [["_", "0.0", "0.0", "_", "0.0", "0.0"]] * replicas
+    print "replica_dict: {0}".format(replica_dict)
+
     us_energies_dict = [[0.0] * replicas] * replicas
+    print "us_energies_dict: {0}".format(us_energies_dict)
+
     replicas_obj = list()
 
     umbrella = False
@@ -242,10 +246,12 @@ if __name__ == '__main__':
                 r_val1      = tmp[4]
                 r_val2      = tmp[5]
 
-                for i in range(6, (len(tmp))):
+                for i in range(6, (replicas)):
                     print "tmp[{0}]: {1}".format(i, tmp[i])
-                    if float(tmp[i]) != 0.0:
+                    if tmp[i][0].isdigit():
                         us_energies_dict[rid][i-6] = float(tmp[i])
+                    else:
+                        print "attempt to set us_energies_dict[{0}][{1}] as {2}".format(rid, (i-6), tmp[i])
 
                 temperatures[rid] = temp
                 replica_dict[rid] = [rst, str(temp), str(energy), "_", r_val1, r_val2]
@@ -283,7 +289,7 @@ if __name__ == '__main__':
         params = [0.0]*4
         u = 0
         for i,j in enumerate(dim_types):
-            if replica_dict[rid][0] == "":
+            if replica_dict[rid][0] == "_":
                 print "no data in replica_dict for replica {0}".format(rid)
             
             if dim_types[i] == 'temperature':
