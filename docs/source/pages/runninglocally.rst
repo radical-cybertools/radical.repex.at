@@ -1,8 +1,8 @@
-.. _userguide:
+.. _runninglocally:
 
-**********
-User guide
-**********
+***************
+Running locally
+***************
 
 In this section we will describe how to run REMD simulations with RepEx on your local system.
 To run examples of this section you must have Amber installed on your system.

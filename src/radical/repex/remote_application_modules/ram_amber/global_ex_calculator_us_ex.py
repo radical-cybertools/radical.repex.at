@@ -122,6 +122,14 @@ def do_exchange(replicas, swap_matrix):
             exchanged_pairs.append( [r_i.id, r_j.id] )
     return  exchanged_pairs
 
+#-------------------------------------------------------------------------------
+#
+def is_int(s):
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
 
 #-------------------------------------------------------------------------------
 #
@@ -236,26 +244,26 @@ if __name__ == '__main__':
         for line in lines:
             tmp = line.split()
             print "tmp: {0}".format(tmp)
-            if int(tmp[0]) not in replica_ids:
-                wb_lines.append(line)
-            else:
-                if len(tmp) == (6+replicas):
-                    rid         = int(tmp[0])
-                    temp        = float(tmp[1])
-                    energy      = float(tmp[2])
-                    rst         = tmp[3]
-                    r_val1      = tmp[4]
-                    r_val2      = tmp[5]
+            if tmp[0][0].isdigit() and is_int(tmp[0]):             
+                if int(tmp[0]) not in replica_ids:
+                    wb_lines.append(line)
+                else:
+                    if len(tmp) == (6+replicas):
+                        rid         = int(tmp[0])
+                        temp        = float(tmp[1])
+                        energy      = float(tmp[2])
+                        rst         = tmp[3]
+                        r_val1      = tmp[4]
+                        r_val2      = tmp[5]
 
-                    for i in range(6, (replicas)):
-                        print "tmp[{0}]: {1}".format(i, tmp[i])
-                        if tmp[i][0].isdigit() or tmp[i][0] == '-':
-                            us_energies_dict[rid][i-6] = float(tmp[i])
-                        else:
-                            print "attempt to set us_energies_dict[{0}][{1}] as {2}".format(rid, (i-6), tmp[i])
-
-                    temperatures[rid] = temp
-                    replica_dict[rid] = [rst, str(temp), str(energy), "_", r_val1, r_val2]
+                        for i in range(6, (replicas)):
+                            print "tmp[{0}]: {1}".format(i, tmp[i])
+                            if tmp[i][0].isdigit() or tmp[i][0] == '-':
+                                us_energies_dict[rid][i-6] = float(tmp[i])
+                            else:
+                                print "attempt to set us_energies_dict[{0}][{1}] as {2}".format(rid, (i-6), tmp[i])
+                        temperatures[rid] = temp
+                        replica_dict[rid] = [rst, str(temp), str(energy), "_", r_val1, r_val2]
 
         with open(path, "w") as f:
             fcntl.flock(f, fcntl.LOCK_EX)

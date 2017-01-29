@@ -83,13 +83,13 @@ Example resource configuration file for Stampede HPC cluster might look like thi
 .. parsed-literal::
 
 	{
-    	"resource" : "xsede.stampede",
-    	"username" : "octocat",
-    	"project"  : "TG-XYZ123456",
-    	"queue"    : "development",
-    	"runtime"  : "30",
-    	"cleanup"  : "False",
-    	"cores"    : "16"
+		"resource" : "xsede.stampede",
+		"username" : "octocat",
+		"project"  : "TG-XYZ123456",
+		"queue"    : "development",
+		"runtime"  : "30",
+		"cleanup"  : "False",
+		"cores"    : "16"
 	}
 
 
@@ -118,7 +118,7 @@ Additionally user can specify the following **optional** parameters (under ``rem
 
 	``sync`` -- *this parameter allows to specify synchronization options for the simulation. Available options are:* ``S`` *synchronous simulation and* ``A`` *asynchronous simulation. Default is synchronous simulation:* ``S``
 
-	``wait_ratio`` -- *this parameter should be specified, if we are performing asynchronous simulation. Default wait ratio is 0.25. Wait ratio specifies the ratio of replicas which have already completed MD simulation to the total number of replicas. In other words we specify for how many replicas out of the total number of replicas we have to wait, before we can proceed to exchange of parameters. Wait ration is a lower bound: we specify at least how many replicas have to finich MD simulation, in practice the number of replicas which will proceed to exchange might be larger.*
+	``wait_ratio`` -- *this parameter should be specified, if we are performing asynchronous simulation. Default wait ratio is 0.25. Wait ratio specifies the ratio of replicas which have already completed MD simulation to the total number of replicas. In other words we specify for how many replicas out of N replicas we have to wait, before we can proceed to exchange of parameters. Wait ratio is a lower bound: we specify at least how many replicas have to finich MD simulation. In practice the number of replicas which will proceed to exchange might be larger.*
 
 	``same_coordinates`` -- *specifies if the same coordinates file must be used for all replicas. Possible values are:* ``True`` *or* ``False.`` *If this option is set to False, coordinates file for each replica* **must** *end with a postfix corresponding to numerical group index of this replica in each dumension (dot separated). For example, coordinates file for a two-dimensional simulation for replica with group indexes 2 and 4 in dimensions 1 and 2 should have a postfix* **.2.4**. *Default value is* ``True.`` 
 
@@ -131,8 +131,6 @@ Additionally user can specify the following **optional** parameters (under ``rem
 	``download_mdout`` -- *specifies if Amber's* ``.mdout`` *files must be downloaded from HPC cluster to local workstation. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``
 
 	``copy_mdinfo`` -- *specifies if Amber's* ``.mdinfo`` *files must be copied from working directories of replicas to "staging area" on remote HPC cluster. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``  
-
-	``group_exec`` -- *specifies if replicas in a single group are executed as a single task. This option is available only for multi-dimensional simulations involving temperature and/or umbrella exchange. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``
 
 	``restart`` -- *specifies if previously aborted simulation should be restarted. After every simulation cycle simulation state is written to* ``simulation_objects_d_c.pkl`` *file. If simulation failed, we can restart simulation from the last saved state. Possible values are:* ``True`` *or* ``False.`` *Default value is:* ``False.``
 
@@ -189,45 +187,52 @@ Additionally user can specify the following **optional** parameters:
 
 Under dimension key for **temperature exchange** simulation **must** be specified the following parameters:
 
-	``min_temperature`` -- 
+	``min_temperature`` -- minimum temperature what can be assigned to some replica
 
-	``max_temperature`` --
+	``max_temperature`` -- maximum temperature what can be assigned to some replica
+
+**Note:** We use geometric progression to assign temperatures to replicas with lowest 
+possible temperature defined by ``min_temperature`` and highest possible temperature 
+defined by ``max_temperature`` .
 
 Under dimension key for **umbrella exchange** simulation **must** be specified the following parameters:
 
-	``min_umbrella`` -- 
+	``min_umbrella`` -- minimum umbrella restraint value
 
-	``max_umbrella`` --
+	``max_umbrella`` -- maximum umbrella restraint value
 
 Under dimension key for **salt concentration exchange** simulation **must** be specified the following parameters:
 
-	``min_salt`` -- 
+	``min_salt`` -- minimum salt concentration value
 
-	``max_salt`` --
+	``max_salt`` -- maximum salt concentration value
 
 
-Example simulation input file for T-REMD simulation might look like this:
+below is provided an example simulation input file for 1D simulation with temperature exchange:
 
 .. parsed-literal::
 
 	{
-    	    "remd.input": {
-        	    "sync": "S",
-        	    "exchange": "T-REMD",
-        	    "number_of_cycles": "4",
-        	    "number_of_replicas": "16",
-        	    "input_folder": "t_remd_inputs",
-        	    "input_file_basename": "ace_ala_nme_remd",
-        	    "amber_input": "ace_ala_nme.mdin",
-        	    "amber_parameters": "ace_ala_nme.parm7",
-        	    "amber_coordinates": "ace_ala_nme.inpcrd",
-        	    "replica_mpi": "False",
-        	    "replica_cores": "1",
-        	    "min_temperature": "300",
-        	    "max_temperature": "600",
-        	    "steps_per_cycle": "1000",
-                "download_mdinfo": "True",
-                "download_mdout" : "True",
-    	    }
+		"remd.input": {
+			"sync": "S",
+			"number_of_cycles": "4",
+			"input_folder": "t_remd_inputs",
+			"input_file_basename": "ace_ala_nme_remd",
+			"amber_input": "ace_ala_nme.mdin",
+			"amber_parameters": "ace_ala_nme.parm7",
+			"amber_coordinates_folder": "ace_ala_nme_coors",
+			"same_coordinates": "True",
+			"steps_per_cycle": "2000",
+			"replica_mpi": "False",
+			"replica_cores": "1"
+		},
+		"dim.input": {
+			"d1": {
+				"type" : "temperature",
+				"number_of_replicas": "4",
+				"min_temperature": "300.0",
+				"max_temperature": "308.0"
+			}
+		}
 	}
 
