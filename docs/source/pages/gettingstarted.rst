@@ -52,6 +52,8 @@ In resource configuration file **must** be provided the following parameters:
 
 	``runtime``  -- *for how long you would like to allocate CPU cores on target HPC system (in minutes)*
 
+	``mongo_url`` -- *url to Mongo DB instance*
+
 Currently supported HPC clusters are:
 
 	``local.localhost`` -- *your local workstation*
@@ -64,19 +66,15 @@ Currently supported HPC clusters are:
 
 	``ncsa.bw``         -- *Blue Waters supercomputer (NCSA)*
 
-
 In addition user can provide the following **optional** parameters:
 
 	``queue`` -- *specifies which queue to use for job submission (machine specific)*
 
 	``cleanup`` -- *specifies if files on remote machine must be deleted. Possible values are:* ``True`` *or* ``False``
 
-	``mongo_url`` -- *url to Mongo DB instance*
-
 	``access_schema`` -- *access schema (more info at:* http://radicalpilot.readthedocs.io/en/latest/ *)*
 
 	``sandbox`` -- *simulation's working directory on the file system of the target HPC resource*
-
 
 Example resource configuration file for Stampede HPC cluster might look like this:
 

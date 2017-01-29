@@ -18,6 +18,7 @@ Contents:
    pages/gettingstarted.rst
    pages/runninglocally.rst
    pages/runningonhpcclusters.rst
+   pages/examples.rst
    pages/faq.rst
 
 
