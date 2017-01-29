@@ -4,36 +4,32 @@
 Running locally
 ***************
 
-In this section we will describe how to run REMD simulations with RepEx on your local system.
-To run examples of this section you must have Amber installed on your system.
-If you don't have Amber installed please download it from: ``http://ambermd.org/antechamber/download.html`` and install it using instructions at: ``http://ambermd.org/`` 
+In this section we will describe how to run REMD simulations with RepEx on your 
+workstation or laptop. To run examples presented below you must have Amber 
+installed on your workstation. If you don't have Amber installed please download 
+it from: ``http://ambermd.org/antechamber/download.html`` and install it using 
+instructions provided at: ``http://ambermd.org/`` 
 
-T-REMD example (peptide ala10) with Amber kernel
-================================================
+**It is assumed that you have already installed RepEx, if not please go back to 
+installation section**.
 
-We will take a look at Temperature-Exchange REMD example using peptide ala10 system
-with Amber simulations kernel. 
+Preparation
+===========
 
-This guide assumes that you have already installed RepEx, if not please go back to installation section. To obtain input files, please clone repex-examples repository:
+First we need to obtain simulation input files. We clone RepEx repository:
 
-.. parsed-literal:: git clone https://github.com/antonst/repex.examples.git
+.. parsed-literal:: git clone https://github.com/radical-cybertools/radical.repex.git
 
-Next you need to cd into directory where input files recide:
+Next we **cd** into directory where input files recide:
 
-.. parsed-literal:: cd repex.examples/examples/amber
+.. parsed-literal:: cd radical.repex/examples/amber
 
-Amongst other things in this directory are present:
+Amongst other things in this directory exists:
 
- - ``t_remd_inputs`` - input files for T-REMD simulations
+    ``local.json`` -- resource configuration file to run on your workstation
 
- - ``t_remd_ala10.json`` - REMD input file for Temperature-Exchnage example using peptide ala10 system   
-
- - ``local.json`` - resource configuration file to run on local system (your laptop)
-
-Run locally
------------
-
-To run this example locally you need to make appropriate changes to ``local.json`` resouce configuration file. You need to open this file in your favorite text editor (``vim`` in this case):
+Now we make appropriate changes to ``local.json`` resouce configuration 
+file. We open this file in our favorite text editor (``vim`` in this case):
 
 .. parsed-literal:: vim local.json
 
@@ -51,83 +47,99 @@ By default this file looks like this:
         }
     }
 
-You need to modify only two parameters in this file:
+We need to modify three parameters in this file:
 
- - ``username`` - this should be your username on your laptop
+    ``username`` -- this should be your username on your workstation
 
- - ``cores`` - change this parameter to number of cores supported by your laptop
+    ``cores`` -- change this parameter to the number of cores supported by your workstation
 
-Next you need to verify if parameters specified in ``t_remd_ala10.json`` REMD input file satisfy 
-your requirements. By default ``t_remd_ala10.json`` file looks like this:
+    ``mongo_url`` -- url to your local **MongoDB** instance, for example ``"mongodb://localhost:27017/repex-examples"``
+
+To run examples you will need to install **MongoDB** on your workstation, 
+or if you have access to a virtual machine with already installed **MongoDB** 
+instance you can use it as well.
+
+Installing and configuring **MongoDB** is a straightforward process, which should 
+not take more than ~5 minutes. Instalation instructions are profided at: ``https://docs.mongodb.com/manual/installation/``
+
+Finally, in each **simulation input file** we will need to specify a path to 
+``sander`` executable on your workstation. This should be done by adding ``amber_path`` parameter under ``remd.input`` key in **simulation input file** we intend to use to run a given example:
+
+.. parsed-literal:: "amber_path": "/home/octocat/amber/amber14/bin/sander"
+
+
+Temperature exchange (T-REMD) with peptide ala10
+=================================================
+
+In RepEx examples directory (``radical.repex/examples/amber``) are present the following files:
+
+    ``t_remd_ala10.json`` -- simulation input file for temperature exchange using peptide ala10 system   
+
+    ``t_remd_inputs`` -- input files for temperature exchange simulations
+
+First we verify if parameters specified in ``t_remd_ala10.json`` file satisfy 
+our requirements. By default ``t_remd_ala10.json`` file looks like this:
 
 .. parsed-literal::
 
     {
         "remd.input": {
             "sync": "S",
-            "exchange": "T-REMD",
-            "number_of_cycles": "4",
-            "number_of_replicas": "8",
+            "number_of_cycles": "3",
             "input_folder": "t_remd_inputs",
             "input_file_basename": "ala10_remd",
             "amber_input": "ala10.mdin",
             "amber_parameters": "ala10.prmtop",
-            "amber_coordinates": "ala10_minimized.inpcrd",
+            "amber_coordinates_folder": "ala10_coors",
+            "same_coordinates": "True",
             "replica_mpi": "False",
             "replica_cores": "1",
-            "min_temperature": "300",
-            "max_temperature": "600",
-            "steps_per_cycle": "4000",
+            "steps_per_cycle": "1000",
             "download_mdinfo": "True",
             "download_mdout" : "True"
+    },
+        "dim.input": {
+            "d1": {
+                "type" : "temperature",
+                "number_of_replicas": "8",
+                "min_temperature": "300.0",
+                "max_temperature": "308.0"
+            }
         }
     }
 
-In comparison with general REMD input file format discussed above this input file 
-contains some additional parameters:
+The only **required** change is to add ``"amber_path"`` parameter under ``"remd.input"`` key.
+If we use this simulation input file without any other changes, our REMD simulation will 
+use 8 replicas and will run 3 simulation cycles. 
 
- - ``min_temperature`` - minimal temperature value to be assigned to replicas
-
- - ``max_temperature`` - maximal temperature value to be assigned to replicas (we use geometrical progression for temperature assignment)
-
-To run this example, all you need to do is to specify path to ``sander`` executable on your laptop. To do that please add ``amber_path`` parameter under ``remd.input``. For example:
-
-.. parsed-literal:: "amber_path": "/home/octocat/amber/amber14/bin/sander"
-
-To get notified about important events during the simulation please specify in terminal:
-
-.. parsed-literal:: export RADICAL_REPEX_VERBOSE=info
-
-Now you can run this simulation by:
+Now we can run this example:
 
 ``repex-amber --input='t_remd_ala10.json' --rconfig='local.json'``
 
-Verify output
--------------
+Output verification
+--------------------
 
-If simulation has successfully finished, last three lines of terminal log should be similar to:
+If simulation has successfully finished, one of the last lines of your terminal log should be:
 
 .. parsed-literal::
 
     2015:10:11 18:49:59 6600   MainThread   radical.repex.amber   : [INFO    ] Simulation successfully finished!
-    2015:10:11 18:49:59 6600   MainThread   radical.repex.amber   : [INFO    ] Please check output files in replica_x directories.
-    2015:10:11 18:49:59 6600   MainThread   radical.repex.amber   : [INFO    ] Closing session.
 
-You should see nine new directories in your current path:
+In addition, in your working directory will be created ``simulation_output`` 
+directory. In this directory you will find all ``pairs_for_exchange_d_c.dat`` 
+files and all ``simulation_objects_d_c.pkl`` files, where:
 
- - eight ``replica_x`` directories
+    **d** -- is dimension
 
- - one ``shared_files`` directory
+    **c** -- is current cycle  
 
-If you want to check which replicas exchanged configurations during each cycle you can cd into 
-``shared_files`` directory and check each of four ``pairs_for_exchange_x.dat`` files. In these files are recorded indexes of replicas exchanging configurations during each cycle.
+If you want to check which replicas exchanged temperatures during the simulation, 
+you can examine ``pairs_for_exchange_d_c.dat`` files. In these files are recorded 
+indexes of replicas, which exchanged their temperatures.
 
-If you want to check .mdinfo or .mdout files for some replica, you can find those files in 
-corresponding ``replica_x`` directory. File format is ``ala10_remd_i_c.mdinfo`` where:
-
- - **i** is index of replica
-
- - **c** is current cycle   
+Finally if you left ``"download_mdinfo"`` and ``"download_mdout"`` parameters set 
+to ``True``, in ``simulation_output`` directory you will find all ``.mdinfo`` and 
+``.mdout`` files generated during the simulation.   
 
 US-REMD example using Alanine Dipeptide system with Amber kernel
 ================================================================

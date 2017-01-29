@@ -102,7 +102,7 @@ type of REMD simulation. Any of the two scenarios are fully controlled by the
 user via ``simulation input file`` and ``resource configuration file``. 
 
 For example, for **6** replicas we can use **3** CPU cores and run each replica 
-on a single CPU core:    
+on a single CPU core (synchronous REMD):    
 
 .. image:: ../figures/exec-mode-2.png
     :alt: pattern-a

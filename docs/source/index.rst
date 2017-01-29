@@ -18,7 +18,6 @@ Contents:
    pages/gettingstarted.rst
    pages/runninglocally.rst
    pages/runningonhpcclusters.rst
-   pages/futurework.rst
    pages/faq.rst
 
 
