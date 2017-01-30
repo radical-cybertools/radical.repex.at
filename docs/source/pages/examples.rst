@@ -105,7 +105,7 @@ to ``True``, in ``simulation_output`` directory you will find all ``.mdinfo`` an
 ``.mdout`` files generated during the simulation.   
 
 
-Umbrella exchange (U-REMD) with Alanine Dipeptide
+Umbrella exchange (U-REMD) with alanine dipeptide
 --------------------------------------------------
 
 For this example we will use alanine dipeptide (Ace-Ala-Nme).
@@ -344,6 +344,72 @@ For example, if we want to run on Archer, in terminal we will execute:
 make appropriate changes to those files (as described in previous section).
 
 Output verification is identical to the one described for the temperature exchange example. If simulation has successfully finished, one of the last lines of terminal log should be similar to:
+
+.. parsed-literal::
+
+    2015:10:11 18:49:59 6600   MainThread   radical.repex.amber   : [INFO    ] Simulation successfully finished!
+
+NAMD example
+=============
+
+Now we will demonstrate how to run temperature exchange REMD simulation with NAMD engine.
+
+**Note:** temperature exchange is the only REMD simulation type supported by RepEx. 
+
+Temperature exchange (T-REMD) with deca-alanine helix
+------------------------------------------------------
+
+In RepEx examples directory for NAMD engine (``radical.repex/examples/namd``) are present the following files:
+
+    ``t_remd_ala.json`` -- *simulation input file for temperature exchange using deca-alanine helix*  
+
+    ``namd_inp`` -- *input files directory for temperature exchange simulations*
+
+First we verify if parameters specified in ``t_remd_ala.json`` simulation input 
+file satisfy our requirements. By default ``t_remd_ala.json`` file looks like this:
+
+.. parsed-literal::
+
+    {
+        "remd.input": {
+            "sync": "S",
+            "number_of_cycles": "3",
+            "input_folder": "namd_inp",
+            "input_file_basename": "ala",
+            "namd_structure": "ala.psf",
+            "namd_coordinates": "unf.pdb",
+            "namd_parameters": "ala.params",
+            "replica_cores": "1",
+            "steps_per_cycle": "1000"
+        },
+        "dim.input": {
+            "d1": {
+                "type" : "temperature",
+                "number_of_replicas": "8",
+                "min_temperature": "300.0",
+                "max_temperature": "308.0"
+            }
+        }
+    }
+
+If we intend to run this example locally, the only **required** change is to add 
+``"namd_path"`` parameter under ``"remd.input"`` key. If we use this simulation 
+input file without any other changes, simulation will launch 8 replicas 
+and will run 3 simulation cycles, while performing 1000 time-steps between exchanges. 
+
+To run this example locally, in terminal we execute:
+
+``repex-amber --input='t_remd_ala.json' --rconfig='local.json'``
+
+To run this example on HPC cluster, we must specify appropriate resource configuration file. 
+For example, if we want to run on Stampede, in terminal we will execute:
+
+``repex-amber --input='t_remd_ala.json.json' --rconfig='stampede.json'``
+
+**Note:** before using any of the resource configuration files for HPC clusters, please 
+make appropriate changes to those files (as described in previous section).
+
+If simulation has successfully finished, one of the last lines of terminal log should be similar to:
 
 .. parsed-literal::
 

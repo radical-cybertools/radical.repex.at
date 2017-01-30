@@ -112,7 +112,7 @@ In simulation input file, under ``remd.input`` key, **must** be provided the fol
 
 	``us_template`` -- *specifies Amber's restraint (.RST) file. This parameter is required only for simulations performing umbrella exchange.*
 
-	``init_temperature`` -- *.*
+	``init_temperature`` -- *specifies  temperature value initially assigned to all replicas.*
 
 Additionally user can specify the following **optional** parameters (under ``remd.input`` key):
 
