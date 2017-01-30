@@ -11,11 +11,11 @@ installation section**.
 
 To run examples with Amber MD engine, we must cd into Amber examples directory:
 
-.. parsed-literal:: cd repex.examples/examples/amber
+.. parsed-literal:: cd $HOME/radical.repex/examples/amber
 
 To run examples with NAMD engine, we must cd into NAMD examples directory:
 
-.. parsed-literal:: cd repex.examples/examples/namd
+.. parsed-literal:: cd $HOME/radical.repex/examples/namd
 
 In each of these directories are available resource configuration files, to run
 simulations on the following HPC clusters:

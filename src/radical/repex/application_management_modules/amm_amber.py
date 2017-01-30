@@ -215,7 +215,8 @@ class AmmAmber(object):
         self.pre_exec = KERNELS[self.resource]["kernels"]\
                         ["amber"].get("pre_execution")
 
-        self.amber_path = inp_file['remd.input'].get('amber_path')
+        self.amber_path     = inp_file['remd.input'].get('amber_path')
+        self.amber_path_mpi = inp_file['remd.input'].get('amber_path_mpi')
         if self.amber_path == None:
             self.logger.info("Using default Amber path for: {0}".format(rconfig.get('resource')))
             self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")

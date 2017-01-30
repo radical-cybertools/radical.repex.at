@@ -16,15 +16,15 @@ Preparation
 
 To obtain simulation input files we clone RepEx repository:
 
-.. parsed-literal:: git clone https://github.com/radical-cybertools/radical.repex.git
+.. parsed-literal:: cd $HOME; git clone https://github.com/radical-cybertools/radical.repex.git
 
 Next we **cd** into directory where input files recide. For Amber examples:
 
-.. parsed-literal:: cd radical.repex/examples/amber
+.. parsed-literal:: cd $HOME/radical.repex/examples/amber
 
 For NAMD examples:
 
-.. parsed-literal:: cd radical.repex/examples/namd
+.. parsed-literal:: cd $HOME/radical.repex/examples/namd
 
 Amongst other things in examples directory exists:
 

@@ -112,6 +112,8 @@ In simulation input file, under ``remd.input`` key, **must** be provided the fol
 
 	``us_template`` -- *specifies Amber's restraint (.RST) file. This parameter is required only for simulations performing umbrella exchange.*
 
+	``init_temperature`` -- *.*
+
 Additionally user can specify the following **optional** parameters (under ``remd.input`` key):
 
 	``sync`` -- *this parameter allows to specify synchronization options for the simulation. Available options are:* ``S`` *synchronous simulation and* ``A`` *asynchronous simulation. Default is synchronous simulation:* ``S``
