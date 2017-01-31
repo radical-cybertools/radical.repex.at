@@ -104,7 +104,7 @@ def isgood(name):
 
 setup(
     name='radical.repex',
-    version='0.2.9',
+    version='0.2.10',
     author='Antons Treikalis',
     author_email='antons.treikalis@gmail.com',
     packages=['repex_utils', 
@@ -132,7 +132,7 @@ setup(
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Package',
     install_requires=['radical.pilot', 'mpi4py'],
-    download_url = 'https://github.com/AntonsT/radical.repex/tarball/0.2',
+    download_url = 'https://github.com/AntonsT/radical.repex/tarball/0.2.10',
     url = 'https://github.com/radical-cybertools/radical.repex.git',
     data_files=makeDataFiles('share/radical.repex/examples/', 'examples')
 )
