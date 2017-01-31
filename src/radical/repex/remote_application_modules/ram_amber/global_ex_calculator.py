@@ -148,14 +148,22 @@ if __name__ == '__main__':
     data=json.loads(json_data)
 
     replicas      = int(data["replicas"])
-    replica_ids   = data["replica_ids"]
     cycle         = int(data["cycle"])
     current_cycle = int(data["current_cycle"])
     dimension     = int(data["dimension"])
     group_nr      = int(data["group_nr"])
     dim_string    = data["dim_string"]
     group_size    = replicas / group_nr
+    groups        = data["group_ids"]
 
+    replica_ids = list()
+    for g in groups:
+        for i in g:
+            replica_ids.append(int(i))
+
+    print "replica_ids: "
+    print replica_ids
+    
     dim_types = []
     dim_types.append('')
     dim_types += dim_string.split()

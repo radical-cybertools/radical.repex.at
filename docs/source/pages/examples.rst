@@ -50,7 +50,6 @@ file satisfy our requirements. By default ``t_remd_ala10.json`` file looks like 
             "amber_input": "ala10.mdin",
             "amber_parameters": "ala10.prmtop",
             "amber_coordinates_folder": "ala10_coors",
-            "replica_cores": "1",
             "steps_per_cycle": "1000",
             "download_mdinfo": "True",
             "download_mdout" : "True"
@@ -137,8 +136,7 @@ For this example we will use ``us_remd_ace_ala_nme.json`` simulation input file.
             "init_temperature": "300.0",
             "steps_per_cycle": "1000",
             "download_mdinfo": "True",
-            "download_mdout" : "True",
-            "replica_cores": "1"
+            "download_mdout" : "True"
         },
         "dim.input": {
             "d1": {
@@ -214,7 +212,6 @@ We will use ``tuu_remd_ace_ala_nme.json`` simulation input file to run this exam
             "amber_parameters": "ace_ala_nme.parm7",
             "amber_coordinates_folder": "ace_ala_nme_coors",
             "us_template": "ace_ala_nme_us.RST",
-            "replica_cores": "1",
             "steps_per_cycle": "1000",
             "download_mdinfo": "True",
             "download_mdout" : "true"
@@ -273,7 +270,7 @@ we must check if we are in correct examples directory:
 
 In this directory are present:
 
-    ``tsu_remd_inputs`` -- *input files for TUU-REMD simulations*
+    ``tsu_remd_inputs`` -- *input files for TSU-REMD simulations*
 
     ``tsu_remd_ace_ala_nme.json`` -- *simulation input file for TSU-REMD example with alanine dipeptide*
 
@@ -291,7 +288,6 @@ We will use ``tsu_remd_ace_ala_nme.json`` simulation input file to run this exam
             "amber_parameters": "ace_ala_nme_old.parm7",
             "amber_coordinates_folder": "ace_ala_nme_coors",
             "us_template": "ace_ala_nme_us.RST",
-            "replica_cores": "1",
             "steps_per_cycle": "1000",
             "download_mdinfo": "True",
             "download_mdout" : "True"
@@ -312,8 +308,8 @@ We will use ``tsu_remd_ace_ala_nme.json`` simulation input file to run this exam
             "d3": {
                 "type" : "umbrella",
                 "number_of_replicas": "2",
-                "min_us_param": "0",
-                "max_us_param": "360"
+                "min_umbrella": "0",
+                "max_umbrella": "360"
             }    
         }
     }
@@ -379,7 +375,6 @@ file satisfy our requirements. By default ``t_remd_ala.json`` file looks like th
             "namd_structure": "ala.psf",
             "namd_coordinates": "unf.pdb",
             "namd_parameters": "ala.params",
-            "replica_cores": "1",
             "steps_per_cycle": "1000"
         },
         "dim.input": {

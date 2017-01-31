@@ -251,7 +251,7 @@ class AmmAmber(object):
     #---------------------------------------------------------------------------
     #
     @staticmethod
-    def get_rstr_id(self, restraint):
+    def get_rstr_id(restraint):
         """extracts restraint index from a given restraint file
 
         Args:
@@ -816,14 +816,12 @@ class AmmAmber(object):
             stage_out.append(rstr_out)
         
         if self.dims[dim_str]['type'] == 'salt':
-            matrix_col = "matrix_column_%s_%s.dat" % (str(replica.id), 
-                                                      str(replica.cycle-1))
-            matrix_col_out = {
-                'source': matrix_col,
-                'target': 'staging:///%s' % (matrix_col),
+            info_out = {
+                'source': new_info,
+                'target': 'staging:///%s' % (replica_path + new_info),
                 'action': rp.COPY
             }
-            stage_out.append(matrix_col_out)
+            stage_out.append(info_out)
 
         current_group = []
         for repl in group:
@@ -1678,123 +1676,125 @@ class AmmAmber(object):
             if (self.dims[dim_str]['type'] == 'umbrella'):
                 # global_ex_calculator_us_ex.py file
                 stage_in.append(sd_shared_list[7])
+            if (self.dims[dim_str]['type'] == 'salt'):
+                # global_ex_calculator.py file
+                stage_in.append(sd_shared_list[5])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
                                                                 cycle=current_cycle)
         stage_out.append(outfile)
 
-        if (self.exchange_mpi == True) and (self.dims[dim_str]['type'] == 'temperature'):
-            # global_ex_calculator_tex_mpi.py file
-            stage_in.append(sd_shared_list[2])
+        cu = rp.ComputeUnitDescription()
 
-            cu = rp.ComputeUnitDescription()
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
-            cu.input_staging  = stage_in
-            cu.arguments = ["global_ex_calculator_tex_mpi.py", \
-                             str(cycle), \
-                             str(self.replicas), \
-                             str(self.inp_basename)]
+        if (self.exchange_mpi == True): 
+            if (self.dims[dim_str]['type'] == 'temperature'):
+                # global_ex_calculator_tex_mpi.py file
+                stage_in.append(sd_shared_list[2])
 
-            if self.cores < self.replicas:
-                if self.exchange_mpi_cores != 0:
-                    if self.replicas % self.exchange_mpi_cores == 0:
-                        cu.cores = self.exchange_mpi_cores
-                elif (self.replicas % self.cores) == 0:
-                    cu.cores = self.cores
+                cu.pre_exec = self.pre_exec
+                cu.executable = "python"
+                cu.input_staging  = stage_in
+                cu.arguments = ["global_ex_calculator_tex_mpi.py", \
+                                 str(cycle), \
+                                 str(self.replicas), \
+                                 str(self.inp_basename)]
+
+                if self.cores < self.replicas:
+                    if self.exchange_mpi_cores != 0:
+                        if self.replicas % self.exchange_mpi_cores == 0:
+                            cu.cores = self.exchange_mpi_cores
+                    elif (self.replicas % self.cores) == 0:
+                        cu.cores = self.cores
+                    else:
+                        self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
+                        self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
+                        sys.exit()
+        
+                elif self.cores >= self.replicas:
+                    cu.cores = self.replicas
                 else:
                     self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                     self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                     sys.exit()
-    
-            elif self.cores >= self.replicas:
-                cu.cores = self.replicas
-            else:
-                self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
-                self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
-                sys.exit()
-            
-            cu.mpi = True         
-            cu.output_staging = stage_out
+                
+                cu.mpi = True         
+                cu.output_staging = stage_out
 
-        elif (self.exchange_mpi == True) and (self.dims[dim_str]['type'] == 'umbrella'):
+            elif (self.dims[dim_str]['type'] == 'umbrella'):
+                all_restraints = {}
+                all_temperatures = {}
+                for repl in replicas:
+                    all_restraints[str(repl.id)] = str(repl.new_restraints)
+                    all_temperatures[str(repl.id)] = str(repl.new_temperature)
 
-            all_restraints = {}
-            all_temperatures = {}
-            for repl in replicas:
-                all_restraints[str(repl.id)] = str(repl.new_restraints)
-                all_temperatures[str(repl.id)] = str(repl.new_temperature)
+                data = {
+                    "current_cycle" : str(current_cycle),
+                    "replicas" : str(self.replicas),
+                    "base_name" : str(self.inp_basename),
+                    "all_temperatures" : all_temperatures,
+                    "all_restraints" : all_restraints
+                }
+                dump_data = json.dumps(data)
+                json_data_us = dump_data.replace("\\", "")
 
-            data = {
-                "current_cycle" : str(current_cycle),
-                "replicas" : str(self.replicas),
-                "base_name" : str(self.inp_basename),
-                "all_temperatures" : all_temperatures,
-                "all_restraints" : all_restraints
-            }
-            dump_data = json.dumps(data)
-            json_data_us = dump_data.replace("\\", "")
+                # global_ex_calculator_us_mpi.py file
+                stage_in.append(sd_shared_list[3])
 
-            # global_ex_calculator_us_mpi.py file
-            stage_in.append(sd_shared_list[3])
+                cu.pre_exec = self.pre_exec
+                cu.executable = "python"
+                cu.input_staging  = stage_in
+                cu.arguments = ["global_ex_calculator_us_mpi.py", json_data_us]
 
-            cu = rp.ComputeUnitDescription()
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
-            cu.input_staging  = stage_in
-            cu.arguments = ["global_ex_calculator_us_mpi.py", json_data_us]
-
-            if self.cores < self.replicas:
-                if (self.replicas % self.cores) != 0:
+                if self.cores < self.replicas:
+                    if (self.replicas % self.cores) != 0:
+                        self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
+                        self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
+                        sys.exit()
+                    else:
+                        cu.cores = self.cores
+                elif self.cores >= self.replicas:
+                    cu.cores = self.replicas
+                else:
                     self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                     self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                     sys.exit()
-                else:
-                    cu.cores = self.cores
-            elif self.cores >= self.replicas:
-                cu.cores = self.replicas
-            else:
-                self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
-                self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
-                sys.exit()
-            cu.mpi = True         
-            cu.output_staging = stage_out
-        elif (self.dims[dim_str]['type'] == 'temperature'):
-            cu = rp.ComputeUnitDescription()
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
-            cu.input_staging  = stage_in
-            if self.group_exec == True:
-                cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
-            else:
-                cu.arguments = ["global_ex_calculator_temp_ex.py", json_data_single]                 
-            cu.cores = 1
-            cu.mpi = False            
-            cu.output_staging = stage_out
-        elif (self.dims[dim_str]['type'] == 'umbrella'):
-            cu = rp.ComputeUnitDescription()
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
-            cu.input_staging  = stage_in
-            if self.group_exec == True:
-                cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
-            else:
-                cu.arguments = ["global_ex_calculator_us_ex.py", json_data_single]                 
-            cu.cores = 1
-            cu.mpi = False            
-            cu.output_staging = stage_out
+                cu.mpi = True         
+                cu.output_staging = stage_out
         else:
-            cu = rp.ComputeUnitDescription()
-            cu.pre_exec = self.pre_exec
-            cu.executable = "python"
-            cu.input_staging  = stage_in
-            if self.group_exec == True:
-                cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
+            if (self.dims[dim_str]['type'] == 'temperature'):
+                cu.pre_exec = self.pre_exec
+                cu.executable = "python"
+                cu.input_staging  = stage_in
+                if self.group_exec == True:
+                    cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
+                else:
+                    cu.arguments = ["global_ex_calculator_temp_ex.py", json_data_single]                 
+                cu.cores = 1
+                cu.mpi = False            
+                cu.output_staging = stage_out
+
+            elif (self.dims[dim_str]['type'] == 'umbrella'):
+                cu.pre_exec = self.pre_exec
+                cu.executable = "python"
+                cu.input_staging  = stage_in
+                if self.group_exec == True:
+                    cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
+                else:
+                    cu.arguments = ["global_ex_calculator_us_ex.py", json_data_single]                 
+                cu.cores = 1
+                cu.mpi = False            
+                cu.output_staging = stage_out
             else:
-                cu.arguments = ["global_ex_calculator.py", json_data_single]                 
-            cu.cores = 1
-            cu.mpi = False            
-            cu.output_staging = stage_out
+                cu.pre_exec = self.pre_exec
+                cu.executable = "python"
+                cu.input_staging  = stage_in
+                if self.group_exec == True:
+                    cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
+                else:
+                    cu.arguments = ["global_ex_calculator.py", json_data_single]                 
+                cu.cores = 1
+                cu.mpi = False            
+                cu.output_staging = stage_out
 
         return cu
 

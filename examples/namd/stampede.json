@@ -1,8 +1,8 @@
 {
     "resource" : "xsede.stampede",
-    "username" : "antontre",
-    "project"  : "TG-MCB090174",
-    "runtime"  : "120",
+    "username" : "octocat",
+    "project"  : "TG-XYZ0123456",
+    "runtime"  : "20",
     "cleanup"  : "False",
-    "cores" : "1744"
+    "cores" : "16"
 }

@@ -65,6 +65,10 @@ instance you can use it as well.
 Installing and configuring **MongoDB** is a straightforward process, which should 
 not take more than ~5 minutes. Instalation instructions are provided at: ``https://docs.mongodb.com/manual/installation/``
 
+**Note:** After you will launch your first simulation, in your ``$HOME`` directory 
+will be created ``radical.pilot.sandbox`` directory. In this sandbox, for each 
+simulation you will launch will be created a separate directory named ``rp.session.xxx``, 
+where ``xxx`` is a character sequence specific to your simulation.
 
 Amber examples
 ===============

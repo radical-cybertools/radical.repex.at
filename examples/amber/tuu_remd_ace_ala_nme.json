@@ -1,19 +1,16 @@
 {
     "remd.input": {
         "sync": "S",
-        "number_of_cycles": "999",
+        "number_of_cycles": "3",
         "input_folder": "tuu_remd_inputs",
         "input_file_basename": "ace_ala_nme_remd",
         "amber_input": "ace_ala_nme.mdin",
         "amber_parameters": "ace_ala_nme.parm7",
         "amber_coordinates_folder": "ace_ala_nme_coors",
-        "same_coordinates": "True",
         "us_template": "ace_ala_nme_us.RST",
-        "replica_mpi": "False",
-        "replica_cores": "1",
         "steps_per_cycle": "100",
-        "download_mdinfo": "False",
-        "download_mdout" : "False"
+        "download_mdinfo": "True",
+        "download_mdout" : "True"
         },
     "dim.input": {
         "d1": {
@@ -26,7 +23,7 @@
             "type" : "temperature",
             "number_of_replicas": "2",
             "min_temperature": "300.0",
-            "max_temperature": "600.0"
+            "max_temperature": "308.0"
             },
         "d3": {
             "type" : "umbrella",

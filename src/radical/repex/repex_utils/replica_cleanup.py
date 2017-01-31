@@ -39,7 +39,7 @@ def move_output_files(work_dir_local, md_kernel, replicas):
     files = os.listdir( work_dir_local )
 
     for item in files:
-        if (item.startswith(pairs_name) or item.startswith(obj_name) or item.endswith(".log") or item.endswith(".prof") ):
+        if (item.startswith(pairs_name) or item.startswith(obj_name) or item.endswith(".log") or item.endswith(".prof") or item.endswith(".mdout") or item.endswith(".mdinfo") ):
             source =  work_dir_local + "/" + str(item)
             destination = dir_path + "/"
             d_file = destination + str(item)

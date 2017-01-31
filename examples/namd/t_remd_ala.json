@@ -7,17 +7,17 @@
         "namd_structure": "ala.psf",
         "namd_coordinates": "unf.pdb",
         "namd_parameters": "ala.params",
-        "exchange_mpi": "False",
-        "replica_mpi": "False",
         "replica_cores": "1",
-        "steps_per_cycle": "1000"
+        "steps_per_cycle": "1000",
+        "download_mdinfo": "True",
+        "download_mdout" : "True"
     },
     "dim.input": {
         "d1": {
             "type" : "temperature",
-            "number_of_replicas": "4",
+            "number_of_replicas": "8",
             "min_temperature": "300.0",
-            "max_temperature": "304.0"
+            "max_temperature": "308.0"
         }
     }
 }
