@@ -11,8 +11,7 @@
 				"temp",
 				"venv",
 				"egg*",
-                "*.egg",
-                "NAMD_2.9*"
+                "*.egg"
 			],
 			"file_exclude_patterns": 
 			[

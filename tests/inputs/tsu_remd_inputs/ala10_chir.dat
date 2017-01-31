@@ -1,0 +1,59 @@
+#
+#  chirality for residue 2 atoms:  N C HA CB
+ &rst iat=7,15,10,11, 
+   r1=10., r2=60., r3=80., r4=130., rk2 = 10., rk3=10.,  &end
+#
+#  chirality for residue 3 atoms:  N C HA CB
+ &rst iat=17,25,20,21, &end
+#
+#  chirality for residue 4 atoms:  N C HA CB
+ &rst iat=27,35,30,31, &end
+#
+#  chirality for residue 5 atoms:  N C HA CB
+ &rst iat=37,45,40,41, &end
+#
+#  chirality for residue 6 atoms:  N C HA CB
+ &rst iat=47,55,50,51, &end
+#
+#  chirality for residue 7 atoms:  N C HA CB
+ &rst iat=57,65,60,61, &end
+#
+#  chirality for residue 8 atoms:  N C HA CB
+ &rst iat=67,75,70,71, &end
+#
+#  chirality for residue 9 atoms:  N C HA CB
+ &rst iat=77,85,80,81, &end
+#
+#  chirality for residue 10 atoms:  N C HA CB
+ &rst iat=87,95,90,91, &end
+#
+#  chirality for residue 11 atoms:  N C HA CB
+ &rst iat=97,105,100,101, &end
+#
+#  trans-omega constraint for residue 3
+ &rst iat=19,17,15,9, 
+   r1=150., r2=170., r3=190., r4=210., rk2 = 50., rk3=50.,  &end
+#
+#  trans-omega constraint for residue 4
+ &rst iat=29,27,25,19, &end
+#
+#  trans-omega constraint for residue 5
+ &rst iat=39,37,35,29, &end
+#
+#  trans-omega constraint for residue 6
+ &rst iat=49,47,45,39, &end
+#
+#  trans-omega constraint for residue 7
+ &rst iat=59,57,55,49, &end
+#
+#  trans-omega constraint for residue 8
+ &rst iat=69,67,65,59, &end
+#
+#  trans-omega constraint for residue 9
+ &rst iat=79,77,75,69, &end
+#
+#  trans-omega constraint for residue 10
+ &rst iat=89,87,85,79, &end
+#
+#  trans-omega constraint for residue 11
+ &rst iat=99,97,95,89, &end

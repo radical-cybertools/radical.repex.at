@@ -1,0 +1,43 @@
+{
+    "remd.input": {
+        "sync": "S",
+        "exchange": "TUU-REMD",
+        "number_of_cycles": "3",
+        "input_folder": "tuu_remd_inputs",
+        "input_file_basename": "ace_ala_nme_remd",
+        "amber_input": "ace_ala_nme.mdin",
+        "amber_parameters": "ace_ala_nme.parm7",
+        "amber_coordinates_folder": "ace_ala_nme_coors",
+        "same_coordinates": "True",
+        "us_template": "ace_ala_nme_us.RST",
+        "replica_mpi": "False",
+        "replica_cores": "1",
+        "steps_per_cycle": "100",
+        "download_mdinfo": "False",
+        "download_mdout" : "False"
+        },
+    "dim.input": {
+        "umbrella_sampling_1": {
+            "number_of_replicas": "2",
+            "us_start_param": "0",
+            "us_end_param": "360",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            },
+        "temperature_2": {
+            "number_of_replicas": "2",
+            "min_temperature": "300",
+            "max_temperature": "600",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            },
+       
+        "umbrella_sampling_3": {
+            "number_of_replicas": "2",
+            "us_start_param": "0",
+            "us_end_param": "360",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            }    
+    }
+}

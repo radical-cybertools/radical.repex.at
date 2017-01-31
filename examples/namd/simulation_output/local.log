@@ -1,0 +1,404 @@
+nohup: appending output to ‘nohup.out’
+2017-01-30 14:08:14,395: radical.pilot       : MainProcess                     : MainThread     : INFO    : python.interpreter   version: 2.7.6 (default, Oct 26 2016, 20:30:19) [GCC 4.8.4]
+2017-01-30 14:08:14,395: radical.pilot       : MainProcess                     : MainThread     : INFO    :                      pid: 5423
+2017-01-30 14:08:14,395: radical.pilot       : MainProcess                     : MainThread     : INFO    :                      tid: MainThread
+2017-01-30 14:08:14,395: radical.pilot       : MainProcess                     : MainThread     : INFO    : radical.pilot        version: 0.44
+2017-01-30 14:08:14,516: radical.saga        : MainProcess                     : MainThread     : INFO    : python.interpreter   version: 2.7.6 (default, Oct 26 2016, 20:30:19) [GCC 4.8.4]
+2017-01-30 14:08:14,516: radical.saga        : MainProcess                     : MainThread     : INFO    :                      pid: 5423
+2017-01-30 14:08:14,517: radical.saga        : MainProcess                     : MainThread     : INFO    :                      tid: MainThread
+2017-01-30 14:08:14,517: radical.saga        : MainProcess                     : MainThread     : INFO    : radical.saga         version: 0.44
+2017-01-30 14:08:14,598: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.context.myproxy
+2017-01-30 14:08:14,599: radical.saga.api    : MainProcess                     : MainThread     : INFO    : python.interpreter   version: 2.7.6 (default, Oct 26 2016, 20:30:19) [GCC 4.8.4]
+2017-01-30 14:08:14,600: radical.saga.api    : MainProcess                     : MainThread     : INFO    :                      pid: 5423
+2017-01-30 14:08:14,600: radical.saga.api    : MainProcess                     : MainThread     : INFO    :                      tid: MainThread
+2017-01-30 14:08:14,601: radical.saga        : MainProcess                     : MainThread     : WARNING : Skipping adaptor saga.adaptors.context.myproxy: loading failed: ''Adaptor' object has no attribute 'opts''
+2017-01-30 14:08:14,601: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.context.x509
+2017-01-30 14:08:14,603: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.context.x509 for saga.Context API with URL scheme(s) ['x509://']
+2017-01-30 14:08:14,603: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.context.ssh
+2017-01-30 14:08:14,604: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.context.ssh for saga.Context API with URL scheme(s) ['ssh://']
+2017-01-30 14:08:14,604: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.context.userpass
+2017-01-30 14:08:14,606: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.context.userpass for saga.Context API with URL scheme(s) ['userpass://']
+2017-01-30 14:08:14,606: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.shell.shell_job
+2017-01-30 14:08:14,612: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.shell.shell_job for saga.job.Service API with URL scheme(s) ['fork://', 'local://', 'ssh://', 'gsissh://']
+2017-01-30 14:08:14,612: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.shell.shell_job for saga.job.Job API with URL scheme(s) ['fork://', 'local://', 'ssh://', 'gsissh://']
+2017-01-30 14:08:14,612: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.shell.shell_file
+2017-01-30 14:08:14,617: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.shell.shell_file for saga.namespace.Directory API with URL scheme(s) ['file://', 'local://', 'sftp://', 'gsisftp://', 'ssh://', 'gsissh://']
+2017-01-30 14:08:14,617: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.shell.shell_file for saga.namespace.Entry API with URL scheme(s) ['file://', 'local://', 'sftp://', 'gsisftp://', 'ssh://', 'gsissh://']
+2017-01-30 14:08:14,617: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.shell.shell_file for saga.filesystem.Directory API with URL scheme(s) ['file://', 'local://', 'sftp://', 'gsisftp://', 'ssh://', 'gsissh://']
+2017-01-30 14:08:14,617: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.shell.shell_file for saga.filesystem.File API with URL scheme(s) ['file://', 'local://', 'sftp://', 'gsisftp://', 'ssh://', 'gsissh://']
+2017-01-30 14:08:14,618: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.shell.shell_resource
+2017-01-30 14:08:14,620: radical.saga        : MainProcess                     : MainThread     : WARNING : Skipping adaptor saga.adaptors.shell.shell_resource: beta versions are disabled (v0.1.beta)
+2017-01-30 14:08:14,620: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.redis.redis_advert
+2017-01-30 14:08:14,623: radical.saga        : MainProcess                     : MainThread     : WARNING : Skipping adaptor saga.adaptors.redis.redis_advert 1: module loading failed: No module named redis
+2017-01-30 14:08:14,623: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.sge.sgejob
+2017-01-30 14:08:14,634: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.sge.sgejob for saga.job.Service API with URL scheme(s) ['sge://', 'sge+ssh://', 'sge+gsissh://']
+2017-01-30 14:08:14,634: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.sge.sgejob for saga.job.Job API with URL scheme(s) ['sge://', 'sge+ssh://', 'sge+gsissh://']
+2017-01-30 14:08:14,634: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.pbs.pbsjob
+2017-01-30 14:08:14,637: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.pbs.pbsjob for saga.job.Service API with URL scheme(s) ['pbs://', 'pbs+ssh://', 'pbs+gsissh://']
+2017-01-30 14:08:14,637: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.pbs.pbsjob for saga.job.Job API with URL scheme(s) ['pbs://', 'pbs+ssh://', 'pbs+gsissh://']
+2017-01-30 14:08:14,637: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.lsf.lsfjob
+2017-01-30 14:08:14,640: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.lsf.lsfjob for saga.job.Service API with URL scheme(s) ['lsf://', 'lsf+ssh://', 'lsf+gsissh://']
+2017-01-30 14:08:14,640: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.lsf.lsfjob for saga.job.Job API with URL scheme(s) ['lsf://', 'lsf+ssh://', 'lsf+gsissh://']
+2017-01-30 14:08:14,640: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.condor.condorjob
+2017-01-30 14:08:14,643: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.condor.condorjob for saga.job.Service API with URL scheme(s) ['condor://', 'condor+ssh://', 'condor+gsissh://']
+2017-01-30 14:08:14,643: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.condor.condorjob for saga.job.Job API with URL scheme(s) ['condor://', 'condor+ssh://', 'condor+gsissh://']
+2017-01-30 14:08:14,643: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.slurm.slurm_job
+2017-01-30 14:08:14,646: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.slurm.slurm_job for saga.job.Service API with URL scheme(s) ['slurm://', 'slurm+ssh://', 'slurm+gsissh://']
+2017-01-30 14:08:14,646: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.slurm.slurm_job for saga.job.Job API with URL scheme(s) ['slurm://', 'slurm+ssh://', 'slurm+gsissh://']
+2017-01-30 14:08:14,646: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.http.http_file
+2017-01-30 14:08:14,648: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.http.http_file for saga.namespace.Entry API with URL scheme(s) ['http://', 'https://']
+2017-01-30 14:08:14,648: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.http.http_file for saga.filesystem.File API with URL scheme(s) ['http://', 'https://']
+2017-01-30 14:08:14,648: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.aws.ec2_resource
+2017-01-30 14:08:14,668: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.aws.ec2_resource for saga.Context API with URL scheme(s) ['ec2://', 'ec2_keypair://', 'openstack://', 'eucalyptus://', 'euca://', 'aws://', 'amazon://', 'http://', 'https://']
+2017-01-30 14:08:14,668: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.aws.ec2_resource for saga.resource.Manager API with URL scheme(s) ['ec2://', 'ec2_keypair://', 'openstack://', 'eucalyptus://', 'euca://', 'aws://', 'amazon://', 'http://', 'https://']
+2017-01-30 14:08:14,669: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.aws.ec2_resource for saga.resource.Compute API with URL scheme(s) ['ec2://', 'ec2_keypair://', 'openstack://', 'eucalyptus://', 'euca://', 'aws://', 'amazon://', 'http://', 'https://']
+2017-01-30 14:08:14,669: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.loadl.loadljob
+2017-01-30 14:08:14,671: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.loadl.loadljob for saga.job.Service API with URL scheme(s) ['loadl://', 'loadl+ssh://', 'loadl+gsissh://']
+2017-01-30 14:08:14,671: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.loadl.loadljob for saga.job.Job API with URL scheme(s) ['loadl://', 'loadl+ssh://', 'loadl+gsissh://']
+2017-01-30 14:08:14,672: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.globus_online.go_file
+2017-01-30 14:08:14,673: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.globus_online.go_file for saga.namespace.Directory API with URL scheme(s) ['go://']
+2017-01-30 14:08:14,673: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.globus_online.go_file for saga.namespace.Entry API with URL scheme(s) ['go://']
+2017-01-30 14:08:14,674: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.globus_online.go_file for saga.filesystem.Directory API with URL scheme(s) ['go://']
+2017-01-30 14:08:14,674: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.globus_online.go_file for saga.filesystem.File API with URL scheme(s) ['go://']
+2017-01-30 14:08:14,674: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.torque.torquejob
+2017-01-30 14:08:14,676: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.torque.torquejob for saga.job.Service API with URL scheme(s) ['torque://', 'torque+ssh://', 'torque+gsissh://']
+2017-01-30 14:08:14,676: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.torque.torquejob for saga.job.Job API with URL scheme(s) ['torque://', 'torque+ssh://', 'torque+gsissh://']
+2017-01-30 14:08:14,676: radical.saga        : MainProcess                     : MainThread     : INFO    : loading  adaptor saga.adaptors.pbspro.pbsprojob
+2017-01-30 14:08:14,678: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.pbspro.pbsprojob for saga.job.Service API with URL scheme(s) ['pbspro://', 'pbspro+ssh://', 'pbspro+gsissh://']
+2017-01-30 14:08:14,678: radical.saga        : MainProcess                     : MainThread     : INFO    : Register adaptor saga.adaptors.pbspro.pbsprojob for saga.job.Job API with URL scheme(s) ['pbspro://', 'pbspro+ssh://', 'pbspro+gsissh://']
+2017-01-30 14:08:14,679: radical.saga.api    : MainProcess                     : MainThread     : INFO    : ignore ssh key at /home/antons/.ssh/known_hosts.old (no public key: /home/antons/.ssh/known_hosts.old.pub)
+2017-01-30 14:08:14,689: radical.saga.cpi    : MainProcess                     : MainThread     : INFO    : python.interpreter   version: 2.7.6 (default, Oct 26 2016, 20:30:19) [GCC 4.8.4]
+2017-01-30 14:08:14,690: radical.saga.cpi    : MainProcess                     : MainThread     : INFO    :                      pid: 5423
+2017-01-30 14:08:14,690: radical.saga.cpi    : MainProcess                     : MainThread     : INFO    :                      tid: MainThread
+2017-01-30 14:08:14,690: radical.saga.api    : MainProcess                     : MainThread     : INFO    : default ssh key at /home/antons/.ssh/jen_rsa
+2017-01-30 14:08:14,691: radical.saga.api    : MainProcess                     : MainThread     : INFO    : ignore ssh key at /home/antons/.ssh/authorized_keys (no public key: /home/antons/.ssh/authorized_keys.pub)
+2017-01-30 14:08:14,691: radical.saga.api    : MainProcess                     : MainThread     : INFO    : ignore ssh key at /home/antons/.ssh/known_hosts (no public key: /home/antons/.ssh/known_hosts.pub)
+2017-01-30 14:08:14,697: radical.saga.cpi    : MainProcess                     : MainThread     : INFO    : init SSH context for key  at '/home/antons/.ssh/jen_rsa' done
+2017-01-30 14:08:14,699: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:14,700: radical.pilot       : MainProcess                     : MainThread     : INFO    : using database mongodb://localhost:27017/repex-tests
+2017-01-30 14:08:14,786: radical.pilot       : MainProcess                     : MainThread     : INFO    : New Session created: {'database_url': 'mongodb://localhost:27017/repex-tests', 'connected': 1485803294.785343, 'uid': 'rp.session.antons-pc.antons.017196.0002', 'closed': None, 'created': 1485803294.785343}.
+2017-01-30 14:08:14,787: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_lrz.json
+2017-01-30 14:08:14,792: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for lrz.supermuc
+2017-01-30 14:08:14,793: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_yale.json
+2017-01-30 14:08:14,797: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for yale.grace
+2017-01-30 14:08:14,798: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_ncar.json
+2017-01-30 14:08:14,802: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for ncar.yellowstone
+2017-01-30 14:08:14,802: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_rice.json
+2017-01-30 14:08:14,809: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for rice.biou
+2017-01-30 14:08:14,809: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for rice.davinci
+2017-01-30 14:08:14,810: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_local.json
+2017-01-30 14:08:14,826: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for local.localhost_anaconda
+2017-01-30 14:08:14,826: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for local.localhost_spark
+2017-01-30 14:08:14,827: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for local.localhost_spark_ana
+2017-01-30 14:08:14,827: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for local.localhost_yarn
+2017-01-30 14:08:14,828: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for local.localhost
+2017-01-30 14:08:14,828: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_ornl.json
+2017-01-30 14:08:14,833: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for ornl.titan_orte
+2017-01-30 14:08:14,834: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for ornl.titan_aprun
+2017-01-30 14:08:14,835: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_radical.json
+2017-01-30 14:08:14,837: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for radical.tutorial
+2017-01-30 14:08:14,838: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_futuregrid.json
+2017-01-30 14:08:14,844: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for futuregrid.xray
+2017-01-30 14:08:14,844: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for futuregrid.echo
+2017-01-30 14:08:14,844: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for futuregrid.india
+2017-01-30 14:08:14,845: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for futuregrid.bravo
+2017-01-30 14:08:14,845: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for futuregrid.xray_ccm
+2017-01-30 14:08:14,845: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for futuregrid.delta
+2017-01-30 14:08:14,846: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_xsede.json
+2017-01-30 14:08:14,863: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.blacklight
+2017-01-30 14:08:14,863: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.stampede_yarn
+2017-01-30 14:08:14,864: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.supermic
+2017-01-30 14:08:14,864: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.comet
+2017-01-30 14:08:14,864: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.wrangler_yarn
+2017-01-30 14:08:14,865: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.lonestar
+2017-01-30 14:08:14,865: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.wrangler_spark
+2017-01-30 14:08:14,865: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.greenfield
+2017-01-30 14:08:14,866: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.comet_spark
+2017-01-30 14:08:14,866: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.stampede_spark
+2017-01-30 14:08:14,866: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.comet_ssh
+2017-01-30 14:08:14,867: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.stampede
+2017-01-30 14:08:14,867: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.trestles
+2017-01-30 14:08:14,867: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.gordon
+2017-01-30 14:08:14,868: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for xsede.wrangler
+2017-01-30 14:08:14,868: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_iu.json
+2017-01-30 14:08:14,870: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for iu.bigred2
+2017-01-30 14:08:14,871: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for iu.bigred2_ccm
+2017-01-30 14:08:14,871: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_osg.json
+2017-01-30 14:08:14,873: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for osg.xsede-virt-clust
+2017-01-30 14:08:14,874: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for osg.connect
+2017-01-30 14:08:14,874: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_aliases.json
+2017-01-30 14:08:14,874: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_nersc.json
+2017-01-30 14:08:14,881: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for nersc.edison
+2017-01-30 14:08:14,882: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for nersc.edison_aprun
+2017-01-30 14:08:14,882: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for nersc.hopper_ccm
+2017-01-30 14:08:14,882: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for nersc.hopper_aprun
+2017-01-30 14:08:14,883: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for nersc.edison_ccm
+2017-01-30 14:08:14,883: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for nersc.hopper
+2017-01-30 14:08:14,883: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_stfc.json
+2017-01-30 14:08:14,885: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for stfc.joule
+2017-01-30 14:08:14,885: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_chameleon.json
+2017-01-30 14:08:14,886: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for chameleon.cloud_vm_yarn
+2017-01-30 14:08:14,887: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_epsrc.json
+2017-01-30 14:08:14,890: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for epsrc.archer
+2017-01-30 14:08:14,890: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for epsrc.archer_orte
+2017-01-30 14:08:14,891: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_ncsa.json
+2017-01-30 14:08:14,895: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for ncsa.bw_aprun
+2017-01-30 14:08:14,896: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for ncsa.bw_ccm
+2017-01-30 14:08:14,896: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for ncsa.bw_local
+2017-01-30 14:08:14,896: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for ncsa.bw
+2017-01-30 14:08:14,897: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations from /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/configs/resource_das4.json
+2017-01-30 14:08:14,898: radical.pilot       : MainProcess                     : MainThread     : INFO    : Load resource configurations for das4.fs2
+2017-01-30 14:08:14,904: radical.saga.pty    : MainProcess                     : MainThread     : INFO    : python.interpreter   version: 2.7.6 (default, Oct 26 2016, 20:30:19) [GCC 4.8.4]
+2017-01-30 14:08:14,905: radical.saga.pty    : MainProcess                     : MainThread     : INFO    :                      pid: 5423
+2017-01-30 14:08:14,905: radical.saga.pty    : MainProcess                     : MainThread     : INFO    :                      tid: MainThread
+2017-01-30 14:08:14,905: radical.saga.pty    : MainProcess                     : MainThread     : INFO    : PTY prompt pattern: [\$#%>\]]\s*$
+2017-01-30 14:08:14,906: radical.saga.pty    : MainProcess                     : MainThread     : INFO    : ssh copy  mode set to 'sftp'
+2017-01-30 14:08:14,906: radical.saga.pty    : MainProcess                     : MainThread     : INFO    : ssh share mode set to 'auto'
+2017-01-30 14:08:14,906: radical.saga.pty    : MainProcess                     : MainThread     : INFO    : ssh timeout    set to '1000.0'
+2017-01-30 14:08:14,906: radical.saga.pty    : MainProcess                     : MainThread     : INFO    : running: /usr/bin/env TERM=vt100 /bin/bash -i
+2017-01-30 14:08:14,950: radical.saga.pty    : MainProcess                     : MainThread     : INFO    : running: /usr/bin/env TERM=vt100 /bin/bash -i
+2017-01-30 14:08:14,993: radical.saga.pty    : MainProcess                     : MainThread     : WARNING : flush: [    9] [    1] (discard data: '$')
+2017-01-30 14:08:15,403: radical.pilot       : MainProcess                     : MainThread     : INFO    : [Callback]: ComputePilot 'pilot.0000' state: PendingLaunch.
+2017-01-30 14:08:15,906: radical.pilot       : MainProcess                     : PilotLauncherWorker-1: INFO    : Launching ComputePilot pilot.0000
+2017-01-30 14:08:15,907: radical.pilot       : MainProcess                     : PilotLauncherWorker-1: INFO    : Read agent config file: /home/antons/re-testo/local/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/controller/../configs/agent_default.json
+2017-01-30 14:08:15,912: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : PTY prompt pattern: [\$#%>\]]\s*$
+2017-01-30 14:08:15,913: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh copy  mode set to 'sftp'
+2017-01-30 14:08:15,913: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh share mode set to 'auto'
+2017-01-30 14:08:15,913: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh timeout    set to '1000.0'
+2017-01-30 14:08:15,914: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: INFO    : running: /usr/bin/env TERM=vt100 /bin/bash -i
+2017-01-30 14:08:15,974: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [    9] [    1] (discard data: '$')
+2017-01-30 14:08:16,284: radical.pilot       : MainProcess                     : PilotLauncherWorker-1: INFO    : Using bootstrapper /home/antons/re-testo/lib/python2.7/site-packages/radical.pilot-0.44-py2.7.egg/radical/pilot/bootstrapper/bootstrap_1.sh
+2017-01-30 14:08:16,824: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : PTY prompt pattern: [\$#%>\]]\s*$
+2017-01-30 14:08:16,825: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh copy  mode set to 'sftp'
+2017-01-30 14:08:16,825: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh share mode set to 'auto'
+2017-01-30 14:08:16,825: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh timeout    set to '1000.0'
+2017-01-30 14:08:16,825: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: INFO    : running: /usr/bin/env TERM=vt100 /bin/bash -i
+2017-01-30 14:08:16,867: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   10] [    1] (discard data: '$')
+2017-01-30 14:08:16,906: radical.pilot       : MainProcess                     : Thread-1       : INFO    : ComputePilot 'pilot.0000' state changed from 'PendingLaunch' to 'Launching'.
+2017-01-30 14:08:16,907: radical.pilot       : MainProcess                     : Thread-1       : INFO    : [Callback]: ComputePilot 'pilot.0000' state: Launching.
+2017-01-30 14:08:17,071: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : PTY prompt pattern: [\$#%>\]]\s*$
+2017-01-30 14:08:17,071: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh copy  mode set to 'sftp'
+2017-01-30 14:08:17,071: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh share mode set to 'auto'
+2017-01-30 14:08:17,071: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh timeout    set to '1000.0'
+2017-01-30 14:08:17,072: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: INFO    : running: /usr/bin/env TERM=vt100 /bin/bash -i
+2017-01-30 14:08:17,114: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   11] [    1] (discard data: '$')
+2017-01-30 14:08:17,809: radical.saga.pty    : MainProcess                     : Thread-3       : WARNING : flush: [   11] [    1] (discard data: '
+')
+2017-01-30 14:08:17,815: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   10] [    1] (discard data: '
+')
+2017-01-30 14:08:17,926: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   10] [    1] (discard data: '
+')
+2017-01-30 14:08:18,917: radical.pilot       : MainProcess                     : Thread-1       : INFO    : ComputePilot 'pilot.0000' state changed from 'Launching' to 'PendingActive'.
+2017-01-30 14:08:18,917: radical.pilot       : MainProcess                     : Thread-1       : INFO    : [Callback]: ComputePilot 'pilot.0000' state: PendingActive.
+2017-01-30 14:08:25,928: radical.pilot       : MainProcess                     : Thread-1       : INFO    : ComputePilot 'pilot.0000' state changed from 'PendingActive' to 'Active'.
+2017-01-30 14:08:25,928: radical.pilot       : MainProcess                     : Thread-1       : INFO    : [Callback]: ComputePilot 'pilot.0000' state: Active.
+2017-01-30 14:08:25,928: radical.pilot       : MainProcess                     : Thread-1       : INFO    : pilot pilot.0000 is active: {u'FORK': {u'version': u'0.42', u'version_detail': u'There is no spoon'}} [None]
+2017-01-30 14:08:26,428: radical.pilot       : MainProcess                     : InputFileTransferWorker-1: INFO    : Starting InputFileTransferWorker
+2017-01-30 14:08:26,430: radical.pilot       : MainProcess                     : InputFileTransferWorker-2: INFO    : Starting InputFileTransferWorker
+2017-01-30 14:08:26,434: radical.pilot       : MainProcess                     : MainThread     : INFO    : Loaded scheduler: DirectSubmissionScheduler.
+2017-01-30 14:08:26,502: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:26,609: radical.pilot       : MainProcess                     : MainThread     : INFO    : Transferring file:///home/antons/workdir/repex-release-2/radical.repex/examples/namd/namd_inp/ala.psf to file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000/staging_area/./ala.psf
+2017-01-30 14:08:26,712: radical.saga.pty    : MainProcess                     : MainThread     : INFO    : running: /usr/bin/env TERM=vt100 /bin/bash -i
+2017-01-30 14:08:26,755: radical.saga.pty    : MainProcess                     : MainThread     : WARNING : flush: [   12] [    1] (discard data: '$')
+2017-01-30 14:08:26,981: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:27,085: radical.pilot       : MainProcess                     : MainThread     : INFO    : Transferring file:///home/antons/workdir/repex-release-2/radical.repex/examples/namd/namd_inp/unf.pdb to file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000/staging_area/./unf.pdb
+2017-01-30 14:08:27,410: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:27,514: radical.pilot       : MainProcess                     : MainThread     : INFO    : Transferring file:///home/antons/workdir/repex-release-2/radical.repex/examples/namd/namd_inp/ala.params to file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000/staging_area/./ala.params
+2017-01-30 14:08:27,828: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:27,933: radical.pilot       : MainProcess                     : MainThread     : INFO    : Transferring file:///home/antons/workdir/repex-release-2/radical.repex/examples/namd/namd_inp/ala.namd to file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000/staging_area/./ala.namd
+2017-01-30 14:08:28,339: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:28,445: radical.pilot       : MainProcess                     : MainThread     : INFO    : Transferring file:///home/antons/re-testo/local/lib/python2.7/site-packages/radical.repex-0.2.9-py2.7.egg/ram_namd/input_file_builder.py to file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000/staging_area/./input_file_builder.py
+2017-01-30 14:08:28,754: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:28,859: radical.pilot       : MainProcess                     : MainThread     : INFO    : Transferring file:///home/antons/re-testo/local/lib/python2.7/site-packages/radical.repex-0.2.9-py2.7.egg/ram_namd/global_ex_calculator_mpi.py to file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000/staging_area/./global_ex_calculator_mpi.py
+2017-01-30 14:08:29,173: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:29,279: radical.pilot       : MainProcess                     : MainThread     : INFO    : Transferring file:///home/antons/re-testo/local/lib/python2.7/site-packages/radical.repex-0.2.9-py2.7.egg/ram_namd/global_ex_calculator.py to file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000/staging_area/./global_ex_calculator.py
+2017-01-30 14:08:29,591: radical.saga        : MainProcess                     : MainThread     : WARNING : cannot initialize context - no session: {'LifeTime' : '-1', 'Type' : 'ssh', 'UserCert' : '/home/antons/.ssh/jen_rsa.pub', 'UserKey' : '/home/antons/.ssh/jen_rsa'}
+2017-01-30 14:08:29,695: radical.pilot       : MainProcess                     : MainThread     : INFO    : Transferring file:///home/antons/re-testo/local/lib/python2.7/site-packages/radical.repex-0.2.9-py2.7.egg/ram_namd/ind_ex_calculator.py to file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000/staging_area/./ind_ex_calculator.py
+2017-01-30 14:08:30,030: radical.pilot       : MainProcess                     : MainThread     : INFO    : Scheduled ComputeUnits [unit.000004 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_4_0.namd']) (139849034642448), unit.000001 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_1_0.namd']) (139849034643024), unit.000006 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_6_0.namd']) (139849034604048), unit.000002 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_2_0.namd']) (139849034642576), unit.000005 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_5_0.namd']) (139849034601232), unit.000003 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_3_0.namd']) (139849034642768), unit.000000 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_0_0.namd']) (139849034642384), unit.000007 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_7_0.namd']) (139849034601296)] on ComputePilot 'pilot.0000'.
+2017-01-30 14:08:30,031: radical.pilot       : MainProcess                     : MainThread     : INFO    : 0 units remain unscheduled
+2017-01-30 14:08:34,453: radical.pilot       : MainProcess                     : OutputFileTransferWorker-2: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:34,454: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:34,454: radical.pilot       : MainProcess                     : OutputFileTransferWorker-2: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000004
+2017-01-30 14:08:34,455: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000001
+2017-01-30 14:08:34,458: radical.pilot       : MainProcess                     : OutputFileTransferWorker-2: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:34,458: radical.pilot       : MainProcess                     : OutputFileTransferWorker-2: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000006
+2017-01-30 14:08:34,461: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:34,462: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000002
+2017-01-30 14:08:34,464: radical.pilot       : MainProcess                     : OutputFileTransferWorker-2: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:34,465: radical.pilot       : MainProcess                     : OutputFileTransferWorker-2: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000005
+2017-01-30 14:08:34,466: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:34,466: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000003
+2017-01-30 14:08:34,468: radical.pilot       : MainProcess                     : OutputFileTransferWorker-2: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:34,469: radical.pilot       : MainProcess                     : OutputFileTransferWorker-2: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000000
+2017-01-30 14:08:34,471: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:34,471: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000007
+2017-01-30 14:08:35,451: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: AgentStagingInput.
+2017-01-30 14:08:35,451: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: AllocatingPending.
+2017-01-30 14:08:35,451: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: Allocating.
+2017-01-30 14:08:35,451: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: ExecutingPending.
+2017-01-30 14:08:35,451: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: Executing.
+2017-01-30 14:08:35,451: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: AgentStagingOutputPending.
+2017-01-30 14:08:35,452: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: AgentStagingOutput.
+2017-01-30 14:08:35,452: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: PendingOutputStaging.
+2017-01-30 14:08:35,452: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:35,452: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000003 state on pilot pilot.0000: Done.
+2017-01-30 14:08:35,453: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: AgentStagingInput.
+2017-01-30 14:08:35,453: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: AllocatingPending.
+2017-01-30 14:08:35,453: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: Allocating.
+2017-01-30 14:08:35,453: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: ExecutingPending.
+2017-01-30 14:08:35,453: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: Executing.
+2017-01-30 14:08:35,454: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: AgentStagingOutputPending.
+2017-01-30 14:08:35,454: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: AgentStagingOutput.
+2017-01-30 14:08:35,454: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: PendingOutputStaging.
+2017-01-30 14:08:35,454: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:35,454: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000002 state on pilot pilot.0000: Done.
+2017-01-30 14:08:35,455: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: AgentStagingInput.
+2017-01-30 14:08:35,455: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: AllocatingPending.
+2017-01-30 14:08:35,455: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: Allocating.
+2017-01-30 14:08:35,455: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: ExecutingPending.
+2017-01-30 14:08:35,455: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: Executing.
+2017-01-30 14:08:35,456: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: AgentStagingOutputPending.
+2017-01-30 14:08:35,456: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: AgentStagingOutput.
+2017-01-30 14:08:35,456: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: PendingOutputStaging.
+2017-01-30 14:08:35,456: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:35,456: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000001 state on pilot pilot.0000: Done.
+2017-01-30 14:08:35,457: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: AgentStagingInput.
+2017-01-30 14:08:35,457: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: AllocatingPending.
+2017-01-30 14:08:35,457: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: Allocating.
+2017-01-30 14:08:35,457: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: ExecutingPending.
+2017-01-30 14:08:35,458: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: Executing.
+2017-01-30 14:08:35,458: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: AgentStagingOutputPending.
+2017-01-30 14:08:35,458: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: AgentStagingOutput.
+2017-01-30 14:08:35,458: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: PendingOutputStaging.
+2017-01-30 14:08:35,458: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:35,458: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000000 state on pilot pilot.0000: Done.
+2017-01-30 14:08:35,459: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: AgentStagingInput.
+2017-01-30 14:08:35,459: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: AllocatingPending.
+2017-01-30 14:08:35,459: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: Allocating.
+2017-01-30 14:08:35,459: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: ExecutingPending.
+2017-01-30 14:08:35,460: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: Executing.
+2017-01-30 14:08:35,460: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: AgentStagingOutputPending.
+2017-01-30 14:08:35,460: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: AgentStagingOutput.
+2017-01-30 14:08:35,460: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: PendingOutputStaging.
+2017-01-30 14:08:35,460: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:35,460: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000007 state on pilot pilot.0000: Done.
+2017-01-30 14:08:35,461: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: AgentStagingInput.
+2017-01-30 14:08:35,461: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: AllocatingPending.
+2017-01-30 14:08:35,461: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: Allocating.
+2017-01-30 14:08:35,461: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: ExecutingPending.
+2017-01-30 14:08:35,461: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: Executing.
+2017-01-30 14:08:35,461: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: AgentStagingOutputPending.
+2017-01-30 14:08:35,462: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: AgentStagingOutput.
+2017-01-30 14:08:35,462: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: PendingOutputStaging.
+2017-01-30 14:08:35,463: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:35,463: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000006 state on pilot pilot.0000: Done.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: AgentStagingInput.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: AllocatingPending.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: Allocating.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: ExecutingPending.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: Executing.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: AgentStagingOutputPending.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: AgentStagingOutput.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: PendingOutputStaging.
+2017-01-30 14:08:35,465: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:35,466: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000005 state on pilot pilot.0000: Done.
+2017-01-30 14:08:35,466: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: AgentStagingInput.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: AllocatingPending.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: Allocating.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: ExecutingPending.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: Executing.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: AgentStagingOutputPending.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: AgentStagingOutput.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: PendingOutputStaging.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:35,467: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000004 state on pilot pilot.0000: Done.
+2017-01-30 14:08:35,545: radical.pilot       : MainProcess                     : MainThread     : INFO    : Scheduled ComputeUnits [unit.000008 (Scheduling     : python ['global_ex_calculator.py', '0', '8', 'ala']) (139849034600912)] on ComputePilot 'pilot.0000'.
+2017-01-30 14:08:35,545: radical.pilot       : MainProcess                     : MainThread     : INFO    : 0 units remain unscheduled
+2017-01-30 14:08:38,536: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:38,537: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000008
+2017-01-30 14:08:38,558: radical.saga.cpi    : MainProcess                     : OutputFileTransferWorker-1: INFO    : init_instance file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000//unit.000008/pairs_for_exchange_0.dat
+2017-01-30 14:08:38,661: radical.saga.cpi    : MainProcess                     : OutputFileTransferWorker-1: INFO    : file initialized (0)()
+2017-01-30 14:08:41,482: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000008 state on pilot pilot.0000: StagingOutput.
+2017-01-30 14:08:41,483: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000008 state on pilot pilot.0000: Done.
+2017-01-30 14:08:41,594: radical.pilot       : MainProcess                     : MainThread     : INFO    : Scheduled ComputeUnits [unit.000016 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_7_1.namd']) (139848953761296), unit.000011 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_2_1.namd']) (139849034726480), unit.000012 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_3_1.namd']) (139849034726544), unit.000014 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_5_1.namd']) (139848953761616), unit.000015 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_6_1.namd']) (139848953761424), unit.000010 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_1_1.namd']) (139849034726992), unit.000013 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_4_1.namd']) (139848953761744), unit.000009 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_0_1.namd']) (139849035048272)] on ComputePilot 'pilot.0000'.
+2017-01-30 14:08:41,594: radical.pilot       : MainProcess                     : MainThread     : INFO    : 0 units remain unscheduled
+2017-01-30 14:08:43,878: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:43,878: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000016
+2017-01-30 14:08:43,881: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:43,881: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000011
+2017-01-30 14:08:43,883: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:43,883: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000012
+2017-01-30 14:08:43,885: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:43,885: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000014
+2017-01-30 14:08:43,887: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:43,887: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000015
+2017-01-30 14:08:43,889: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:43,889: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000010
+2017-01-30 14:08:43,891: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:43,891: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000013
+2017-01-30 14:08:43,893: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:43,893: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000009
+2017-01-30 14:08:44,605: radical.pilot       : MainProcess                     : MainThread     : INFO    : Scheduled ComputeUnits [unit.000017 (Scheduling     : python ['global_ex_calculator.py', '1', '8', 'ala']) (139848953767312)] on ComputePilot 'pilot.0000'.
+2017-01-30 14:08:44,605: radical.pilot       : MainProcess                     : MainThread     : INFO    : 0 units remain unscheduled
+2017-01-30 14:08:46,900: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:46,900: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000017
+2017-01-30 14:08:46,902: radical.saga.cpi    : MainProcess                     : OutputFileTransferWorker-1: INFO    : init_instance file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000//unit.000017/pairs_for_exchange_1.dat
+2017-01-30 14:08:47,003: radical.saga.cpi    : MainProcess                     : OutputFileTransferWorker-1: INFO    : file initialized (0)()
+2017-01-30 14:08:47,640: radical.pilot       : MainProcess                     : MainThread     : INFO    : Scheduled ComputeUnits [unit.000018 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_0_2.namd']) (139848953758736), unit.000020 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_2_2.namd']) (139848953769552), unit.000023 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_5_2.namd']) (139848953768592), unit.000024 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_6_2.namd']) (139848953768144), unit.000022 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_4_2.namd']) (139848953768720), unit.000021 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_3_2.namd']) (139848953769808), unit.000019 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_1_2.namd']) (139848953769616), unit.000025 (Scheduling     : /home/antons/NAMD_2.9_Linux-x86/namd2 ['ala_7_2.namd']) (139848953766800)] on ComputePilot 'pilot.0000'.
+2017-01-30 14:08:47,640: radical.pilot       : MainProcess                     : MainThread     : INFO    : 0 units remain unscheduled
+2017-01-30 14:08:50,217: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:50,218: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000018
+2017-01-30 14:08:50,219: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:50,219: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000020
+2017-01-30 14:08:50,221: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:50,221: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000023
+2017-01-30 14:08:50,222: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:50,222: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000024
+2017-01-30 14:08:50,223: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:50,224: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000022
+2017-01-30 14:08:50,225: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:50,225: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000021
+2017-01-30 14:08:50,227: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:50,227: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000019
+2017-01-30 14:08:50,228: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:50,228: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000025
+2017-01-30 14:08:50,660: radical.pilot       : MainProcess                     : MainThread     : INFO    : Scheduled ComputeUnits [unit.000026 (Scheduling     : python ['global_ex_calculator.py', '2', '8', 'ala']) (139848953372816)] on ComputePilot 'pilot.0000'.
+2017-01-30 14:08:50,660: radical.pilot       : MainProcess                     : MainThread     : INFO    : 0 units remain unscheduled
+2017-01-30 14:08:53,235: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OFTW CU found, progressing ...
+2017-01-30 14:08:53,235: radical.pilot       : MainProcess                     : OutputFileTransferWorker-1: INFO    : OutputStagingController: Processing output file transfers for ComputeUnit unit.000026
+2017-01-30 14:08:53,236: radical.saga.cpi    : MainProcess                     : OutputFileTransferWorker-1: INFO    : init_instance file://localhost/home/antons/radical.pilot.sandbox/rp.session.antons-pc.antons.017196.0002-pilot.0000//unit.000026/pairs_for_exchange_2.dat
+2017-01-30 14:08:53,338: radical.saga.cpi    : MainProcess                     : OutputFileTransferWorker-1: INFO    : file initialized (0)()
+2017-01-30 14:08:56,545: radical.pilot       : MainProcess                     : Thread-4       : INFO    : [Callback]: unit unit.000026 state on pilot pilot.0000: Done.
+2017-01-30 14:08:56,674: radical.pilot       : MainProcess                     : MainThread     : INFO    : Sent 'COMMAND_CANCEL_PILOT' command to pilots ['pilot.0000'].
+2017-01-30 14:08:58,106: radical.pilot       : MainProcess                     : PilotLauncherWorker-1: INFO    : Performing periodical health check for pilot.0000 (SAGA job id [fork://localhost/]-[5591.0])
+2017-01-30 14:08:58,133: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : PTY prompt pattern: [\$#%>\]]\s*$
+2017-01-30 14:08:58,134: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh copy  mode set to 'sftp'
+2017-01-30 14:08:58,134: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh share mode set to 'auto'
+2017-01-30 14:08:58,134: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh timeout    set to '1000.0'
+2017-01-30 14:08:58,134: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: INFO    : running: /usr/bin/env TERM=vt100 /bin/bash -i
+2017-01-30 14:08:58,179: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   14] [    1] (discard data: '$')
+2017-01-30 14:08:58,384: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : PTY prompt pattern: [\$#%>\]]\s*$
+2017-01-30 14:08:58,385: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh copy  mode set to 'sftp'
+2017-01-30 14:08:58,385: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh share mode set to 'auto'
+2017-01-30 14:08:58,385: radical.saga.cpi    : MainProcess                     : PilotLauncherWorker-1: INFO    : ssh timeout    set to '1000.0'
+2017-01-30 14:08:58,386: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: INFO    : running: /usr/bin/env TERM=vt100 /bin/bash -i
+2017-01-30 14:08:58,438: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   15] [    1] (discard data: '$')
+2017-01-30 14:08:59,119: radical.saga.pty    : MainProcess                     : Thread-9       : WARNING : flush: [   15] [    1] (discard data: '
+')
+2017-01-30 14:08:59,119: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   14] [    1] (discard data: '
+')
+2017-01-30 14:08:59,249: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   14] [    1] (discard data: '
+')
+2017-01-30 14:08:59,361: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   14] [    1] (discard data: '
+')
+2017-01-30 14:08:59,475: radical.pilot       : MainProcess                     : PilotLauncherWorker-1: INFO    : pilot pilot.0000 seems alive and well
+2017-01-30 14:09:01,481: radical.pilot       : MainProcess                     : PilotLauncherWorker-1: INFO    : Performing periodical health check for pilot.0000 (SAGA job id [fork://localhost/]-[5591.0])
+2017-01-30 14:09:01,481: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   14] [    1] (discard data: '
+')
+2017-01-30 14:09:01,586: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   14] [    1] (discard data: '
+')
+2017-01-30 14:09:01,694: radical.saga.pty    : MainProcess                     : PilotLauncherWorker-1: WARNING : flush: [   14] [    1] (discard data: '
+')
+2017-01-30 14:09:01,800: radical.pilot       : MainProcess                     : PilotLauncherWorker-1: INFO    : pilot pilot.0000 seems alive and well
+2017-01-30 14:09:01,981: radical.pilot       : MainProcess                     : Thread-1       : INFO    : ComputePilot 'pilot.0000' state changed from 'Active' to 'Canceled'.
+2017-01-30 14:09:02,995: radical.pilot       : MainProcess                     : MainThread     : INFO    : Closed UnitManager umgr.0000.

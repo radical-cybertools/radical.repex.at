@@ -1,0 +1,23 @@
+{
+    "remd.input": {
+        "sync": "S",
+        "number_of_cycles": "3",
+        "input_folder": "namd_inp",
+        "input_file_basename": "ala",
+        "namd_structure": "ala.psf",
+        "namd_coordinates": "unf.pdb",
+        "namd_parameters": "ala.params",
+        "replica_cores": "1",
+        "steps_per_cycle": "1000",
+        "download_mdinfo": "True",
+        "download_mdout" : "True"
+    },
+    "dim.input": {
+        "d1": {
+            "type" : "temperature",
+            "number_of_replicas": "8",
+            "min_temperature": "300.0",
+            "max_temperature": "308.0"
+        }
+    }
+}

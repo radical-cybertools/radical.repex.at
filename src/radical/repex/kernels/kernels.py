@@ -1,8 +1,8 @@
-""" Application kernel configuration file.
+""" Configuration file for Application kernels.
 """
 
 KERNELS = {
-    "xsede.stampede.wf":
+    "xsede.stampede":
     {
         "params":
         {
@@ -12,31 +12,10 @@ KERNELS = {
         {
             "amber": {
                 "environment" : {},
-                "pre_execution" : ["module restore", "module load amber", "module load python"],
+                "pre_execution" : ["module restore", "module load intel/13.0.2.146", "module load amber", "module load python"],
                 "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander",
-                "executable_mpi" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI"
-
-            },
-            "namd": {
-                "environment" : {},
-                "pre_execution" : ["module load TACC", "module load namd/2.9"],
-                "executable" : "/opt/apps/intel13/mvapich2_1_9/namd/2.9/bin/namd2"
-            }
-        },
-        "shell": "bash"
-    },"xsede.stampede":
-    {
-        "params":
-        {
-            "cores": 16,
-        },
-        "kernels":
-        {
-            "amber": {
-                "environment" : {},
-                "pre_execution" : ["module restore", "module load amber", "module load python"],
-                "executable" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander",
-                "executable_mpi" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI"
+                "executable_mpi" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/sander.MPI",
+                "executable_gpu" : "/opt/apps/intel13/mvapich2_1_9/amber/12.0/bin/pmemd.cuda"
 
             },
             "namd": {
@@ -93,8 +72,12 @@ KERNELS = {
         {
             "amber": {
                 "pre_execution" : [],
-                "executable" : "/home/antons/amber/amber14/bin/sander",
-                "executable_mpi" : "/home/antons/amber/amber14/bin/sander"
+                "executable" : "/home/antons/amber/amber14-single/bin/sander",
+                "executable_mpi" : "/home/antons/amber/amber14-mpi/bin/sander.MPI"
+            },
+            "namd": {
+                "pre_execution" : [],
+                "executable" : "/home/antons/NAMD_2.9_Linux-x86/namd2"
             }
         },
         "shell": "bash"
@@ -113,7 +96,7 @@ KERNELS = {
                 "executable_mpi" : "/opt/amber/bin/sander.MPI"
             }
         },
-        "shell": "bourne"
+        "shell": "bash"
     },"ncsa.bw":
     {
         "params":
@@ -124,11 +107,12 @@ KERNELS = {
         {
             "amber": {
                 "environment" : {},
-                "pre_execution" : [],
-                "executable" : "/u/sciteam/treikali/amber14/bin/sander",
-                "executable_mpi" : "/u/sciteam/treikali/amber14/bin/sander.MPI"
+                "pre_execution" : ["module use --append /projects/sciteam/gkd/modules","module load openmpi","source /projects/sciteam/gkd/virtenvs/mpi4py/20151210_OMPI20151210-DYN/bin/activate","export PATH=$PATH:/projects/sciteam/gkd/amber_ompi_cpu/bin"],
+                "executable" : "sander",
+                "executable_mpi" : "sander.MPI"
             }
-        }
+        },
+        "shell": "bash"
     },"xsede.supermic":
     {
         "params":

@@ -1,0 +1,8 @@
+{
+    "resource" : "ncsa.bw",
+    "username" : "octocat",
+    "project"  : "abcdefg",
+    "runtime"  : "20",
+    "cleanup"  : "False",
+    "cores" : "16"
+}

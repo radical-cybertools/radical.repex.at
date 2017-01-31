@@ -1,0 +1,51 @@
+#!/usr/bin/python
+
+"""
+generate state-mixing profile (for U dimension in TSU)
+"""
+
+import os
+import sys
+import json
+import argparse
+from repex_utils.parser import parse_cmd_state_mixing
+
+def swap(my_array,pair):
+    i = pair[0]
+    j = pair[1]
+    t = my_array[i]
+    my_array[i] = my_array[j]
+    my_array[j] = t
+
+def read_pairs(filename):
+    f = file(filename,'r')
+    d = f.readlines()
+    f.close()
+    pairs = []
+    for l in d[:-1]:
+        p = map(int,l.strip().split())
+        pairs.append(p)
+    return pairs
+
+if __name__ == '__main__':
+    
+    args = parser.parse_cmd_state_mixing()
+    nr = args.nr_replicas
+    ns = args.nr_states
+    fs = args.filenames.split(",")
+    state_matrix = []
+    my_array = range(nr)
+    for f in fs:
+        current_array = copy.deepcopy(my_array)
+        state_matrix.append(current_array)
+        pairs = read_pairs(f)
+        for p in pairs:
+            swap(my_array,p)
+    f = file("state_mixing.dat",'w')
+    for i in range(nr):
+        for j in range(len(fs)):
+            line = str(int(state_matrix[j][i])%ns) + "\n"
+            f.write(line)
+        f.write("\n")
+    f.close()
+

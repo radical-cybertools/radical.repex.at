@@ -2,7 +2,6 @@ import re
 import os
 import sys
 import subprocess
-from distutils.core import setup
 from setuptools import setup, find_packages
 
 def get_version():
@@ -67,7 +66,7 @@ def makeDataFiles(prefix, dir):
     os.path.walk(dir, visit, (prefix, strip, found))
     return found
 
-def visit((prefix, strip, found), dirname, names):
+def visit( (prefix, strip, found), dirname, names):
     """ Visit directory, create distutil tuple
     Add distutil tuple for each directory using this format:
         (destination, [dirname/file1, dirname/file2, ...])
@@ -97,47 +96,43 @@ def isbad(name):
 
 def isgood(name):
     """ Whether name should be installed """
-    if not isbad(name):
-        if name.endswith('.py') or name.endswith('.json'):
-            return True
+    if not isbad(name) and (name.endswith('.py') or name.endswith('.json')):
+        return True
     return False
 
 #-------------------------------------------------------------------------------
 
 setup(
     name='radical.repex',
-    version='0.2.9',
+    version='0.2.10',
     author='Antons Treikalis',
-    author_email='antons.treikalis@rutgers.edu',
+    author_email='antons.treikalis@gmail.com',
     packages=['repex_utils', 
               'repex', 
               'replicas', 
               'kernels', 
-              'pilot_kernels', 
-              'md_kernels', 
-              'namd_kernels_tex', 
-              'amber_kernels_tex', 
-              'amber_kernels_salt',
-              'amber_kernels_us',
-              'amber_kernels_3d_tuu',
-              'amber_kernels_3d_tsu'],
+              'execution_management_modules', 
+              'application_management_modules', 
+              'ram_namd',
+              'ram_amber'],
     package_dir={'repex_utils': 'src/radical/repex/repex_utils',
                  'repex': 'src/radical/repex',
                  'replicas': 'src/radical/repex/replicas',
                  'kernels': 'src/radical/repex/kernels',
-                 'pilot_kernels': 'src/radical/repex/pilot_kernels',
-                 'md_kernels': 'src/radical/repex/md_kernels',
-                 'namd_kernels_tex': 'src/radical/repex/md_kernels/namd_kernels_tex',
-                 'amber_kernels_tex': 'src/radical/repex/md_kernels/amber_kernels_tex',
-                 'amber_kernels_salt': 'src/radical/repex/md_kernels/amber_kernels_salt',
-                 'amber_kernels_us': 'src/radical/repex/md_kernels/amber_kernels_us',
-                 'amber_kernels_3d_tuu': 'src/radical/repex/md_kernels/amber_kernels_3d_tuu',
-                 'amber_kernels_3d_tsu': 'src/radical/repex/md_kernels/amber_kernels_3d_tsu'},
-    scripts=['bin/repex-version', 'bin/repex-amber'],
+                 'execution_management_modules': 'src/radical/repex/execution_management_modules',
+                 'application_management_modules': 'src/radical/repex/application_management_modules',
+                 'ram_namd': 'src/radical/repex/remote_application_modules/ram_namd',
+                 'ram_amber': 'src/radical/repex/remote_application_modules/ram_amber'},
+    scripts=['bin/repex-version', 
+             'bin/repex-amber', 
+             'bin/repex-namd',
+             'bin/calc-acceptance-ratio',
+             'bin/calc-state-mixing',
+             'bin/calc-exchange-metrics'],
     license='LICENSE.txt',
     description='Radical Pilot based Replica Exchange Simulations Package',
-    install_requires=['radical.pilot'],
-    download_url = 'https://github.com/AntonsT/radical.repex/tarball/0.2',
+    install_requires=['radical.pilot', 'mpi4py'],
+    download_url = 'https://github.com/AntonsT/radical.repex/tarball/0.2.10',
     url = 'https://github.com/radical-cybertools/radical.repex.git',
     data_files=makeDataFiles('share/radical.repex/examples/', 'examples')
 )

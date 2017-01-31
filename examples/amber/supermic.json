@@ -1,0 +1,8 @@
+{
+    "resource": "xsede.supermic",
+    "username" : "octocat",
+    "project" : "TG-XYZ0123456",
+    "runtime" : "20",
+    "cleanup" : "False",
+    "cores" : "20"
+}

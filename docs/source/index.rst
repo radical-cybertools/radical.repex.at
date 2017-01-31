@@ -16,9 +16,9 @@ Contents:
    pages/introduction.rst
    pages/installation.rst
    pages/gettingstarted.rst
-   pages/userguide.rst
+   pages/runninglocally.rst
    pages/runningonhpcclusters.rst
-   pages/futurework.rst
+   pages/examples.rst
    pages/faq.rst
 
 
