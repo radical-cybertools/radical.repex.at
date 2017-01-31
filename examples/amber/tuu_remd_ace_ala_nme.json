@@ -8,7 +8,7 @@
         "amber_parameters": "ace_ala_nme.parm7",
         "amber_coordinates_folder": "ace_ala_nme_coors",
         "us_template": "ace_ala_nme_us.RST",
-        "steps_per_cycle": "100",
+        "steps_per_cycle": "1000",
         "download_mdinfo": "True",
         "download_mdout" : "True"
         },
