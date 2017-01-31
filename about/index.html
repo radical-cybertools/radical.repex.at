@@ -23,7 +23,7 @@
 
         <ul>
           <li><a href="/radical.repex/" style="text-decoration:none;">&nbsp; &nbsp; &nbsp; Home</a></li>
-          <li><a href="../about/" style="text-decoration:none;">&nbsp; &nbsp; &nbsp; About</a></li>
+          <li><a href="/radical.repex/about/" style="text-decoration:none;">&nbsp; &nbsp; &nbsp; About</a></li>
           <li class="download"><a class="buttons" href="https://github.com/radical-cybertools/radical.repex/zipball/master">Download ZIP</a></li>
           <li class="download"><a class="buttons" href="https://github.com/radical-cybertools/radical.repex/tarball/master">Download TAR</a></li>
           <li><a class="buttons github" href="https://github.com/radical-cybertools/radical.repex">View On GitHub</a></li>
@@ -35,80 +35,48 @@
       </header>
       <section>
         <h1>
-<a name="repex-replica-exchange-simulations-package" class="anchor" href="#repex-replica-exchange-simulations-package"><span class="octicon octicon-link"></span></a>RepEx: Replica Exchange simulations Package</h1>
+<a name="repex-replica-exchange-simulations-package" class="anchor" href="#repex-replica-exchange-simulations-package"><span class="octicon octicon-link"></span></a><strong>RepEx</strong>: <strong>Rep</strong>lica <strong>Ex</strong>change simulations package</h1>
 
-<p>This package is aimed to provide functionality to run Replica Exchange simulations using various RE schemes and MD kernels. Currectly RepEX supports NAMD and Amber as it's application kernels and allows to perform RE simulations on local and remote systems. Functionality to run three RE schemes is available.</p>
+<p>RepEx package is designed to provide functionality to run multi-dimensional Replica Exchange (RE) simulations while decoupling the total number of replicas from the allocated CPU cores. Currectly RepEX supports NAMD and Amber MD engines. RepEx allows to perform RE simulations on local (user workstation) and remote (HPC cluster) systems. Currently three exchange parameters are supported: temperature, salt concentration and umbrella sampling.</p>
 
 <h3>
 <a name="theory-of-replica-exchange-simulations" class="anchor" href="#theory-of-replica-exchange-simulations"><span class="octicon octicon-link"></span></a>Theory of Replica Exchange simulations</h3>
 
-<p>In Parallel Tempering (Replica Exchange) simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica can be treated as an independent system and would be initialised at a different temperature. While systems with high temperatures are very good at sampling large portions of phase space, low temperature systems often become trapped in local energy minima during the simulation. Replica Exchange method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, system replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.</p>
+<p>In RE simulations N replicas of the original system are used to model phenomenon of interest. Typically, each replica is treated as an independent system and is initialised at a different temperature. While systems with high temperatures are very good at sampling large portions of phase space, low temperature systems often become trapped in local energy minima. RE method is very effective in addressing this issue and generally demonstrates a very good sampling. In RE simulations, replicas of both higher and lower temperature sub-sets are present. During the simulation they exchange full configurations at different temperatures, allowing lower temperature systems to sample a representative portion of phase space.</p>
 
 <h3>
-<a name="re-pattern-a" class="anchor" href="#re-pattern-a"><span class="octicon octicon-link"></span></a>RE pattern-A</h3>
-<img src="../images/pattern-a.jpg" alt="pattern-a diagram">
-<p>This is the conventional RE pattern where all replicas first run MD for a fixed period of simulation time (e.g. 2 ps) and then perform an exchange step. In this pattern a global barrier is present - all replicas must first finish MD step and only then exchange step can occur. Main characteristics of pattern-A are:</p>
+<a name="sync" class="anchor" href="#sync"><span class="octicon octicon-link"></span></a>Synchronization flexibility</h3>
 
-<ul>
-<li>number of replicas equals to the number of allocated compute cores</li>
-<li>simultaneous MD</li>
-<li>simultaneous exchange</li>
-<li>all replicas participate in exchange step</li>
-<li>constant simulation cycle time</li>
-<li>global barrier between MD and exchange step</li>
-</ul><h3>
-<a name="re-pattern-b" class="anchor" href="#re-pattern-b"><span class="octicon octicon-link"></span></a>RE pattern-B</h3>
-<img src="../images/pattern-b.jpg" alt="pattern-b diagram">
-<p>The main difference of this pattern from pattern-A is in number of compute cores used for simulation, which is less than the number of replicas (typically 50% of the number of replicas). This small detail results in both MD run and exchange step being performed concurrently. At the same time global synchronization barrier is still present - no replica can start exchange before all replicas has finished MD and vice versa. We define exchange step as concurrent since this step isn't performed simultaneously (in parallel) for all replicas. Similarly to pattern-A in this scheme simulation cycle for each replica is defined as fixed number of simulation time-steps. This pattern can be summarized as:</p>
+One of the distinctive features of RepEx is synchronization flexibility. A user can choose a synchronization pattern independently of the MD engine in use and independently of the number of available computational resources.
 
-<ul>
-<li>number of allocated compute cores equals 50% of replicas</li>
-<li>concurrent MD</li>
-<li>concurrent exchange</li>
-<li>all replicas participate in exchange step</li>
-<li>constant simulation cycle time</li>
-<li>global barrier between MD and exchange step</li>
-</ul>
-<h3><a name="re-pattern-c" class="anchor" href="#re-pattern-c"><span class="octicon octicon-link"></span></a>RE pattern-C</h3>
-<img src="../images/pattern-c.jpg" alt="pattern-c diagram">
-<p>This pattern is asynchronous - MD run on target resource is overlapped with exchange step. Similarly to pattern-B, the number of replicas exceeds allocated compute cores. Simulation cycle is defined as a fixed time interval during which replicas are performing MD run. After cycle time elapses, some of the replicas are still performing MD run but some are ready for exchange. At this point exchange step involving replicas which has finished MD run is performed. Main characteristics of this pattern are:</p>
+<h4>
+<a name="sync-re" class="anchor" href="#sync-re"><span class="octicon octicon-link"></span></a>Synchronous RE</h4>
+<img src="../images/sync-RE-pattern.png" alt="sync-re">
+<p>Synchronous RE is a conventional way of running RE simulations, where all replicas propagate MD simulations for a fixed period of simulation time-steps (e. g. 2 ps) before any of the exchanges can happen. The (physical) execution time for replicas is not fixed, as all replicas must finish a fixed-number of time-steps before the exchange takes place. Only after <strong>all</strong> replicas has finished MD simulation, replicas can start exchange parameters. As a result, fast replicas have to wait for slow replicas at the <strong>synchronization barrier</strong>.</p>
 
-<ul>
-<li>number of allocated compute cores equals 50% of replicas</li>
-<li>no global synchronization barrier between MD and exchange step</li>
-<li>simulation cycle is defined as fixed real time interval </li>
-<li>concurrent MD</li>
-<li>only fraction of replicas participate in exchange step</li>
-<li>during time period of simulation cycle no replicas participate in exchange step
-This pattern can be summarized as follows:
+<h4>
+<a name="async-re" class="anchor" href="#async-re"><span class="octicon octicon-link"></span></a>Asynchronous RE</h4>
+<img src="../images/async-RE-pattern.png" alt="async-re">
+<p>In asynchronous RE we don't have a global <strong>synchronization barrier</strong>. While some replicas are performing MD simulation, some other replicas might be performing an exchange or simply be in indle state. To determine at which point replicas must start exchanging parameters (after completing MD simulation) we use a parameter called <strong>wait ratio</strong>. Wait ratio specifies the ratio of replicas which have already completed MD simulation to the total number of replicas. In other words we specify for how many replicas out of <strong>N</strong> replicas we have to wait, before we can proceed to exchange of parameters for this subset of replicas. Wait ratio is a lower bound: we specify at least how many replicas have to finish MD simulation. In practice the number of replicas which will 
+proceed to exchange might be larger.</p>
 
-<ul>
-<li>All replicas are initialized and assigned a "waiting" state</li>
-<li>While elapsed time is less that the total simulation time, do:<br><ul>
-<li>All replicas in "waiting" state are submitted to target resource for execution</li>
-<li>State of all submitted replicas is changed to "running"</li>
-<li>Wait for a fixed time interval (simulation cycle)</li>
-<li>All replicas which has finished MD run are assigned state "waiting"</li>
-<li>Exchange step is performed for all replicas in "waiting" state</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-	
 
-<h3><a name="re-pattern-d" class="anchor" href="#re-pattern-d"><span class="octicon octicon-link"></span></a>RE pattern-D</h3>
-<img src="../images/pattern-d.jpg" alt="pattern-d diagram">
-<p>This pattern is similar to pattern-A. The main difference is in definition of the simulation cycle. Contrary to pattern-A 
-(and pattern-B) here simulation cycle is defined as a real time interval. That is, all replicas are performing MD and after predefined real time interval elapses each of MD runs is cancelled. For the next cycle is used last of the periodically generated restart files. The main characteristics of this pattern are:</p>
-<ul>
-<li>number of replicas equals to the number of allocated compute cores</li>
-<li>simultaneous MD</li>
-<li>simultaneous exchange</li>
-<li>all replicas participate in exchange step</li>
-<li>simulation cycle is defined as fixed real time interval</li>
-<li>global barrier between MD and exchange step</li>
-</ul>
+<h3><a name="exec-flex" class="anchor" href="#exec-flex"><span class="octicon octicon-link"></span></a>Execution flexibility</h3>
+
+<p>An important feature of RepEx is explicit decoupling of the number of 
+replicas from the number of CPU cores. Two modes are supported: we can have less CPU 
+cores, than replicas and we also can have more CPU cores than replicas for any 
+type of RE simulation. Any of the execution modes can be used for both, synchronous and asynchronous RE.</p>
+
+<h4>
+<a name="ex-mode-1" class="anchor" href="#ex-mode-1"><span class="octicon octicon-link"></span></a>Execution mode I</h4>
+<img src="../images/exec-mode-1.png" alt="ex-mode-1">
+<p>In execution mode I the number of available CPU cores is equal to or is greater than the total number of replicas. As a result, we have enough computational resources to run all replicas concurrently. Note: this execution mode is not limited to synchronous RE.</p>
+
+<h4>
+<a name="ex-mode-2" class="anchor" href="#ex-mode-2"><span class="octicon octicon-link"></span></a>Execution mode II</h4>
+<img src="../images/exec-mode-2.png" alt="ex-mode-2">
+<p>In execution mode II we don't have enougth CPU cores to run all replicas concurrently (only a subset of replicas can run concurrently). This results in replicas being executed in batches. Note: this execution mode is not limited to synchronous RE.</p>
 
   </body>
 </html>
