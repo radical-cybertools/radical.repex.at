@@ -1,7 +1,8 @@
 {
     "resource": "local.localhost",
-    "username" : "octocat",
-    "runtime" : "15",
+    "username" : "antons",
+    "runtime" : "60",
     "cleanup" : "False",
-    "cores" : "4"
+    "cores" : "4",
+    "mongo_url" : "mongodb://localhost:27017/repex-examples"
 }
