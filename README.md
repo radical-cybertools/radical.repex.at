@@ -35,7 +35,7 @@ RepEx user guide can be found at: [repex.readthedocs.org](http://repex.readthedo
 
 ###Website
 
-RepEx website can be found at: [repex.io](http://radical-cybertools.github.io/RepEx/)
+RepEx website can be found at: [repex.io](http://radical-cybertools.github.io/radical.repex/)
 
 ###ICPP-2016 paper
 
