@@ -1,0 +1,149 @@
+#!/usr/bin/python
+
+import os
+import sys
+import argparse
+from itertools import groupby
+from repex_utils.parser import parse_cmd_count_exchange_metrics
+
+def swap_ids_in_place(my_array,pair):
+    i = pair[0]
+    j = pair[1]
+
+    t = my_array[i]
+    my_array[i] = my_array[j]
+    my_array[j] = t
+
+def get_pairs(filename):
+    f = file(filename,'r')
+    d = f.readlines()
+    f.close()
+    pairs = []
+    for l in d[:-1]:
+        p = map(int,l.strip().split())
+        pairs.append(p)
+    return pairs
+
+def compare(array1,array2):
+    count = 0
+    for i in range(len(array1)):
+        if array1[i] != array2[i]:
+            count += 1
+    return count
+
+if __name__ == '__main__':
+    
+    args = parser.parse_cmd_count_exchange_metrics()
+
+    n_files    = args.nr_files
+    n_replicas = args.nr_replicas
+    #---------------------------------------------------------------------------
+
+    basename = 'pairs_for_exchange_1_'
+    arr_before = range(n_replicas)
+
+    total_exchanges = 0
+    total_attempts  = 0
+    exchange_arr = list()
+
+    timings_arr = list()
+    filename = basename + str(1) + '.dat'
+    mod_time = os.path.getmtime(filename)
+    print "first time: {0}".format(mod_time)
+    for i in range(n_replicas):
+        timings_arr.append([mod_time])
+
+    for i in range(n_replicas):
+        exchange_arr.append([i])
+
+    for i in range(1,n_files):
+        try:
+            filename = basename + str(i) + '.dat'
+            mod_time = os.path.getmtime(filename)
+            #print "mod_time: {0}".format(mod_time)
+          
+            pairs = get_pairs(filename)
+            total_attempts += len(pairs)
+        
+            arr_after = list(arr_before)
+            for p in pairs:
+                swap_ids_in_place(arr_after,p)
+            
+            tmp_pairs = list()
+            for i in range(n_replicas):
+                if arr_after[i] != arr_before[i]:
+                    exchange_arr[i].append(arr_after[i])
+                    timings_arr[i].append(mod_time)
+                    tmp_pairs.append([arr_before[i], arr_after[i]])
+
+            # sort
+            for p in tmp_pairs:
+                p.sort()
+           
+            new_pairs = list()
+            new_pairs = [k for k,v in groupby(sorted(tmp_pairs))]
+
+            total_exchanges += len(new_pairs) - 1
+
+            arr_before = list(arr_after)
+        except:
+            raise
+
+    #---------------------------------------------------------------------------
+    # count crosswalks
+    cross   = 0
+    cross_2 = 0
+
+    #print "ex arr: {0}".format(exchange_arr)
+
+    for idx,item in enumerate(exchange_arr):
+        #print "item:           {0}".format(item)
+        #print "item using idx: {0}".format(exchange_arr[idx])
+        original = item[0]
+        visited = list()
+        visited.append(original)
+
+        # all states
+        # all_states = range(n_replicas)
+        half_cross = False
+        for i in range(1,len(item)):
+            if (len(visited) < n_replicas):
+                visited.append(item[i])
+            else:
+                visited.append(item[i])
+                time = timings_arr[idx][i]
+                if (half_cross == False):
+                    all_states = range(n_replicas)
+                    count = 0
+                    for j in visited:
+                        if j in all_states:
+                            all_states.remove(j)
+                            count += 1
+                    # check if 1/2 crosswalk
+                    if len(all_states) == 0:
+                        half_cross = True
+                        cross_2 += 1
+                        print "nr half cross: {0} at time {1}".format(cross_2, time)
+                        # reset
+                        visited = list()
+                        visited.append(original)
+                else:
+                    all_states = range(n_replicas)
+                    for j in visited:
+                        if j in all_states:
+                            all_states.remove(j)
+                    # check if crosswalk
+                    if len(all_states) == 0:
+                        cross += 1
+                        # reset
+                        half_cross = False
+                        visited = list()
+                        visited.append(original)
+
+    #---------------------------------------------------------------------------    
+
+    print "total number of crosswalks:     {0}".format(cross)
+    print "total number of 1/2 crosswalks: {0}".format(cross_2)
+    print "total number of exchanges:      {0}".format(total_exchanges)
+    print "total number of attempts:       {0}".format(total_attempts)
+

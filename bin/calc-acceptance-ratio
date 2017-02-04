@@ -1,0 +1,48 @@
+#!/usr/bin/python
+
+"""
+calculates the (apparent) acceptance ratio in one exchange step
+"""
+
+import os
+import sys
+import json
+import argparse
+from repex_utils.parser import parse_cmd_acc_ratio
+
+def swap(my_array,pair):
+    i = pair[0]
+    j = pair[1]
+    t = my_array[i]
+    my_array[i] = my_array[j]
+    my_array[j] = t
+
+def read_pairs(filename):
+    f = file(filename,'r')
+    d = f.readlines()
+    f.close()
+    pairs = []
+    for l in d[:-1]:
+        p = map(int,l.strip().split())
+        pairs.append(p)
+    return pairs
+
+def compare(array1,array2):
+    count = 0
+    for i in range(len(array1)):
+        if array1[i] != array2[i]:
+            count += 1
+    return count
+
+if __name__ == '__main__':
+    
+    args = parse_cmd_acc_ratio()
+
+    pairs    = read_pairs(args.filename)
+    my_array = range(args.nr_replicas)
+    
+    for p in pairs:
+        swap(my_array,p)
+    count = compare(my_array,range(args.number_of_replicas))
+    print "Acceptance Ratio = %6.4f" %(float(count)/args.number_of_replicas)
+

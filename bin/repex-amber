@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+__copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
+__license__ = "MIT"
+
+import os
+import sys
+import json
+import math
+import pprint
+import datetime
+from os import path
+from amber_tex.amber_tex import *
+import radical.utils.logger as rul
+from repex_utils.replica_cleanup import *
+from radical.ensemblemd import EnsemblemdError
+from repex_utils.parser import parse_command_line
+from radical.ensemblemd import SingleClusterEnvironment
+
+#-------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+
+    name = 'amber'
+    logger  = rul.getLogger ('radical.repex', name)
+
+    work_dir_local = os.getcwd()
+    params = parse_command_line()
+
+    # get remd_input file
+    json_data=open(params.remd_input)
+    inp_file = json.load(json_data)
+    json_data.close()
+
+    # get resource config
+    json_data=open(params.resource_config)
+    rconfig = json.load(json_data)
+    json_data.close()
+
+    logger.info("********************************************************")
+    logger.info("*              RepEx simulation with AMBER             *")
+    logger.info("********************************************************")
+
+    # Create a new static execution context with one resource and a fixed
+    # number of cores and runtime.
+
+    cluster = SingleClusterEnvironment(
+        resource=rconfig['target'].get('resource'),
+        cores=int(rconfig['target'].get('cores')),
+        walltime=int(rconfig['target'].get('runtime')),
+        username=rconfig['target'].get('username'), 
+        project=rconfig['target'].get('project'),
+        queue=rconfig['target'].get('queue'),
+        database_url=rconfig['target'].get('mongo_url')
+    )
+
+    try:
+        # Allocate the resources.
+        cluster.allocate()
+
+        # creating pattern object
+        re_pattern = AmberTex(inp_file, rconfig, work_dir_local)
+
+        # initializing replica objects
+        replicas = re_pattern.initialize_replicas()
+
+        re_pattern.add_replicas(replicas)
+
+        # run RE simulation 
+        cluster.run(re_pattern,force_plugin="replica_exchange.static_pattern_3")
+
+    except:
+        raise
+        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        sys.exit(1)
+    try:
+        # finally we are moving all files to individual replica directories
+        move_output_files(work_dir_local, re_pattern, replicas ) 
+    except:
+        raise
+        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        sys.exit(1)
+
+    logger.info("Simulation successfully finished!")
+    logger.info("Please check output files in replica_x directories.")
+

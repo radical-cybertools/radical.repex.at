@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import json
+from os import path
+import radical.utils.logger as rul
+from repex_utils.parser import parse_cmd_repex
+from repex_utils.replica_cleanup import clean_up
+from repex_utils.replica_cleanup import move_output_files
+
+
+from application_management_modules.amm_namd import AmmNamd
+
+from execution_management_modules.exec_mng_module_pattern_s import ExecutionManagementModulePatternS
+from execution_management_modules.exec_mng_module_pattern_a import ExecutionManagementModulePatternA
+
+#-------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    
+    work_dir_local = os.getcwd()
+    params         = parse_cmd_repex()
+    
+    # get remd_input file
+    json_data = open(params.remd_input)
+    inp_file  = json.load(json_data)
+    json_data.close()
+
+    # get resource config
+    json_data = open(params.resource_config)
+    rconfig   = json.load(json_data)
+    json_data.close()
+
+    sync = inp_file['remd.input'].get('sync', 'S')
+
+    amm = AmmNamd( inp_file, rconfig, work_dir_local )
+
+    if (sync == 'S'):
+
+        emm = ExecutionManagementModulePatternS( inp_file, rconfig, amm.logger )
+        
+        replicas = amm.initialize_replicas()
+
+    try:
+        emm.launch_pilot()
+        # now we can run RE simulation
+        emm.run_simulation( replicas, amm )
+    except (KeyboardInterrupt, SystemExit) as e:
+        raise
+        emm.logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        emm.session.close (cleanup=True, terminate=True)
+        sys.exit(1)
+    try:
+        # finally we are moving all files to individual replica directories
+        move_output_files(work_dir_local, amm, replicas ) 
+        emm.logger.info("Simulation successfully finished!")
+    except:
+        raise
+        emm.logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        emm.session.close (cleanup=True, terminate=True)
+        sys.exit(1)
+    finally :
+        emm.logger.info("Closing session.")
+        emm.session.close (cleanup=True, terminate=True)   
