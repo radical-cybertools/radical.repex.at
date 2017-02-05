@@ -1,0 +1,44 @@
+{
+    "remd.input": {
+        "re_pattern": "S",
+        "exchange": "TSU-REMD",
+        "number_of_cycles": "2",
+        "input_folder": "tsu_remd_inputs",
+        "input_file_basename": "ace_ala_nme_remd",
+        "amber_input": "ace_ala_nme.mdin",
+        "amber_parameters": "ace_ala_nme_old.parm7",
+        "amber_coordinates_folder": "ace_ala_nme_coors",
+        "same_coordinates" : "True",
+        "group_exec": "True",
+        "us_template": "ace_ala_nme_us.RST",
+        "replica_mpi": "False",
+        "replica_cores": "1",
+        "steps_per_cycle": "500",
+        "exchange_off" : "False",
+        "download_mdinfo": "False",
+        "download_mdout" : "False"
+        },
+    "dim.input": {
+
+        "d1": {
+            "type" : "salt",
+            "number_of_replicas": "2",
+            "exchange_replica_cores" : "2",
+            "min_salt": "0.0",
+            "max_salt": "1.0"
+            },
+        "d2": {
+            "type" : "umbrella",
+            "number_of_replicas": "2",
+            "min_us_param": "0",
+            "max_us_param": "360"
+            },    
+        "d3": {
+            "type" : "temperature",
+            "number_of_replicas": "2",
+            "min_temperature": "300",
+            "max_temperature": "600"
+            }
+
+    }
+}

@@ -1,1 +1,14 @@
-v0.1, 26.03.2014 -- First release.
+0.2.10 Release                                                        2017-01-31
+--------------------------------------------------------------------------------
+
+ - EMM for asynchronous RE
+
+ - restart functionality for Amber AMM
+
+ - refactored for single AMM per MD engine
+
+ - new profiling
+
+ - group execution feature for T-REMD and U-REMD
+
+ - performance optimization for T-REMD and U-REMD

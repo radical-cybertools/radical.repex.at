@@ -36,8 +36,8 @@ def get_version():
     return verstr
 
 setup(
-    name='RepEx',
-    version='0.2.7',
+    name='radical.repex',
+    version='0.3.0',
     author='Antons Treikalis',
     author_email='antons.treikalis@gmail.com',
     packages=['repex_utils', 
@@ -52,9 +52,15 @@ setup(
                  'md_patterns': 'src/radical/repex/md_patterns',
                  'remote_modules': 'src/radical/repex/md_patterns/remote_modules',
                  'amber_tex': 'src/radical/repex/md_patterns/amber_tex'},
-    scripts=['bin/repex-version', 'bin/repex-amber'],
-    license='LICENSE.txt',
+    scripts=['bin/repex-version', 
+             'bin/repex-amber', 
+             'bin/repex-namd',
+             'bin/calc-acceptance-ratio',
+             'bin/calc-state-mixing',
+             'bin/calc-exchange-metrics'],
+    license='LICENSE.md',
     description='Radical Pilot based Replica Exchange Simulations Package',
     long_description=open('README.md').read(),
-    install_requires=['radical.pilot']
+    install_requires=['radical.pilot', 'mpi4py'],
+    url = 'https://github.com/radical-cybertools/radical.repex.git'
 )

@@ -1,6 +1,6 @@
 """
-.. module:: radical.repex.replica_cleanup
-.. moduleauthor::  <antons.treikalis@rutgers.edu>
+.. module:: radical.repex.repex_utils.replica_cleanup
+.. moduleauthor::  <antons.treikalis@gmail.com>
 """
 
 __copyright__ = "Copyright 2013-2014, http://radical.rutgers.edu"
@@ -10,38 +10,21 @@ __license__ = "MIT"
 import os
 import sys
 import shutil
-from replicas.replica import Replica
 
 #-------------------------------------------------------------------------------
 
-def move_output_files(work_dir_local, re_pattern, replicas):
-    """Moves all files, which were generated during the simulation 
-    to replica directories. 
+def move_output_files(work_dir_local):
+    """Moves all files generated and/or transferred from the remote HPC cluster
+    during th simulation to simulation_output directory.
+
+    Args:
+        work_dir_local - path to current working direcgtory of the simulation
+
+    Returns:
+        None
     """
-
-    base = (re_pattern.inp_basename).encode('utf-8')
-
-    for r in range(len(replicas)):
-        dir_path = "%s/replica_%d" % (work_dir_local, r )
-        if not os.path.exists(dir_path):
-            try:
-                os.makedirs(dir_path)
-            except: 
-                raise
-
-        files = os.listdir( work_dir_local )
-        
-        bbase = base + '_' + str(r)
-        for item in files:
-            if (item.startswith(bbase)):
-                source =  work_dir_local + "/" + str(item)
-                destination = dir_path + "/"
-                shutil.move( source, destination)
-
-    #---------------------------------------------------------------------------
-    # moving shared files
-
-    dir_path = "%s/shared_files" % (work_dir_local)
+    
+    dir_path = "{0}/simulation_output".format(work_dir_local)
     if not os.path.exists(dir_path):
         try:
             os.makedirs(dir_path)
@@ -49,11 +32,11 @@ def move_output_files(work_dir_local, re_pattern, replicas):
             raise
 
     pairs_name = "pairs_for_exchange_"
-    exec_name  = "execution_profile_"
+    obj_name   = "simulation_objects_"
     files = os.listdir( work_dir_local )
 
     for item in files:
-        if (item.startswith(pairs_name) or item.startswith(exec_name)):
+        if (item.startswith(pairs_name) or item.startswith(obj_name) or item.endswith(".log") or item.endswith(".prof") or item.endswith(".mdout") or item.endswith(".mdinfo") ):
             source =  work_dir_local + "/" + str(item)
             destination = dir_path + "/"
             d_file = destination + str(item)
@@ -61,15 +44,3 @@ def move_output_files(work_dir_local, re_pattern, replicas):
                 os.remove(d_file)
             shutil.move( source, destination)
 
-#-------------------------------------------------------------------------------
-
-def clean_up(work_dir_local, replicas):
-    """Automates deletion of directories of individual replicas and all files in 
-    those directories after the simulation.   
-
-    Arguments:
-    replicas - list of Replica objects
-    """
-    for r in range(len(replicas)):
-        dir_path = "%s/replica_%d" % ( work_dir_local, replicas[r].id )
-        shutil.rmtree(dir_path)

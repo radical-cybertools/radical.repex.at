@@ -10,22 +10,18 @@ import math
 import pprint
 import datetime
 from os import path
-from amber_tex.amber_tex import *
+from amber_tex.amber_tex import AmberTex
 import radical.utils.logger as rul
 from repex_utils.replica_cleanup import *
-from radical.ensemblemd import EnsemblemdError
-from repex_utils.parser import parse_command_line
-from radical.ensemblemd import SingleClusterEnvironment
+from repex_utils.parser import parse_cmd_repex
+from radical.ensemblemd import ResourceHandle
 
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    name = 'amber'
-    logger  = rul.getLogger ('radical.repex', name)
-
     work_dir_local = os.getcwd()
-    params = parse_command_line()
+    params = parse_cmd_repex()
 
     # get remd_input file
     json_data=open(params.remd_input)
@@ -37,14 +33,10 @@ if __name__ == '__main__':
     rconfig = json.load(json_data)
     json_data.close()
 
-    logger.info("********************************************************")
-    logger.info("*              RepEx simulation with AMBER             *")
-    logger.info("********************************************************")
-
     # Create a new static execution context with one resource and a fixed
     # number of cores and runtime.
 
-    cluster = SingleClusterEnvironment(
+    cluster = ResourceHandle(
         resource=rconfig['target'].get('resource'),
         cores=int(rconfig['target'].get('cores')),
         walltime=int(rconfig['target'].get('runtime')),
@@ -71,16 +63,16 @@ if __name__ == '__main__':
 
     except:
         raise
-        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        #logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
         sys.exit(1)
     try:
         # finally we are moving all files to individual replica directories
-        move_output_files(work_dir_local, re_pattern, replicas ) 
+        move_output_files(work_dir_local) 
     except:
         raise
-        logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
+        #logger.info("Unexpected error: {0}".format(sys.exc_info()[0]) )
         sys.exit(1)
 
-    logger.info("Simulation successfully finished!")
-    logger.info("Please check output files in replica_x directories.")
+    #logger.info("Simulation successfully finished!")
+    #logger.info("Please check output files in replica_x directories.")
 
