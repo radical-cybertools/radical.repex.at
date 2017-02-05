@@ -69,10 +69,10 @@ class AmmAmber(object):
         self.restart_file      = inp_file['remd.input'].get('restart_file', '')
         if self.restart == 'True':
             self.restart = True
-            self.restart_done = False
+            self.do_restart = True
         else:
             self.restart = False
-            self.restart_done = True
+            self.do_restart = False
 
         if ( (self.restart == True) and (self.restart_file == '') ):
             self.logger.info("If simulation is restarted, name of the restart_file must be specified, exiting...")
@@ -1031,7 +1031,7 @@ class AmmAmber(object):
                 post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
                                 json_post_data_sh + "\'"
 
-        if replica.cycle == 1 or self.restart_done == False:
+        if replica.cycle == 1 or self.do_restart == True:
 
             if replica.cycle == 1:
                 argument_str = " -O " + " -i " + new_input_file + \
@@ -1041,7 +1041,7 @@ class AmmAmber(object):
                                " -r " + new_coor + \
                                " -x " + new_traj + \
                                " -inf " + new_info  
-            if  self.restart_done == False:
+            if  self.do_restart == True:
                 argument_str = " -O " + " -i " + new_input_file + \
                                " -o " + output_file + \
                                " -p " +  self.amber_parameters + \
@@ -1051,7 +1051,7 @@ class AmmAmber(object):
                                " -inf " + new_info
 
             if (self.umbrella == True) and (self.us_template != ''):
-                if self.restart_done == False:
+                if self.do_restart == True:
                     old_path = self.restart_object.old_sandbox + '/staging_area/' + replica.new_restraints
                     self.logger.info( "restart_path: {0}".format( old_path ) )
                     # restraint file
@@ -1072,7 +1072,7 @@ class AmmAmber(object):
                 # restraint template file: ace_ala_nme_us.RST
                 stage_in.append(sd_shared_list[8])
 
-            if self.restart_done == False:
+            if self.do_restart == True:
                 old_path = self.restart_object.old_sandbox + 'staging_area/' + replica_path + old_coor
                 old_coor_st = {'source': old_path,
                                'target': (old_coor),

@@ -2,3 +2,10 @@
 --------------------------------------------------------------------------------
 
  - RepEx is now using ensemblemd
+
+
+
+TODO:
+
+1. check excewption handling in bin/execs and ensembleMD, should be consistent 
+with RP
