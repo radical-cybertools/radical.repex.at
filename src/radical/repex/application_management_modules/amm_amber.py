@@ -20,17 +20,17 @@ import datetime
 from os import path
 from os import listdir
 from os.path import join
-import radical.pilot as rp
 from os.path import isfile
 import radical.utils.logger as rul
-from kernels.kernels import KERNELS
 import ram_amber.input_file_builder
 from replicas.replica import Replica
+from radical.ensemblemd import Kernel
 from repex_utils.simulation_restart import Restart
+from radical.ensemblemd.patterns.replica_exchange import ReplicaExchange
 
 #-------------------------------------------------------------------------------
 #
-class AmmAmber(object):
+class AmmAmber(ReplicaExchange):
     """Application management Module (AMM) for Amber kernel. For each simulation 
     should be created only a single instance of AMM. 
 
@@ -51,7 +51,7 @@ class AmmAmber(object):
             work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.name = 'AmmAmber.log'
+        self.name    = 'AmmAmber.log'
         self.logger  = rul.get_logger ('radical.repex', self.name)
 
         self.resource         = rconfig.get('resource')
@@ -249,6 +249,23 @@ class AmmAmber(object):
             sys.exit(1)
 
     #---------------------------------------------------------------------------
+    # 
+    def add_replicas(self, replicas):
+        """Adds initialised replicas to this pattern.
+
+        Arguments:
+        replicas - list of replica objects
+        """
+        self.replica_objects = replicas
+
+    #---------------------------------------------------------------------------
+    #
+    def get_replicas(self):
+        """Returns a list of replica objects associated with this pattern.
+        """
+        return self.replica_objects
+
+    #---------------------------------------------------------------------------
     #
     @staticmethod
     def get_rstr_id(restraint):
@@ -275,8 +292,7 @@ class AmmAmber(object):
     def save_replicas(self, 
                       current_cycle, 
                       dim_int, 
-                      dim_str, 
-                      replicas):
+                      dim_str):
         """Saves the state of the simulation and state of replicas to .pkl file. 
         Method is called after every simulation cycle and for each dimension in 
         the current simulation. Method first updates restart object, writes 
@@ -290,8 +306,6 @@ class AmmAmber(object):
 
             dim_str - string representing the index of the current dimension
 
-            replicas - list of replica objects
-
         Returns:
             None
         """
@@ -302,7 +316,7 @@ class AmmAmber(object):
 
         self.restart_file = 'simulation_objects_{0}_{1}.pkl'.format( dim_int, current_cycle )
         with open(self.restart_file, 'wb') as output:
-            for replica in replicas:
+            for replica in self.replica_objects:
                 pickle.dump(replica, output, pickle.HIGHEST_PROTOCOL)
 
             pickle.dump(self.restart_object, output, pickle.HIGHEST_PROTOCOL)
@@ -716,8 +730,7 @@ class AmmAmber(object):
                                dim_int, 
                                dim_str, 
                                group, 
-                               replica, 
-                               sd_shared_list):
+                               replica):
 
         """Prepares RPs compute unit for a given replica to run MD simulation. 
 
@@ -734,15 +747,14 @@ class AmmAmber(object):
 
             replica - replica object for which we are preparing RPs compute unit
 
-            sd_shared_list - list of RPs data directives corresponding to 
-            simulation input files
-
         Returns:
             RPs compute unit
         """
 
-        stage_out = []
-        stage_in = []
+        download_output = list()
+        copy_input      = list()
+        copy_output     = list()
+
         basename = self.inp_basename
             
         new_input_file = "%s_%d_%d.mdin" % (basename, replica.id, replica.cycle)
@@ -776,52 +788,65 @@ class AmmAmber(object):
         replica_path = "replica_%d/" % (rid)
 
         if (self.down_mdinfo == True):
-            info_local = {
-                'source':   new_info,
-                'target':   new_info,
-                'action':   rp.TRANSFER
-            }
-            stage_out.append(info_local)
+            #info_local = {
+            #    'source':   new_info,
+            #    'target':   new_info,
+            #    'action':   rp.TRANSFER
+            #}
+            #stage_out.append(info_local)
+            download_output.append(new_info)
 
         if (self.down_mdout == True):
-            output_local = {
-                'source':   output_file,
-                'target':   output_file,
-                'action':   rp.TRANSFER
-            }
-            stage_out.append(output_local)
+            #output_local = {
+            #    'source':   output_file,
+            #    'target':   output_file,
+            #    'action':   rp.TRANSFER
+            #}
+            #stage_out.append(output_local)
+            download_output.append(output_file)
 
         if (self.copy_mdinfo == True):
-            info_out = {
-                'source': new_info,
-                'target': 'staging:///%s' % (replica_path + new_info),
-                'action': rp.COPY
-            }
-            stage_out.append(info_out)
+            #info_out = {
+            #    'source': new_info,
+            #    'target': 'staging:///%s' % (replica_path + new_info),
+            #    'action': rp.COPY
+            #}
+            #stage_out.append(info_out)
+            download_output.append(new_info)
 
-        new_coor_out = {
-            'source': new_coor,
-            'target': 'staging:///%s' % (replica_path + new_coor),
-            'action': rp.COPY
-        }
-        stage_out.append(new_coor_out)
+        #new_coor_out = {
+        #    'source': new_coor,
+        #    'target': 'staging:///%s' % (replica_path + new_coor),
+        #    'action': rp.COPY
+        #}
+        #stage_out.append(new_coor_out)
+        copy_output.append(new_coor)
 
         if (self.umbrella == True) and (self.us_template != ''):
             out_string = "_%d.out" % (replica.cycle-1)
-            rstr_out = {
-                'source': (replica.new_restraints + '.out'),
-                'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
-                'action': rp.COPY
-            }
-            stage_out.append(rstr_out)
+            
+            # NOTE: current out: replica.new_restraints = ace_ala_nme_us.RST.111
+            # NOTE: need to mod to: ace_ala_nme_us.RST.111_222.out
+            old_r = replica.new_restraints + '.out'
+            new_r = replica_path + replica.new_restraints + out_string
+            #rstr_out = {
+            #    'source': (replica.new_restraints + '.out'),
+            #    'target': 'staging:///%s' % (replica_path + replica.new_restraints + out_string),
+            #    'action': rp.COPY
+            #}
+            #stage_out.append(new_r)
+            copy_output.append(old_r + ' > ' + new_r)
         
         if self.dims[dim_str]['type'] == 'salt':
-            info_out = {
-                'source': new_info,
-                'target': 'staging:///%s' % (replica_path + new_info),
-                'action': rp.COPY
-            }
-            stage_out.append(info_out)
+            #info_out = {
+            #    'source': new_info,
+            #    'target': 'staging:///%s' % (replica_path + new_info),
+            #    'action': rp.COPY
+            #}
+            #stage_out.append(info_out)
+            new_i = replica_path + new_info
+
+            copy_output.append(new_info + ' > ' + new_i)
 
         current_group = []
         for repl in group:
@@ -929,8 +954,6 @@ class AmmAmber(object):
             for repl in group:
                 current_group_rst[str(repl.id)] = str(repl.new_restraints)
                 
-            base_restraint = self.us_template + "."
-
             # if no temperature exchange
             if self.temperature_str == '':
                 temp_str = str(self.init_temp)
@@ -995,53 +1018,188 @@ class AmmAmber(object):
         
         if self.dims[dim_str]['type'] == 'temperature' and self.exchange_mpi == False:
             # matrix_calculator_temp_ex.py
-            stage_in.append(sd_shared_list[2])
+            #stage_in.append(sd_shared_list[2])
+            copy_input.append(sd_shared_list[2])
         if self.dims[dim_str]['type'] == 'umbrella' and self.exchange_mpi == False: 
             # matrix_calculator_us_ex.py
-            stage_in.append(sd_shared_list[3])
+            #stage_in.append(sd_shared_list[3])
+            copy_input.append(sd_shared_list[3])
         
-        cu = rp.ComputeUnitDescription()
-        cu.cores = self.replica_cores    
-        cu.mpi = self.replica_mpi
-        
-        if KERNELS[self.resource]["shell"] == "bash":
-            cu.executable = '/bin/bash'
-            pre_exec_str  = "python input_file_builder.py " + "\'" + \
-                           json_pre_data_bash + "\'"
-            if self.dims[dim_str]['type'] == 'temperature':
-                if self.exchange_mpi == False:
-                    post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
-                                json_post_data_bash + "\'"
-                else:
-                    post_exec_str = " "
-            if self.dims[dim_str]['type'] == 'umbrella':
-                post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
-                                json_post_data_bash + "\'"
-        elif KERNELS[self.resource]["shell"] == "bourne":
-            cu.executable = '/bin/sh'
-            pre_exec_str = "python input_file_builder.py " + "\'" + \
-                           json_pre_data_sh + "\'"
-            if self.dims[dim_str]['type'] == 'temperature':
-                if self.exchange_mpi == False:
-                    post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
-                                json_post_data_sh + "\'"
-                else:
-                    post_exec_str = " "
-            if self.dims[dim_str]['type'] == 'umbrella':
-                post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
-                                json_post_data_sh + "\'"
+        #cu = rp.ComputeUnitDescription()
+        #cu.cores = self.replica_cores    
+        #cu.mpi = self.replica_mpi
 
+        
+
+        #cu.executable = '/bin/bash'
+        pre_exec_str  = "python input_file_builder.py " + "\'" + \
+                       json_pre_data_bash + "\'"
+        if self.dims[dim_str]['type'] == 'temperature':
+            if self.exchange_mpi == False:
+                post_exec_str = "python matrix_calculator_temp_ex.py " + "\'" + \
+                            json_post_data_bash + "\'"
+            else:
+                post_exec_str = " "
+        if self.dims[dim_str]['type'] == 'umbrella':
+            post_exec_str = "python matrix_calculator_us_ex.py " + "\'" + \
+                            json_post_data_bash + "\'"
+        
         if replica.cycle == 1 or self.do_restart == True:
+            if (self.umbrella == True) and (self.us_template != ''):
+                if self.do_restart == True:
+                    old_path = self.restart_object.old_sandbox + '/staging_area/' + replica.new_restraints
+                    self.logger.info( "restart_path: {0}".format( old_path ) )
+                    # restraint file
+                    #restraints_in_st = {'source': old_path,
+                    #                    'target': replica.new_restraints,
+                    #                    'action': rp.COPY
+                    #}
+                    #stage_in.append(restraints_in_st)
+                    copy_input.append(old_path + ' > ' + replica.new_restraints)
+                
+                #restraints_out = replica.new_restraints
+                #restraints_out_st = {
+                #    'source': (replica.new_restraints),
+                #    'target': 'staging:///%s' % (replica.new_restraints),
+                #    'action': rp.COPY
+                #}
+                #stage_out.append(restraints_out_st)
+                copy_output.append(replica.new_restraints)
 
-            if replica.cycle == 1:
-                argument_str = " -O " + " -i " + new_input_file + \
-                               " -o " + output_file + \
-                               " -p " +  self.amber_parameters + \
-                               " -c " + replica.coor_file + \
-                               " -r " + new_coor + \
-                               " -x " + new_traj + \
-                               " -inf " + new_info  
-            if  self.do_restart == True:
+                # restraint template file: ace_ala_nme_us.RST
+                #stage_in.append(sd_shared_list[8])
+                copy_input.append(sd_shared_list[8])
+
+            if self.do_restart == True:
+                old_path = self.restart_object.old_sandbox + 'staging_area/' + replica_path + old_coor
+                #old_coor_st = {'source': old_path,
+                #               'target': (old_coor),
+                #               'action': rp.COPY
+                #}
+                #stage_in.append(old_coor_st)
+                copy_input.append(old_path + ' > ' + old_coor)
+            #-------------------------------------------------------------------
+            # stagein amber_parameters (.param7) and amber_input template (.mdin)  
+            # 
+            for i in range(2):
+                #stage_in.append(sd_shared_list[i])
+                copy_input.append(sd_shared_list[i])
+                        
+            # replica coor
+            repl_coor = replica.coor_file
+            # index of replica_coor
+            c_index = self.shared_files.index(repl_coor) 
+            #stage_in.append(sd_shared_list[c_index])
+            copy_input.append(sd_shared_list[c_index])
+            # input_file_builder.py
+            #stage_in.append(sd_shared_list[4])
+            copy_input.append(sd_shared_list[4])
+            #-------------------------------------------------------------------
+            if (self.replica_mpi == False) and (self.replica_gpu == False):
+                k          = Kernel(name="misc.exec_multiple")
+                k.cores    = self.replica_cores
+                k.uses_mpi = self.replica_mpi
+                k.pre_exec = self.pre_exec
+
+                if replica.cycle == 1:
+                    argument_str = " -O " + " -i " + new_input_file + \
+                                   " -o " + output_file + \
+                                   " -p " +  self.amber_parameters + \
+                                   " -c " + replica.coor_file + \
+                                   " -r " + new_coor + \
+                                   " -x " + new_traj + \
+                                   " -inf " + new_info  
+                if self.do_restart == True:
+                    argument_str = " -O " + " -i " + new_input_file + \
+                                   " -o " + output_file + \
+                                   " -p " +  self.amber_parameters + \
+                                   " -c " + old_coor + \
+                                   " -r " + new_coor + \
+                                   " -x " + new_traj + \
+                                   " -inf " + new_info
+
+                a_str = amber_str + argument_str
+                if self.dims[dim_str]['type'] != 'salt':
+                    k.arguments = ["--exec1=" + pre_exec_str,
+                                   "--exec2=" + a_str,
+                                   "--exec3=" + post_exec_str]
+                else:
+                    k.arguments = ["--exec1=" + pre_exec_str,
+                                   "--exec2=" + a_str]
+            else:
+                k          = Kernel(name="md.amber")
+                k.cores    = self.replica_cores
+                k.uses_mpi = self.replica_mpi
+
+                #cu.executable = amber_str + argument_str
+                if replica.cycle == 1:
+                    k.arguments = [ "--mdinfile=" + new_input_file, 
+                                    "--outfile="  + output_file, 
+                                    "--params="   + self.amber_parameters, 
+                                    "--coords="   + replica.coor_file, 
+                                    "--nwcoords=" + new_coor, 
+                                    "--nwtraj="   + new_traj, 
+                                    "--nwinfo="   + new_info]
+                if self.do_restart == True:
+                    k.arguments = [ "--mdinfile=" + new_input_file, 
+                                    "--outfile="  + output_file, 
+                                    "--params="   + self.amber_parameters, 
+                                    "--coords="   + old_coor, 
+                                    "--nwcoords=" + new_coor, 
+                                    "--nwtraj="   + new_traj, 
+                                    "--nwinfo="   + new_info]
+
+                if self.dims[dim_str]['type'] != 'salt':
+                    k.pre_exec = self.pre_exec + [pre_exec_str]
+                    k.post_exec = [post_exec_str]
+                else:
+                    k.pre_exec = self.pre_exec + [pre_exec_str]
+            #cu.input_staging = stage_in
+            k.copy_input_data = copy_input
+            #cu.output_staging = stage_out
+            k.copy_output_data = copy_output
+
+        else:
+            # parameters file
+            #stage_in.append(sd_shared_list[0])
+            copy_input.append(sd_shared_list[0])
+
+            # base input file ala10_us.mdin
+            #stage_in.append(sd_shared_list[1])
+            copy_input.append(sd_shared_list[1])
+
+            # input_file_builder.py
+            #stage_in.append(sd_shared_list[4])
+            copy_input.append(sd_shared_list[4])
+
+            if (self.umbrella == True) and (self.us_template != ''):
+                # restraint file
+                #restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
+                #                    'target': replica.new_restraints,
+                #                    'action': rp.COPY
+                #}
+                #stage_in.append(restraints_in_st)
+                copy_input.append(replica.new_restraints)
+            
+            #old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
+            #               'target': (old_coor),
+            #               'action': rp.LINK
+            #}
+            #stage_in.append(old_coor_st)
+            old_c = replica_path + old_coor
+            copy_input.append(old_c + ' > ' + old_coor)
+
+            #-------------------------------------------------------------------
+            #new_coor_out = {
+            #    'source': new_coor,
+            #    'target': 'staging:///%s' % (replica_path + new_coor),
+            #    'action': rp.COPY
+            #}
+            #stage_out.append(new_coor_out)
+            new_c = replica_path + new_coor
+            copy_input.append(new_coor + ' > ' + new_c)
+
+            if (self.replica_mpi == False) and (self.replica_gpu == False):
                 argument_str = " -O " + " -i " + new_input_file + \
                                " -o " + output_file + \
                                " -p " +  self.amber_parameters + \
@@ -1050,140 +1208,46 @@ class AmmAmber(object):
                                " -x " + new_traj + \
                                " -inf " + new_info
 
-            if (self.umbrella == True) and (self.us_template != ''):
-                if self.do_restart == True:
-                    old_path = self.restart_object.old_sandbox + '/staging_area/' + replica.new_restraints
-                    self.logger.info( "restart_path: {0}".format( old_path ) )
-                    # restraint file
-                    restraints_in_st = {'source': old_path,
-                                        'target': replica.new_restraints,
-                                        'action': rp.COPY
-                    }
-                    stage_in.append(restraints_in_st)
-                
-                restraints_out = replica.new_restraints
-                restraints_out_st = {
-                    'source': (replica.new_restraints),
-                    'target': 'staging:///%s' % (replica.new_restraints),
-                    'action': rp.COPY
-                }
-                stage_out.append(restraints_out_st)
+                k          = Kernel(name="misc.exec_multiple")
+                k.cores    = self.replica_cores
+                k.uses_mpi = self.replica_mpi
+                k.pre_exec = self.pre_exec
 
-                # restraint template file: ace_ala_nme_us.RST
-                stage_in.append(sd_shared_list[8])
-
-            if self.do_restart == True:
-                old_path = self.restart_object.old_sandbox + 'staging_area/' + replica_path + old_coor
-                old_coor_st = {'source': old_path,
-                               'target': (old_coor),
-                               'action': rp.COPY
-                }
-                stage_in.append(old_coor_st)
-
-            #-------------------------------------------------------------------
-            # stagein amber_parameters (.param7) and amber_input template (.mdin)  
-            # 
-            for i in range(2):
-                stage_in.append(sd_shared_list[i])
-                        
-            # replica coor
-            repl_coor = replica.coor_file
-            # index of replica_coor
-            c_index = self.shared_files.index(repl_coor) 
-            stage_in.append(sd_shared_list[c_index])
-            # input_file_builder.py
-            stage_in.append(sd_shared_list[4])
-
-            #-------------------------------------------------------------------
-            if (self.replica_mpi == False) and (self.replica_gpu == False):
-                cu.pre_exec = self.pre_exec
+                #cu.pre_exec = self.pre_exec
+                a_str = amber_str + argument_str
                 if self.dims[dim_str]['type'] != 'salt':
-                    cu.arguments = ["-c", pre_exec_str + \
-                                    "; wait; " + \
-                                    amber_str + \
-                                    argument_str + \
-                                    "; wait; " + \
-                                    post_exec_str]
+                    k.arguments = ["--exec1=" + pre_exec_str,
+                                   "--exec2=" + a_str,
+                                   "--exec3=" + post_exec_str]
                 else:
-                    cu.arguments = ["-c", pre_exec_str + \
-                                    "; wait; " + \
-                                    amber_str + \
-                                    argument_str]
+                    k.arguments = ["--exec1=" + pre_exec_str,
+                                   "--exec2=" + a_str]
+
             else:
-                cu.executable = amber_str + argument_str
+                k          = Kernel(name="md.amber")
+                k.cores    = self.replica_cores
+                k.uses_mpi = self.replica_mpi
+
+                k.arguments = [ "--mdinfile=" + new_input_file, 
+                                "--outfile="  + output_file, 
+                                "--params="   + self.amber_parameters, 
+                                "--coords="   + old_coor, 
+                                "--nwcoords=" + new_coor, 
+                                "--nwtraj="   + new_traj, 
+                                "--nwinfo="   + new_info]
+
+                #cu.executable = amber_str + argument_str
                 if self.dims[dim_str]['type'] != 'salt':
-                    cu.pre_exec = self.pre_exec + [pre_exec_str]
-                    cu.post_exec = [post_exec_str]
+                    k.pre_exec = self.pre_exec + [pre_exec_str]
+                    k.post_exec = [post_exec_str]
                 else:
-                    cu.pre_exec = self.pre_exec + [pre_exec_str]
-            cu.input_staging = stage_in
-            cu.output_staging = stage_out
-
-        else:
-            argument_str = " -O " + " -i " + new_input_file + \
-                           " -o " + output_file + \
-                           " -p " +  self.amber_parameters + \
-                           " -c " + old_coor + \
-                           " -r " + new_coor + \
-                           " -x " + new_traj + \
-                           " -inf " + new_info
-
-            # parameters file
-            stage_in.append(sd_shared_list[0])
-
-            # base input file ala10_us.mdin
-            stage_in.append(sd_shared_list[1])
-
-            # input_file_builder.py
-            stage_in.append(sd_shared_list[4])
-
-            if (self.umbrella == True) and (self.us_template != ''):
-                # restraint file
-                restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
-                                    'target': replica.new_restraints,
-                                    'action': rp.COPY
-                }
-                stage_in.append(restraints_in_st)
-            
-            old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
-                           'target': (old_coor),
-                           'action': rp.LINK
-            }
-            stage_in.append(old_coor_st)
-
-            #-------------------------------------------------------------------
-            new_coor_out = {
-                'source': new_coor,
-                'target': 'staging:///%s' % (replica_path + new_coor),
-                'action': rp.COPY
-            }
-            stage_out.append(new_coor_out)
-               
-            if (self.replica_mpi == False) and (self.replica_gpu == False):
-                cu.pre_exec = self.pre_exec
-                if self.dims[dim_str]['type'] != 'salt':
-                    cu.arguments = ["-c", pre_exec_str + \
-                                    "; wait; " + \
-                                    amber_str + \
-                                    argument_str + \
-                                    "; wait; " + \
-                                    post_exec_str]
-                else:
-                    cu.arguments = ["-c", pre_exec_str + \
-                                    "; wait; " + \
-                                    amber_str + \
-                                    argument_str]
-            else:
-                cu.executable = amber_str + argument_str
-                if self.dims[dim_str]['type'] != 'salt':
-                    cu.pre_exec = self.pre_exec + [pre_exec_str]
-                    cu.post_exec = [post_exec_str]
-                else:
-                    cu.pre_exec = self.pre_exec + [pre_exec_str]
-            cu.input_staging = stage_in
-            cu.output_staging = stage_out
+                    k.pre_exec = self.pre_exec + [pre_exec_str]
+            #cu.input_staging = stage_in
+            k.copy_input_data  = copy_input
+            #cu.output_staging = stage_out
+            k.copy_output_data = copy_output
                 
-        return cu
+        return k
 
     #---------------------------------------------------------------------------
     #                     
@@ -1219,26 +1283,26 @@ class AmmAmber(object):
             RPs compute unit
         """
 
-
         group_id = group[0].group_idx[dim_int-1]
 
-        stage_out = []
-        stage_in  = []
+        download_output = list()
+        copy_input      = list()
+        copy_output     = list()
 
         #-----------------------------------------------------------------------
         # stagein amber_parameters (.param7) and amber_input template (.mdin)
         for i in range(2):
-            stage_in.append(sd_shared_list[i])
+            copy_input.append(sd_shared_list[i])
 
         # restraint template file: ace_ala_nme_us.RST
-        stage_in.append(sd_shared_list[5])
+        copy_input.append(sd_shared_list[5])
 
         if (self.dims[dim_str]['type'] == 'temperature') and (self.nr_dims==3):
             # remote_calculator_temp_ex_mpi.py file
-            stage_in.append(sd_shared_list[2])
+            copy_input.append(sd_shared_list[2])
         if (self.dims[dim_str]['type'] == 'umbrella') and (self.nr_dims==3):
             # remote_calculator_us_ex_mpi.py file
-            stage_in.append(sd_shared_list[3])
+            copy_input.append(sd_shared_list[3])
             
         #----------------------------------------------------------------------- 
         #
@@ -1247,7 +1311,7 @@ class AmmAmber(object):
             repl_coor = group[0].coor_file
             # index of replica_coor
             c_index = self.shared_files.index(repl_coor) 
-            stage_in.append(sd_shared_list[c_index])
+            copy_input.append(sd_shared_list[c_index])
 
         data = {}
         data['gen_input'] = {}
@@ -1311,57 +1375,67 @@ class AmmAmber(object):
             rid = replica.id
 
             if self.down_mdinfo == True:
-                info_local = {
-                    'source':   new_info,
-                    'target':   new_info,
-                    'action':   rp.TRANSFER
-                }
-                stage_out.append(info_local)
+                #info_local = {
+                #    'source':   new_info,
+                #    'target':   new_info,
+                #    'action':   rp.TRANSFER
+                #}
+                #stage_out.append(info_local)
+                download_output.append(new_info)
 
             if self.down_mdout == True:
-                output_local = {
-                    'source':   output_file,
-                    'target':   output_file,
-                    'action':   rp.TRANSFER
-                }
-                stage_out.append(output_local)
+                #output_local = {
+                #    'source':   output_file,
+                #    'target':   output_file,
+                #    'action':   rp.TRANSFER
+                #}
+                #stage_out.append(output_local)
+                download_output.append(output_file)
 
             replica_path = "replica_%d/" % (rid)
 
-            new_coor_out = {
-                'source': new_coor,
-                'target': 'staging:///%s' % (replica_path + new_coor),
-                'action': rp.COPY
-            }
-            stage_out.append(new_coor_out)
+            #new_coor_out = {
+            #    'source': new_coor,
+            #    'target': 'staging:///%s' % (replica_path + new_coor),
+            #    'action': rp.COPY
+            #}
+            #stage_out.append(new_coor_out)
+            new_c = replica_path + new_coor
+            copy_output.append(new_coor+ ' > ' + new_c)
 
             if self.us_template != '':
                 out_string = "_%d.out" % (replica.cycle)
-                rstr_out = {
-                    'source': (replica.new_restraints + '.out'),
-                    'target': 'staging:///%s' % (replica_path + \
-                                                 replica.new_restraints + \
-                                                 out_string),
-                    'action': rp.COPY
-                }
-                stage_out.append(rstr_out)
+                #rstr_out = {
+                #    'source': (replica.new_restraints + '.out'),
+                #    'target': 'staging:///%s' % (replica_path + \
+                #                                 replica.new_restraints + \
+                #                                 out_string),
+                #    'action': rp.COPY
+                #}
+                #stage_out.append(rstr_out)
+                old_r = replica.new_restraints + '.out'
+                new_r = replica_path + replica.new_restraints + out_string
+                copy_output.append(old_r + ' > ' + new_r)
             
             matrix_col = "matrix_column_%s_%s.dat" % (str(group_id), \
                                                       str(replica.cycle))
-            matrix_col_out = {
-                'source': matrix_col,
-                'target': 'staging:///%s' % (matrix_col),
-                'action': rp.COPY
-            }
-            stage_out.append(matrix_col_out)
+            #matrix_col_out = {
+            #    'source': matrix_col,
+            #    'target': 'staging:///%s' % (matrix_col),
+            #    'action': rp.COPY
+            #}
+            #stage_out.append(matrix_col_out)
+            copy_output.append(matrix_col)
 
             if self.copy_mdinfo == True:
-                info_out = {
-                    'source': new_info,
-                    'target': 'staging:///%s' % (replica_path + new_info),
-                    'action': rp.COPY
-                }
-                stage_out.append(info_out)
+                #info_out = {
+                #    'source': new_info,
+                #    'target': 'staging:///%s' % (replica_path + new_info),
+                #    'action': rp.COPY
+                #}
+                #stage_out.append(info_out)
+                new_i = replica_path + new_info
+                copy_output.append(new_info + ' > ' + new_i)
 
             #-------------------------------------------------------------------
             
@@ -1395,18 +1469,17 @@ class AmmAmber(object):
                     "new_rstr" : str(replica.new_restraints[len_substr:]),
                     "r_coor" : str(replica.coor_file[len_substr:])
                     }
-
-            base_restraint = self.us_template + "."
             
             #-------------------------------------------------------------------
             if replica.cycle == 0:    
-                restraints_out = replica.new_restraints
-                restraints_out_st = {
-                    'source': (replica.new_restraints),
-                    'target': 'staging:///%s' % (replica.new_restraints),
-                    'action': rp.COPY
-                }
-                stage_out.append(restraints_out_st)
+                #restraints_out = replica.new_restraints
+                #restraints_out_st = {
+                #    'source': (replica.new_restraints),
+                #    'target': 'staging:///%s' % (replica.new_restraints),
+                #    'action': rp.COPY
+                #}
+                #stage_out.append(restraints_out_st)
+                copy_output.append(replica.new_restraints)
 
                 if self.same_coordinates == False: 
                     #-----------------------------------------------------------         
@@ -1414,21 +1487,24 @@ class AmmAmber(object):
                     repl_coor = replica.coor_file
                     # index of replica_coor
                     c_index = self.shared_files.index(repl_coor) 
-                    stage_in.append(sd_shared_list[c_index])
+                    copy_input.append(sd_shared_list[c_index])
             else:
                 #---------------------------------------------------------------
                 # restraint file
-                restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
-                                    'target': replica.new_restraints,
-                                    'action': rp.COPY
-                }
-                stage_in.append(restraints_in_st)
+                #restraints_in_st = {'source': 'staging:///%s' % replica.new_restraints,
+                #                    'target': replica.new_restraints,
+                #                    'action': rp.COPY
+                #}
+                #stage_in.append(restraints_in_st)
+                copy_input.append(replica.new_restraints)
 
-                old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
-                               'target': (old_coor),
-                               'action': rp.LINK
-                }
-                stage_in.append(old_coor_st)
+                #old_coor_st = {'source': 'staging:///%s' % (replica_path + old_coor),
+                #               'target': (old_coor),
+                #               'action': rp.LINK
+                #}
+                #stage_in.append(old_coor_st)
+                old_c = replica_path + old_coor
+                copy_input.append(old_c + ' > ' + old_coor)
 
             replica.cycle += 1
         #-----------------------------------------------------------------------
@@ -1437,29 +1513,28 @@ class AmmAmber(object):
         json_data_bash = dump_data.replace("\\", "")
         json_data_sh   = dump_data.replace("\"", "\\\\\"")
 
-        cu = rp.ComputeUnitDescription()
+        #cu = rp.ComputeUnitDescription()
+        k          = Kernel(name="misc.exec_single")
+        k.cores    = len(group)
+        k.uses_mpi = True
+        k.pre_exec = self.pre_exec
+        k.copy_input_data  = copy_input
+        k.copy_output_data = copy_output
 
         if (self.dims[dim_str]['type'] == 'umbrella'):
-            if KERNELS[self.resource]["shell"] == "bash":
-                exec_str = "python matrix_calculator_us_ex_mpi.py "
-                cu.executable = exec_str + "\'" + json_data_bash + "\'"
-            elif KERNELS[self.resource]["shell"] == "bourne":
-                cu.executable = exec_str + "\'" + json_data_sh + "\'"
+            exec_str = "python matrix_calculator_us_ex_mpi.py " + "\'" + json_data_bash + "\'"
 
         if (self.dims[dim_str]['type'] == 'temperature'):
-            exec_str = "python matrix_calculator_temp_ex_mpi.py "
-            if KERNELS[self.resource]["shell"] == "bash":
-                cu.executable = exec_str + "\'" + json_data_bash + "\'"
-            elif KERNELS[self.resource]["shell"] == "bourne":
-                cu.executable = exec_str + "\'" + json_data_sh + "\'"
+            exec_str = "python matrix_calculator_temp_ex_mpi.py " + "\'" + json_data_bash + "\'"
+            
+        k.arguments = ["--exec1=" + exec_str]
+        #cu.pre_exec = self.pre_exec
+        #cu.input_staging = stage_in
+        #cu.output_staging = stage_out
+        #cu.cores = len(group)
+        #cu.mpi = True
 
-        cu.pre_exec = self.pre_exec
-        cu.input_staging = stage_in
-        cu.output_staging = stage_out
-        cu.cores = len(group)
-        cu.mpi = True
-
-        return cu
+        return k
 
     #---------------------------------------------------------------------------
     #
@@ -1505,8 +1580,9 @@ class AmmAmber(object):
         for repl in group:
             current_group.append( repl.id )
         
-        cu = rp.ComputeUnitDescription()
+        #cu = rp.ComputeUnitDescription()
         
+
         current_group_tsu = {}
         for repl in group:
             # no temperature exchange
@@ -1542,22 +1618,24 @@ class AmmAmber(object):
         dump_data = json.dumps(data)
         json_data = dump_data.replace("\\", "")
 
+        k = Kernel(name="md.amber")
+
         salt_pre_exec = ["python salt_conc_pre_exec.py " + \
                          "\'" + \
                          json_data + "\'"]
-        cu.pre_exec = self.pre_exec + salt_pre_exec
-        cu.executable = self.amber_path_mpi
+        k.pre_exec = self.pre_exec + salt_pre_exec
+        #cu.executable = self.amber_path_mpi
         salt_post_exec = ["python salt_conc_post_exec.py " + \
                           "\'" + \
                           json_data + "\'"]
-        cu.post_exec = salt_post_exec
+        k.post_exec = salt_post_exec
 
         rid = replica.id
-        in_list = []
-        in_list.append(sd_shared_list[0])
-        in_list.append(sd_shared_list[1])
-        in_list.append(sd_shared_list[9])
-        in_list.append(sd_shared_list[10])
+        copy_input = list()
+        copy_input.append(sd_shared_list[0])
+        copy_input.append(sd_shared_list[1])
+        copy_input.append(sd_shared_list[9])
+        copy_input.append(sd_shared_list[10])
 
         if (self.umbrella == True) and (self.us_template != ''):
             # copying .RST files from staging area to replica folder
@@ -1568,30 +1646,39 @@ class AmmAmber(object):
 
             for rsid in rst_group:
                 rst_file = self.us_template + '.' + str(rsid)
-                rstr_in = {
-                    'source': 'staging:///%s' % (rst_file),
-                    'target': rst_file,
-                    'action': rp.COPY
-                }
-                in_list.append(rstr_in)
+                #rstr_in = {
+                #    'source': 'staging:///%s' % (rst_file),
+                #    'target': rst_file,
+                #    'action': rp.COPY
+                #}
+                #in_list.append(rstr_in)
+                copy_input.append(rst_file)
   
-        out_list = []
-        matrix_col_out = {
-            'source': matrix_col,
-            'target': 'staging:///%s' % (matrix_col),
-            'action': rp.COPY
-        }
-        out_list.append(matrix_col_out)
+        #out_list = []
+        copy_output = list()
+        #matrix_col_out = {
+        #    'source': matrix_col,
+        #    'target': 'staging:///%s' % (matrix_col),
+        #    'action': rp.COPY
+        #}
+        #out_list.append(matrix_col_out)
+        copy_output.append(matrix_col_out)
 
         gr_size = self.dims[dim_str]['replicas']
 
-        cu.input_staging = in_list
-        cu.arguments = ['-ng', str(gr_size), '-groupfile', 'groupfile']
-        cu.cores = gr_size
-        cu.mpi = True
-        cu.output_staging = out_list   
+        k.copy_input_data  = copy_input
+        k.copy_output_data = copy_output
+        k.cores            = gr_size
+        k.uses_mpi         = True
+        k.arguments         = ["--ng=" + str(gr_size),
+                               "--groupfile=" + 'groupfile']
+        #cu.input_staging = in_list
+        #cu.arguments = ['-ng', str(gr_size), '-groupfile', 'groupfile']
+        #cu.cores = gr_size
+        #cu.mpi = True
+        #cu.output_staging = out_list   
 
-        return cu
+        return k
 
     #---------------------------------------------------------------------------
     #
@@ -1634,8 +1721,8 @@ class AmmAmber(object):
             RPs compute unit
         """
 
-        stage_out = []
-        stage_in = []
+        copy_output = list()
+        copy_input  = list()
 
         if self.nr_dims == 3:
             d1_type = self.dims['d1']['type']
@@ -1668,58 +1755,62 @@ class AmmAmber(object):
         
         if self.group_exec == True:
             # global_ex_calculator_gr.py file
-            stage_in.append(sd_shared_list[4])
+            copy_input.append(sd_shared_list[4])
         elif self.exchange_mpi == False:
             if (self.dims[dim_str]['type'] == 'temperature'): 
                 # global_ex_calculator_temp_ex.py file
-                stage_in.append(sd_shared_list[6])
+                copy_input.append(sd_shared_list[6])
             if (self.dims[dim_str]['type'] == 'umbrella'):
                 # global_ex_calculator_us_ex.py file
-                stage_in.append(sd_shared_list[7])
+                copy_input.append(sd_shared_list[7])
             if (self.dims[dim_str]['type'] == 'salt'):
                 # global_ex_calculator.py file
-                stage_in.append(sd_shared_list[5])
+                copy_input.append(sd_shared_list[5])
 
         outfile = "pairs_for_exchange_{dim}_{cycle}.dat".format(dim=dim_int, \
                                                                 cycle=current_cycle)
-        stage_out.append(outfile)
+        copy_output.append(outfile)
 
-        cu = rp.ComputeUnitDescription()
+        #cu = rp.ComputeUnitDescription()
+        k = Kernel(name="misc.exec_single")
 
         if (self.exchange_mpi == True): 
             if (self.dims[dim_str]['type'] == 'temperature'):
                 # global_ex_calculator_tex_mpi.py file
-                stage_in.append(sd_shared_list[2])
+                copy_input.append(sd_shared_list[2])
 
-                cu.pre_exec = self.pre_exec
-                cu.executable = "python"
-                cu.input_staging  = stage_in
-                cu.arguments = ["global_ex_calculator_tex_mpi.py", \
-                                 str(cycle), \
-                                 str(self.replicas), \
-                                 str(self.inp_basename)]
+                k.pre_exec = self.pre_exec
+                k.copy_input_data  = copy_input
+                k.copy_output_data = copy_output
+                k.uses_mpi = True
+
+                #cu.executable = "python"
+                #cu.arguments = ["global_ex_calculator_tex_mpi.py", \
+                #                 str(cycle), \
+                #                 str(self.replicas), \
+                #                 str(self.inp_basename)]
+
+                exec_str = "python global_ex_calculator_tex_mpi.py " + str(cycle) + " " + str(self.replicas) + " " + str(self.inp_basename)
+                k.arguments = ["--exec1=" + exec_str]
 
                 if self.cores < self.replicas:
                     if self.exchange_mpi_cores != 0:
                         if self.replicas % self.exchange_mpi_cores == 0:
-                            cu.cores = self.exchange_mpi_cores
+                            k.cores = self.exchange_mpi_cores
                     elif (self.replicas % self.cores) == 0:
-                        cu.cores = self.cores
+                        k.cores = self.cores
                     else:
                         self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                         self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                         sys.exit()
         
                 elif self.cores >= self.replicas:
-                    cu.cores = self.replicas
+                    k.cores = self.replicas
                 else:
                     self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                     self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                     sys.exit()
                 
-                cu.mpi = True         
-                cu.output_staging = stage_out
-
             elif (self.dims[dim_str]['type'] == 'umbrella'):
                 all_restraints = {}
                 all_temperatures = {}
@@ -1738,12 +1829,21 @@ class AmmAmber(object):
                 json_data_us = dump_data.replace("\\", "")
 
                 # global_ex_calculator_us_mpi.py file
-                stage_in.append(sd_shared_list[3])
+                copy_input.append(sd_shared_list[3])
 
-                cu.pre_exec = self.pre_exec
-                cu.executable = "python"
-                cu.input_staging  = stage_in
-                cu.arguments = ["global_ex_calculator_us_mpi.py", json_data_us]
+                k.pre_exec         = self.pre_exec
+                k.copy_input_data  = copy_input
+                k.copy_output_data = copy_output
+                k.uses_mpi = True
+
+                exec_str = "python global_ex_calculator_tex_mpi.py " + json_data_us
+                k.arguments = ["--exec1=" + exec_str]
+
+                #cu.executable = "python"
+                #cu.input_staging  = stage_in
+                #cu.arguments = ["global_ex_calculator_us_mpi.py", json_data_us]
+                #cu.mpi = True         
+                #cu.output_staging = stage_out
 
                 if self.cores < self.replicas:
                     if (self.replicas % self.cores) != 0:
@@ -1751,52 +1851,82 @@ class AmmAmber(object):
                         self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                         sys.exit()
                     else:
-                        cu.cores = self.cores
+                        k.cores = self.cores
                 elif self.cores >= self.replicas:
-                    cu.cores = self.replicas
+                    k.cores = self.replicas
                 else:
                     self.logger.info("Number of replicas must be divisible by the number of Pilot cores!")
                     self.logger.info("pilot cores: {0}; replicas {1}".format(self.cores, self.replicas))
                     sys.exit()
-                cu.mpi = True         
-                cu.output_staging = stage_out
         else:
             if (self.dims[dim_str]['type'] == 'temperature'):
-                cu.pre_exec = self.pre_exec
-                cu.executable = "python"
-                cu.input_staging  = stage_in
+
                 if self.group_exec == True:
-                    cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
+                    #cu.arguments = ["global_ex_calculator_gr.py", json_data_single]   
+                    exec_str = "python global_ex_calculator_gr.py " + json_data_single          
                 else:
-                    cu.arguments = ["global_ex_calculator_temp_ex.py", json_data_single]                 
-                cu.cores = 1
-                cu.mpi = False            
-                cu.output_staging = stage_out
+                    #cu.arguments = ["global_ex_calculator_temp_ex.py", json_data_single]  
+                    exec_str = "python global_ex_calculator_temp_ex.py " + json_data_single   
+
+                k.arguments        = ["--exec1=" + exec_str]
+                k.pre_exec         = self.pre_exec
+                k.copy_input_data  = copy_input
+                k.copy_output_data = copy_output
+                k.uses_mpi         = False
+                k.cores            = 1
+
+                #cu.pre_exec = self.pre_exec
+                #cu.executable = "python"
+                #cu.input_staging  = stage_in
+                #cu.cores = 1
+                #cu.mpi = False            
+                #cu.output_staging = stage_out
 
             elif (self.dims[dim_str]['type'] == 'umbrella'):
-                cu.pre_exec = self.pre_exec
-                cu.executable = "python"
-                cu.input_staging  = stage_in
-                if self.group_exec == True:
-                    cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
-                else:
-                    cu.arguments = ["global_ex_calculator_us_ex.py", json_data_single]                 
-                cu.cores = 1
-                cu.mpi = False            
-                cu.output_staging = stage_out
-            else:
-                cu.pre_exec = self.pre_exec
-                cu.executable = "python"
-                cu.input_staging  = stage_in
-                if self.group_exec == True:
-                    cu.arguments = ["global_ex_calculator_gr.py", json_data_single]            
-                else:
-                    cu.arguments = ["global_ex_calculator.py", json_data_single]                 
-                cu.cores = 1
-                cu.mpi = False            
-                cu.output_staging = stage_out
+                #cu.pre_exec = self.pre_exec
+                #cu.executable = "python"
+                #cu.input_staging  = stage_in
+                #cu.cores = 1
+                #cu.mpi = False            
+                #cu.output_staging = stage_out
 
-        return cu
+                if self.group_exec == True:
+                    #cu.arguments = ["global_ex_calculator_gr.py", json_data_single]    
+                    exec_str = "python global_ex_calculator_gr.py " + json_data_single           
+                else:
+                    #cu.arguments = ["global_ex_calculator_us_ex.py", json_data_single] 
+                    exec_str = "python global_ex_calculator_us_ex.py " + json_data_single
+
+                k.arguments        = ["--exec1=" + exec_str]
+                k.pre_exec         = self.pre_exec
+                k.copy_input_data  = copy_input
+                k.copy_output_data = copy_output
+                k.uses_mpi         = False
+                k.cores            = 1             
+                
+            else:
+                #cu.pre_exec = self.pre_exec
+                #cu.executable = "python"
+                #cu.input_staging  = stage_in
+                #cu.cores = 1
+                #cu.mpi = False            
+                #cu.output_staging = stage_out
+
+                if self.group_exec == True:
+                    #cu.arguments = ["global_ex_calculator_gr.py", json_data_single]    
+                    exec_str = "python global_ex_calculator_gr.py " + json_data_single         
+                else:
+                    #cu.arguments = ["global_ex_calculator.py", json_data_single]  
+                    exec_str = "python global_ex_calculator.py " + json_data_single               
+                
+                k.arguments        = ["--exec1=" + exec_str]
+                k.pre_exec         = self.pre_exec
+                k.copy_input_data  = copy_input
+                k.copy_output_data = copy_output
+                k.uses_mpi         = False
+                k.cores            = 1  
+
+        return k
 
     #---------------------------------------------------------------------------
     #
