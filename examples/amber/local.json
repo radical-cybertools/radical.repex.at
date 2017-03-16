@@ -1,10 +1,8 @@
 {
-    "target": {
-        "resource": "local.localhost",
-        "username" : "antons",
-        "runtime" : "15",
-        "cleanup" : "False",
-        "cores" : "4",
-        "mongo_url" : "mongodb://localhost:27017/repex-examples"
-    }
+    "resource": "local.localhost",
+    "username" : "antons",
+    "runtime" : "15",
+    "cleanup" : "False",
+    "cores" : "4",
+    "mongo_url" : "mongodb://localhost:27017/repex-examples"
 }

@@ -8,6 +8,7 @@ import sys
 import json
 from os import path
 from radical.ensemblemd import ResourceHandle
+from radical.ensemblemd import EnsemblemdError
 from repex_utils.parser import parse_cmd_repex
 from repex_utils.replica_cleanup import move_output_files
 from application_management_modules.amm_amber import AmmAmber

@@ -51,7 +51,7 @@ class AmmAmber(ReplicaExchange):
             work_dir_local - directory from which main simulation script was invoked
         """
 
-        self.name    = 'AmmAmber.log'
+        #self.name    = 'AmmAmber.log'
         self.logger  = rul.get_logger ('radical.repex', self.name)
 
         self.resource         = rconfig.get('resource')
@@ -212,8 +212,8 @@ class AmmAmber(ReplicaExchange):
 
         #-----------------------------------------------------------------------
 
-        self.pre_exec = KERNELS[self.resource]["kernels"]\
-                        ["amber"].get("pre_execution")
+        #self.pre_exec = KERNELS[self.resource]["kernels"]\
+        #                ["amber"].get("pre_execution")
 
         self.amber_path     = inp_file['remd.input'].get('amber_path')
         self.amber_path_mpi = inp_file['remd.input'].get('amber_path_mpi')
@@ -730,7 +730,8 @@ class AmmAmber(ReplicaExchange):
                                dim_int, 
                                dim_str, 
                                group, 
-                               replica):
+                               replica,
+                               sd_shared_list):
 
         """Prepares RPs compute unit for a given replica to run MD simulation. 
 
@@ -1096,10 +1097,10 @@ class AmmAmber(ReplicaExchange):
             copy_input.append(sd_shared_list[4])
             #-------------------------------------------------------------------
             if (self.replica_mpi == False) and (self.replica_gpu == False):
-                k          = Kernel(name="misc.exec_multiple")
+                k          = Kernel(name="misc.exec_bash")
                 k.cores    = self.replica_cores
                 k.uses_mpi = self.replica_mpi
-                k.pre_exec = self.pre_exec
+                #k.pre_exec = self.pre_exec
 
                 if replica.cycle == 1:
                     argument_str = " -O " + " -i " + new_input_file + \
@@ -1150,10 +1151,12 @@ class AmmAmber(ReplicaExchange):
                                     "--nwinfo="   + new_info]
 
                 if self.dims[dim_str]['type'] != 'salt':
-                    k.pre_exec = self.pre_exec + [pre_exec_str]
+                    #k.pre_exec = self.pre_exec + [pre_exec_str]
+                    k.pre_exec  = [pre_exec_str]
                     k.post_exec = [post_exec_str]
                 else:
-                    k.pre_exec = self.pre_exec + [pre_exec_str]
+                    #k.pre_exec = self.pre_exec + [pre_exec_str]
+                    k.pre_exec = [pre_exec_str]
             #cu.input_staging = stage_in
             k.copy_input_data = copy_input
             #cu.output_staging = stage_out
@@ -1208,10 +1211,10 @@ class AmmAmber(ReplicaExchange):
                                " -x " + new_traj + \
                                " -inf " + new_info
 
-                k          = Kernel(name="misc.exec_multiple")
+                k          = Kernel(name="misc.exec_bash")
                 k.cores    = self.replica_cores
                 k.uses_mpi = self.replica_mpi
-                k.pre_exec = self.pre_exec
+                #k.pre_exec = self.pre_exec
 
                 #cu.pre_exec = self.pre_exec
                 a_str = amber_str + argument_str
@@ -1238,10 +1241,12 @@ class AmmAmber(ReplicaExchange):
 
                 #cu.executable = amber_str + argument_str
                 if self.dims[dim_str]['type'] != 'salt':
-                    k.pre_exec = self.pre_exec + [pre_exec_str]
+                    #k.pre_exec = self.pre_exec + [pre_exec_str]
+                    k.pre_exec  = [pre_exec_str]
                     k.post_exec = [post_exec_str]
                 else:
-                    k.pre_exec = self.pre_exec + [pre_exec_str]
+                    #k.pre_exec = self.pre_exec + [pre_exec_str]
+                    k.pre_exec  = [pre_exec_str]
             #cu.input_staging = stage_in
             k.copy_input_data  = copy_input
             #cu.output_staging = stage_out
@@ -1514,10 +1519,10 @@ class AmmAmber(ReplicaExchange):
         json_data_sh   = dump_data.replace("\"", "\\\\\"")
 
         #cu = rp.ComputeUnitDescription()
-        k          = Kernel(name="misc.exec_single")
+        k          = Kernel(name="misc.exec_mpi")
         k.cores    = len(group)
         k.uses_mpi = True
-        k.pre_exec = self.pre_exec
+        #k.pre_exec = self.pre_exec
         k.copy_input_data  = copy_input
         k.copy_output_data = copy_output
 
@@ -1527,7 +1532,7 @@ class AmmAmber(ReplicaExchange):
         if (self.dims[dim_str]['type'] == 'temperature'):
             exec_str = "python matrix_calculator_temp_ex_mpi.py " + "\'" + json_data_bash + "\'"
             
-        k.arguments = ["--exec1=" + exec_str]
+        k.arguments = ["--exec=" + exec_str]
         #cu.pre_exec = self.pre_exec
         #cu.input_staging = stage_in
         #cu.output_staging = stage_out
@@ -1623,7 +1628,7 @@ class AmmAmber(ReplicaExchange):
         salt_pre_exec = ["python salt_conc_pre_exec.py " + \
                          "\'" + \
                          json_data + "\'"]
-        k.pre_exec = self.pre_exec + salt_pre_exec
+        k.pre_exec = salt_pre_exec
         #cu.executable = self.amber_path_mpi
         salt_post_exec = ["python salt_conc_post_exec.py " + \
                           "\'" + \
@@ -1772,7 +1777,7 @@ class AmmAmber(ReplicaExchange):
         copy_output.append(outfile)
 
         #cu = rp.ComputeUnitDescription()
-        k = Kernel(name="misc.exec_single")
+        k = Kernel(name="misc.exec_mpi")
 
         if (self.exchange_mpi == True): 
             if (self.dims[dim_str]['type'] == 'temperature'):
@@ -2142,6 +2147,9 @@ class AmmAmber(ReplicaExchange):
             all_groups.append([None])
         for r in replicas:
             all_groups[r.group_idx[dim]].append(r)
+
+        for group in all_groups:
+            group.pop(0)
 
         return all_groups
 
