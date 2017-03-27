@@ -19,6 +19,7 @@
         "d1": {
             "type" : "salt",
             "number_of_replicas": "8",
+            "exchange_replica_cores" : "8",
             "min_salt": "0.0",
             "max_salt": "1.0"
         }

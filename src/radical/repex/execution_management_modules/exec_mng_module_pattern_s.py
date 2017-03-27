@@ -239,7 +239,8 @@ class ExecutionManagementModulePatternS(ExecutionManagementModule):
                     self._prof.prof('get_all_groups_end__' + c_str)
 
                     batch = []
-                    r_cores = md_kernel.dims[dim_str[dim_int]]['replicas']
+                    #r_cores = md_kernel.dims[dim_str[dim_int]]['replicas']
+                    r_cores = md_kernel.replica_cores
                     for group in all_groups:
                         if ( (len(batch)+len(group))*r_cores ) <= self.cores:
                             batch.append(group)
