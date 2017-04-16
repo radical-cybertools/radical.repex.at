@@ -1,0 +1,27 @@
+{
+    "remd.input": {
+        "sync": "S",
+        "number_of_cycles": "20",
+        "nr_exchange_neighbors": "1",
+        "input_folder": "s_remd_inputs",
+        "input_file_basename": "ace_ala_nme_remd",
+        "amber_input": "ace_ala_nme.mdin",
+        "amber_parameters": "ace_ala_nme.parm7",
+        "amber_coordinates_folder": "ace_ala_nme_coors",
+        "replica_mpi": "False",
+        "replica_cores": "1",
+        "init_temperature": "300",
+        "steps_per_cycle": "6000",
+        "download_mdinfo": "False",
+        "download_mdout" : "False"
+    },
+    "dim.input": {
+        "d1": {
+            "type" : "salt",
+            "number_of_replicas": "8",
+            "exchange_replica_cores" : "8",
+            "min_salt": "0.0",
+            "max_salt": "1.0"
+        }
+    }
+}

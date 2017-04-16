@@ -1,0 +1,22 @@
+{
+    "remd.input": {
+        "sync": "S",
+        "number_of_cycles": "3",
+        "input_folder": "t_remd_inputs",
+        "input_file_basename": "ala10_remd",
+        "amber_input": "ala10.mdin",
+        "amber_parameters": "ala10.prmtop",
+        "amber_coordinates_folder": "ala10_coors",
+        "steps_per_cycle": "1000",
+        "download_mdinfo": "True",
+        "download_mdout" : "True"
+},
+    "dim.input": {
+        "d1": {
+            "type" : "temperature",
+            "number_of_replicas": "8",
+            "min_temperature": "300.0",
+            "max_temperature": "308.0"
+        }
+    }
+}

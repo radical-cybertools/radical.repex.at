@@ -1,0 +1,48 @@
+{
+    "remd.input": {
+        "sync": "A",
+        "exchange": "TUU-REMD",
+        "number_of_cycles": "999",
+        "input_folder": "tuu_remd_inputs",
+        "input_file_basename": "phos_trans",
+        "amber_input": "phos_trans.mdin",
+        "amber_parameters": "phos_trans.parm7",
+        "amber_coordinates_folder": "phos_trans_coors",
+        "same_coordinates": "True",
+        "us_template": "phos_trans_us.RST",
+        "group_exec": "False",
+        "replica_mpi": "False",
+        "replica_cores": "1",
+        "steps_per_cycle": "100",
+        "wait_ratio": "0.5",
+        "download_mdinfo": "False",
+        "download_mdout" : "False",
+        "restart" : "False"
+        },
+    "dim.input": {
+        "d1": {
+            "type": "umbrella",
+            "number_of_replicas": "2",
+            "min_us_param": "1.5",
+            "max_us_param": "3.0",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            },
+        "d2": {
+            "type": "temperature",
+            "number_of_replicas": "2",
+            "min_temperature": "353",
+            "max_temperature": "373",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            },
+        "d3": {
+            "type": "umbrella",
+            "number_of_replicas": "2",
+            "min_us_param": "1.5",
+            "max_us_param": "3.0",
+            "exchange_replica_cores" : "1",
+            "exchange_replica_mpi": "False"
+            }    
+    }
+}

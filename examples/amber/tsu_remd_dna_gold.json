@@ -1,0 +1,38 @@
+{
+    "remd.input": {
+        "sync": "S",
+        "exchange": "TSU-REMD",
+        "number_of_cycles": "2",
+        "input_folder": "tsu_remd_inputs",
+        "input_file_basename": "dna_gold_remd",
+        "amber_input": "dna_gold.mdin",
+        "amber_parameters": "dna_gold.parm7",
+        "amber_coordinates_folder": "dna_gold_coors",
+        "same_coordinates" : "False",
+        "us_template": "dna_gold_us.RST",
+        "replica_mpi": "False",
+        "replica_cores": "1",
+        "steps_per_cycle": "1000",
+        "exchange_off" : "False",
+        "download_mdinfo": "False",
+        "download_mdout" : "False"
+        },
+    "dim.input": {
+        "temperature_1": {
+            "number_of_replicas": "2",
+            "min_temperature": "288",
+            "max_temperature": "450"
+            },
+        "salt_concentration_2": {
+            "number_of_replicas": "2",
+            "exchange_replica_cores" : "2",
+            "min_salt": "0.0",
+            "max_salt": "0.15"
+            },
+        "umbrella_sampling_3": {
+            "number_of_replicas": "8",
+            "us_start_param": "45",
+            "us_end_param": "85"
+            }    
+    }
+}

@@ -215,18 +215,18 @@ class AmmAmber(ReplicaExchange):
         #self.pre_exec = KERNELS[self.resource]["kernels"]\
         #                ["amber"].get("pre_execution")
 
-        self.amber_path     = inp_file['remd.input'].get('amber_path')
-        self.amber_path_mpi = inp_file['remd.input'].get('amber_path_mpi')
-        if self.amber_path == None:
-            self.logger.info("Using default Amber path for: {0}".format(rconfig.get('resource')))
-            self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
-            self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
-            self.amber_path_gpu = KERNELS[self.resource]["kernels"]["amber"].get("executable_gpu")
-        if self.amber_path == None:
-            self.logger.info("Amber (sander) path can't be found, looking for sander.MPI")
-            if self.amber_path_mpi == None:
-                self.logger.info("Amber (sander.MPI) path can't be found, exiting...")
-            sys.exit(1)
+        #self.amber_path     = inp_file['remd.input'].get('amber_path')
+        #self.amber_path_mpi = inp_file['remd.input'].get('amber_path_mpi')
+        #if self.amber_path == None:
+        #    self.logger.info("Using default Amber path for: {0}".format(rconfig.get('resource')))
+        #    self.amber_path = KERNELS[self.resource]["kernels"]["amber"].get("executable")
+        #    self.amber_path_mpi = KERNELS[self.resource]["kernels"]["amber"].get("executable_mpi")
+        #    self.amber_path_gpu = KERNELS[self.resource]["kernels"]["amber"].get("executable_gpu")
+        #if self.amber_path == None:
+        #    self.logger.info("Amber (sander) path can't be found, looking for sander.MPI")
+        #    if self.amber_path_mpi == None:
+        #        self.logger.info("Amber (sander.MPI) path can't be found, exiting...")
+        #    sys.exit(1)
 
         self.shared_urls = []
         self.shared_files = []     
@@ -361,6 +361,10 @@ class AmmAmber(ReplicaExchange):
         self.restart_object = Restart()
 
         # parse coor file
+        print "self.work_dir_local: {0}".format(self.work_dir_local)
+        print "self.input_folder: {0}".format(self.input_folder)
+        print "self.amber_coordinates_path: {0}".format(self.amber_coordinates_path)
+
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         coor_list  = listdir(coor_path)
         base = coor_list[0]
@@ -977,6 +981,7 @@ class AmmAmber(ReplicaExchange):
             json_post_data_bash = dump_data.replace("\\", "")
             json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
         
+        k = Kernel(name="md.amber")
         if self.dims[dim_str]['type'] == 'salt':
             # 
             current_group_tsu = {}
@@ -997,7 +1002,7 @@ class AmmAmber(ReplicaExchange):
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
                 "init_temp" : str(replica.dims[dim_str]['par']),
-                "amber_path" : str(self.amber_path),
+                "amber_path" : str(k.executable),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": "../staging_area/"+str(self.amber_parameters),
                 "current_group_tsu" : current_group_tsu, 
@@ -1011,11 +1016,11 @@ class AmmAmber(ReplicaExchange):
         #-----------------------------------------------------------------------
         
         if (self.replica_gpu == True):
-            amber_str = self.amber_path_gpu
+            amber_str = k.executable_gpu
         elif (self.replica_mpi == True):
-            amber_str = self.amber_path_mpi
+            amber_str = k.executable_mpi
         else:
-            amber_str = self.amber_path
+            amber_str = k.executable
         
         if self.dims[dim_str]['type'] == 'temperature' and self.exchange_mpi == False:
             # matrix_calculator_temp_ex.py
@@ -1128,7 +1133,7 @@ class AmmAmber(ReplicaExchange):
                     k.arguments = ["--exec1=" + pre_exec_str,
                                    "--exec2=" + a_str]
             else:
-                k          = Kernel(name="md.amber")
+                #k          = Kernel(name="md.amber")
                 k.cores    = self.replica_cores
                 k.uses_mpi = self.replica_mpi
 
@@ -1227,7 +1232,7 @@ class AmmAmber(ReplicaExchange):
                                    "--exec2=" + a_str]
 
             else:
-                k          = Kernel(name="md.amber")
+                #k          = Kernel(name="md.amber")
                 k.cores    = self.replica_cores
                 k.uses_mpi = self.replica_mpi
 

@@ -1,0 +1,31 @@
+NVT equilibration
+ &cntrl
+  imin = 0,
+  ntx = @ntx@,
+  irest = @irest@,
+  ntpr = @nstlim@,
+  ntwr = @nstlim@,
+  ntwx = @nstlim@,
+  ntf = 2, 
+  ntc = 2,
+  ntb = 0,
+  igb=1,
+  cut = 999.0,
+  nstlim = @nstlim@,
+  dt = 0.001,
+  extdiel=81.946,
+  saltcon=@salt@,
+  temp0 = @temp@,
+  ntt = 3,
+  gamma_ln=5.0,
+  ig=-1,
+  nmropt=1
+ /
+ &wt
+  type='DUMPFREQ', istep1=10,
+ /
+ &wt
+   type='END'
+ /
+DISANG=@disang@
+DUMPAVE=@disang@.out
