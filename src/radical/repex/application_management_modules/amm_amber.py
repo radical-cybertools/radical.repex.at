@@ -360,11 +360,6 @@ class AmmAmber(ReplicaExchange):
         """
         self.restart_object = Restart()
 
-        # parse coor file
-        print "self.work_dir_local: {0}".format(self.work_dir_local)
-        print "self.input_folder: {0}".format(self.input_folder)
-        print "self.amber_coordinates_path: {0}".format(self.amber_coordinates_path)
-
         coor_path  = self.work_dir_local + "/" + self.input_folder + "/" + self.amber_coordinates_path
         coor_list  = listdir(coor_path)
         base = coor_list[0]
@@ -462,7 +457,10 @@ class AmmAmber(ReplicaExchange):
             for i in range(self.dims['d1']['replicas']):
                 rid = i
 
-                r = self.restraints_files[rid]
+                if self.dims['d1']['type'] == 'umbrella':
+                    r = self.restraints_files[rid]
+                else:
+                    r = None
                 if self.same_coordinates == False:
                     coor_file = self.coor_basename
                     if self.dims['d1']['type'] == 'umbrella':
@@ -471,10 +469,10 @@ class AmmAmber(ReplicaExchange):
                     coor_file = self.coor_basename + ".0"
 
                 re = Replica(rid, \
-                            new_restraints=r, \
-                            coor=coor_file,
+                            coor=coor_file, \
                             d1_param=float(dim_params['d1'][i]), \
                             d1_type = self.dims['d1']['type'], \
+                            new_restraints=r, \
                             nr_dims = self.nr_dims)
                 replicas.append(re)
 
@@ -586,7 +584,7 @@ class AmmAmber(ReplicaExchange):
                
     #---------------------------------------------------------------------------
     #
-    def prepare_shared_data(self, replicas):
+    def prepare_shared_data(self):
         """Populates shared_files list (an attribute of this AMM) with names 
         of the input files which must be transferred to the remote system for 
         a given simulation. Populates shared_urls list (an attribute of this 
@@ -656,6 +654,7 @@ class AmmAmber(ReplicaExchange):
         self.shared_files.append("salt_conc_pre_exec.py")
         self.shared_files.append("salt_conc_post_exec.py")
 
+        replicas = self.replica_objects
         if self.same_coordinates == False:
             for repl in replicas:
                 if repl.coor_file not in self.shared_files:
@@ -825,7 +824,7 @@ class AmmAmber(ReplicaExchange):
         #    'action': rp.COPY
         #}
         #stage_out.append(new_coor_out)
-        copy_output.append(new_coor)
+        copy_output.append(str(new_coor))
 
         if (self.umbrella == True) and (self.us_template != ''):
             out_string = "_%d.out" % (replica.cycle-1)
@@ -840,7 +839,7 @@ class AmmAmber(ReplicaExchange):
             #    'action': rp.COPY
             #}
             #stage_out.append(new_r)
-            copy_output.append(old_r + ' > ' + new_r)
+            copy_output.append(str(old_r + ' > ' + new_r))
         
         if self.dims[dim_str]['type'] == 'salt':
             #info_out = {
@@ -851,7 +850,7 @@ class AmmAmber(ReplicaExchange):
             #stage_out.append(info_out)
             new_i = replica_path + new_info
 
-            copy_output.append(new_info + ' > ' + new_i)
+            copy_output.append(str(new_info + ' > ' + new_i))
 
         current_group = []
         for repl in group:
@@ -981,7 +980,9 @@ class AmmAmber(ReplicaExchange):
             json_post_data_bash = dump_data.replace("\\", "")
             json_post_data_sh   = dump_data.replace("\"", "\\\\\"")
         
-        k = Kernel(name="md.amber")
+        a = Kernel(name="md.amber")
+        amber_str = a._cu_def_executable
+
         if self.dims[dim_str]['type'] == 'salt':
             # 
             current_group_tsu = {}
@@ -1002,7 +1003,7 @@ class AmmAmber(ReplicaExchange):
                 "replicas" : str(self.replicas),
                 "base_name" : str(basename),
                 "init_temp" : str(replica.dims[dim_str]['par']),
-                "amber_path" : str(k.executable),
+                "amber_path" : str(a._cu_def_executable),
                 "amber_input" : str(self.amber_input),
                 "amber_parameters": "../staging_area/"+str(self.amber_parameters),
                 "current_group_tsu" : current_group_tsu, 
@@ -1016,11 +1017,11 @@ class AmmAmber(ReplicaExchange):
         #-----------------------------------------------------------------------
         
         if (self.replica_gpu == True):
-            amber_str = k.executable_gpu
+            amber_str = a._cu_def_executable_gpu
         elif (self.replica_mpi == True):
-            amber_str = k.executable_mpi
+            amber_str = a._cu_def_executable_mpi
         else:
-            amber_str = k.executable
+            amber_str = a._cu_def_executable
         
         if self.dims[dim_str]['type'] == 'temperature' and self.exchange_mpi == False:
             # matrix_calculator_temp_ex.py
@@ -1070,7 +1071,7 @@ class AmmAmber(ReplicaExchange):
                 #    'action': rp.COPY
                 #}
                 #stage_out.append(restraints_out_st)
-                copy_output.append(replica.new_restraints)
+                copy_output.append(str(replica.new_restraints))
 
                 # restraint template file: ace_ala_nme_us.RST
                 #stage_in.append(sd_shared_list[8])
@@ -1124,7 +1125,10 @@ class AmmAmber(ReplicaExchange):
                                    " -x " + new_traj + \
                                    " -inf " + new_info
 
-                a_str = amber_str + argument_str
+                print "amber_str: {0}".format(amber_str)
+                print "argument_str: {0}".format(argument_str)
+
+                a_str = str(amber_str) + str(argument_str)
                 if self.dims[dim_str]['type'] != 'salt':
                     k.arguments = ["--exec1=" + pre_exec_str,
                                    "--exec2=" + a_str,
@@ -1165,6 +1169,8 @@ class AmmAmber(ReplicaExchange):
             #cu.input_staging = stage_in
             k.copy_input_data = copy_input
             #cu.output_staging = stage_out
+
+            print "copy_output: {0}".format(copy_output)
             k.copy_output_data = copy_output
 
         else:
@@ -1537,7 +1543,7 @@ class AmmAmber(ReplicaExchange):
         if (self.dims[dim_str]['type'] == 'temperature'):
             exec_str = "python matrix_calculator_temp_ex_mpi.py " + "\'" + json_data_bash + "\'"
             
-        k.arguments = ["--exec=" + exec_str]
+        k.arguments = ["--exec1=" + exec_str]
         #cu.pre_exec = self.pre_exec
         #cu.input_staging = stage_in
         #cu.output_staging = stage_out
@@ -1696,7 +1702,6 @@ class AmmAmber(ReplicaExchange):
                                current_cycle, 
                                dim_int, 
                                dim_str, 
-                               replicas, 
                                sd_shared_list):
 
         """Prepares RPs compute unit for the final stage of exchange procedure.
@@ -1730,6 +1735,8 @@ class AmmAmber(ReplicaExchange):
         Returns:
             RPs compute unit
         """
+
+        replicas = self.replica_objects
 
         copy_output = list()
         copy_input  = list()
@@ -1789,7 +1796,7 @@ class AmmAmber(ReplicaExchange):
                 # global_ex_calculator_tex_mpi.py file
                 copy_input.append(sd_shared_list[2])
 
-                k.pre_exec = self.pre_exec
+                #k.pre_exec = self.pre_exec
                 k.copy_input_data  = copy_input
                 k.copy_output_data = copy_output
                 k.uses_mpi = True
@@ -1841,7 +1848,7 @@ class AmmAmber(ReplicaExchange):
                 # global_ex_calculator_us_mpi.py file
                 copy_input.append(sd_shared_list[3])
 
-                k.pre_exec         = self.pre_exec
+                #k.pre_exec         = self.pre_exec
                 k.copy_input_data  = copy_input
                 k.copy_output_data = copy_output
                 k.uses_mpi = True
@@ -1879,7 +1886,7 @@ class AmmAmber(ReplicaExchange):
                     exec_str = "python global_ex_calculator_temp_ex.py " + json_data_single   
 
                 k.arguments        = ["--exec1=" + exec_str]
-                k.pre_exec         = self.pre_exec
+                #k.pre_exec         = self.pre_exec
                 k.copy_input_data  = copy_input
                 k.copy_output_data = copy_output
                 k.uses_mpi         = False
@@ -1908,7 +1915,7 @@ class AmmAmber(ReplicaExchange):
                     exec_str = "python global_ex_calculator_us_ex.py " + json_data_single
 
                 k.arguments        = ["--exec1=" + exec_str]
-                k.pre_exec         = self.pre_exec
+                #k.pre_exec         = self.pre_exec
                 k.copy_input_data  = copy_input
                 k.copy_output_data = copy_output
                 k.uses_mpi         = False
@@ -1930,7 +1937,7 @@ class AmmAmber(ReplicaExchange):
                     exec_str = "python global_ex_calculator.py " + json_data_single               
                 
                 k.arguments        = ["--exec1=" + exec_str]
-                k.pre_exec         = self.pre_exec
+                #k.pre_exec         = self.pre_exec
                 k.copy_input_data  = copy_input
                 k.copy_output_data = copy_output
                 k.uses_mpi         = False
@@ -2107,11 +2114,12 @@ class AmmAmber(ReplicaExchange):
             together based on their group index in the current dimension 
         """
 
-        dim = dim_int-1
+        dim = dim_int
 
-        all_groups = []
+        all_groups = list()
         for i in range(self.groups_numbers[dim]):
             all_groups.append([None])
+
         for r in replicas:
             all_groups[r.group_idx[dim]].append(r.id)
 
@@ -2130,7 +2138,7 @@ class AmmAmber(ReplicaExchange):
 
     #---------------------------------------------------------------------------
     #
-    def get_all_groups(self, dim_int, replicas):
+    def get_all_groups(self, dim_int):
 
         """Composes a 2d list of replicas, which are grouped based on their
         group index in the current dimension
@@ -2145,11 +2153,14 @@ class AmmAmber(ReplicaExchange):
             on their group index in the current dimension 
         """
 
-        dim = dim_int-1
+        replicas = self.replica_objects
 
-        all_groups = []
+        dim = dim_int
+
+        all_groups = list()
         for i in range(self.groups_numbers[dim]):
             all_groups.append([None])
+
         for r in replicas:
             all_groups[r.group_idx[dim]].append(r)
 

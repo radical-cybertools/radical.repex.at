@@ -61,7 +61,7 @@ if __name__ == '__main__':
         amm.add_replicas(replicas)
 
         if (sync == 'S') and (group_exec == 'False'):
-            cluster.run(amm, force_plugin="replica_exchange.static_pattern_3")
+            cluster.run(amm, force_plugin="replica_exchange.static_synchronous")
 
         if (sync == 'A') and (group_exec == 'False'):
             cluster.run(amm, force_plugin="replica_exchange.static_pattern_4")
